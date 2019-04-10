@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 public class GenesisBlockTest {
 
@@ -29,7 +28,7 @@ public class GenesisBlockTest {
         ClassLoader classLoader = getClass().getClassLoader();
 
         File genesisFile = new File(classLoader.getResource("./genesis/genesis.json").getFile());
-        String genesisString = FileUtil.readFileToString(genesisFile, StandardCharsets.UTF_8);
+        String genesisString = FileUtil.readFileToString(genesisFile, FileUtil.DEFAULT_CHARSET);
         Assert.assertNotNull(genesisString);
         log.debug(genesisString);
     }

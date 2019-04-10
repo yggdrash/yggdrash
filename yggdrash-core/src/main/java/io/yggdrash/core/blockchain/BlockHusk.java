@@ -42,8 +42,6 @@ import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
 public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> {
     private static final Logger log = LoggerFactory.getLogger(TransactionHusk.class);
 
-    private static final byte[] EMPTY_BYTE = new byte[32];
-
     private Proto.Block protoBlock;
     private transient Block coreBlock;
     private List<TransactionHusk> body;
@@ -115,10 +113,6 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         } catch (Exception e) {
             throw new NotValidateException(e);
         }
-    }
-
-    public Proto.Block getProtoBlock() {
-        return protoBlock;
     }
 
     public Block getCoreBlock() {

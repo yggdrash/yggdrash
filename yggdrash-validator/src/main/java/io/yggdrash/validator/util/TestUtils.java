@@ -22,24 +22,14 @@ import io.yggdrash.proto.Proto;
 import org.apache.commons.codec.binary.Hex;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE20;
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
-
 public class TestUtils {
-    public static final String YGG_HOME = "testOutput";
 
     private final Wallet wallet;
-    private static byte[] type =
-            ByteBuffer.allocate(8).putInt(0).array();
-    private static byte[] version =
-            ByteBuffer.allocate(8).putInt(0).array();
 
     public TestUtils(Wallet wallet) {
         this.wallet = wallet;
@@ -47,10 +37,6 @@ public class TestUtils {
 
     public Proto.Transaction getTransactionFixture() {
         return Transaction.toProtoTransaction(new Transaction(sampleTxObject(null)));
-    }
-
-    public Proto.Transaction[] getTransactionFixtures() {
-        return new Proto.Transaction[] {getTransactionFixture(), getTransactionFixture()};
     }
 
     public Proto.Block getBlockFixture() {
@@ -102,9 +88,9 @@ public class TestUtils {
 
             TransactionBody txBody = new TransactionBody(jsonArrayTxBody);
             TransactionHeader txHeader = new TransactionHeader(
-                    new byte[20],
-                    new byte[8],
-                    new byte[8],
+                    Constants.EMPTY_BRANCH,
+                    Constants.EMPTY_BYTE8,
+                    Constants.EMPTY_BYTE8,
                     TimeUtils.time(),
                     txBody);
 
@@ -115,9 +101,9 @@ public class TestUtils {
             BlockBody blockBody = new BlockBody(txList);
             BlockHeader blockHeader = new BlockHeader(
                     HashUtil.sha3omit12(txBody.getBodyHash()),
-                    EMPTY_BYTE8,
-                    EMPTY_BYTE8,
-                    EMPTY_BYTE32,
+                    Constants.EMPTY_BYTE8,
+                    Constants.EMPTY_BYTE8,
+                    Constants.EMPTY_HASH,
                     0L,
                     0L,
                     blockBody.getMerkleRoot(),
@@ -368,7 +354,12 @@ public class TestUtils {
         BlockHeader blockHeader;
         try {
             blockHeader = new BlockHeader(
-                    EMPTY_BYTE20, EMPTY_BYTE8, EMPTY_BYTE8, prevBlockHash, index, timestamp,
+                    Constants.EMPTY_BRANCH,
+                    Constants.EMPTY_BYTE8,
+                    Constants.EMPTY_BYTE8,
+                    prevBlockHash,
+                    index,
+                    timestamp,
                     blockBody.getMerkleRoot(), blockBody.length());
 
             byte[] blockSig = wallet.sign(blockHeader.getHashForSigning(), true);
@@ -382,11 +373,11 @@ public class TestUtils {
     }
 
     public JsonObject sampleBlockObject() {
-        return sampleBlockObject(0L, EMPTY_BYTE32);
+        return sampleBlockObject(0L, Constants.EMPTY_HASH);
     }
 
     public JsonObject sampleBlockObject(long index) {
-        return sampleBlockObject(index, EMPTY_BYTE32);
+        return sampleBlockObject(index, Constants.EMPTY_HASH);
     }
 
     public Block sampleBlock() {

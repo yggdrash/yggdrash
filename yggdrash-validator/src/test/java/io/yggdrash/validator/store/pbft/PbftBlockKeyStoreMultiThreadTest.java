@@ -4,6 +4,7 @@ import com.anarsoft.vmlens.concurrent.junit.ConcurrentTestRunner;
 import com.anarsoft.vmlens.concurrent.junit.ThreadCount;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
@@ -25,7 +26,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.config.Constants.PBFT_COMMIT;
 import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
@@ -59,7 +59,7 @@ public class PbftBlockKeyStoreMultiThreadTest {
         wallet3 = new Wallet(null, "/tmp/",
                 "test4" + TimeUtils.time(), "Password1234!");
 
-        this.pbftBlock0 = makePbftBlock(0L, EMPTY_BYTE32);
+        this.pbftBlock0 = makePbftBlock(0L, Constants.EMPTY_HASH);
         this.pbftBlock1 = makePbftBlock(pbftBlock0.getIndex() + 1, pbftBlock0.getHash());
         this.pbftBlock2 = makePbftBlock(pbftBlock1.getIndex() + 1, pbftBlock1.getHash());
         this.pbftBlock3 = makePbftBlock(pbftBlock2.getIndex() + 1, pbftBlock2.getHash());
@@ -120,7 +120,7 @@ public class PbftBlockKeyStoreMultiThreadTest {
     public void putTestMultiThread() {
         long testNumber = 1000;
         for (long l = 0L; l < testNumber; l++) {
-            this.blockKeyStore.put(l, EMPTY_BYTE32);
+            this.blockKeyStore.put(l, Constants.EMPTY_HASH);
         }
         log.debug("blockKeyStore size= " + this.blockKeyStore.size());
         assertEquals(testNumber, this.blockKeyStore.size());

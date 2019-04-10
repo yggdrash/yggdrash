@@ -19,6 +19,7 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.util.TimeUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -59,9 +60,9 @@ public class BlockBodyTest {
         jsonArray.add(jsonObject1);
         jsonArray.add(jsonObject2);
 
-        byte[] chain = new byte[20];
-        byte[] version = new byte[8];
-        byte[] type = new byte[8];
+        byte[] chain = Constants.EMPTY_BRANCH;
+        byte[] version = Constants.EMPTY_BYTE8;
+        byte[] type = Constants.EMPTY_BYTE8;
         long timestamp = TimeUtils.time();
 
         TransactionBody txBody = new TransactionBody(jsonArray);

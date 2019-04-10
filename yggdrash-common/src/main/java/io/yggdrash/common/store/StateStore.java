@@ -4,9 +4,8 @@ import com.google.common.primitives.Longs;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.utils.JsonUtil;
+import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
-
-import java.nio.charset.StandardCharsets;
 
 public class StateStore implements ReadWriterStore<String, JsonObject> {
 
@@ -35,7 +34,7 @@ public class StateStore implements ReadWriterStore<String, JsonObject> {
             byte[] dbSizeByteArray = Longs.toByteArray(this.dbSize);
             db.put(DATABASE_SIZE, dbSizeByteArray);
         }
-        byte[] tempValue = value.toString().getBytes(StandardCharsets.UTF_8);
+        byte[] tempValue = SerializationUtil.serializeJson(value);
         db.put(key.getBytes(), tempValue);
     }
 
@@ -45,7 +44,7 @@ public class StateStore implements ReadWriterStore<String, JsonObject> {
         if (result == null) {
             return null;
         }
-        String tempValue = new String(result, StandardCharsets.UTF_8);
+        String tempValue = SerializationUtil.deserializeString(result);
         return JsonUtil.parseJsonObject(tempValue);
     }
 

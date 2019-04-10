@@ -8,6 +8,7 @@ import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
@@ -22,7 +23,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.FileCopyUtils;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -105,7 +105,7 @@ public class EbftBlockChainMultiThreadTest {
         ClassPathResource cpr = new ClassPathResource("genesis/genesis.json");
         try {
             byte[] bdata = FileCopyUtils.copyToByteArray(cpr.getInputStream());
-            genesisString = new String(bdata, StandardCharsets.UTF_8);
+            genesisString = SerializationUtil.deserializeString(bdata);
             log.debug("geneis: " + genesisString);
         } catch (IOException e) {
             throw new NotValidateException("Error genesisFile");

@@ -28,7 +28,6 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -39,7 +38,7 @@ public class BranchLoaderTest {
     public void setUpBranch() throws IOException {
         File genesisFile = new File(
                 getClass().getClassLoader().getResource("./branch-yggdrash.json").getFile());
-        String genesisString = FileUtil.readFileToString(genesisFile, StandardCharsets.UTF_8);
+        String genesisString = FileUtil.readFileToString(genesisFile, FileUtil.DEFAULT_CHARSET);
         JsonObject branchJson = new JsonParser().parse(genesisString).getAsJsonObject();
         this.branch = Branch.of(branchJson);
     }
@@ -64,10 +63,8 @@ public class BranchLoaderTest {
         BranchLoader loader = new BranchLoader(branchPath);
         Assert.assertTrue(loader.saveBranch(branch));
         // reload branch by branch.json
-        Path targetBranch = Paths.get(branchPath, branch.getBranchId().toString(),
-                BranchLoader.BRANCH_FILE);
-        String reloadBranch = FileUtil.readFileToString(targetBranch.toFile(),
-                StandardCharsets.UTF_8);
+        Path targetBranch = Paths.get(branchPath, branch.getBranchId().toString(), BranchLoader.BRANCH_FILE);
+        String reloadBranch = FileUtil.readFileToString(targetBranch.toFile(), FileUtil.DEFAULT_CHARSET);
         JsonObject branchJson = new JsonParser().parse(reloadBranch).getAsJsonObject();
 
         Assert.assertEquals(Branch.of(branchJson).getBranchId(), branch.getBranchId());

@@ -53,10 +53,8 @@ public class EbftBlockStore implements BlockStore<byte[], EbftBlock> {
         lock.lock();
         try {
             if (!contains(key)) {
-                log.trace("put "
-                        + "(key: " + Hex.toHexString(key) + ")"
-                        + "(blockHash " + value.getHashHex() + ")");
-                db.put(key, value.toBinary());
+                log.trace("put (key: {})(blockHash {})", Hex.toHexString(key), value.getHashHex());
+                db.put(key, value.getData());
                 size++;
             }
         } catch (Exception e) {
@@ -75,7 +73,7 @@ public class EbftBlockStore implements BlockStore<byte[], EbftBlock> {
 
         lock.lock();
         try {
-            log.trace("get " + "(" + Hex.toHexString(key) + ")");
+            log.trace("get ({})", Hex.toHexString(key));
             return new EbftBlock(db.get(key));
         } catch (Exception e) {
             log.debug(e.getMessage());
