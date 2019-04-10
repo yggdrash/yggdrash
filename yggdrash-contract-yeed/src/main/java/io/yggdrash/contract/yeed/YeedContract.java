@@ -106,11 +106,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
         public BigInteger balanceOf(JsonObject params) {
             log.debug("\nbalanceOf :: params => {}", params);
 
-            String address = params.get("address").getAsString().toLowerCase();
-            if (store.get(address) != null) {
-                return getBalance(address);
-            }
-            return BigInteger.ZERO;
+            String address = params.get("address").getAsString();
+            return getBalance(address);
         }
 
         /**
@@ -125,15 +122,11 @@ public class YeedContract implements BundleActivator, ServiceListener {
         @Override
         public BigInteger allowance(JsonObject params) {
             log.debug("\nallowance :: params => {}", params);
-
-            String owner = params.get("owner").getAsString().toLowerCase();
-            String spender = params.get("spender").getAsString().toLowerCase();
+            String owner = params.get("owner").getAsString();
+            String spender = params.get("spender").getAsString();
             String approveKey = approveKey(owner, spender);
 
-            if (store.get(owner) != null && store.get(approveKey) != null) {
-                return getBalance(approveKey);
-            }
-            return BigInteger.ZERO;
+            return getBalance(approveKey);
         }
 
         // check transfer fee
@@ -200,7 +193,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 putBalance(from, fromBalance);
                 // fee account
                 addBalanceTo(txReceipt.getBranchId(), fee);
-                txReceipt.addLog(String.format("Transfer from {} to {} value {} fee {} ",
+                txReceipt.addLog(String.format("Transfer from %s to %s value %s fee %s ",
                         from, to, amount, fee));
                 return true;
             } else {
@@ -305,7 +298,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 log.debug("\nBalance of From ({}) : {}"
                         + "\nBalance of To   ({}) : {}", from, fromValue, to, getBalance(to));
             } else {
-                txReceipt.addLog(String.format("{} has not enough balance", from));
+                txReceipt.addLog(String.format("%s has not enough balance", from));
                 txReceipt.setStatus(ExecuteStatus.FALSE);
             }
             return txReceipt;
@@ -366,24 +359,9 @@ public class YeedContract implements BundleActivator, ServiceListener {
             putBalance(to, balance.add(amount));
         }
 
-        public void saveInitValidator(JsonArray validators) {
-            ValidatorSet validatorSet = JsonUtil.generateJsonToClass(
-                    store.get(PrefixKeyEnum.VALIDATORS.toValue()).toString(), ValidatorSet.class);
-            if (validatorSet != null || validators == null) {
-                return;
-            }
-
-            validatorSet = new ValidatorSet();
-            for (JsonElement validator : validators) {
-                validatorSet.getValidatorMap().put(validator.getAsString(), new Validator(validator.getAsString()));
-            }
-            JsonObject jsonObject = JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet));
-            store.put(PrefixKeyEnum.VALIDATORS.toValue(), jsonObject);
-            return;
-        }
-
-        private BigInteger getBalance(String key) {
-            JsonObject storeValue = store.get(key);
+        private BigInteger getBalance(String address) {
+            address = PrefixKeyEnum.getAccountKey(address);
+            JsonObject storeValue = store.get(address);
             if (storeValue != null && storeValue.has(BALANCE)) {
                 return storeValue.get(BALANCE).getAsBigInteger();
             } else {
@@ -391,17 +369,19 @@ public class YeedContract implements BundleActivator, ServiceListener {
             }
         }
 
-        private void putBalance(String key, BigInteger value) {
+        private void putBalance(String address, BigInteger value) {
             JsonObject storeValue = new JsonObject();
             storeValue.addProperty(BALANCE, value);
-            store.put(key, storeValue);
+            address = PrefixKeyEnum.getAccountKey(address);
+
+            store.put(address, storeValue);
         }
 
 
         private String approveKey(String sender, String spender) {
             byte[] approveKeyByteArray = ByteUtil.merge(sender.getBytes(), spender.getBytes());
             byte[] approveKey = HashUtil.sha3(approveKeyByteArray);
-            return Hex.toHexString(approveKey);
+            return String.format("%s%s", PrefixKeyEnum.APPROVE.toValue(),Hex.toHexString(approveKey));
         }
 
         private boolean isTransferable(BigInteger targetBalance, BigInteger amount) {
@@ -413,35 +393,36 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
 
         // TODO withdraw fee amount by branchId
-
         // Issue InterTransfer Eth(or Token) To YEED
         @InvokeTransaction
         public void issuePropose(JsonObject params) {
-
-            BigInteger stakeYeed = params.get("stake").getAsBigInteger();
+            BigInteger stakeYeed = params.get("stakeYeed").getAsBigInteger();
             BigInteger fee = params.get(FEE).getAsBigInteger();
             String issuer = this.txReceipt.getIssuer();
-            // Check Issuer FEE
+            // TODO Check Issuer FEE and network FEE
 
             // check Issuer has YEED
             BigInteger stakeFee = stakeYeed.add(fee);
             BigInteger balance = getBalance(issuer);
             if (balance.compareTo(stakeFee) < 0) {
-                throw new RuntimeException(String.format("{} has not enough balance", issuer));
+                this.txReceipt.setStatus(ExecuteStatus.ERROR);
+                throw new RuntimeException(String.format("%s has not enough balance", issuer));
             }
 
 
             String txId = this.txReceipt.getTxId();
             String receiveAddress = params.get("receiveAddress").getAsString();
             BigInteger receiveEth = params.get("receiveEth").getAsBigInteger();
-            Integer receiveChainId = params.get("chainId").getAsInt();
-            ProposeType proposeType = ProposeType.fromInteger(params.get("type").getAsInt());
+            Integer receiveChainId = params.get("receiveChainId").getAsInt();
+            ProposeType proposeType = ProposeType.fromInteger(params.get("proposeType").getAsInt());
 
             String senderAddress = null;
             String inputData = null;
-            if (ProposeType.ETHER_TO_YEED.equals(proposeType)) {
+            if (ProposeType.YEED_TO_ETHER.equals(proposeType)) {
                 senderAddress = params.get("senderAddress").getAsString();
-                inputData = null;
+                if (!params.get("inputData").isJsonNull()) {
+                    inputData = params.get("inputData").getAsString();
+                }
             }
             long target = params.get("blockHeight").getAsLong();
 
@@ -450,19 +431,32 @@ public class YeedContract implements BundleActivator, ServiceListener {
                     receiveEth, receiveChainId, proposeType, senderAddress, inputData, stakeYeed,
                     target, fee, issuer);
 
-            String proposeId = propose.getProposeId();
+            String proposeId = String.format("%s%s", PrefixKeyEnum.PROPOSE_INTER_CHAIN.toValue(),
+                    propose.getProposeId());
 
             // Fee is send to Later
-            transfer(issuer, proposeId, stakeFee, BigInteger.ZERO);
+            transfer(issuer, propose.getProposeId(), stakeFee, BigInteger.ZERO);
+            this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
 
-            // TODO Save propose
-
+            log.debug(propose.toJsonObject().toString());
+            // Save propose
+            this.store.put(proposeId, propose.toJsonObject());
+            this.txReceipt.addLog(String.format("Propose %s ISSUED", propose.getProposeId()));
         }
 
+        // TODO get propse
+        @ContractQuery
+        public JsonObject queryPropose(JsonObject param) {
+            String proposeIdParam = param.get("proposeId").getAsString();
+            String proposeId = String.format("%s%s", PrefixKeyEnum.PROPOSE_INTER_CHAIN.toValue(),
+                    proposeIdParam);
+            JsonObject proposal = this.store.get(proposeId);
+            return proposal;
+        }
+
+        // interTransfer ETH to YEED
 
 
-
-        // TODO interTransfer ETH to YEED
 
         // TODO interTransfer TOKEN to YEED
 

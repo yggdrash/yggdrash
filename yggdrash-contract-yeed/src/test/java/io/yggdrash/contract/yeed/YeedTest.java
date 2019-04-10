@@ -26,6 +26,7 @@ import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
+import io.yggdrash.contract.yeed.propose.ProposeType;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -68,10 +69,12 @@ public class YeedTest {
     }
 
     private void genesis() {
-        String genesisStr = "{\"alloc\": {\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\":"
-                + " {\"balance\": \"1000000000\"},\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\":"
-                + " {\"balance\": \"1000000000\"},\"cee3d4755e47055b530deeba062c5bd0c17eb00f\":"
-                + " {\"balance\": \"998000000000\"}}}";
+        String genesisStr = "{\"alloc\": "
+                + "{\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\":{\"balance\": \"1000000000\"},"
+                + "\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\":{\"balance\": \"1000000000\"},"
+                + "\"cee3d4755e47055b530deeba062c5bd0c17eb00f\":{\"balance\": \"998000000000\"},"
+                + "\"c3cf7a283a4415ce3c41f5374934612389334780\":{\"balance\": \"10000000000000000000000\"}"
+                + "}}";
 
         TransactionReceipt result = new TransactionReceiptImpl();
 
@@ -83,14 +86,14 @@ public class YeedTest {
         }
 
         assertTrue(result.isSuccess());
-        assertEquals(4, result.getTxLog().size());
+        assertEquals(5, result.getTxLog().size());
     }
 
     @Test
     public void totalSupply() {
         BigInteger res = yeedContract.totalSupply();
 
-        assertEquals(BigInteger.valueOf(1000000000000L), res);
+        assertEquals(new BigInteger("10000000001000000000000"), res);
     }
 
     @Test
@@ -260,4 +263,81 @@ public class YeedTest {
         obj.addProperty("spender", spender);
         return yeedContract.allowance(obj);
     }
+
+    private TransactionReceipt setTxReceipt(String transactionId, String issure, String branchId, long blockHeight) {
+        TransactionReceipt result = new TransactionReceiptImpl();
+        result.setTxId(transactionId);
+        result.setIssuer(issure);
+        result.setBranchId(branchId);
+        result.setBlockHeight(blockHeight);
+        try {
+            txReceiptField.set(yeedContract, result);
+        } catch (IllegalAccessException e) {
+            log.warn(e.getMessage());
+        }
+
+        return result;
+    }
+
+
+    @Test
+    public void issuePropose() {
+        String transactionId = "0x00";
+        String receiveAddress = "c3cf7a283a4415ce3c41f5374934612389334780";
+        BigInteger receiveEth = new BigInteger("10000000");
+        int receiveChainId = 1;
+        ProposeType proposeType = ProposeType.YEED_TO_ETHER;
+
+        String senderAddress = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
+
+        String inputData = null;
+        BigInteger stakeYeed = new BigInteger("1000000000000000");
+        long targetBlockHeight = 1000000L;
+        BigInteger fee = new BigInteger("1000000000");
+        String issuer = "c3cf7a283a4415ce3c41f5374934612389334780";
+
+        JsonObject proposal = new JsonObject();
+        //proposal.addProperty("transactionId", transactionId);
+        proposal.addProperty("receiveAddress", receiveAddress);
+        proposal.addProperty("receiveEth", receiveEth);
+        proposal.addProperty("receiveChainId", receiveChainId);
+        proposal.addProperty("proposeType", proposeType.toValue());
+        proposal.addProperty("senderAddress", senderAddress);
+        proposal.addProperty("inputData", inputData);
+        proposal.addProperty("stakeYeed", stakeYeed);
+        proposal.addProperty("blockHeight", targetBlockHeight);
+        proposal.addProperty("fee", fee);
+
+        BigInteger issuerOriginBalance = getBalance(issuer);
+
+        TransactionReceipt receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 1);
+
+        // issue propose
+        yeedContract.issuePropose(proposal);
+
+        assert receipt.getStatus().equals(ExecuteStatus.SUCCESS);
+        receipt.getTxLog().stream().forEach(l -> log.debug(l));
+        String proposeId = "3bc37802368aaf705e8364c4d52194b2a250828aff3c7a41640451db1bafaba2";
+        BigInteger balance = getBalance(proposeId);
+        BigInteger issuerIssuedBalance = getBalance(issuer);
+
+
+        log.debug("propose Stake YEED {}", balance.toString());
+        log.debug("issuer Origin YEED {}", issuerOriginBalance.toString());
+        log.debug("issuer Isssued YEED {}", issuerIssuedBalance.toString());
+        assert balance.compareTo(stakeYeed.add(fee)) == 0;
+        assert issuerOriginBalance.subtract(stakeYeed.add(fee)).compareTo(issuerIssuedBalance) == 0;
+
+
+        JsonObject queryProposeParam = new JsonObject();
+        queryProposeParam.addProperty("proposeId", proposeId);
+        JsonObject queryPropose = yeedContract.queryPropose(queryProposeParam);
+        log.debug(queryPropose.toString());
+
+        assert receiveAddress.equals(queryPropose.get("receiveAddress").getAsString());
+
+
+
+    }
+
 }

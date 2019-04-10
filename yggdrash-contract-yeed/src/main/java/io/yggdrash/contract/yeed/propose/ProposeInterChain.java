@@ -2,6 +2,7 @@ package io.yggdrash.contract.yeed.propose;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
+import com.google.gson.JsonObject;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
 import java.io.ByteArrayOutputStream;
@@ -24,7 +25,7 @@ public class ProposeInterChain {
     String inputData;
 
     BigInteger stakeYeed;
-    long targetBlockHeight;
+    long blockHeight;
     BigInteger fee;
 
     String issuer;
@@ -65,8 +66,8 @@ public class ProposeInterChain {
         return stakeYeed;
     }
 
-    public long getTargetBlockHeight() {
-        return targetBlockHeight;
+    public long getBlockHeight() {
+        return blockHeight;
     }
 
     public BigInteger getFee() {
@@ -79,7 +80,7 @@ public class ProposeInterChain {
 
     public ProposeInterChain(String transactionId, String receiveAddress, BigInteger receiveEth,
                              int receiveChainId, ProposeType proposeType, String senderAddress,
-                             String inputData, BigInteger stakeYeed, long targetBlockHeight,
+                             String inputData, BigInteger stakeYeed, long blockHeight,
                              BigInteger fee, String issuer) {
         this.transactionId = transactionId;
         this.receiveAddress = receiveAddress;
@@ -89,7 +90,7 @@ public class ProposeInterChain {
         this.senderAddress = senderAddress;
         this.inputData = inputData;
         this.stakeYeed = stakeYeed;
-        this.targetBlockHeight = targetBlockHeight;
+        this.blockHeight = blockHeight;
         this.fee = fee;
         this.issuer = issuer;
 
@@ -110,7 +111,7 @@ public class ProposeInterChain {
             // Stake YEED
             baos.write(stakeYeed.toByteArray());
             // Target Block Height
-            baos.write(Longs.toByteArray(targetBlockHeight));
+            baos.write(Longs.toByteArray(blockHeight));
             // sender is option
             if (senderAddress != null) {
                 baos.write(senderAddress.getBytes());
@@ -130,6 +131,26 @@ public class ProposeInterChain {
 
         // 32byte proposal ID
         byte[] proposalID = HashUtil.sha3(proposalData);
+        //System.out.println(Base64.getEncoder().encode(proposalID));
+
         this.proposeId = HexUtil.toHexString(proposalID);
     }
+
+    public JsonObject toJsonObject() {
+        JsonObject proposal = new JsonObject();
+        proposal.addProperty("transactionId", transactionId);
+        proposal.addProperty("receiveAddress", receiveAddress);
+        proposal.addProperty("receiveEth", receiveEth);
+        proposal.addProperty("receiveChainId", receiveChainId);
+        proposal.addProperty("proposeType", proposeType.toValue());
+        proposal.addProperty("senderAddress", senderAddress);
+        proposal.addProperty("inputData", inputData);
+        proposal.addProperty("stakeYeed", stakeYeed);
+        proposal.addProperty("blockHeight", blockHeight);
+        proposal.addProperty("fee", fee);
+        proposal.addProperty("issuer", issuer);
+
+        return proposal;
+    }
+
 }

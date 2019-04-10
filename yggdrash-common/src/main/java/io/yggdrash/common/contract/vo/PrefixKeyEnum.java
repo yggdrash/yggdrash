@@ -7,9 +7,12 @@ public enum PrefixKeyEnum {
     GENESIS("genesis"),
     GOVERNANCE("g-"),
     ACCOUNT("ac-"),
+    APPROVE("ap-"),
     PROPOSE_VALIDATORS("pv-"),
     PROPOSE_CONTRACTS("pc-"),
-    VALIDATORS("vl-");
+    VALIDATORS("vl-"),
+    PROPOSE_INTER_CHAIN("pi-")
+    ;
 
     private final String value;
 
@@ -26,12 +29,16 @@ public enum PrefixKeyEnum {
                 return GOVERNANCE;
             case "ac-":
                 return ACCOUNT;
+            case "ap-":
+                return APPROVE;
             case "rv-":
                 return PROPOSE_VALIDATORS;
             case "pc-":
                 return PROPOSE_CONTRACTS;
             case "vl-":
                 return VALIDATORS;
+            case "pi-":
+                return PROPOSE_INTER_CHAIN;
             default:
                 return null;
         }
