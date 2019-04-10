@@ -19,6 +19,10 @@ public class ProposeInterChain {
 
     // Ethereum chain Id
     int receiveChainId;
+
+    // TODO add ethereum network block height - all process is work on network blockHeight
+    // long networkBlockHeight;
+
     ProposeType proposeType;
 
     String senderAddress;

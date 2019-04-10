@@ -6,21 +6,12 @@ import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.contract.yeed.ehtereum.EthTransaction;
+import io.yggdrash.contract.yeed.propose.ProposeInterChain;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 
 public class Ether {
-    //
-
-
-
-    ReadWriterStore<String, JsonObject> store;
-
-
-    Ether(ReadWriterStore<String, JsonObject> store) {
-        this.store = store;
-    }
 
     // Step 1
     // escrow YEED ,Account A want to ETH,and Account B want to YEED
@@ -67,7 +58,7 @@ public class Ether {
         return new EthTransaction(rawTransaction);
     }
 
-    public boolean checkProposalTransaction(byte[] proposalId, EthTransaction ethTransactionTx) {
+    public boolean checkProposalTransaction(ProposeInterChain propose, EthTransaction ethTransactionTx) {
         // get ProposalData
 
         // check ethTransactionTx
