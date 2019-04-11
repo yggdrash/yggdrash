@@ -53,25 +53,58 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
     public void multicastEbftBlock(EbftProto.EbftBlock request,
                                    StreamObserver<NetProto.Empty> responseObserver) {
         EbftBlock newEbftBlock = new EbftBlock(request);
-        if (!EbftBlock.verify(newEbftBlock) || !ebftService.consensusVerify(newEbftBlock)) {
-            log.warn("broadcast EbftBlock Verify Fail");
+        try {
+            if (!EbftBlock.verify(newEbftBlock) || !ebftService.consensusVerify(newEbftBlock)) {
+                log.warn("multicastEbftBlock Verify Fail");
+                responseObserver.onNext(NetProto.Empty.newBuilder().build());
+                responseObserver.onCompleted();
+                return;
+            }
+
             responseObserver.onNext(NetProto.Empty.newBuilder().build());
             responseObserver.onCompleted();
-            return;
+
+            EbftBlock lastEbftBlock = this.ebftBlockChain.getLastConfirmedBlock();
+
+            ebftService.getLock().lock();
+            if (newEbftBlock.getIndex() == lastEbftBlock.getIndex() + 1
+                    && Arrays.equals(lastEbftBlock.getHash(),
+                    newEbftBlock.getBlock().getPrevBlockHash())) {
+                ebftService.updateUnconfirmedBlock(newEbftBlock);
+            }
+            ebftService.getLock().unlock();
+        } finally {
+            newEbftBlock.clear();
         }
+    }
 
-        responseObserver.onNext(NetProto.Empty.newBuilder().build());
-        responseObserver.onCompleted();
+    @Override
+    public void broadcastEbftBlock(EbftProto.EbftBlock request,
+                                   StreamObserver<NetProto.Empty> responseObserver) {
+        EbftBlock newEbftBlock = new EbftBlock(request);
+        try {
+            if (!EbftBlock.verify(newEbftBlock) || !ebftService.consensusVerify(newEbftBlock)) {
+                log.warn("broadcastEbftBlock Verify Fail");
+                responseObserver.onNext(NetProto.Empty.newBuilder().build());
+                responseObserver.onCompleted();
+                return;
+            }
 
-        EbftBlock lastEbftBlock = this.ebftBlockChain.getLastConfirmedBlock();
+            responseObserver.onNext(NetProto.Empty.newBuilder().build());
+            responseObserver.onCompleted();
 
-        ebftService.getLock().lock();
-        if (newEbftBlock.getIndex() == lastEbftBlock.getIndex() + 1
-                && Arrays.equals(lastEbftBlock.getHash(),
-                newEbftBlock.getBlock().getPrevBlockHash())) {
-            ebftService.updateUnconfirmedBlock(newEbftBlock);
+            EbftBlock lastEbftBlock = this.ebftBlockChain.getLastConfirmedBlock();
+
+            ebftService.getLock().lock();
+            if (newEbftBlock.getIndex() == lastEbftBlock.getIndex() + 1
+                    && Arrays.equals(lastEbftBlock.getHash(),
+                    newEbftBlock.getBlock().getPrevBlockHash())) {
+                this.ebftBlockChain.addBlock(newEbftBlock);
+            }
+            ebftService.getLock().unlock();
+        } finally {
+            newEbftBlock.clear();
         }
-        ebftService.getLock().unlock();
     }
 
     @Override

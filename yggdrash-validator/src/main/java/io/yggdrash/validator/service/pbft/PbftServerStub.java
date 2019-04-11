@@ -14,6 +14,7 @@ import io.yggdrash.validator.service.ConsensusService;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
@@ -86,6 +87,34 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
             pbftService.getLock().unlock();
         } finally {
             pbftMessage.clear();
+        }
+    }
+
+    @Override
+    public void broadcastPbftBlock(PbftProto.PbftBlock request,
+                                   StreamObserver<NetProto.Empty> responseObserver) {
+        PbftBlock newPbftBlock = new PbftBlock(request);
+        try {
+            log.debug("Received BroadcastPbftBlock [{}] {} ", newPbftBlock.getIndex(), newPbftBlock.getHashHex());
+            if (!PbftBlock.verify(newPbftBlock)) {
+                log.warn("Verify Fail");
+                responseObserver.onNext(EMPTY);
+                responseObserver.onCompleted();
+                return;
+            }
+
+            responseObserver.onNext(io.yggdrash.proto.NetProto.Empty.newBuilder().build());
+            responseObserver.onCompleted();
+
+            pbftService.getLock().lock();
+            PbftBlock lastPbftBlock = this.blockChain.getLastConfirmedBlock();
+            if (lastPbftBlock.getIndex() == newPbftBlock.getIndex() - 1
+                    && Arrays.equals(lastPbftBlock.getHash(), newPbftBlock.getPrevBlockHash())) {
+                this.blockChain.addBlock(newPbftBlock);
+            }
+            pbftService.getLock().unlock();
+        } finally {
+            newPbftBlock.clear();
         }
     }
 

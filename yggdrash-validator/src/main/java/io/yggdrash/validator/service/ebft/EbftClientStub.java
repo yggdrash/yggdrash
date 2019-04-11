@@ -84,6 +84,11 @@ public class EbftClientStub {
                 .multicastEbftBlock(block);
     }
 
+    public void broadcastEbftBlock(EbftProto.EbftBlock block) {
+        blockingStub.withDeadlineAfter(3, TimeUnit.SECONDS)
+                .broadcastEbftBlock(block);
+    }
+
     public List<EbftBlock> getEbftBlockList(long index) {
         EbftProto.EbftBlockList protoEbftBlockList = blockingStub
                 .withDeadlineAfter(3, TimeUnit.SECONDS)
