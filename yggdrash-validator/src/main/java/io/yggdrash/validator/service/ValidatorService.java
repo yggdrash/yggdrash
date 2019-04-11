@@ -1,5 +1,6 @@
 package io.yggdrash.validator.service;
 
+import ch.qos.logback.classic.Level;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.yggdrash.common.config.DefaultConfig;
@@ -16,6 +17,7 @@ import io.yggdrash.validator.service.ebft.EbftService;
 import io.yggdrash.validator.service.node.NodeServerStub;
 import io.yggdrash.validator.service.pbft.PbftServerStub;
 import io.yggdrash.validator.service.pbft.PbftService;
+import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
@@ -43,6 +45,7 @@ public class ValidatorService {
     public ValidatorService(
             DefaultConfig defaultConfig, Block genesisBlock) throws IOException, InvalidCipherTextException {
         this.defaultConfig = defaultConfig;
+        setLogLevel();
         this.host = defaultConfig.getString("yggdrash.validator.host");
         this.port = defaultConfig.getInt("yggdrash.validator.port");
         this.wallet = new Wallet(defaultConfig.getString("yggdrash.validator.key.path"),
@@ -82,6 +85,12 @@ public class ValidatorService {
             default:
                 throw new NotValidateException("Algorithm is not valid.");
         }
+    }
+
+    private void setLogLevel() {
+        String logLevel = this.defaultConfig.getString("yggdrash.validator.log.level");
+        ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger("io.yggdrash.validator"))
+                .setLevel(Level.toLevel(logLevel, Level.INFO));
     }
 
     private ThreadPoolTaskScheduler threadPoolTaskScheduler() {

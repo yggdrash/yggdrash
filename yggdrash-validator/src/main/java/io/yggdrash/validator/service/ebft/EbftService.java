@@ -1,6 +1,6 @@
 package io.yggdrash.validator.service.ebft;
 
-import io.yggdrash.common.config.Constants;
+import com.typesafe.config.ConfigException;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
@@ -39,6 +39,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
 
     private final EbftClientStub myNode;
     private final Map<String, EbftClientStub> totalValidatorMap;
+    private final Map<String, EbftClientStub> proxyNodeMap;
 
     private final ReentrantLock lock = new ReentrantLock();
 
@@ -63,6 +64,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
 
         this.myNode = initMyNode();
         this.totalValidatorMap = initTotalValidator();
+        this.proxyNodeMap = initProxyNode();
         this.isValidator = initValidator();
         this.isActive = false;
         this.isSynced = false;
@@ -83,7 +85,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
 
     public void mainScheduler() {
         if (!isValidator) {
-            log.info("Node is not validator.");
+            log.debug("Node is not validator.");
             return;
         }
 
@@ -92,7 +94,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
         checkNode();
 
         if (!isActive) {
-            log.info("Validator is not active.");
+            log.debug("Validators are not activate.");
             return;
         }
 
@@ -100,7 +102,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
         EbftBlock proposedEbftBlock = makeProposedBlock();
         lock.unlock();
         if (proposedEbftBlock != null) {
-            multicast(proposedEbftBlock);
+            multicastBlock(proposedEbftBlock);
             if (!waitingProposedBlock()) {
                 log.debug("ProposedBlock count is not enough.");
             }
@@ -110,18 +112,20 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
         EbftBlock consensusedEbftBlock = makeConsensus();
         lock.unlock();
         if (consensusedEbftBlock != null) {
-            multicast(consensusedEbftBlock);
+            multicastBlock(consensusedEbftBlock);
             if (!waitingConsensusedBlock()) {
                 log.debug("ConsensusedBlock count is not enough.");
             }
         }
 
         lock.lock();
-        confirmFinalBlock();
+        EbftBlock block = confirmFinalBlock();
+        if (block != null) {
+            resetUnConfirmedBlock(block.getIndex());
+        }
         lock.unlock();
-
-        if (log.isTraceEnabled()) {
-            System.gc();
+        if (block != null) {
+            broadcastBlock(block, this.proxyNodeMap);
         }
     }
 
@@ -402,12 +406,11 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
         return count;
     }
 
-    private void confirmFinalBlock() {
+    private EbftBlock confirmFinalBlock() {
         if (!isConsensused) {
-            return;
+            return null;
         }
 
-        boolean moreConfirmFlag = false;
         for (String key : this.blockChain.getUnConfirmedData().keySet()) {
             EbftBlock unconfirmedBlock = this.blockChain.getUnConfirmedData().get(key);
             if (unconfirmedBlock == null) {
@@ -420,19 +423,15 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
                     == this.blockChain.getLastConfirmedBlock().getIndex() + 1
                     && unconfirmedBlock.getConsensusMessages().size() >= consensusCount) {
                 confirmedBlock(unconfirmedBlock);
-            } else if (unconfirmedBlock.getConsensusMessages().size() >= consensusCount) {
-                moreConfirmFlag = true;
+                return unconfirmedBlock.clone();
             }
         }
 
-        if (moreConfirmFlag) {
-            confirmFinalBlock();
-        }
+        return null;
     }
 
     private void confirmedBlock(EbftBlock ebftBlock) {
         this.blockChain.addBlock(ebftBlock);
-        resetUnConfirmedBlock(ebftBlock.getIndex());
         this.isProposed = false;
         this.isConsensused = false;
     }
@@ -487,7 +486,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
         log.debug("");
     }
 
-    private void multicast(EbftBlock ebftBlock) {
+    private void multicastBlock(EbftBlock block) {
         for (String key : totalValidatorMap.keySet()) {
             EbftClientStub client = totalValidatorMap.get(key);
             if (client.isMyclient()) {
@@ -495,13 +494,30 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
             }
             if (client.isRunning()) {
                 try {
-                    client.multicastEbftBlock(EbftBlock.toProto(ebftBlock));
+                    client.multicastEbftBlock(EbftBlock.toProto(block));
                 } catch (Exception e) {
                     log.debug("multicast exception: {}", e.getMessage());
                     log.debug("client: {}", client.getId());
-                    log.debug("ebftBlock: {}", ebftBlock.getHashHex());
-                    // continue
+                    log.debug("block: {}", block.getHashHex());
                 }
+            }
+        }
+    }
+
+    private void broadcastBlock(EbftBlock block, Map<String, EbftClientStub> clientMap) {
+        for (String key : clientMap.keySet()) {
+            EbftClientStub client = clientMap.get(key);
+            if (client.isMyclient()) {
+                continue;
+            }
+            try {
+                client.broadcastEbftBlock(EbftBlock.toProto(block));
+                log.debug("BroadcastBlock [{}]{} to {}:{}", block.getIndex(), block.getHashHex(),
+                        client.getHost(), client.getPort());
+            } catch (Exception e) {
+                log.debug("BroadcastBlock exception: " + e.getMessage());
+                log.debug("client: " + client.getId());
+                log.debug("block: " + block.getHashHex());
             }
         }
     }
@@ -553,19 +569,46 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
     @SuppressWarnings("unchecked")
     private TreeMap<String, EbftClientStub> initTotalValidator() {
         TreeMap<String, EbftClientStub> nodeMap = new TreeMap<>();
-        Map<String, Object> validatorInfoMap =
-                this.defaultConfig.getConfig().getConfig("yggdrash.validator.info").root().unwrapped();
-        for (String key : validatorInfoMap.keySet()) {
-            String host = ((Map<String, String>) validatorInfoMap.get(key)).get("host");
-            int port = ((Map<String, Integer>) validatorInfoMap.get(key)).get("port");
-            EbftClientStub client = new EbftClientStub(key, host, port);
-            if (client.getId().equals(myNode.getId())) {
-                nodeMap.put(myNode.getAddr(), myNode);
-            } else {
-                nodeMap.put(client.getAddr(), client);
+        try {
+            Map<String, Object> validatorInfoMap =
+                    this.defaultConfig.getConfig().getConfig("yggdrash.validator.info").root().unwrapped();
+            for (String key : validatorInfoMap.keySet()) {
+                String host = ((Map<String, String>) validatorInfoMap.get(key)).get("host");
+                int port = ((Map<String, Integer>) validatorInfoMap.get(key)).get("port");
+                EbftClientStub client = new EbftClientStub(key, host, port);
+                if (client.getId().equals(myNode.getId())) {
+                    nodeMap.put(myNode.getAddr(), myNode);
+                } else {
+                    nodeMap.put(client.getAddr(), client);
+                }
             }
+            log.debug("ValidatorInfo: {}", nodeMap.toString());
+        } catch (ConfigException ce) {
+            throw new NotValidateException("Validators is not set.");
         }
-        log.debug("ValidatorInfo: {}", nodeMap);
+        return nodeMap;
+    }
+
+    @SuppressWarnings("unchecked")
+    private TreeMap<String, EbftClientStub> initProxyNode() {
+        TreeMap<String, EbftClientStub> nodeMap = new TreeMap<>();
+        try {
+            Map<String, Object> proxyNodeMap =
+                    this.defaultConfig.getConfig().getConfig("yggdrash.validator.proxyNode").root().unwrapped();
+            for (String key : proxyNodeMap.keySet()) {
+                String host = ((Map<String, String>) proxyNodeMap.get(key)).get("host");
+                int port = ((Map<String, Integer>) proxyNodeMap.get(key)).get("port");
+                EbftClientStub client = new EbftClientStub(key, host, port);
+                if (client.getId().equals(myNode.getId())) {
+                    nodeMap.put(myNode.getAddr(), myNode);
+                } else {
+                    nodeMap.put(client.getAddr(), client);
+                }
+            }
+            log.debug("ProxyNode: {}", nodeMap);
+        } catch (ConfigException ce) {
+            log.warn("ProxyNode is not set.");
+        }
         return nodeMap;
     }
 
@@ -578,21 +621,13 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
     }
 
     private boolean initValidator() {
-        log.debug("MyNode ID: {}", this.myNode.getId());
-        return totalValidatorMap.containsKey(this.myNode.getAddr());
-    }
-
-    private List<String> getActiveNodeList() {
-        List<String> activeNodeList = new ArrayList<>();
-        for (EbftClientStub client : totalValidatorMap.values()) {
-            if (client.isMyclient()) {
-                continue;
-            }
-            if (client.isRunning()) {
-                activeNodeList.add(client.getId());
+        log.debug("MyNode ID: {}", myNode.getId());
+        for (EbftClientStub clientStub : totalValidatorMap.values()) {
+            if (this.myNode.getId().equals(clientStub.getId())) {
+                return true;
             }
         }
-        return activeNodeList;
+        return false;
     }
 
     private void setActiveMode() {

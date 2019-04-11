@@ -85,6 +85,34 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
     }
 
     @Override
+    public void broadcastPbftBlock(PbftProto.PbftBlock request,
+                                   StreamObserver<NetProto.Empty> responseObserver) {
+        PbftBlock newPbftBlock = new PbftBlock(request);
+        try {
+            log.debug("Received BroadcastPbftBlock [{}] {} ", newPbftBlock.getIndex(), newPbftBlock.getHashHex());
+            if (!PbftBlock.verify(newPbftBlock)) {
+                log.warn("Verify Fail");
+                responseObserver.onNext(EMPTY);
+                responseObserver.onCompleted();
+                return;
+            }
+
+            responseObserver.onNext(io.yggdrash.proto.NetProto.Empty.newBuilder().build());
+            responseObserver.onCompleted();
+
+            pbftService.getLock().lock();
+            PbftBlock lastPbftBlock = this.blockChain.getLastConfirmedBlock();
+            if (lastPbftBlock.getIndex() == newPbftBlock.getIndex() - 1
+                    && Arrays.equals(lastPbftBlock.getHash(), newPbftBlock.getPrevBlockHash())) {
+                this.blockChain.addBlock(newPbftBlock);
+            }
+            pbftService.getLock().unlock();
+        } finally {
+            newPbftBlock.clear();
+        }
+    }
+
+    @Override
     public void getPbftBlockList(io.yggdrash.proto.CommonProto.Offset request,
                                  io.grpc.stub.StreamObserver<PbftProto.PbftBlockList> responseObserver) {
         long start = request.getIndex();
