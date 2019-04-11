@@ -8,15 +8,15 @@ import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.consensus.ConsensusBlockChain;
+import io.yggdrash.core.consensus.ConsensusService;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.validator.data.ConsensusBlockChain;
+import io.yggdrash.proto.PbftProto;
 import io.yggdrash.validator.data.pbft.PbftBlock;
-import io.yggdrash.validator.data.pbft.PbftBlockChain;
 import io.yggdrash.validator.data.pbft.PbftMessage;
 import io.yggdrash.validator.data.pbft.PbftMessageSet;
 import io.yggdrash.validator.data.pbft.PbftStatus;
-import io.yggdrash.validator.service.ConsensusService;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class PbftService implements ConsensusService {
+public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMessage> {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftService.class);
 
@@ -39,7 +39,7 @@ public class PbftService implements ConsensusService {
 
     private final DefaultConfig defaultConfig;
     private final Wallet wallet;
-    private final PbftBlockChain blockChain;
+    private final ConsensusBlockChain<PbftProto.PbftBlock, PbftMessage> blockChain;
 
     private final PbftClientStub myNode;
     private final Map<String, PbftClientStub> totalValidatorMap;
@@ -64,12 +64,12 @@ public class PbftService implements ConsensusService {
     private final int grpcPort;
 
     public PbftService(Wallet wallet,
-                       ConsensusBlockChain blockChain,
+                       ConsensusBlockChain<PbftProto.PbftBlock, PbftMessage> blockChain,
                        DefaultConfig defaultConfig,
                        String grpcHost,
                        int grpcPort) {
         this.wallet = wallet;
-        this.blockChain = (PbftBlockChain) blockChain;
+        this.blockChain = blockChain;
         this.defaultConfig = defaultConfig;
         this.grpcHost = grpcHost;
         this.grpcPort = grpcPort;
@@ -258,7 +258,7 @@ public class PbftService implements ConsensusService {
             return null;
         }
 
-        byte[] prevBlockHash = this.blockChain.getLastConfirmedBlock().getHash();
+        byte[] prevBlockHash = this.blockChain.getLastConfirmedBlock().getHash().getBytes();
 
         Block newBlock = makeNewBlock(seqNumber, prevBlockHash);
         log.trace("newBlock" + newBlock.toString());
@@ -350,7 +350,7 @@ public class PbftService implements ConsensusService {
         txHusks.clear();
 
         BlockHeader newBlockHeader = new BlockHeader(
-                blockChain.getChain(),
+                blockChain.getBranchId().getBytes(),
                 Constants.EMPTY_BYTE8,
                 Constants.EMPTY_BYTE8,
                 prevBlockHash,
@@ -827,7 +827,14 @@ public class PbftService implements ConsensusService {
     }
 
     // todo: check security
+    @Override
     public ReentrantLock getLock() {
         return lock;
     }
+
+    @Override
+    public ConsensusBlockChain<PbftProto.PbftBlock, PbftMessage> getBlockChain() {
+        return blockChain;
+    }
+
 }

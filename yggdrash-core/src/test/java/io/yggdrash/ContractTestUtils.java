@@ -93,7 +93,6 @@ public class ContractTestUtils {
                                               JsonArray contracts,
                                               BigDecimal fee,
                                               String timestamp) {
-        JsonObject branchSample = new JsonObject();
         JsonObject branch = new JsonObject();
         branch.addProperty("name", name);
         branch.addProperty("symbol", symbol);

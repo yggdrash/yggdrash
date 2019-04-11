@@ -129,7 +129,7 @@ public class TestNode extends BootStrapNode {
     }
 
     public void generateBlock() {
-        branchGroup.generateBlock(TestConstants.wallet(), branchId);
+        BlockChainTestUtils.generateBlock(branchGroup, branchId);
     }
 
     public int getActivePeerCount() {
@@ -146,7 +146,7 @@ public class TestNode extends BootStrapNode {
         String branchInfo = "";
         if (getDefaultBranch() != null) {
             branchInfo = String.format(" bestBlock=%d, txCnt=%d, unConfirmed=%d,", getDefaultBranch().getLastIndex(),
-                    getDefaultBranch().transactionCount(), branchGroup.getUnconfirmedTxs(branchId).size());
+                    getDefaultBranch().countOfTxs(), branchGroup.getUnconfirmedTxs(branchId).size());
         }
 
         log.info("{} =>{} peer={}, bucket={}, active={}",

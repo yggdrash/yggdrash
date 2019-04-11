@@ -75,7 +75,7 @@ public class EbftBlockChainMultiThreadTest {
                 "/ebftBlock",
                 "/ebftTx");
 
-        this.ebftBlock0 = new EbftBlock(this.block0, null);
+        this.ebftBlock0 = new EbftBlock(this.block0);
 
         List<String> consensusList1 = new ArrayList<>();
         consensusList1.add(wallet0.signHex(block1.getHash(), true));
@@ -144,7 +144,7 @@ public class EbftBlockChainMultiThreadTest {
         long testCount = 2000;
         for (long l = 0; l < testCount; l++) {
             long index = this.ebftBlockChain.getLastConfirmedBlock().getIndex() + 1;
-            byte[] prevHash = this.ebftBlockChain.getLastConfirmedBlock().getHash();
+            byte[] prevHash = this.ebftBlockChain.getLastConfirmedBlock().getHash().getBytes();
 
             EbftBlock ebftBlock = makeEbftBlock(index, prevHash);
             this.ebftBlockChain.addBlock(ebftBlock);

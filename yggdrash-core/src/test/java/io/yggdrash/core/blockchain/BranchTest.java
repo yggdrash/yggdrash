@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -108,9 +107,7 @@ public class BranchTest {
         Assert.assertEquals(yggdrashBranch.getName(), block.getBranch().getName());
         log.debug(JsonUtil.prettyFormat(block.getBlock().toJsonObject()));
 
-        List<TransactionHusk> txs = block.getBlock().getBody();
-
         // TODO Genesis Block has more by Transaction Type
-        Assert.assertEquals(1, txs.size());
+        Assert.assertEquals(1L, block.getBlock().getBody().getBodyCount());
     }
 }

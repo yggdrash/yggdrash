@@ -16,6 +16,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class EbftStatus {
@@ -24,8 +25,7 @@ public class EbftStatus {
     private final long timestamp;
     private final byte[] signature;
 
-    public EbftStatus(long index,
-                      List<EbftBlock> unConfirmedEbftBlockList, Wallet wallet) {
+    public EbftStatus(long index, List<EbftBlock> unConfirmedEbftBlockList, Wallet wallet) {
         this.index = index;
         if (unConfirmedEbftBlockList != null) {
             this.unConfirmedEbftBlockList.addAll(unConfirmedEbftBlockList);
@@ -48,8 +48,7 @@ public class EbftStatus {
 
     public EbftStatus(EbftProto.EbftStatus nodeStatus) {
         this.index = nodeStatus.getIndex();
-        for (EbftProto.EbftBlock block :
-                nodeStatus.getUnConfirmedEbftBlockList().getEbftBlockListList()) {
+        for (EbftProto.EbftBlock block : nodeStatus.getUnConfirmedEbftBlockList().getEbftBlockList()) {
             this.unConfirmedEbftBlockList.add(new EbftBlock(block));
         }
         this.timestamp = nodeStatus.getTimestamp();
@@ -78,7 +77,7 @@ public class EbftStatus {
         try {
             dataForSigning.write(ByteUtil.longToBytes(index));
             for (EbftBlock ebftBlock : unConfirmedEbftBlockList) {
-                dataForSigning.write(ebftBlock.getHash());
+                dataForSigning.write(ebftBlock.getHash().getBytes());
             }
             dataForSigning.write(ByteUtil.longToBytes(timestamp));
         } catch (IOException e) {
@@ -103,11 +102,18 @@ public class EbftStatus {
 
         EbftProto.EbftStatus.Builder protoBlockStatus = EbftProto.EbftStatus.newBuilder()
                 .setIndex(ebftStatus.getIndex())
-                .setUnConfirmedEbftBlockList(
-                        EbftBlock.toProtoList(ebftStatus.getUnConfirmedEbftBlockList()))
+                .setUnConfirmedEbftBlockList(toProtoList(ebftStatus.getUnConfirmedEbftBlockList()))
                 .setTimestamp(ebftStatus.getTimestamp())
                 .setSignature(ByteString.copyFrom(ebftStatus.getSignature()));
         return protoBlockStatus.build();
+    }
+
+    private static EbftProto.EbftBlockList toProtoList(Collection<EbftBlock> collection) {
+        EbftProto.EbftBlockList.Builder builder = EbftProto.EbftBlockList.newBuilder();
+        for (EbftBlock ebftBlock : collection) {
+            builder.addEbftBlock(EbftBlock.toProto(ebftBlock));
+        }
+        return builder.build();
     }
 
     public JsonObject toJsonObject() {
@@ -128,7 +134,7 @@ public class EbftStatus {
         return jsonObject;
     }
 
-    public byte[] toBinary() {
+    private byte[] toBinary() {
         return SerializationUtil.serializeJson(toJsonObject());
     }
 

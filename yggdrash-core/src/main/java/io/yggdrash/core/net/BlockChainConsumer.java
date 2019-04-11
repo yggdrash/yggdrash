@@ -16,21 +16,21 @@
 
 package io.yggdrash.core.net;
 
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.consensus.Block;
 
 import java.util.List;
 
-public interface BlockChainConsumer {
+public interface BlockChainConsumer<T> {
 
     void setListener(CatchUpSyncEventListener listener);
 
-    List<BlockHusk> syncBlock(BranchId branchId, long offset, long limit);
+    List<Block<T>> syncBlock(BranchId branchId, long offset, long limit);
 
     List<TransactionHusk> syncTx(BranchId branchId);
 
-    void broadcastBlock(BlockHusk block);
+    void broadcastBlock(Block<T> block);
 
     void broadcastTx(TransactionHusk tx);
 }

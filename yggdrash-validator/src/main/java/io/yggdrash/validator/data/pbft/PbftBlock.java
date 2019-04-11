@@ -16,61 +16,40 @@
 
 package io.yggdrash.validator.data.pbft;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.protobuf.InvalidProtocolBufferException;
-import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.consensus.AbstractBlock;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.Proto;
-import io.yggdrash.validator.data.ConsensusBlock;
 
-import java.util.Arrays;
 import java.util.List;
 
-public class PbftBlock implements ConsensusBlock<PbftProto.PbftBlock> {
+public class PbftBlock extends AbstractBlock<PbftProto.PbftBlock> {
 
-    private PbftProto.PbftBlock protoBlock;
+    private transient PbftMessageSet pbftMessageSet;
 
-    private final transient Block block;
-    private final transient PbftMessageSet pbftMessageSet;
-
-    public PbftBlock(Block block, PbftMessageSet pbftMessageSet) {
-        this.block = block;
-        this.pbftMessageSet = pbftMessageSet;
+    public PbftBlock(PbftProto.PbftBlock proto) {
+        super(proto);
     }
 
     public PbftBlock(byte[] bytes) {
-        try {
-            this.protoBlock = PbftProto.PbftBlock.parseFrom(bytes);
-            this.block = Block.toBlock(protoBlock.getBlock());
-            this.pbftMessageSet = new PbftMessageSet(protoBlock.getPbftMessageSet());
-        } catch (InvalidProtocolBufferException e) {
-            throw new NotValidateException(e);
-        }
+        this(toProto(bytes));
+    }
+
+    public PbftBlock(Block block, PbftMessageSet pbftMessageSet) {
+        this(toProto(block, pbftMessageSet));
     }
 
     public PbftBlock(JsonObject jsonObject) {
-        this.block = new Block(jsonObject.get("block").getAsJsonObject());
-
-        JsonElement pbftMessageSetJsonElement = jsonObject.get("pbftMessageSet");
-        if (pbftMessageSetJsonElement != null) {
-            this.pbftMessageSet = new PbftMessageSet(pbftMessageSetJsonElement.getAsJsonObject());
-        } else {
-            this.pbftMessageSet = null;
-        }
-    }
-
-    public PbftBlock(PbftProto.PbftBlock protoBlock) {
-        this.protoBlock = protoBlock;
-        this.block = Block.toBlock(protoBlock.getBlock());
-        this.pbftMessageSet = new PbftMessageSet(protoBlock.getPbftMessageSet());
+        this(toProto(new Block(jsonObject.get("block").getAsJsonObject()),
+                new PbftMessageSet(jsonObject.get("pbftMessageSet").getAsJsonObject())));
     }
 
     @Override
-    public Block getBlock() {
-        return block;
+    protected void initConsensus() {
+        this.pbftMessageSet = new PbftMessageSet(getInstance().getPbftMessageSet());
     }
 
     @Override
@@ -79,33 +58,8 @@ public class PbftBlock implements ConsensusBlock<PbftProto.PbftBlock> {
     }
 
     @Override
-    public byte[] getChain() {
-        return this.block.getChain();
-    }
-
-    @Override
-    public long getIndex() {
-        return this.block.getIndex();
-    }
-
-    @Override
-    public byte[] getHash() {
-        return this.block.getHash();
-    }
-
-    @Override
-    public String getHashHex() {
-        return this.block.getHashHex();
-    }
-
-    @Override
-    public byte[] getPrevBlockHash() {
-        return this.block.getPrevBlockHash();
-    }
-
-    @Override
-    public byte[] toBinary() {
-        return SerializationUtil.serializeJson(toJsonObject());
+    public Proto.Block getProtoBlock() {
+        return getInstance().getBlock();
     }
 
     @Override
@@ -114,18 +68,9 @@ public class PbftBlock implements ConsensusBlock<PbftProto.PbftBlock> {
     }
 
     @Override
-    public PbftProto.PbftBlock getInstance() {
-        if (protoBlock != null) {
-            return protoBlock;
-        }
-        protoBlock = toProto();
-        return protoBlock;
-    }
-
-    @Override
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
-        jsonObject.add("block", this.block.toJsonObject());
+        jsonObject.add("block", getBlock().toJsonObject());
         if (this.pbftMessageSet != null) {
             jsonObject.add("pbftMessageSet", this.pbftMessageSet.toJsonObject());
         }
@@ -133,38 +78,13 @@ public class PbftBlock implements ConsensusBlock<PbftProto.PbftBlock> {
     }
 
     @Override
-    public boolean equals(ConsensusBlock consensusBlock) {
-        if (consensusBlock == null) {
-            return false;
-        }
-        return Arrays.equals(this.toBinary(), consensusBlock.toBinary());
-    }
-
-    @Override
     public void clear() {
-        this.block.clear();
-        if (this.pbftMessageSet != null) {
-            this.pbftMessageSet.clear();
-        }
-    }
-
-    @Override
-    public PbftBlock clone() {
-        return new PbftBlock(this.toJsonObject());
+        this.pbftMessageSet.clear();
     }
 
     @Override
     public boolean verify() {
-        if (this.block == null) {
-            return false;
-        } else if (this.block.getIndex() == 0) {
-            return this.block.verify();
-        } else if (this.pbftMessageSet == null) {
-            return false;
-        } else {
-            return this.block.verify()
-                    && PbftMessageSet.verify(this.pbftMessageSet);
-        }
+        return super.verify() && PbftMessageSet.verify(this.pbftMessageSet);
     }
 
     public static boolean verify(PbftBlock block) {
@@ -180,28 +100,22 @@ public class PbftBlock implements ConsensusBlock<PbftProto.PbftBlock> {
         }
     }
 
-    private PbftProto.PbftBlock toProto() {
-        return toProto(this);
+    private static PbftProto.PbftBlock toProto(byte[] bytes) {
+        try {
+            return PbftProto.PbftBlock.parseFrom(bytes);
+        } catch (InvalidProtocolBufferException e) {
+            throw new NotValidateException(e);
+        }
+    }
+
+    private static PbftProto.PbftBlock toProto(Block block, PbftMessageSet pbftMessageSet) {
+        return PbftProto.PbftBlock.newBuilder()
+                .setBlock(Block.toProtoBlock(block))
+                .setPbftMessageSet(PbftMessageSet.toProto(pbftMessageSet)).build();
     }
 
     public static PbftProto.PbftBlock toProto(PbftBlock pbftBlock) {
-        if (pbftBlock == null || pbftBlock.getBlock() == null) {
-            return null;
-        }
-
-        Proto.Block protoBlock = Block.toProtoBlock(pbftBlock.getBlock());
-        PbftProto.PbftMessageSet protoPbftMessageSet =
-                PbftMessageSet.toProto(pbftBlock.getConsensusMessages());
-
-        PbftProto.PbftBlock.Builder protoPbftBlockBuilder = PbftProto.PbftBlock.newBuilder();
-        if (protoBlock != null) {
-            protoPbftBlockBuilder.setBlock(protoBlock);
-        }
-        if (protoPbftMessageSet != null) {
-            protoPbftBlockBuilder.setPbftMessageSet(protoPbftMessageSet);
-        }
-
-        return protoPbftBlockBuilder.build();
+        return toProto(pbftBlock.getData());
     }
 
     public static PbftProto.PbftBlockList toProtoList(List<PbftBlock> pbftBlockList) {

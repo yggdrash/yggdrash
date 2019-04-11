@@ -4,7 +4,7 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.validator.store.BlockKeyStore;
+import io.yggdrash.core.store.BlockKeyStore;
 import org.iq80.leveldb.CompressionType;
 import org.iq80.leveldb.Options;
 import org.slf4j.Logger;

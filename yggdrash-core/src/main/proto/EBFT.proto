@@ -17,7 +17,7 @@ message EbftBlock {
 }
 
 message EbftBlockList {
-    repeated EbftBlock ebftBlockList = 1;
+    repeated EbftBlock ebftBlock = 1;
 }
 
 message EbftStatus {

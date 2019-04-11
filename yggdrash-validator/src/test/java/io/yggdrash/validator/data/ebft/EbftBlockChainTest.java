@@ -71,7 +71,7 @@ public class EbftBlockChainTest {
                 "/ebftBlock",
                 "/ebftTx");
 
-        this.ebftBlock0 = new EbftBlock(this.block0, null);
+        this.ebftBlock0 = new EbftBlock(this.block0);
 
         List<String> consensusList1 = new ArrayList<>();
         consensusList1.add(wallet0.signHex(block1.getHash(), true));
@@ -118,7 +118,7 @@ public class EbftBlockChainTest {
 
     @Test
     public void getterTest() {
-        assertNotNull(this.ebftBlockChain.getChain());
+        assertNotNull(this.ebftBlockChain.getBranchId());
         assertNotNull(this.ebftBlockChain.getBlockKeyStore());
         assertNotNull(this.ebftBlockChain.getBlockStore());
         assertNotNull(this.ebftBlockChain.getGenesisBlock());

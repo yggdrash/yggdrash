@@ -17,6 +17,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class PbftMessage {
@@ -237,8 +238,7 @@ public class PbftMessage {
         return protoPbftMessageBuilder.build();
     }
 
-    public static PbftProto.PbftMessageList toProtoList(
-            List<PbftMessage> pbftMessageList) {
+    public static PbftProto.PbftMessageList toProtoList(Collection<PbftMessage> pbftMessageList) {
         if (pbftMessageList == null) {
             return null;
         }

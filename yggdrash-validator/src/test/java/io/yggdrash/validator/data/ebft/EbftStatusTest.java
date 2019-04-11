@@ -74,7 +74,7 @@ public class EbftStatusTest {
         block31 = new TestUtils(wallet2).sampleBlock(block2.getIndex() + 1, block2.getHash());
         block32 = new TestUtils(wallet3).sampleBlock(block2.getIndex() + 1, block2.getHash());
 
-        this.ebftBlock0 = new EbftBlock(this.block0, null);
+        this.ebftBlock0 = new EbftBlock(this.block0);
 
         List<String> consensusList1 = new ArrayList<>();
         consensusList1.add(wallet0.signHex(block1.getHash(), true));
@@ -85,8 +85,8 @@ public class EbftStatusTest {
 
         List<EbftBlock> unConfirmedList1 = new ArrayList<>();
         unConfirmedList1.add(ebftBlock1);
-        unConfirmedList1.add(new EbftBlock(block11, null));
-        unConfirmedList1.add(new EbftBlock(block12, null));
+        unConfirmedList1.add(new EbftBlock(block11));
+        unConfirmedList1.add(new EbftBlock(block12));
 
         List<String> consensusList2 = new ArrayList<>();
         consensusList2.add(wallet0.signHex(block2.getHash(), true));
@@ -97,8 +97,8 @@ public class EbftStatusTest {
 
         List<EbftBlock> unConfirmedList2 = new ArrayList<>();
         unConfirmedList2.add(ebftBlock2);
-        unConfirmedList2.add(new EbftBlock(block21, null));
-        unConfirmedList2.add(new EbftBlock(block22, null));
+        unConfirmedList2.add(new EbftBlock(block21));
+        unConfirmedList2.add(new EbftBlock(block22));
 
         List<String> consensusList3 = new ArrayList<>();
         consensusList3.add(wallet0.signHex(block3.getHash(), true));
@@ -109,8 +109,8 @@ public class EbftStatusTest {
 
         List<EbftBlock> unConfirmedList3 = new ArrayList<>();
         unConfirmedList3.add(ebftBlock3);
-        unConfirmedList3.add(new EbftBlock(block31, null));
-        unConfirmedList3.add(new EbftBlock(block32, null));
+        unConfirmedList3.add(new EbftBlock(block31));
+        unConfirmedList3.add(new EbftBlock(block32));
 
         ebftStatus1 = new EbftStatus(block1.getIndex() - 1, unConfirmedList1, wallet1);
         ebftStatus2 = new EbftStatus(block2.getIndex() - 1, unConfirmedList2, wallet2);

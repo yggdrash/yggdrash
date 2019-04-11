@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class EbftBlockTest {
@@ -87,25 +88,25 @@ public class EbftBlockTest {
         Block block = new TestUtils(wallet0).sampleBlock();
         EbftBlock testEbftBlock1 = new EbftBlock(block);
         EbftBlock testEbftBlock2 = new EbftBlock(block);
-        assertTrue(testEbftBlock1.equals(testEbftBlock2));
+        assertEquals(testEbftBlock1, testEbftBlock2);
 
         EbftBlock testEbftBlock3 = new EbftBlock(testEbftBlock1.toJsonObject());
-        assertTrue(testEbftBlock1.equals(testEbftBlock3));
+        assertEquals(testEbftBlock1, testEbftBlock3);
 
         EbftBlock testEbftBlock4 = new EbftBlock(testEbftBlock1.getData());
-        assertTrue(testEbftBlock1.equals(testEbftBlock4));
+        assertEquals(testEbftBlock1, testEbftBlock4);
 
         EbftBlock testEbftBlock5 = new EbftBlock(EbftBlock.toProto(testEbftBlock1));
-        assertTrue(testEbftBlock1.equals(testEbftBlock5));
+        assertEquals(testEbftBlock1, testEbftBlock5);
 
-        EbftBlock testEbftBlock6 = testEbftBlock1.clone();
-        assertTrue(testEbftBlock1.equals(testEbftBlock6));
+        EbftBlock testEbftBlock6 = new EbftBlock(testEbftBlock1.getData());
+        assertEquals(testEbftBlock1, testEbftBlock6);
     }
 
     @Test
     public void cloneTest() {
-        EbftBlock newEbftBlock = this.ebftBlock0.clone();
-        assertTrue(newEbftBlock.equals(this.ebftBlock0));
+        EbftBlock newEbftBlock = new EbftBlock(ebftBlock0.getData());
+        assertEquals(newEbftBlock, this.ebftBlock0);
 
         newEbftBlock.clear();
         assertTrue(EbftBlock.verify(this.ebftBlock0));

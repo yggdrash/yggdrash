@@ -2,6 +2,7 @@ package io.yggdrash.validator.store.pbft;
 
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.common.util.TimeUtils;
@@ -61,7 +62,7 @@ public class PbftBlockKeyStoreTest {
         wallet3 = new Wallet(null, "/tmp/",
                 "test3" + TimeUtils.time(), "Password1234!");
 
-        this.pbftBlock0 = makePbftBlock(0L, Constants.EMPTY_HASH);
+        this.pbftBlock0 = makePbftBlock(0L, Sha3Hash.createByHashed(Constants.EMPTY_HASH));
         this.pbftBlock1 = makePbftBlock(pbftBlock0.getIndex() + 1, pbftBlock0.getHash());
         this.pbftBlock2 = makePbftBlock(pbftBlock1.getIndex() + 1, pbftBlock1.getHash());
         this.pbftBlock3 = makePbftBlock(pbftBlock2.getIndex() + 1, pbftBlock2.getHash());
@@ -70,15 +71,15 @@ public class PbftBlockKeyStoreTest {
 
         this.ds = new LevelDbDataSource(StoreTestUtils.getTestPath(), "pbftBlockKeyStoreTest");
         this.blockKeyStore = new PbftBlockKeyStore(ds);
-        this.blockKeyStore.put(this.pbftBlock0.getIndex(), this.pbftBlock0.getHash());
+        this.blockKeyStore.put(this.pbftBlock0.getIndex(), this.pbftBlock0.getHash().getBytes());
     }
 
     private Block makeBlock(long index, byte[] prevHash) {
         return new TestUtils(wallet0).sampleBlock(index, prevHash);
     }
 
-    private PbftBlock makePbftBlock(long index, byte[] prevHash) {
-        Block block = makeBlock(index, prevHash);
+    private PbftBlock makePbftBlock(long index, Sha3Hash prevHash) {
+        Block block = makeBlock(index, prevHash.getBytes());
         return new PbftBlock(block, makePbftMessageSet(block));
     }
 
@@ -119,7 +120,7 @@ public class PbftBlockKeyStoreTest {
     @Test
     public void putGetTest() {
         byte[] newHash = blockKeyStore.get(this.pbftBlock0.getIndex());
-        assertArrayEquals(this.pbftBlock0.getHash(), newHash);
+        assertArrayEquals(this.pbftBlock0.getHash().getBytes(), newHash);
         assertTrue(blockKeyStore.contains(this.pbftBlock0.getIndex()));
         assertFalse(blockKeyStore.contains(this.pbftBlock0.getIndex() + 1));
         assertFalse(blockKeyStore.contains(-1L));
@@ -129,7 +130,7 @@ public class PbftBlockKeyStoreTest {
     @Test
     public void putTest_NegativeNumber() {
         long beforeSize = blockKeyStore.size();
-        blockKeyStore.put(-1L, this.pbftBlock0.getHash());
+        blockKeyStore.put(-1L, this.pbftBlock0.getHash().getBytes());
         assertEquals(blockKeyStore.size(), beforeSize);
     }
 
@@ -167,7 +168,7 @@ public class PbftBlockKeyStoreTest {
 
         this.blockKeyStore = new PbftBlockKeyStore(ds);
         byte[] newHash = blockKeyStore.get(0L);
-        assertArrayEquals(this.pbftBlock0.getHash(), newHash);
+        assertArrayEquals(this.pbftBlock0.getHash().getBytes(), newHash);
     }
 
     @After
