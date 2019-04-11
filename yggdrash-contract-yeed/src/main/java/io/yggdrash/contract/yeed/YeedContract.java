@@ -187,7 +187,9 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 addBalanceTo(to, amount);
                 putBalance(from, fromBalance);
                 // fee account
-                addBalanceTo(txReceipt.getBranchId(), fee);
+                if (fee.compareTo(BigInteger.ZERO) > 0) {
+                    addBalanceTo(txReceipt.getBranchId(), fee);
+                }
                 txReceipt.addLog(String.format("Transfer from %s to %s value %s fee %s ",
                         from, to, amount, fee));
                 return true;
@@ -525,7 +527,6 @@ public class YeedContract implements BundleActivator, ServiceListener {
                         // All stake YEED is transfer to sendAddress
                         if (stakeBalance.compareTo(BigInteger.ZERO) <= 0) {
                             setProposeStatus(propose.getProposeId(), ProposeStatus.DONE);
-                            this.txReceipt.addLog(String.format("propose %s %s", propose.getProposeId(), ProposeStatus.DONE));
                             BigInteger proposeFee = propose.getFee();
                             // send network fee to branch
                             if(receiveEth.compareTo(propose.getReceiveEth()) == 0) {
@@ -533,6 +534,9 @@ public class YeedContract implements BundleActivator, ServiceListener {
                                 proposeFee = proposeFee.subtract(returnFee);
                                 transfer(propose.getProposeId(), propose.getIssuer(), returnFee, BigInteger.ZERO);
                                 transfer(propose.getProposeId(), this.txReceipt.getBranchId(), proposeFee, BigInteger.ZERO);
+                                this.txReceipt.addLog(String.format("propose %s %s", propose.getProposeId(), ProposeStatus.DONE));
+                            }else {
+                                this.txReceipt.addLog(String.format("propose %s %s",propose.getProposeId(), ProposeStatus.PROCESSING));
                             }
                         } else {
                             setProposeStatus(propose.getProposeId(), ProposeStatus.PROCESSING);

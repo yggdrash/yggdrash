@@ -455,11 +455,18 @@ public class YeedTest {
         proposal.addProperty("fee", fee);
 
         BigInteger issuerOriginBalance = getBalance(issuer);
-
+        log.debug("issuerOriginBalance {} ", issuerOriginBalance);
         TransactionReceipt receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 1);
 
         // issue propose
         yeedContract.issuePropose(proposal);
+
+        assert receipt.getStatus() == ExecuteStatus.SUCCESS;
+
+        BigInteger issuerIssuedBalance = getBalance(issuer);
+        assert issuerOriginBalance.subtract(stakeYeed.add(fee)).compareTo(issuerIssuedBalance) == 0;
+        log.debug("issuerIssuedBalance {} ", issuerIssuedBalance);
+        assert issuerOriginBalance.subtract(issuerIssuedBalance).compareTo(stakeYeed.add(fee)) == 0;
 
         assert receipt.getStatus() == ExecuteStatus.SUCCESS;
 
@@ -468,7 +475,7 @@ public class YeedTest {
         String proposeIssueIdPatten = "Propose [a-f0-9]{64} ISSUED";
         Pattern p = Pattern.compile(proposeIssueIdPatten);
         Matcher matcher = p.matcher(proposeIssue);
-        matcher.find();
+        assert matcher.find();
 
         String proposeIssueId = matcher.group();
         proposeIssueId = proposeIssueId.replaceAll("Propose ","")
@@ -486,7 +493,7 @@ public class YeedTest {
         EthTransaction ethTransaction = new EthTransaction(etheSendEncode);
         log.debug(HexUtil.toHexString(ethTransaction.getSendAddress()));
         log.debug(HexUtil.toHexString(ethTransaction.getReceiveAddress()));
-        log.debug("{} ETH", ethTransaction.getValue());
+        log.debug("{} WEI", ethTransaction.getValue());
 
         JsonObject processJson = new JsonObject();
         processJson.addProperty("proposeId", proposeIssueId);
@@ -494,6 +501,14 @@ public class YeedTest {
         processJson.addProperty("fee", BigInteger.ZERO);
         receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 10);
         yeedContract.processPropose(processJson);
+
+        BigInteger issuerDoneBalance = getBalance(issuer);
+        log.debug("issuerDoneBalance {} ", issuerDoneBalance);
+
+        // issuer Done process , issuer return fee 1/2
+        assert issuerDoneBalance.subtract(issuerIssuedBalance)
+                .compareTo(fee.divide(BigInteger.valueOf(2L))) == 0;
+        assert issuerDoneBalance.compareTo(issuerIssuedBalance) > 0;
         receipt.getTxLog().stream().forEach(l -> log.debug(l));
         assert receipt.getStatus() == ExecuteStatus.SUCCESS;
     }
