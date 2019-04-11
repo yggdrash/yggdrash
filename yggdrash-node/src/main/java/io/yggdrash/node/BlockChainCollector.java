@@ -40,7 +40,6 @@ public class BlockChainCollector implements BranchEventListener {
             json = mapper.writeValueAsString(BlockDto.createBy(block));
             jsonObject = new JsonParser().parse(json).getAsJsonObject();
             jsonObject.addProperty("blockId", block.getHash().toString());
-            //TODO: change timestamp spec for elastic search
 
         } catch (JsonProcessingException e) {
             log.warn("{}", e.getMessage());

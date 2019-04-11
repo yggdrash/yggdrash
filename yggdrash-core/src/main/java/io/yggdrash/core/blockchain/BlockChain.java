@@ -264,6 +264,7 @@ public class BlockChain {
 
         this.prevBlock = nextBlock;
         batchTxs(nextBlock);
+
         if (!listenerList.isEmpty() && broadcast) {
             listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
         }
