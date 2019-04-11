@@ -7,6 +7,7 @@ import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
+import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftMessage;
 import io.yggdrash.validator.data.pbft.PbftStatus;
 import org.slf4j.LoggerFactory;
@@ -101,9 +102,9 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
             responseObserver.onCompleted();
 
             pbftService.getLock().lock();
-            PbftBlock lastPbftBlock = this.blockChain.getLastConfirmedBlock();
+            Block<PbftProto.PbftBlock> lastPbftBlock = this.blockChain.getLastConfirmedBlock();
             if (lastPbftBlock.getIndex() == newPbftBlock.getIndex() - 1
-                    && Arrays.equals(lastPbftBlock.getHash(), newPbftBlock.getPrevBlockHash())) {
+                    && lastPbftBlock.getHash().equals(newPbftBlock.getPrevBlockHash())) {
                 this.blockChain.addBlock(newPbftBlock);
             }
             pbftService.getLock().unlock();

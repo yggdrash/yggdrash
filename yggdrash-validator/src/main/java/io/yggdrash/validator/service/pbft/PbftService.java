@@ -519,7 +519,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
                     prePrepareMsg, prepareMessageMap, commitMessageMap, viewChangeMessageMap);
             PbftBlock pbftBlock = new PbftBlock(prePrepareMsg.getBlock(), pbftMessageSet);
             confirmedBlock(pbftBlock);
-            return pbftBlock.clone();
+            return pbftBlock;
         }
 
         return null;

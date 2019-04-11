@@ -60,7 +60,7 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
 
         ebftService.getLock().lock();
         if (newEbftBlock.getIndex() == lastEbftBlock.getIndex() + 1
-                && lastEbftBlock.getHash().equals(newEbftBlock.getBlock().getPrevBlockHash())) {
+                && lastEbftBlock.getHash().equals(newEbftBlock.getPrevBlockHash())) {
             ebftService.updateUnconfirmedBlock(newEbftBlock);
         }
         ebftService.getLock().unlock();
@@ -82,13 +82,12 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
             responseObserver.onNext(NetProto.Empty.newBuilder().build());
             responseObserver.onCompleted();
 
-            EbftBlock lastEbftBlock = this.ebftBlockChain.getLastConfirmedBlock();
+            Block<EbftProto.EbftBlock> lastEbftBlock = this.blockChain.getLastConfirmedBlock();
 
             ebftService.getLock().lock();
             if (newEbftBlock.getIndex() == lastEbftBlock.getIndex() + 1
-                    && Arrays.equals(lastEbftBlock.getHash(),
-                    newEbftBlock.getBlock().getPrevBlockHash())) {
-                this.ebftBlockChain.addBlock(newEbftBlock);
+                    && lastEbftBlock.getHash().equals(newEbftBlock.getPrevBlockHash())) {
+                this.blockChain.addBlock(newEbftBlock);
             }
             ebftService.getLock().unlock();
         } finally {

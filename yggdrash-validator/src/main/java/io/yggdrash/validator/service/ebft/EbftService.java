@@ -1,6 +1,7 @@
 package io.yggdrash.validator.service.ebft;
 
 import com.typesafe.config.ConfigException;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
@@ -423,7 +424,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
                     == this.blockChain.getLastConfirmedBlock().getIndex() + 1
                     && unconfirmedBlock.getConsensusMessages().size() >= consensusCount) {
                 confirmedBlock(unconfirmedBlock);
-                return unconfirmedBlock.clone();
+                return unconfirmedBlock;
             }
         }
 
