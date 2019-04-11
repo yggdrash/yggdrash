@@ -16,7 +16,6 @@
 
 package io.yggdrash.contract.yeed;
 
-import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.store.StateStore;
@@ -28,7 +27,6 @@ import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.yeed.ehtereum.EthTransaction;
-import io.yggdrash.contract.yeed.propose.ProposeInterChain;
 import io.yggdrash.contract.yeed.propose.ProposeType;
 import org.junit.Before;
 import org.junit.Rule;
@@ -36,10 +34,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.Field;
 import java.math.BigInteger;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -103,7 +99,7 @@ public class YeedTest {
     public void totalSupply() {
         BigInteger res = yeedContract.totalSupply();
 
-        assertEquals(new BigInteger("10000000001000000000000"), res);
+        assertEquals(new BigInteger("20000000001000000000000"), res);
     }
 
     @Test
@@ -429,6 +425,7 @@ public class YeedTest {
 
     @Test
     public void processingPropose() {
+        // Type 1 - Issuer validate transaction
         String transactionId = "0x02";
         String receiveAddress = "c3cf7a283a4415ce3c41f5374934612389334780";
         BigInteger receiveEth = new BigInteger("1000000000000000000");
@@ -511,5 +508,14 @@ public class YeedTest {
         assert issuerDoneBalance.compareTo(issuerIssuedBalance) > 0;
         receipt.getTxLog().stream().forEach(l -> log.debug(l));
         assert receipt.getStatus() == ExecuteStatus.SUCCESS;
+
+        transactionId = "0x03";
+        receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 50);
+        yeedContract.processPropose(processJson);
+        assert receipt.getStatus() == ExecuteStatus.FALSE;
+        receipt.getTxLog().stream().forEach(l -> log.debug(l));
+
+
+
     }
 }

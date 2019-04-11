@@ -79,10 +79,10 @@ public class ProposeInterChainTest {
 
         assert ethPropose.getFee().compareTo(fee) == 0;
 
-        log.debug("Propose ETH : {}", ethPropose.getReceiveEth());
+        log.debug("Propose ETH : {}", ethPropose.getReceiveAsset());
         log.debug("Ethereum Transaction ETH : {}", ethTransaction.getValue());
 
-        assert ethPropose.getReceiveEth().compareTo(ethTransaction.getValue()) == 0;
+        assert ethPropose.getReceiveAsset().compareTo(ethTransaction.getValue()) == 0;
         assert ethPropose.getReceiveAddress().equals(HexUtil.toHexString(ethTransaction.getReceiveAddress()));
 
         log.debug("Ethereum transaction ID : 0x{} ", HexUtil.toHexString(ethTransaction.getTxHash()));

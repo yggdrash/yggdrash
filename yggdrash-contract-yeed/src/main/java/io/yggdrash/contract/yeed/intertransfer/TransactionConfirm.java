@@ -3,10 +3,12 @@ package io.yggdrash.contract.yeed.intertransfer;
 import java.math.BigInteger;
 
 public class TransactionConfirm {
+    String transactionConfirmId;
     String proposeId;
-    String transactionId;
-    Integer chainId;
+    String valifiedTransactionId;
 
-    long targetBlock;
+    long networkBlockheight;
+
+    String sendAddress;
     BigInteger transferBalance;
 }

@@ -187,9 +187,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 addBalanceTo(to, amount);
                 putBalance(from, fromBalance);
                 // fee account
-                if (fee.compareTo(BigInteger.ZERO) > 0) {
-                    addBalanceTo(txReceipt.getBranchId(), fee);
-                }
+                addBalanceTo(txReceipt.getBranchId(), fee);
                 txReceipt.addLog(String.format("Transfer from %s to %s value %s fee %s ",
                         from, to, amount, fee));
                 return true;
@@ -197,6 +195,15 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 txReceipt.addLog(String.format("{} transfer Error", from));
                 return false;
             }
+        }
+
+        protected boolean transferFee(String from, BigInteger fee) {
+            if (fee.compareTo(BigInteger.ZERO) > 0) {
+                return transfer(from, from, BigInteger.ZERO, fee);
+            } else {
+                return true;
+            }
+
         }
 
         /**
@@ -350,8 +357,10 @@ public class YeedContract implements BundleActivator, ServiceListener {
         }
 
         private void addBalanceTo(String to, BigInteger amount) {
-            BigInteger balance = getBalance(to);
-            putBalance(to, balance.add(amount));
+            if (amount.compareTo(BigInteger.ZERO) > 0) {
+                BigInteger balance = getBalance(to);
+                putBalance(to, balance.add(amount));
+            }
         }
 
         public BigInteger getBalance(String address) {
@@ -485,12 +494,24 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
             ProposeInterChain propose = getPropose(proposeIdParam);
 
+            // TODO process fee check
             if (!propose.getIssuer().equals(this.txReceipt.getIssuer())) {
                 // TODO check fee
                 if (fee.compareTo(BigInteger.ZERO) < 0) {
                     throw new RuntimeException("fee required");
                 }
             }
+
+            // check propose status
+            ProposeStatus proposeStatus = getProposeStatus(propose.getProposeId());
+            if (ProposeStatus.ISSUED != proposeStatus && ProposeStatus.PROCESSING != proposeStatus) {
+                this.txReceipt.setStatus(ExecuteStatus.FALSE);
+                this.txReceipt.addLog("propose can not process");
+                transferFee(this.txReceipt.getIssuer(), fee);
+                return;
+            }
+
+            // check propose Status
             log.debug("issuer Check");
             // issuer Check
             if (propose.getProposeType() == ProposeType.YEED_TO_ETHER) {
@@ -508,11 +529,11 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 log.debug("check Propose : {}", checkPropose);
 
                 if (checkPropose) {
-                    BigInteger receiveEth = ethTransaction.getValue();
+                    BigInteger receiveValue = ethTransaction.getValue();
                     // calculate ratio
-                    BigInteger ratio = propose.getReceiveEth().divide(propose.getStakeYeed());
+                    BigInteger ratio = propose.getReceiveAsset().divide(propose.getStakeYeed());
 
-                    BigInteger transferYeed = ratio.multiply(receiveEth);
+                    BigInteger transferYeed = ratio.multiply(receiveValue);
                     BigInteger stakeBalance = getBalance(propose.getProposeId());
                     stakeBalance = stakeBalance.subtract(propose.getFee());
                     // balance check if transferYeed over stakeBalance, set stakeBalance
@@ -521,27 +542,13 @@ public class YeedContract implements BundleActivator, ServiceListener {
                     }
 
                     // issuer
-                    if (propose.getIssuer().equals(this.txReceipt.getIssuer())) {
+                    boolean isProposerAreIssuer = propose.getIssuer().equals(this.txReceipt.getIssuer());
+
+                    if (isProposerAreIssuer) {
+                        // send propose YEED to senderAddress
                         transfer(propose.getProposeId(), senderAddress, transferYeed, fee);
                         stakeBalance = stakeBalance.subtract(transferYeed);
                         // All stake YEED is transfer to sendAddress
-                        if (stakeBalance.compareTo(BigInteger.ZERO) <= 0) {
-                            setProposeStatus(propose.getProposeId(), ProposeStatus.DONE);
-                            BigInteger proposeFee = propose.getFee();
-                            // send network fee to branch
-                            if(receiveEth.compareTo(propose.getReceiveEth()) == 0) {
-                                BigInteger returnFee = proposeFee.divide(BigInteger.valueOf(2L));
-                                proposeFee = proposeFee.subtract(returnFee);
-                                transfer(propose.getProposeId(), propose.getIssuer(), returnFee, BigInteger.ZERO);
-                                transfer(propose.getProposeId(), this.txReceipt.getBranchId(), proposeFee, BigInteger.ZERO);
-                                this.txReceipt.addLog(String.format("propose %s %s", propose.getProposeId(), ProposeStatus.DONE));
-                            }else {
-                                this.txReceipt.addLog(String.format("propose %s %s",propose.getProposeId(), ProposeStatus.PROCESSING));
-                            }
-                        } else {
-                            setProposeStatus(propose.getProposeId(), ProposeStatus.PROCESSING);
-                            this.txReceipt.addLog(String.format("propose %s %s",propose.getProposeId(), ProposeStatus.PROCESSING));
-                        }
                     } else {
                         // check validator
                         // TODO Save Transaction confirm
@@ -554,6 +561,24 @@ public class YeedContract implements BundleActivator, ServiceListener {
                         this.txReceipt.addLog(String.format("propose %s %s",propose.getProposeId(), ProposeStatus.PROCESSING));
                     }
 
+                    if (stakeBalance.compareTo(BigInteger.ZERO) <= 0) {
+                        setProposeStatus(propose.getProposeId(), ProposeStatus.DONE);
+                        this.txReceipt.addLog(String.format("propose %s %s", propose.getProposeId(), ProposeStatus.DONE));
+                        BigInteger proposeFee = propose.getFee();
+                        // send network fee to branch
+                        if(isProposerAreIssuer && receiveValue.compareTo(propose.getReceiveAsset()) == 0) {
+                            BigInteger returnFee = proposeFee.divide(BigInteger.valueOf(2L));
+                            proposeFee = proposeFee.subtract(returnFee);
+                            transfer(propose.getProposeId(), propose.getIssuer(), returnFee, proposeFee);
+                        } else {
+                            transferFee(propose.getProposeId(), proposeFee);
+                        }
+                    } else {
+                        setProposeStatus(propose.getProposeId(), ProposeStatus.PROCESSING);
+                        this.txReceipt.addLog(String.format("propose %s %s",propose.getProposeId(), ProposeStatus.PROCESSING));
+                        // send fee
+                        transferFee(this.txReceipt.getIssuer(), fee);
+                    }
 
                     this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
 
