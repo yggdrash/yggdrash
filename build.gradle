@@ -93,7 +93,7 @@ project(':yggdrash-core') {
         compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
         compile "com.typesafe:config:${typesafeVersion}"
         compile "org.elasticsearch.client:transport:${esVersion}"
-        implementation "io.reactivex.rxjava2:rxjava:${rxJavaVersion}"
+        compile "io.reactivex.rxjava2:rxjava:${rxJavaVersion}"
         compileOnly "javax.annotation:javax.annotation-api:${annotationVersion}"
         testCompile "org.assertj:assertj-core:${assertjVersion}"
     }
