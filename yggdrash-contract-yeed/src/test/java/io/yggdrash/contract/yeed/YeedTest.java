@@ -292,6 +292,7 @@ public class YeedTest {
         String receiveAddress = "c3cf7a283a4415ce3c41f5374934612389334780";
         BigInteger receiveEth = new BigInteger("10000000");
         int receiveChainId = 1;
+        long networkBlockHeight = 10;
         ProposeType proposeType = ProposeType.YEED_TO_ETHER;
 
         String senderAddress = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
@@ -307,6 +308,8 @@ public class YeedTest {
         proposal.addProperty("receiveAddress", receiveAddress);
         proposal.addProperty("receiveEth", receiveEth);
         proposal.addProperty("receiveChainId", receiveChainId);
+        proposal.addProperty("networkBlockHeight", networkBlockHeight);
+
         proposal.addProperty("proposeType", proposeType.toValue());
         proposal.addProperty("senderAddress", senderAddress);
         proposal.addProperty("inputData", inputData);
@@ -323,7 +326,16 @@ public class YeedTest {
 
         assert receipt.getStatus().equals(ExecuteStatus.SUCCESS);
         receipt.getTxLog().stream().forEach(l -> log.debug(l));
-        String proposeId = "3bc37802368aaf705e8364c4d52194b2a250828aff3c7a41640451db1bafaba2";
+
+        String proposeIssueIdPatten = "Propose [a-f0-9]{64} ISSUED";
+        Pattern p = Pattern.compile(proposeIssueIdPatten);
+        Matcher matcher = p.matcher(receipt.getTxLog().get(1));
+        assert matcher.find();
+
+        String proposeIssueId = matcher.group();
+        String proposeId = proposeIssueId.replaceAll("Propose ","")
+                .replaceAll(" ISSUED", "");
+
         BigInteger balance = getBalance(proposeId);
         BigInteger issuerIssuedBalance = getBalance(issuer);
 
@@ -331,6 +343,7 @@ public class YeedTest {
         log.debug("propose Stake YEED {}", balance.toString());
         log.debug("issuer Origin YEED {}", issuerOriginBalance.toString());
         log.debug("issuer Isssued YEED {}", issuerIssuedBalance.toString());
+
         assert balance.compareTo(stakeYeed.add(fee)) == 0;
         assert issuerOriginBalance.subtract(stakeYeed.add(fee)).compareTo(issuerIssuedBalance) == 0;
 
@@ -350,7 +363,7 @@ public class YeedTest {
         String transactionId = "0x01";
         String issuer = "d3cf7a283a4415ce3c41f5374934612389334780";
         JsonObject param = new JsonObject();
-        String proposeId = "3bc37802368aaf705e8364c4d52194b2a250828aff3c7a41640451db1bafaba2";
+        String proposeId = "ea79c0652a5c88db8a0f53d37a2944a56ff2eaf4185370191c98313843b35056";
         param.addProperty("proposeId", proposeId);
         TransactionReceipt receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 1000000L);
 
@@ -366,7 +379,7 @@ public class YeedTest {
         String transactionId = "0x01";
         String issuer = "c3cf7a283a4415ce3c41f5374934612389334780";
         JsonObject param = new JsonObject();
-        String proposeId = "3bc37802368aaf705e8364c4d52194b2a250828aff3c7a41640451db1bafaba2";
+        String proposeId = "ea79c0652a5c88db8a0f53d37a2944a56ff2eaf4185370191c98313843b35056";
         param.addProperty("proposeId", proposeId);
         TransactionReceipt receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 100L);
         thrown.expect(RuntimeException.class);
@@ -382,7 +395,7 @@ public class YeedTest {
         String transactionId = "0x01";
         String issuer = "c3cf7a283a4415ce3c41f5374934612389334780";
         JsonObject param = new JsonObject();
-        String proposeId = "3bc37802368aaf705e8364c4d52194b2a250828aff3c7a41640451db1bafaba2";
+        String proposeId = "ea79c0652a5c88db8a0f53d37a2944a56ff2eaf4185370191c98313843b35056";
         param.addProperty("proposeId", proposeId);
 
         TransactionReceipt receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 1000001L);
@@ -402,7 +415,7 @@ public class YeedTest {
         String transactionId = "0x01";
         String issuer = "c3cf7a283a4415ce3c41f5374934612389334780";
         JsonObject param = new JsonObject();
-        String proposeId = "3bc37802368aaf705e8364c4d52194b2a250828aff3c7a41640451db1bafaba2";
+        String proposeId = "ea79c0652a5c88db8a0f53d37a2944a56ff2eaf4185370191c98313843b35056";
         param.addProperty("proposeId", proposeId);
 
         TransactionReceipt receipt = null;
@@ -430,6 +443,7 @@ public class YeedTest {
         String receiveAddress = "c3cf7a283a4415ce3c41f5374934612389334780";
         BigInteger receiveEth = new BigInteger("1000000000000000000");
         int receiveChainId = 1;
+        long networkBlockHeight = 10;
         ProposeType proposeType = ProposeType.YEED_TO_ETHER;
 
         String senderAddress = "4d01e237570022440aa126ca0b63065d7f5fd589";
@@ -444,6 +458,7 @@ public class YeedTest {
         proposal.addProperty("receiveAddress", receiveAddress);
         proposal.addProperty("receiveEth", receiveEth);
         proposal.addProperty("receiveChainId", receiveChainId);
+        proposal.addProperty("networkBlockHeight", networkBlockHeight);
         proposal.addProperty("proposeType", proposeType.toValue());
         proposal.addProperty("senderAddress", senderAddress);
         proposal.addProperty("inputData", inputData);

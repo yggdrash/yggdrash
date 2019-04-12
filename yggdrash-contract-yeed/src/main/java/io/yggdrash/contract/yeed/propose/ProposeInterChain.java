@@ -20,8 +20,8 @@ public class ProposeInterChain {
     // Ethereum chain Id
     int receiveChainId;
 
-    // TODO add ethereum network block height - all process is work on network blockHeight
-    // long networkBlockHeight;
+    // add ethereum network block height - all process is work on network blockHeight
+    long networkBlockHeight;
 
     ProposeType proposeType;
 
@@ -52,6 +52,10 @@ public class ProposeInterChain {
 
     public int getReceiveChainId() {
         return receiveChainId;
+    }
+
+    public long getNetworkBlockHeight() {
+        return networkBlockHeight;
     }
 
     public ProposeType getProposeType() {
@@ -87,6 +91,7 @@ public class ProposeInterChain {
         this.receiveAddress = object.get("receiveAddress").getAsString();
         this.receiveAsset = object.get("receiveAsset").getAsBigInteger();
         this.receiveChainId = object.get("receiveChainId").getAsInt();
+        this.networkBlockHeight = object.get("networkBlockHeight").getAsLong();
         this.proposeType = ProposeType.fromValue(object.get("proposeType").getAsInt());
         this.senderAddress = object.get("senderAddress").getAsString();
         this.inputData = object.get("inputData").isJsonNull() ? null : object.get("inputData").getAsString();
@@ -99,13 +104,14 @@ public class ProposeInterChain {
 
 
     public ProposeInterChain(String transactionId, String receiveAddress, BigInteger receiveAsset,
-                             int receiveChainId, ProposeType proposeType, String senderAddress,
+                             int receiveChainId, long networkBlockHeight, ProposeType proposeType, String senderAddress,
                              String inputData, BigInteger stakeYeed, long blockHeight,
                              BigInteger fee, String issuer) {
         this.transactionId = transactionId;
         this.receiveAddress = receiveAddress;
         this.receiveAsset = receiveAsset;
         this.receiveChainId = receiveChainId;
+        this.networkBlockHeight = networkBlockHeight;
         this.proposeType = proposeType;
         this.senderAddress = senderAddress;
         this.inputData = inputData;
@@ -128,6 +134,7 @@ public class ProposeInterChain {
             baos.write(issuer.getBytes());
             baos.write(receiveAddress.getBytes());
             baos.write(receiveAsset.toByteArray());
+            baos.write(Longs.toByteArray(networkBlockHeight));
             // Stake YEED
             baos.write(stakeYeed.toByteArray());
             // Target Block Height
@@ -163,6 +170,7 @@ public class ProposeInterChain {
         proposal.addProperty("receiveAddress", receiveAddress);
         proposal.addProperty("receiveAsset", receiveAsset);
         proposal.addProperty("receiveChainId", receiveChainId);
+        proposal.addProperty("networkBlockHeight", networkBlockHeight);
         proposal.addProperty("proposeType", proposeType.toValue());
         proposal.addProperty("senderAddress", senderAddress);
         proposal.addProperty("inputData", inputData);

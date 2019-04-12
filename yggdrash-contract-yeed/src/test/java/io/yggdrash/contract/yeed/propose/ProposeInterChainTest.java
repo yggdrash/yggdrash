@@ -29,19 +29,19 @@ public class ProposeInterChainTest {
         long targetBlockHeight = 1000000L;
         BigInteger fee = new BigInteger("1000000000");
         String issuer = "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e";
-
+        long networkBlockHeight = 10;
 
         ProposeInterChain testPropose = new ProposeInterChain(transactionId, receiveAddress,
-                receiveEth, receiveChainId, proposeType, senderAddress, inputData, stakeYeed,
-                targetBlockHeight, fee, issuer);
+                receiveEth, receiveChainId, networkBlockHeight, proposeType, senderAddress, inputData,
+                stakeYeed, targetBlockHeight, fee, issuer);
 
         log.debug("Propose ID : {} ", testPropose.getProposeId());
         assertNotNull(testPropose.getProposeId());
 
         targetBlockHeight = 10000000L;
         ProposeInterChain testPropose2 = new ProposeInterChain(transactionId, receiveAddress,
-                receiveEth, receiveChainId, proposeType, senderAddress, inputData, stakeYeed,
-                targetBlockHeight, fee, issuer);
+                receiveEth, receiveChainId, networkBlockHeight, proposeType, senderAddress, inputData,
+                stakeYeed, targetBlockHeight, fee, issuer);
 
         assertNotEquals(testPropose.getProposeId(), testPropose2.getProposeId());
         ProposeInterChain recover = new ProposeInterChain(testPropose.toJsonObject());
@@ -63,7 +63,7 @@ public class ProposeInterChainTest {
         BigInteger receiveEth = ethTransaction.getValue();
         Integer receiveChainId = ethTransaction.getChainId();
         ProposeType proposeType = ProposeType.ETHER_TO_YEED;
-
+        long networkBlockHeight = 10;
         String senderAddress = "c3cf7a283a4415ce3c41f5374934612389334780";
 
         String inputData = null;
@@ -74,7 +74,7 @@ public class ProposeInterChainTest {
         String issuer = "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e";
 
         ProposeInterChain ethPropose = new ProposeInterChain(transactionId, receiveAddress,
-                receiveEth, receiveChainId, proposeType, senderAddress, inputData, stakeYeed,
+                receiveEth, receiveChainId, networkBlockHeight, proposeType, senderAddress, inputData, stakeYeed,
                 targetBlockHeight, fee, issuer);
 
         assert ethPropose.getFee().compareTo(fee) == 0;
