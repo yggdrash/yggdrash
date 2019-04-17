@@ -1,4 +1,4 @@
-package io.yggdrash.validator.config;
+package io.yggdrash.core.consensus;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -13,15 +13,19 @@ public class Consensus {
     private String period;
     private List<String> validators = new ArrayList<>();
 
-    public Consensus(Block genesisBlock) {
-        JsonObject consensusObject = ((JsonObject) ((Transaction) genesisBlock.getBody().getBody().toArray()[0])
-                .getBody().getBody().get(0)).getAsJsonObject("consensus");
-        algorithm = consensusObject.get("algorithm").getAsString();
-        period = consensusObject.get("period").getAsString();
+    public Consensus(JsonObject consensus) {
+        algorithm = consensus.get("algorithm").getAsString();
+        period = consensus.get("period").getAsString();
 
-        for (JsonElement validator : consensusObject.get("validator").getAsJsonArray()) {
+        for (JsonElement validator : consensus.get("validator").getAsJsonArray()) {
             validators.add(validator.getAsString());
         }
+    }
+
+    @Deprecated
+    public Consensus(Block genesisBlock) {
+        this(((JsonObject) ((Transaction) genesisBlock.getBody().getBody().toArray()[0])
+                .getBody().getBody().get(0)).getAsJsonObject("consensus"));
     }
 
     public String getAlgorithm() {

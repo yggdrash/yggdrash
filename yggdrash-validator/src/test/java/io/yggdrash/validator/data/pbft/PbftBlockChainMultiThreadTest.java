@@ -162,7 +162,7 @@ public class PbftBlockChainMultiThreadTest {
         long testCount = 2000;
         for (long l = 0; l < testCount; l++) {
             long index = this.pbftBlockChain.getLastConfirmedBlock().getIndex() + 1;
-            byte[] prevHash = this.pbftBlockChain.getLastConfirmedBlock().getHash();
+            byte[] prevHash = this.pbftBlockChain.getLastConfirmedBlock().getHash().getBytes();
 
             PbftBlock pbftBlock = makePbftBlock(index, prevHash);
             this.pbftBlockChain.addBlock(pbftBlock);

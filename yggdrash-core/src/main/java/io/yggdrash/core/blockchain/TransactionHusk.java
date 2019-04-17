@@ -186,7 +186,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         return this.coreTransaction.toJsonObject();
     }
 
-    JsonObject toJsonObjectFromProto() {
+    public JsonObject toJsonObjectFromProto() {
         try {
             String print = JsonFormat.printer()
                     .includingDefaultValueFields().print(this.protoTransaction);

@@ -19,6 +19,7 @@ import static io.yggdrash.common.config.Constants.PBFT_COMMIT;
 import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_VIEWCHANGE;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -244,25 +245,25 @@ public class PbftBlockTest {
         {
             PbftBlock newBlock = new PbftBlock(this.pbftBlock.toJsonObject());
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock));
+            assertEquals(newBlock, this.pbftBlock);
         }
 
         {
             PbftBlock newBlock = new PbftBlock(this.pbftBlock2.toJsonObject());
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock2));
+            assertEquals(newBlock, this.pbftBlock2);
         }
 
         {
             PbftBlock newBlock = new PbftBlock(this.pbftBlock3.toJsonObject());
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock3));
+            assertEquals(newBlock, this.pbftBlock3);
         }
 
         {
             PbftBlock newBlock = new PbftBlock(this.pbftBlock4.toJsonObject());
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock4));
+            assertEquals(newBlock, this.pbftBlock4);
         }
     }
 
@@ -271,56 +272,56 @@ public class PbftBlockTest {
         {
             PbftBlock newBlock = new PbftBlock(this.pbftBlock.getData());
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock));
+            assertEquals(newBlock, this.pbftBlock);
         }
 
         {
             PbftBlock newBlock = new PbftBlock(this.pbftBlock2.getData());
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock2));
+            assertEquals(newBlock, this.pbftBlock2);
         }
 
         {
             PbftBlock newBlock = new PbftBlock(this.pbftBlock3.getData());
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock3));
+            assertEquals(newBlock, this.pbftBlock3);
         }
 
         {
             PbftBlock newBlock = new PbftBlock(this.pbftBlock4.getData());
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock4));
+            assertEquals(newBlock, this.pbftBlock4);
         }
     }
 
     @Test
     public void constuctorTest_Proto() {
         {
-            PbftProto.PbftBlock newBlockProto = PbftBlock.toProto(this.pbftBlock);
+            PbftProto.PbftBlock newBlockProto = this.pbftBlock.getInstance();
             PbftBlock newBlock = new PbftBlock(newBlockProto);
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock));
+            assertEquals(newBlock, this.pbftBlock);
         }
 
         {
-            PbftProto.PbftBlock newBlockProto = PbftBlock.toProto(this.pbftBlock2);
+            PbftProto.PbftBlock newBlockProto = this.pbftBlock2.getInstance();
             PbftBlock newBlock = new PbftBlock(newBlockProto);
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock2));
+            assertEquals(newBlock, this.pbftBlock2);
         }
 
         {
-            PbftProto.PbftBlock newBlockProto = PbftBlock.toProto(this.pbftBlock3);
+            PbftProto.PbftBlock newBlockProto = this.pbftBlock3.getInstance();
             PbftBlock newBlock = new PbftBlock(newBlockProto);
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock3));
+            assertEquals(newBlock, this.pbftBlock3);
         }
 
         {
-            PbftProto.PbftBlock newBlockProto = PbftBlock.toProto(this.pbftBlock4);
+            PbftProto.PbftBlock newBlockProto = this.pbftBlock4.getInstance();
             PbftBlock newBlock = new PbftBlock(newBlockProto);
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock4));
+            assertEquals(newBlock, this.pbftBlock4);
         }
     }
 
@@ -334,8 +335,8 @@ public class PbftBlockTest {
 
     @Test
     public void cloneTest() {
-        PbftBlock newPbftBlock = this.pbftBlock.clone();
-        assertTrue(newPbftBlock.equals(this.pbftBlock));
+        PbftBlock newPbftBlock = new PbftBlock(pbftBlock.getData());
+        assertEquals(newPbftBlock, this.pbftBlock);
 
         newPbftBlock.clear();
         assertTrue(PbftBlock.verify(this.pbftBlock));

@@ -6,7 +6,6 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.ValidatorBlockBroadcaster;
@@ -14,7 +13,7 @@ import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
 import io.yggdrash.core.p2p.PeerHandlerFactory;
 import io.yggdrash.core.p2p.SimplePeerDialer;
-import io.yggdrash.validator.service.ValidatorService;
+import io.yggdrash.node.service.ValidatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -66,8 +65,7 @@ public class ValidatorConfiguration {
                 log.warn("Not found branch for [{}]", branchPath);
                 continue;
             }
-            List<ValidatorService> validatorServiceList =
-                    loadValidatorService(branchPath, branch.getGenesisBlock(), defaultConfig);
+            List<ValidatorService> validatorServiceList = loadValidatorService(branchPath, branch, defaultConfig);
             validatorServiceMap.put(branchId, validatorServiceList);
         }
 
@@ -85,7 +83,7 @@ public class ValidatorConfiguration {
         return new BranchId(new Sha3Hash(branchPath.getName()));
     }
 
-    private List<ValidatorService> loadValidatorService(File branchPath, BlockHusk genesisBlock,
+    private List<ValidatorService> loadValidatorService(File branchPath, BlockChain branch,
                                                         DefaultConfig defaultConfig) {
 
         List<ValidatorService> validatorServiceList = new ArrayList<>();
@@ -98,7 +96,7 @@ public class ValidatorConfiguration {
                     validatorConfig.getString("yggdrash.validator.port"),
                     validatorConfig.getString("yggdrash.validator.key.path"));
             try {
-                validatorServiceList.add(new ValidatorService(validatorConfig, genesisBlock.getCoreBlock()));
+                validatorServiceList.add(new ValidatorService(validatorConfig, branch));
             } catch (Exception e) {
                 log.warn(e.getMessage());
             }

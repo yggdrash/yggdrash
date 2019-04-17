@@ -27,10 +27,10 @@ import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.consensus.Block;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,7 +82,7 @@ public class BranchStore implements ReadWriterStore<String, String> {
         return reStoreToLong(BlockchainMetaInfo.BEST_BLOCK_INDEX.toString(), -1);
     }
 
-    public void setBestBlock(BlockHusk block) {
+    public void setBestBlock(Block block) {
         setBestBlockHash(block.getHash());
         setBestBlock(block.getIndex());
     }
@@ -118,10 +118,10 @@ public class BranchStore implements ReadWriterStore<String, String> {
         return lastBlockHash;
     }
 
-    public  void setLastExecuteBlock(BlockHusk block) {
+    public  void setLastExecuteBlock(Block block) {
         storeLongValue(BlockchainMetaInfo.LAST_EXECUTE_BLOCK_INDEX.toString(), block.getIndex());
-        byte[] executeBlockHash = block.getHash().getBytes();
-        db.put(BlockchainMetaInfo.LAST_EXECUTE_BLOCK.toString().getBytes(), executeBlockHash);
+        Sha3Hash executeBlockHash = block.getHash();
+        db.put(BlockchainMetaInfo.LAST_EXECUTE_BLOCK.toString().getBytes(), executeBlockHash.getBytes());
     }
 
     private Long reStoreToLong(String key, long defaultValue) {

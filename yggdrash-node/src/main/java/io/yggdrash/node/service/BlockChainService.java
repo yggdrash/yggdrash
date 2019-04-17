@@ -5,6 +5,7 @@ import io.grpc.stub.StreamObserver;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.net.BlockChainConsumer;
 import io.yggdrash.node.springboot.grpc.GrpcService;
 import io.yggdrash.proto.BlockChainGrpc;
@@ -21,10 +22,10 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
     private static final Logger log = LoggerFactory.getLogger(BlockChainService.class);
     private static final NetProto.Empty EMPTY = NetProto.Empty.getDefaultInstance();
 
-    private final BlockChainConsumer blockChainConsumer;
+    private final BlockChainConsumer<Proto.Block> blockChainConsumer;
 
     @Autowired
-    public BlockChainService(BlockChainConsumer blockChainConsumer) {
+    public BlockChainService(BlockChainConsumer<Proto.Block> blockChainConsumer) {
         this.blockChainConsumer = blockChainConsumer;
     }
 
@@ -42,9 +43,9 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
         long limit = syncLimit.getLimit();
         log.debug("Received syncBlock request branch={} offset={}, limit={}",
                 branchId, offset, limit);
-        List<BlockHusk> blockList = blockChainConsumer.syncBlock(branchId, offset, limit);
+        List<Block<Proto.Block>> blockList = blockChainConsumer.syncBlock(branchId, offset, limit);
         Proto.BlockList.Builder builder = Proto.BlockList.newBuilder();
-        for (BlockHusk block : blockList) {
+        for (Block<Proto.Block> block : blockList) {
             builder.addBlocks(block.getInstance());
         }
         responseObserver.onNext(builder.build());
@@ -78,7 +79,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
             @Override
             public void onNext(Proto.Block block) {
                 long id = block.getHeader().getIndex();
-                BlockHusk blockHusk = new BlockHusk(block);
+                BlockHusk blockHusk = new BlockHusk(block.toByteArray());
                 log.debug("[BlockChainService] Received block: id=[{}], hash={}",
                         id, blockHusk.getHash());
 

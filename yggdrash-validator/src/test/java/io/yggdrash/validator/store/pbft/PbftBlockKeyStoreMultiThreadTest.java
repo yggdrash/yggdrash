@@ -4,6 +4,7 @@ import com.anarsoft.vmlens.concurrent.junit.ConcurrentTestRunner;
 import com.anarsoft.vmlens.concurrent.junit.ThreadCount;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.common.util.TimeUtils;
@@ -68,11 +69,15 @@ public class PbftBlockKeyStoreMultiThreadTest {
 
         this.ds = new LevelDbDataSource(StoreTestUtils.getTestPath(), "pbftBlockKeyStoreTest");
         this.blockKeyStore = new PbftBlockKeyStore(ds);
-        this.blockKeyStore.put(this.pbftBlock0.getIndex(), this.pbftBlock0.getHash());
+        this.blockKeyStore.put(this.pbftBlock0.getIndex(), this.pbftBlock0.getHash().getBytes());
     }
 
     private Block makeBlock(long index, byte[] prevHash) {
         return new TestUtils(wallet0).sampleBlock(index, prevHash);
+    }
+
+    private PbftBlock makePbftBlock(long index, Sha3Hash prevHash) {
+        return makePbftBlock(index, prevHash.getBytes());
     }
 
     private PbftBlock makePbftBlock(long index, byte[] prevHash) {

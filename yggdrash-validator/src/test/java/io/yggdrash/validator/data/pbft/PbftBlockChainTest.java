@@ -9,7 +9,6 @@ import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.validator.data.ConsensusBlock;
 import io.yggdrash.validator.util.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -148,7 +147,7 @@ public class PbftBlockChainTest {
 
     @Test
     public void getterTest() {
-        assertNotNull(this.pbftBlockChain.getChain());
+        assertNotNull(this.pbftBlockChain.getBranchId());
         assertNotNull(this.pbftBlockChain.getBlockKeyStore());
         assertNotNull(this.pbftBlockChain.getBlockStore());
         assertNotNull(this.pbftBlockChain.getGenesisBlock());
@@ -172,13 +171,13 @@ public class PbftBlockChainTest {
 
         for (int i = 0; i < count; i++) {
             block = new TestUtils(wallet0).sampleBlock(newBlock.getIndex() + 1, newBlock.getHash());
-            newBlock = new PbftBlock(block, null);
+            newBlock = new PbftBlock(block, PbftMessageSet.forGenesis());
 
-            pbftBlockChain.getBlockKeyStore().put(newBlock.getIndex(), newBlock.getHash());
+            pbftBlockChain.getBlockKeyStore().put(newBlock.getIndex(), newBlock.getHash().getBytes());
             pbftBlockChain.getBlockStore().put(newBlock.getHash(), newBlock);
         }
 
-        List<ConsensusBlock> blockList = pbftBlockChain.getBlockList(1, 100);
+        List blockList = pbftBlockChain.getBlockList(1, 100);
         assertEquals(blockList.size(), count);
     }
 

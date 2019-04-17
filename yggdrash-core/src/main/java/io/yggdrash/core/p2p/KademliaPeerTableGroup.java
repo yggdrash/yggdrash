@@ -1,6 +1,7 @@
 package io.yggdrash.core.p2p;
 
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.store.PeerStore;
 import io.yggdrash.core.store.StoreBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +41,8 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
         if (tableMap.containsKey(branchId)) {
             return tableMap.get(branchId);
         }
-        PeerTable peerTable = new KademliaPeerTable(owner, storeBuilder.buildPeerStore(branchId));
+        PeerStore peerStore = storeBuilder.setBranchId(branchId).buildPeerStore();
+        PeerTable peerTable = new KademliaPeerTable(owner, peerStore);
         tableMap.put(branchId, peerTable);
         return peerTable;
     }

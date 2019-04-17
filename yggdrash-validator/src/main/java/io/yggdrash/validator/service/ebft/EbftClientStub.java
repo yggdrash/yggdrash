@@ -9,16 +9,12 @@ import io.yggdrash.proto.EbftProto;
 import io.yggdrash.proto.EbftServiceGrpc;
 import io.yggdrash.validator.data.ebft.EbftBlock;
 import io.yggdrash.validator.data.ebft.EbftStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class EbftClientStub {
-
-    private static final Logger log = LoggerFactory.getLogger(EbftClientStub.class);
 
     private boolean myclient;
     private final String addr;
@@ -95,13 +91,12 @@ public class EbftClientStub {
                 .getEbftBlockList(
                         CommonProto.Offset.newBuilder().setIndex(index).setCount(10L).build());
 
+        List<EbftBlock> newEbftBlockList = new ArrayList<>();
         if (Context.current().isCancelled()) {
-            return null;
+            return newEbftBlockList;
         }
 
-        List<EbftBlock> newEbftBlockList = new ArrayList<>();
-
-        for (EbftProto.EbftBlock block : protoEbftBlockList.getEbftBlockListList()) {
+        for (EbftProto.EbftBlock block : protoEbftBlockList.getEbftBlockList()) {
             newEbftBlockList.add(new EbftBlock(block));
         }
 

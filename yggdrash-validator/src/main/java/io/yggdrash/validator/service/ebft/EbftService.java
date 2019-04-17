@@ -1,6 +1,7 @@
 package io.yggdrash.validator.service.ebft;
 
 import com.typesafe.config.ConfigException;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
@@ -8,13 +9,13 @@ import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.consensus.ConsensusBlockChain;
+import io.yggdrash.core.consensus.ConsensusService;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.validator.data.ConsensusBlockChain;
+import io.yggdrash.proto.EbftProto;
 import io.yggdrash.validator.data.ebft.EbftBlock;
-import io.yggdrash.validator.data.ebft.EbftBlockChain;
 import io.yggdrash.validator.data.ebft.EbftStatus;
-import io.yggdrash.validator.service.ConsensusService;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
@@ -24,7 +25,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class EbftService implements ConsensusService {
+public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBlock> {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(EbftService.class);
 
@@ -34,7 +35,7 @@ public class EbftService implements ConsensusService {
     private final int consensusCount;
 
     private final Wallet wallet;
-    private final EbftBlockChain blockChain;
+    private final ConsensusBlockChain<EbftProto.EbftBlock, EbftBlock> blockChain;
     private final DefaultConfig defaultConfig;
 
     private final EbftClientStub myNode;
@@ -52,12 +53,12 @@ public class EbftService implements ConsensusService {
     private final int grpcPort;
 
     public EbftService(Wallet wallet,
-                       ConsensusBlockChain blockChain,
+                       ConsensusBlockChain<EbftProto.EbftBlock, EbftBlock> blockChain,
                        DefaultConfig defaultConfig,
                        String grpcHost,
                        int grpcPort) {
         this.wallet = wallet;
-        this.blockChain = (EbftBlockChain) blockChain;
+        this.blockChain = blockChain;
         this.defaultConfig = defaultConfig;
         this.grpcHost = grpcHost;
         this.grpcPort = grpcPort;
@@ -102,7 +103,7 @@ public class EbftService implements ConsensusService {
         EbftBlock proposedEbftBlock = makeProposedBlock();
         lock.unlock();
         if (proposedEbftBlock != null) {
-            multicastBlock(proposedEbftBlock.clone());
+            multicastBlock(proposedEbftBlock);
             if (!waitingProposedBlock()) {
                 log.debug("ProposedBlock count is not enough.");
             }
@@ -112,7 +113,7 @@ public class EbftService implements ConsensusService {
         EbftBlock consensusedEbftBlock = makeConsensus();
         lock.unlock();
         if (consensusedEbftBlock != null) {
-            multicastBlock(consensusedEbftBlock.clone());
+            multicastBlock(consensusedEbftBlock);
             if (!waitingConsensusedBlock()) {
                 log.debug("ConsensusedBlock count is not enough.");
             }
@@ -199,10 +200,9 @@ public class EbftService implements ConsensusService {
 
         if (ebftStatus.getIndex()
                 > this.blockChain.getLastConfirmedBlock().getIndex()) {
-            log.debug("this Index: "
-                    + this.blockChain.getLastConfirmedBlock().getIndex());
-            log.debug("client Index: " + ebftStatus.getIndex());
-            log.debug("client : " + client.getId());
+            log.debug("this Index: {}", this.blockChain.getLastConfirmedBlock().getIndex());
+            log.debug("client Index: {}", ebftStatus.getIndex());
+            log.debug("client : {}", client.getId());
 
             this.isSynced = false;
             blockSyncing(client.getAddr(), ebftStatus.getIndex());
@@ -216,22 +216,22 @@ public class EbftService implements ConsensusService {
 
     private void blockSyncing(String addr, long index) {
         EbftClientStub client = totalValidatorMap.get(addr);
-        log.debug("node: " + client.getId());
-        log.debug("index: " + index);
+        log.debug("node: {}", client.getId());
+        log.debug("index: {}", index);
         if (!client.isRunning()) {
             return;
         }
 
         List<EbftBlock> ebftBlockList = new ArrayList<>(client.getEbftBlockList(
                 this.blockChain.getLastConfirmedBlock().getIndex()));
-        log.debug("node: " + client.getId());
-        log.debug("index: "
-                + (ebftBlockList.get(0) != null ? ebftBlockList.get(0).getIndex() : null));
-        log.debug("blockList size: " + ebftBlockList.size());
 
-        if (ebftBlockList.size() == 0) {
+        if (ebftBlockList.isEmpty()) {
             return;
         }
+
+        log.debug("node: {}", client.getId());
+        log.debug("index: {}", (ebftBlockList.get(0) != null ? ebftBlockList.get(0).getIndex() : null));
+        log.debug("blockList size: {}", ebftBlockList.size());
 
         EbftBlock ebftBlock;
         int i = 0;
@@ -272,10 +272,10 @@ public class EbftService implements ConsensusService {
         }
 
         long index = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
-        byte[] prevBlockHash = this.blockChain.getLastConfirmedBlock().getHash();
+        byte[] prevBlockHash = this.blockChain.getLastConfirmedBlock().getHash().getBytes();
 
         Block newBlock = makeNewBlock(index, prevBlockHash);
-        log.trace("newBlock" + newBlock.toString());
+        log.trace("newBlock{}", newBlock);
 
         EbftBlock newEbftBlock = new EbftBlock(newBlock);
 
@@ -306,9 +306,9 @@ public class EbftService implements ConsensusService {
 
         BlockBody newBlockBody = new BlockBody(txs);
         BlockHeader newBlockHeader = new BlockHeader(
-                blockChain.getChain(),
-                new byte[8],
-                new byte[8],
+                blockChain.getBranchId().getBytes(),
+                Constants.EMPTY_BYTE8,
+                Constants.EMPTY_BYTE8,
                 prevBlockHash,
                 index,
                 TimeUtils.time(),
@@ -361,7 +361,7 @@ public class EbftService implements ConsensusService {
         }
 
         EbftBlock ebftBlock = unConfirmedEbftBlockMap.get(minKey);
-        String consensus = wallet.signHex(ebftBlock.getHash(), true);
+        String consensus = wallet.signHex(ebftBlock.getHash().getBytes(), true);
         ebftBlock.getConsensusMessages().add(consensus);
         this.isConsensused = true;
 
@@ -425,7 +425,7 @@ public class EbftService implements ConsensusService {
                     == this.blockChain.getLastConfirmedBlock().getIndex() + 1
                     && unconfirmedBlock.getConsensusMessages().size() >= consensusCount) {
                 confirmedBlock(unconfirmedBlock);
-                return unconfirmedBlock.clone();
+                return unconfirmedBlock;
             }
         }
 
@@ -453,13 +453,12 @@ public class EbftService implements ConsensusService {
 
         try {
             if (log.isDebugEnabled()) {
-                log.debug("map size= " + this.blockChain.getBlockStore().size());
-                log.debug("key size= " + this.blockChain.getBlockKeyStore().size());
+                log.debug("map size= {}", this.blockChain.getBlockStore().size());
                 log.debug("proposedBlock size= "
                         + this.blockChain.getUnConfirmedData().size());
-                log.debug("isSynced= " + isSynced);
-                log.debug("isProposed= " + this.isProposed);
-                log.debug("isConsensused= " + this.isConsensused);
+                log.debug("isSynced= {}", isSynced);
+                log.debug("isProposed= {}", isProposed);
+                log.debug("isConsensused= {}", isConsensused);
                 for (String key : this.blockChain.getUnConfirmedData().keySet()) {
                     EbftBlock ebftBlock = this.blockChain.getUnConfirmedData().get(key);
                     if (ebftBlock == null) {
@@ -497,11 +496,11 @@ public class EbftService implements ConsensusService {
             }
             if (client.isRunning()) {
                 try {
-                    client.multicastEbftBlock(EbftBlock.toProto(block));
+                    client.multicastEbftBlock(block.getInstance());
                 } catch (Exception e) {
-                    log.debug("multicast exception: " + e.getMessage());
-                    log.debug("client: " + client.getId());
-                    log.debug("block: " + block.getHashHex());
+                    log.debug("multicast exception: {}", e.getMessage());
+                    log.debug("client: {}", client.getId());
+                    log.debug("block: {}", block.getHashHex());
                 }
             }
         }
@@ -514,7 +513,7 @@ public class EbftService implements ConsensusService {
                 continue;
             }
             try {
-                client.broadcastEbftBlock(EbftBlock.toProto(block));
+                client.broadcastEbftBlock(block.getInstance());
                 log.debug("BroadcastBlock [{}]{} to {}:{}", block.getIndex(), block.getHashHex(),
                         client.getHost(), client.getPort());
             } catch (Exception e) {
@@ -556,7 +555,7 @@ public class EbftService implements ConsensusService {
         for (EbftBlock ebftBlock : this.blockChain.getUnConfirmedData().values()) {
             if (ebftBlock != null && ebftBlock.getBlock() != null
                     && ebftBlock.getIndex() == index + 1) {
-                unConfirmedBlockList.add(ebftBlock.clone());
+                unConfirmedBlockList.add(ebftBlock);
             }
         }
         return new EbftStatus(index, unConfirmedBlockList, wallet);
@@ -564,9 +563,9 @@ public class EbftService implements ConsensusService {
 
     private void printInitInfo() {
         log.info("Node Started");
-        log.info("wallet address: " + wallet.getHexAddress());
-        log.info("wallet pubKey: " + Hex.toHexString(wallet.getPubicKey()));
-        log.info("isValidator: " + this.isValidator);
+        log.info("wallet address: {}", wallet.getHexAddress());
+        log.info("wallet pubKey: {}", Hex.toHexString(wallet.getPubicKey()));
+        log.info("isValidator: {}", this.isValidator);
     }
 
     @SuppressWarnings("unchecked")
@@ -585,10 +584,9 @@ public class EbftService implements ConsensusService {
                     nodeMap.put(client.getAddr(), client);
                 }
             }
-            log.debug("ValidatorInfo: " + nodeMap.toString());
+            log.debug("ValidatorInfo: {}", nodeMap.toString());
         } catch (ConfigException ce) {
-            log.error("Validators is not set.");
-            throw new NotValidateException();
+            throw new NotValidateException("Validators is not set.");
         }
         return nodeMap;
     }
@@ -609,7 +607,7 @@ public class EbftService implements ConsensusService {
                     nodeMap.put(client.getAddr(), client);
                 }
             }
-            log.debug("ProxyNode: " + nodeMap.toString());
+            log.debug("ProxyNode: {}", nodeMap);
         } catch (ConfigException ce) {
             log.warn("ProxyNode is not set.");
         }
@@ -625,7 +623,7 @@ public class EbftService implements ConsensusService {
     }
 
     private boolean initValidator() {
-        log.debug("MyNode ID: " + this.myNode.getId());
+        log.debug("MyNode ID: {}", myNode.getId());
         for (EbftClientStub clientStub : totalValidatorMap.values()) {
             if (this.myNode.getId().equals(clientStub.getId())) {
                 return true;
@@ -648,7 +646,7 @@ public class EbftService implements ConsensusService {
             }
         }
 
-        log.debug("running node: " + runningNodeCount);
+        log.debug("running node: {}", runningNodeCount);
     }
 
     private int getActiveNodeCount() {
@@ -667,7 +665,7 @@ public class EbftService implements ConsensusService {
         }
 
         for (String signature : ebftBlock.getConsensusMessages()) {
-            if (!Wallet.verify(ebftBlock.getHash(), Hex.decode(signature), true)) {
+            if (!Wallet.verify(ebftBlock.getHash().getBytes(), Hex.decode(signature), true)) {
                 return false;
             }
             // todo: else, check validator
@@ -677,7 +675,13 @@ public class EbftService implements ConsensusService {
     }
 
     // todo: check security
+    @Override
     public ReentrantLock getLock() {
         return lock;
+    }
+
+    @Override
+    public ConsensusBlockChain<EbftProto.EbftBlock, EbftBlock> getBlockChain() {
+        return blockChain;
     }
 }

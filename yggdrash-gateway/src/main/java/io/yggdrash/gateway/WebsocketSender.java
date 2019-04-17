@@ -17,11 +17,11 @@
 package io.yggdrash.gateway;
 
 import io.yggdrash.core.blockchain.BlockChain;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchEventListener;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.gateway.dto.BlockDto;
 import io.yggdrash.gateway.dto.TransactionDto;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -44,7 +44,7 @@ public class WebsocketSender implements BranchEventListener {
     }
 
     @Override
-    public void chainedBlock(BlockHusk block) {
+    public void chainedBlock(Block block) {
         BranchId branchId = block.getBranchId();
         template.convertAndSend("/topic/blocks", BlockDto.createBy(block));
         template.convertAndSend("/topic/branches/" + branchId + "/blocks",

@@ -9,7 +9,6 @@ import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.PbftProto;
 import org.spongycastle.util.encoders.Hex;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
@@ -210,12 +209,10 @@ public class PbftMessageSet {
                 PbftMessage.toProto(pbftMessageSet.getPrePrepare());
 
         PbftProto.PbftMessageList protoPrepareMessageList =
-                PbftMessage.toProtoList(
-                        new ArrayList<>(pbftMessageSet.getPrepareMap().values()));
+                PbftMessage.toProtoList(pbftMessageSet.getPrepareMap().values());
 
         PbftProto.PbftMessageList protoCommitMessageList =
-                PbftMessage.toProtoList(
-                        new ArrayList<>(pbftMessageSet.getCommitMap().values()));
+                PbftMessage.toProtoList(pbftMessageSet.getCommitMap().values());
 
         PbftProto.PbftMessageSet.Builder protoPbftMessageSetBuilder =
                 PbftProto.PbftMessageSet.newBuilder();
@@ -230,13 +227,17 @@ public class PbftMessageSet {
         }
 
         PbftProto.PbftMessageList protoViewChangeMessageList =
-                PbftMessage.toProtoList(
-                        new ArrayList<>(pbftMessageSet.getViewChangeMap().values()));
+                PbftMessage.toProtoList(pbftMessageSet.getViewChangeMap().values());
         if (protoViewChangeMessageList != null) {
             protoPbftMessageSetBuilder.setViewChangeList(protoViewChangeMessageList);
         }
 
         return protoPbftMessageSetBuilder.build();
+    }
+
+    public static PbftMessageSet forGenesis() {
+        PbftProto.PbftMessage empty = PbftProto.PbftMessage.newBuilder().build();
+        return new PbftMessageSet(new PbftMessage(empty), null, null, null);
     }
 
     public void clear() {
