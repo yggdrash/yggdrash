@@ -9,9 +9,11 @@ import org.ethereum.util.RLP;
 import org.ethereum.util.RLPList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.util.BigIntegers;
 import java.math.BigInteger;
 import java.security.SignatureException;
 
+import static org.ethereum.util.ByteUtil.EMPTY_BYTE_ARRAY;
 
 
 public class EthTransaction {
@@ -22,6 +24,8 @@ public class EthTransaction {
     byte[] receiveAddress;
     BigInteger value;
     byte[] data;
+    byte[] rlpEncoded;
+    private ECKey.ECDSASignature signature;
 
     public byte[] getTxHash() {
         return txHash;
@@ -85,6 +89,7 @@ public class EthTransaction {
         data = ethTx.get(5).getRLPData();
 
         ECKey.ECDSASignature signature = null;
+        byte[] rawData = null;
         // only parse signature in case tx is signed
         if (ethTx.get(6).getRLPData() != null) {
             byte[] vData =  ethTx.get(6).getRLPData();
@@ -92,7 +97,15 @@ public class EthTransaction {
             byte[] r = ethTx.get(7).getRLPData();
             byte[] s = ethTx.get(8).getRLPData();
             chainId = extractChainIdFromRawSignature(v, r, s);
-            if (r != null && s != null) {
+            log.debug("ChainId : {} ", chainId);
+            log.debug("int {}, long {}", v.intValue(), v.longValue());
+            rawData = getEncodedRaw();
+            if (chainId == null) { // TEST NET
+                // TODO check chainId(network ID)
+                signature = ECKey.ECDSASignature.fromComponents(r, s, v.byteValue());
+                chainId = (int)getRealV(v);
+            } else if (r != null && s != null) {
+                // ETH
                 signature = ECKey.ECDSASignature.fromComponents(r, s, getRealV(v));
             }
         } else {
@@ -101,7 +114,8 @@ public class EthTransaction {
         txHash = HashUtil.sha3(rawTransaction);
 
         try {
-            sendAddress = ECKey.signatureToAddress(txHash, signature);
+            byte[] rawHash = HashUtil.sha3(rawData);
+            sendAddress = ECKey.signatureToAddress(rawHash, signature);
         } catch (SignatureException e) {
             sendAddress = new byte[0];
         }
@@ -123,7 +137,9 @@ public class EthTransaction {
     private byte getRealV(BigInteger bv) {
         if (bv.bitLength() > 31) return 0; // chainId is limited to 31 bits, longer are not valid for now
         long v = bv.longValue();
-        if (v == LOWER_REAL_V || v == (LOWER_REAL_V + 1)) return (byte) v;
+        if (v == LOWER_REAL_V || v == (LOWER_REAL_V + 1)) {
+            return (byte) v;
+        }
         byte realV = LOWER_REAL_V;
         int inc = 0;
         if ((int) v % 2 == 0) {
@@ -132,5 +148,36 @@ public class EthTransaction {
         return (byte) (realV + inc);
     }
 
+    public byte[] getEncodedRaw() {
+
+        byte[] rlpRaw;
+
+        // parse null as 0 for nonce
+        byte[] nonce = null;
+        if (this.nonce == null || this.nonce.length == 1 && this.nonce[0] == 0) {
+            nonce = RLP.encodeElement(null);
+        } else {
+            nonce = RLP.encodeElement(this.nonce);
+        }
+        byte[] gasPrice = RLP.encodeElement(this.gasPrice);
+        byte[] gasLimit = RLP.encodeElement(this.gasLimit);
+        byte[] receiveAddress = RLP.encodeElement(this.receiveAddress);
+        byte[] value = RLP.encodeElement(this.value.toByteArray());
+        byte[] data = RLP.encodeElement(this.data);
+
+        // Since EIP-155 use chainId for v
+        if (chainId == null) {
+            rlpRaw = RLP.encodeList(nonce, gasPrice, gasLimit, receiveAddress,
+                    value, data);
+        } else {
+            byte[] v, r, s;
+            v = RLP.encodeInt(chainId);
+            r = RLP.encodeElement(EMPTY_BYTE_ARRAY);
+            s = RLP.encodeElement(EMPTY_BYTE_ARRAY);
+            rlpRaw = RLP.encodeList(nonce, gasPrice, gasLimit, receiveAddress,
+                    value, data, v, r, s);
+        }
+        return rlpRaw;
+    }
 
 }

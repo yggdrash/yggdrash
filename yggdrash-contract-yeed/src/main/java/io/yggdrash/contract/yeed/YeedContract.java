@@ -604,7 +604,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
                         // 1. propose issuer and process issuer are same
                         // 2. receive Asset Value is more than propose receiveAsset or equal
                         // 3. Propose set Sender Address
-                        if(isProposerAreIssuer && receiveValue.compareTo(propose.getReceiveAsset()) >= 0 && proposeSender) {
+                        if(isProposerAreIssuer && receiveValue.compareTo(propose.getReceiveAsset())
+                                >= 0 && proposeSender) {
                             BigInteger returnFee = proposeFee.divide(BigInteger.valueOf(2L));
                             proposeFee = proposeFee.subtract(returnFee);
                             transfer(propose.getProposeId(), propose.getIssuer(), returnFee, proposeFee);
@@ -614,7 +615,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
                         }
                     } else {
                         setProposeStatus(propose.getProposeId(), ProposeStatus.PROCESSING);
-                        this.txReceipt.addLog(String.format("propose %s %s",propose.getProposeId(), ProposeStatus.PROCESSING));
+                        this.txReceipt.addLog(String.format("propose %s %s",propose.getProposeId(),
+                                ProposeStatus.PROCESSING));
 
                     }
                     // send fee
@@ -701,11 +703,6 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 this.txReceipt.addLog("");
                 this.txReceipt.setStatus(ExecuteStatus.ERROR);
             }
-
-
-
-
-
         }
 
 
