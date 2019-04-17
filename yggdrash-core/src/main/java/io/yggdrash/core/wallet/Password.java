@@ -1,4 +1,4 @@
-package io.yggdrash.common.crypto;
+package io.yggdrash.core.wallet;
 
 public class Password {
 

@@ -1,4 +1,4 @@
-package io.yggdrash.common.crypto;
+package io.yggdrash.core.wallet;
 
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.spongycastle.crypto.engines.AESEngine;

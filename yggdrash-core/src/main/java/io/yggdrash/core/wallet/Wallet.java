@@ -20,11 +20,9 @@ import com.google.common.base.Strings;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.common.crypto.AESEncrypt;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
-import io.yggdrash.common.crypto.Password;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
@@ -49,11 +47,11 @@ import static io.yggdrash.common.utils.ByteUtil.EMPTY_BYTE_ARRAY;
 
 /**
  * Wallet Class.
+ *
  */
 public class Wallet {
 
     // todo: check security
-
     private static final Logger logger = LoggerFactory.getLogger(Wallet.class);
 
     private static final String WALLET_PBKDF2_NAME = "pbkdf2";
