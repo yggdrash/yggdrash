@@ -17,7 +17,11 @@
 package io.yggdrash.contract.yeed;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.contract.vo.dpoa.Validator;
+import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.crypto.HexUtil;
+import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.utils.ContractUtils;
@@ -25,8 +29,10 @@ import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
+import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.yeed.ehtereum.EthTransaction;
+import io.yggdrash.contract.yeed.intertransfer.TxConfirmStatus;
 import io.yggdrash.contract.yeed.propose.ProposeType;
 import org.junit.Assert;
 import org.junit.Before;
@@ -64,6 +70,43 @@ public class YeedTest {
     public void setUp() throws IllegalAccessException {
         StateStore coinContractStateStore = new StateStore(new HashMapDbSource());
 
+        BranchStateStore branchStateStore = new BranchStateStore() {
+            ValidatorSet set = new ValidatorSet();
+            @Override
+            public Long getLastExecuteBlockIndex() {
+                return null;
+            }
+
+            @Override
+            public Sha3Hash getLastExecuteBlockHash() {
+                return null;
+            }
+
+            @Override
+            public Sha3Hash getGenesisBlockHash() {
+                return null;
+            }
+
+            @Override
+            public Sha3Hash getBranchIdHash() {
+                return null;
+            }
+
+            @Override
+            public ValidatorSet getValidators() {
+                return set;
+            }
+
+            @Override
+            public void setValidators(ValidatorSet validatorSet) {
+                this.set = validatorSet;
+            }
+        };
+
+        ValidatorSet set = new ValidatorSet();
+        set.getValidatorMap().put("81b7e08f65bdf5648606c89998a9cc8164397647",new Validator("81b7e08f65bdf5648606c89998a9cc8164397647"));
+        branchStateStore.setValidators(set);
+
         List<Field> txReceipt = ContractUtils.txReceiptFields(yeedContract);
         if (txReceipt.size() == 1) {
             txReceiptField = txReceipt.get(0);
@@ -71,6 +114,10 @@ public class YeedTest {
         for (Field f : ContractUtils.contractFields(yeedContract, ContractStateStore.class)) {
             f.setAccessible(true);
             f.set(yeedContract, coinContractStateStore);
+        }
+        for (Field f : ContractUtils.contractFields(yeedContract, ContractBranchStateStore.class)) {
+            f.setAccessible(true);
+            f.set(yeedContract, branchStateStore);
         }
 
         genesis();
@@ -614,5 +661,126 @@ public class YeedTest {
         receipt.getTxLog().stream().forEach(l -> log.debug(l));
 
     }
+
+    @Test
+    public void processingProposeConfirm() {
+        // Type 1 - Issuer validate transaction
+        String transactionId = "0x02";
+        String receiveAddress = "c3cf7a283a4415ce3c41f5374934612389334780";
+        BigInteger receiveEth = new BigInteger("1000000000000000000");
+        int receiveChainId = 1;
+        long networkBlockHeight = 10;
+        ProposeType proposeType = ProposeType.YEED_TO_ETHER;
+
+        String senderAddress = "5e032243d507c743b061ef021e2ec7fcc6d3ab89";
+
+        String inputData = null;
+        BigInteger stakeYeed = new BigInteger("1000000000000000000");
+        long targetBlockHeight = 1000000L;
+        BigInteger fee = new BigInteger("10000000000000000");
+        String issuer = "c3cf7a283a4415ce3c41f5374934612389334780";
+
+        JsonObject proposal = new JsonObject();
+        proposal.addProperty("receiveAddress", receiveAddress);
+        proposal.addProperty("receiveEth", receiveEth);
+        proposal.addProperty("receiveChainId", receiveChainId);
+        proposal.addProperty("networkBlockHeight", networkBlockHeight);
+        proposal.addProperty("proposeType", proposeType.toValue());
+        proposal.addProperty("senderAddress", senderAddress);
+        proposal.addProperty("inputData", inputData);
+        proposal.addProperty("stakeYeed", stakeYeed);
+        proposal.addProperty("blockHeight", targetBlockHeight);
+        proposal.addProperty("fee", fee);
+
+        BigInteger issuerOriginBalance = getBalance(issuer);
+        log.debug("issuerOriginBalance {} ", issuerOriginBalance);
+        TransactionReceipt receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 1);
+
+        // issue propose
+        yeedContract.issuePropose(proposal);
+
+        assert receipt.getStatus() == ExecuteStatus.SUCCESS;
+
+        BigInteger issuerIssuedBalance = getBalance(issuer);
+        assert issuerOriginBalance.subtract(stakeYeed.add(fee)).compareTo(issuerIssuedBalance) == 0;
+        log.debug("issuerIssuedBalance {} ", issuerIssuedBalance);
+        assert issuerOriginBalance.subtract(issuerIssuedBalance).compareTo(stakeYeed.add(fee)) == 0;
+
+        String proposeIssue = receipt.getTxLog().get(1);
+        log.debug("Log 1 : {} ",proposeIssue);
+        String proposeIssueIdPatten = "Propose [a-f0-9]{64} ISSUED";
+        Pattern p = Pattern.compile(proposeIssueIdPatten);
+        Matcher matcher = p.matcher(proposeIssue);
+        assert matcher.find();
+
+        String proposeIssueId = matcher.group();
+        proposeIssueId = proposeIssueId.replaceAll("Propose ","")
+                .replaceAll(" ISSUED", "");
+
+        log.debug("propose Issue ID : {}", proposeIssueId);
+
+        String ethRawTransaction = "0xf86f830414ac850df847580082afc894c3cf7a283a4415ce3c41f5374934612389"
+                + "334780880de0b6b3a76400008026a0c9938e35c6281a2003531ef19c0368fb0ec680d1bc073ee2881"
+                + "3602616ce172ca03885e6218dbd7a09fc250ce4eb982114cc25c0974f4adfbd08c4e834f9c74dc3";
+
+
+        byte[] etheSendEncode = HexUtil.hexStringToBytes(ethRawTransaction);
+
+        EthTransaction ethTransaction = new EthTransaction(etheSendEncode);
+        log.debug("sender : {} ", HexUtil.toHexString(ethTransaction.getSendAddress()));
+        log.debug("Receive : {}", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+        log.debug("{} WEI", ethTransaction.getValue());
+
+        JsonObject processJson = new JsonObject();
+        processJson.addProperty("proposeId", proposeIssueId);
+        processJson.addProperty("rawTransaction", ethRawTransaction);
+        processJson.addProperty("fee", BigInteger.ZERO);
+
+        receipt = setTxReceipt(transactionId, senderAddress, BRANCH_ID, 10);
+        yeedContract.processPropose(processJson);
+
+
+        receipt.getTxLog().stream().forEach(l -> log.debug(l));
+
+        // Validator transaction confirm (check exist and block height, index)
+
+        // tx id : a077dd42d4421dca5cb8a7a11aca5b27adaf40be2428f9dc8e42a56abdabeb66
+        // network : 1
+
+        // make transaction params
+
+        // validator : 81b7e08f65bdf5648606c89998a9cc8164397647
+        String validator = "81b7e08f65bdf5648606c89998a9cc8164397647";
+        receipt = setTxReceipt(transactionId, validator,BRANCH_ID, 100);
+
+        // txConfirmId : a077dd42d4421dca5cb8a7a11aca5b27adaf40be2428f9dc8e42a56abdabeb66
+        // status
+        // blockHeight
+        // index
+
+        JsonObject params = new JsonObject();
+        //params.addProperty("proposeId", "18d48bc062ecab96a6d5b24791b5b41fdb69a12ef76d56f9f842871f92716b7a");
+        params.addProperty("txConfirmId", "af22edcccb4d6e4568b701294479c99a04afbd5ab25578adbe58549e36e4abfa");
+        params.addProperty("txId", "a077dd42d4421dca5cb8a7a11aca5b27adaf40be2428f9dc8e42a56abdabeb66");
+        params.addProperty("status", TxConfirmStatus.DONE.toValue());
+        params.addProperty("blockHeight", 1000001L);
+        params.addProperty("lastBlockHeight", 1002001L);
+
+        params.addProperty("index", 1);
+
+        yeedContract.transactionConfirm(params);
+
+        receipt.getTxLog().stream().forEach(l -> log.debug(l));
+
+        Assert.assertEquals(receipt.getStatus(), ExecuteStatus.SUCCESS);
+        log.debug("{} YEED", getBalance(proposeIssueId));
+        // 1010000000000000000
+        //   10000000000000000
+        Assert.assertTrue(getBalance(proposeIssueId).compareTo(BigInteger.ZERO) == 0);
+
+
+
+    }
+
 
 }

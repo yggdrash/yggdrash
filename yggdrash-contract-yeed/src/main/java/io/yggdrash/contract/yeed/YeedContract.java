@@ -21,11 +21,15 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.standard.CoinStandard;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
+import io.yggdrash.common.contract.vo.dpoa.Validator;
+import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
+import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
@@ -86,6 +90,9 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
         @ContractStateStore
         ReadWriterStore<String, JsonObject> store;
+
+        @ContractBranchStateStore
+        BranchStateStore branchStateStore;
 
         /**
          * @return Total amount of coin in existence
@@ -197,7 +204,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                         from, to, amount, fee));
                 return true;
             } else {
-                txReceipt.addLog(String.format("{} transfer Error", from));
+                txReceipt.addLog(String.format("%s transfer Error", from));
                 return false;
             }
         }
@@ -664,13 +671,23 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
             long blockHeight = param.get("blockHeight").getAsLong();
             int index = param.get("index").getAsInt();
+            long lastBlockHeight = param.get("lastBlockHeight").getAsLong();
 
 
             TxConfirm txConfirm = getTxConfirm(txConfirmId);
 
+            log.debug("process {}",txConfirm.getProposeId());
+            log.debug("status {}",txConfirm.getStatus());
+
             // Get confirm
             if (txConfirm.getStatus() == TxConfirmStatus.VALIDATE_REQUIRE ||
                     txConfirm.getStatus() == TxConfirmStatus.NOT_EXIST) {
+
+                txConfirm.setBlockHeight(blockHeight);
+                txConfirm.setIndex(index);
+                txConfirm.setLastBlockHeight(lastBlockHeight);
+
+
                 // get Propose
                 ProposeInterChain pi = getPropose(txConfirm.getProposeId());
                 ProposeStatus pis = getProposeStatus(txConfirm.getProposeId());
@@ -684,6 +701,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
                         // check block height
                         // Propose Issuer set network block height
                         //
+                        log.debug("Propose require block height : {} ", pi.getNetworkBlockHeight());
+                        log.debug("txConfirm block height : {} ", txConfirm.getBlockHeight());
                         boolean checkBlockHeight = false;
                         if (pi.getNetworkBlockHeight() <= txConfirm.getBlockHeight()) {
                             checkBlockHeight = true;
@@ -691,6 +710,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                             checkBlockHeight = true;
                         }
 
+                        log.debug("checkBlockHeight : {}", checkBlockHeight);
                         if (checkBlockHeight) {
                             BigInteger fee = BigInteger.ZERO;
                             BigInteger stakeYeed = getBalance(pi.getProposeId());
@@ -698,18 +718,28 @@ public class YeedContract implements BundleActivator, ServiceListener {
                             if (stakeYeed.compareTo(pi.getFee().add(txConfirm.getTransferYeed())) >= 0) {
                                 fee = pi.getFee();
                             }
+                            log.debug("stake YEED {}", stakeYeed);
+                            log.debug("TransferYeed YEED {}", txConfirm.getTransferYeed());
+                            log.debug("PI Fee {}", fee);
+
                             BigInteger transferYeed = txConfirm.getTransferYeed();
                             // Transfer Yeed
-                            if (stakeYeed.compareTo(transferYeed) > 0) {
+                            if (stakeYeed.compareTo(transferYeed) < 0) {
                                 transferYeed = stakeYeed;
                             }
-                            transfer(pi.getProposeId(), txConfirm.getSendAddress(), transferYeed, fee);
-                            this.txReceipt.addLog(String.format("%s is DONE",txConfirm.getTxConfirmId()));
-                            // check propose
 
-                            if (fee.compareTo(BigInteger.ZERO) > 0) { // propose is done
-                                setProposeStatus(pi.getProposeId(), ProposeStatus.DONE);
+                            boolean transfer = transfer(pi.getProposeId(), txConfirm.getSendAddress(), transferYeed, fee);
+                            if (transfer) {
+                                this.txReceipt.addLog(String.format("%s is DONE",txConfirm.getTxConfirmId()));
+                                // check propose
+                                if (fee.compareTo(BigInteger.ZERO) > 0) { // propose is done
+                                    setProposeStatus(pi.getProposeId(), ProposeStatus.DONE);
+                                }
+                                this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
+                            } else {
+                                this.txReceipt.addLog(String.format("%s is DONE",txConfirm.getTxConfirmId()));
                             }
+
                         }
                     }
                 } else {
