@@ -36,6 +36,7 @@ import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.contract.yeed.ehtereum.EthTransaction;
 import io.yggdrash.contract.yeed.intertransfer.TxConfirm;
 import io.yggdrash.contract.yeed.intertransfer.TxConfirmStatus;
+import io.yggdrash.contract.yeed.propose.ProposeErrorCode;
 import io.yggdrash.contract.yeed.propose.ProposeInterChain;
 import io.yggdrash.contract.yeed.propose.ProposeStatus;
 import io.yggdrash.contract.yeed.propose.ProposeType;
@@ -48,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 import java.math.BigInteger;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
 public class YeedContract implements BundleActivator, ServiceListener {
@@ -503,6 +505,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
             return proposeJson;
         }
 
+
         // interTransfer ETH to YEED
         @InvokeTransaction
         public void processPropose(JsonObject param) {
@@ -536,21 +539,32 @@ public class YeedContract implements BundleActivator, ServiceListener {
             if (propose.getProposeType() == ProposeType.YEED_TO_ETHER) {
                 byte[] etheSendEncode = HexUtil.hexStringToBytes(rawTransaction);
                 EthTransaction ethTransaction = new EthTransaction(etheSendEncode);
+
                 // check propose
-                boolean checkPropose = true;
+                int checkPropose = 0;
                 boolean proposeSender = false;
                 String senderAddress = HexUtil.toHexString(ethTransaction.getSendAddress());
                 String receiveAddress = HexUtil.toHexString(ethTransaction.getReceiveAddress());
-                checkPropose &= propose.getReceiveAddress().equals(receiveAddress);
-                checkPropose &= propose.getReceiveChainId() == ethTransaction.getChainId();
+                checkPropose |= ProposeErrorCode.addCode(
+                        propose.getReceiveAddress().equals(receiveAddress),
+                        ProposeErrorCode.PROPOSE_RECEIVE_ADDRESS_INVALID);
                 // sender is option
                 if(!Strings.isNullOrEmpty(propose.getSenderAddress())) {
-                    checkPropose &= propose.getSenderAddress().equals(senderAddress);
+                    checkPropose |= ProposeErrorCode.addCode(
+                            propose.getSenderAddress().equals(senderAddress),
+                            ProposeErrorCode.PROPOSE_SENDER_ADDRESS_INVALID);
                     proposeSender = true;
                 }
 
+                // propose chainId did not check -1
+                if (propose.getReceiveChainId() != -1) {
+                    checkPropose |= ProposeErrorCode.addCode(
+                            propose.getReceiveChainId() == ethTransaction.getChainId(),
+                            ProposeErrorCode.PROPOSE_RECEIVE_CHAIN_ID_INVALID);
+                }
+
                 log.debug("check Propose : {}", checkPropose);
-                if (checkPropose) {
+                if (checkPropose == 0) {
                     BigInteger receiveValue = ethTransaction.getValue();
                     // calculate ratio
                     BigInteger ratio = propose.getReceiveAsset().divide(propose.getStakeYeed());
@@ -567,9 +581,9 @@ public class YeedContract implements BundleActivator, ServiceListener {
                     boolean isProposerAreIssuer = propose.getIssuer().equals(this.txReceipt.getIssuer());
 
                     if (isProposerAreIssuer && proposeSender) {
-                        // 1. propose issuer and process issuer are same
+                        // 1. propose issuer and this transaction issuer are same
                         // 2. Propose set Sender Address
-                        // send propose YEED to senderAddress
+                        // 3. Propose Send Address send transaction to receive Address
                         transfer(propose.getProposeId(), senderAddress, transferYeed, fee);
                         stakeBalance = stakeBalance.subtract(transferYeed);
                         // All stake YEED is transfer to sendAddress
@@ -623,12 +637,16 @@ public class YeedContract implements BundleActivator, ServiceListener {
                     transferFee(this.txReceipt.getIssuer(), fee);
                     this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
                 } else {
+                    log.error("{} error Code", checkPropose);
+                    List<String> errors = ProposeErrorCode.errorLogs(checkPropose);
+                    // add Error log to txReceipt
+                    errors.stream().forEach(l -> this.txReceipt.addLog(l));
                     this.txReceipt.setStatus(ExecuteStatus.FALSE);
                 }
 
 
             } else {
-                throw new RuntimeException("Not Supported");
+                throw new RuntimeException("Not Supported Yet");
             }
             // or any other address can process propose
             // param get

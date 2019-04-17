@@ -28,6 +28,7 @@ import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.yeed.ehtereum.EthTransaction;
 import io.yggdrash.contract.yeed.propose.ProposeType;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -446,7 +447,7 @@ public class YeedTest {
         long networkBlockHeight = 10;
         ProposeType proposeType = ProposeType.YEED_TO_ETHER;
 
-        String senderAddress = "4d01e237570022440aa126ca0b63065d7f5fd589";
+        String senderAddress = "5e032243d507c743b061ef021e2ec7fcc6d3ab89";
 
         String inputData = null;
         BigInteger stakeYeed = new BigInteger("1000000000000000000");
@@ -503,8 +504,8 @@ public class YeedTest {
         byte[] etheSendEncode = HexUtil.hexStringToBytes(ethRawTransaction);
 
         EthTransaction ethTransaction = new EthTransaction(etheSendEncode);
-        log.debug(HexUtil.toHexString(ethTransaction.getSendAddress()));
-        log.debug(HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+        log.debug("sender : {} ", HexUtil.toHexString(ethTransaction.getSendAddress()));
+        log.debug("Receive : {}", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
         log.debug("{} WEI", ethTransaction.getValue());
 
         JsonObject processJson = new JsonObject();
@@ -516,12 +517,14 @@ public class YeedTest {
 
         BigInteger issuerDoneBalance = getBalance(issuer);
         log.debug("issuerDoneBalance {} ", issuerDoneBalance);
-
+        log.debug("fee {} ", fee);
         // issuer Done process , issuer return fee 1/2
+        receipt.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertEquals("Transaction is Success", receipt.getStatus(), ExecuteStatus.SUCCESS);
         assert issuerDoneBalance.subtract(issuerIssuedBalance)
                 .compareTo(fee.divide(BigInteger.valueOf(2L))) == 0;
         assert issuerDoneBalance.compareTo(issuerIssuedBalance) > 0;
-        receipt.getTxLog().stream().forEach(l -> log.debug(l));
+
         assert receipt.getStatus() == ExecuteStatus.SUCCESS;
 
         transactionId = "0x03";
@@ -530,7 +533,86 @@ public class YeedTest {
         assert receipt.getStatus() == ExecuteStatus.FALSE;
         receipt.getTxLog().stream().forEach(l -> log.debug(l));
 
+    }
 
+    @Test
+    public void processingInvalid() {
+        String transactionId = "0x02";
+        String receiveAddress = "ad8992d6f78d9cc597438efbccd8940d7c02bc6d";
+        BigInteger receiveEth = new BigInteger("11000000000000000000");
+        int receiveChainId = 1;
+        long networkBlockHeight = 10;
+        ProposeType proposeType = ProposeType.YEED_TO_ETHER;
+
+        String senderAddress = "dcf94a3153398b9e78a3202ffb7d0c606348f616";
+
+        String inputData = null;
+        BigInteger stakeYeed = new BigInteger("1000000000000000000");
+        long targetBlockHeight = 1000000L;
+        BigInteger fee = new BigInteger("10000000000000000");
+        String issuer = "c3cf7a283a4415ce3c41f5374934612389334780";
+
+        JsonObject proposal = new JsonObject();
+        proposal.addProperty("receiveAddress", receiveAddress);
+        proposal.addProperty("receiveEth", receiveEth);
+        proposal.addProperty("receiveChainId", receiveChainId);
+        proposal.addProperty("networkBlockHeight", networkBlockHeight);
+        proposal.addProperty("proposeType", proposeType.toValue());
+        proposal.addProperty("senderAddress", senderAddress);
+        proposal.addProperty("inputData", inputData);
+        proposal.addProperty("stakeYeed", stakeYeed);
+        proposal.addProperty("blockHeight", targetBlockHeight);
+        proposal.addProperty("fee", fee);
+
+        BigInteger issuerOriginBalance = getBalance(issuer);
+        log.debug("issuerOriginBalance {} ", issuerOriginBalance);
+        TransactionReceipt receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 1);
+
+        // issue propose
+        yeedContract.issuePropose(proposal);
+
+        assert receipt.getStatus() == ExecuteStatus.SUCCESS;
+
+        String proposeIssue = receipt.getTxLog().get(1);
+        log.debug("Log 1 : {} ",proposeIssue);
+        String proposeIssueIdPatten = "Propose [a-f0-9]{64} ISSUED";
+        Pattern p = Pattern.compile(proposeIssueIdPatten);
+        Matcher matcher = p.matcher(proposeIssue);
+        assert matcher.find();
+
+        String proposeIssueId = matcher.group();
+        proposeIssueId = proposeIssueId.replaceAll("Propose ","")
+                .replaceAll(" ISSUED", "");
+
+        log.debug("propose Issue ID : {}", proposeIssueId);
+
+        log.debug(proposal.toString());
+
+        // Make Error
+
+
+        String ethHexString = "0xf86e81b68502540be400830493e094735c4b587ae018c4733df6a8ef59711d15f551b48"
+                + "80de0b6b3a76400008025a09a5ebf9b742c5a1fb3a6fd931cc419afefdcf5cca371c411a1d5e2b"
+                + "55de8dee1a04cbfe5ec19ec5c8fa4a762fa49f17749b0a13a380567da1b75cf80d2faa1a8c9";
+
+        byte[] etheSendEncode = HexUtil.hexStringToBytes(ethHexString);
+
+        EthTransaction ethTransaction = new EthTransaction(etheSendEncode);
+        log.debug("sender : {} ", HexUtil.toHexString(ethTransaction.getSendAddress()));
+        log.debug("Receive : {}", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+        log.debug("{} WEI", ethTransaction.getValue());
+
+        JsonObject processJson = new JsonObject();
+        processJson.addProperty("proposeId", proposeIssueId);
+        processJson.addProperty("rawTransaction", ethHexString);
+        processJson.addProperty("fee", BigInteger.ZERO);
+        receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 10);
+        yeedContract.processPropose(processJson);
+
+        Assert.assertEquals("processing is fail", receipt.getStatus(), ExecuteStatus.FALSE);
+
+        receipt.getTxLog().stream().forEach(l -> log.debug(l));
 
     }
+
 }

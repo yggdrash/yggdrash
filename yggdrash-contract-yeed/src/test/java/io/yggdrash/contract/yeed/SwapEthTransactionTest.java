@@ -55,7 +55,9 @@ public class SwapEthTransactionTest {
 
 
 
-        ethHexString = "0xf86e81b68502540be400830493e094735c4b587ae018c4733df6a8ef59711d15f551b4880de0b6b3a76400008025a09a5ebf9b742c5a1fb3a6fd931cc419afefdcf5cca371c411a1d5e2b55de8dee1a04cbfe5ec19ec5c8fa4a762fa49f17749b0a13a380567da1b75cf80d2faa1a8c9";
+        ethHexString = "0xf86e81b68502540be400830493e094735c4b587ae018c4733df6a8ef59711d15f551b48"
+                + "80de0b6b3a76400008025a09a5ebf9b742c5a1fb3a6fd931cc419afefdcf5cca371c411a1d5e2b"
+                + "55de8dee1a04cbfe5ec19ec5c8fa4a762fa49f17749b0a13a380567da1b75cf80d2faa1a8c9";
         // 0xd21629411073b5ac9e8896f980a2fd066cbea7e6
         // 0x735c4b587ae018c4733df6a8ef59711d15f551b4
         etheSendEncode = HexUtil.hexStringToBytes(ethHexString);
