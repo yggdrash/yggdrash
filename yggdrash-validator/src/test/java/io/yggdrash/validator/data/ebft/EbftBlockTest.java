@@ -96,7 +96,7 @@ public class EbftBlockTest {
         EbftBlock testEbftBlock4 = new EbftBlock(testEbftBlock1.getData());
         assertEquals(testEbftBlock1, testEbftBlock4);
 
-        EbftBlock testEbftBlock5 = new EbftBlock(EbftBlock.toProto(testEbftBlock1));
+        EbftBlock testEbftBlock5 = new EbftBlock(testEbftBlock1.getInstance());
         assertEquals(testEbftBlock1, testEbftBlock5);
 
         EbftBlock testEbftBlock6 = new EbftBlock(testEbftBlock1.getData());

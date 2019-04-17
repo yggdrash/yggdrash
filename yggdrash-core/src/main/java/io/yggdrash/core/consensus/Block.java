@@ -12,6 +12,8 @@ import java.util.List;
 
 public interface Block<T> extends ProtoHusk<T> {
 
+    Proto.Block getProtoBlock();
+
     io.yggdrash.core.blockchain.Block getBlock();
 
     Object getConsensusMessages();
@@ -37,8 +39,6 @@ public interface Block<T> extends ProtoHusk<T> {
     List<TransactionHusk> getBody();
 
     long getBodyLength();
-
-    Proto.Block getProtoBlock();
 
     byte[] getSignature();
 

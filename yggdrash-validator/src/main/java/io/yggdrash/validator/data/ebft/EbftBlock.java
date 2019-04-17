@@ -32,10 +32,15 @@ import java.util.List;
 
 public class EbftBlock extends AbstractBlock<EbftProto.EbftBlock> {
 
-    private transient List<String> consensusList;
+    private final transient List<String> consensusList;
+
+    private EbftBlock(Proto.Block protoBlock, List<String> consensusList) {
+        super(protoBlock);
+        this.consensusList = new ArrayList<>(consensusList);
+    }
 
     public EbftBlock(EbftProto.EbftBlock block) {
-        super(block);
+        this(block.getBlock(), block.getConsensusList().getConsensusList());
     }
 
     public EbftBlock(byte[] bytes) {
@@ -47,17 +52,11 @@ public class EbftBlock extends AbstractBlock<EbftProto.EbftBlock> {
     }
 
     public EbftBlock(Block block, List<String> consensusList) {
-        this(toProto(block, consensusList));
+        this(Block.toProtoBlock(block), consensusList);
     }
 
     public EbftBlock(JsonObject jsonObject) {
-        this(toProto(new Block(jsonObject.get("block").getAsJsonObject()),
-                toConsensusList(jsonObject.get("consensusList"))));
-    }
-
-    @Override
-    public void initConsensus() {
-        this.consensusList = new ArrayList<>(getInstance().getConsensusList().getConsensusListList());
+        this(new Block(jsonObject.get("block").getAsJsonObject()), toConsensusList(jsonObject.get("consensusList")));
     }
 
     @Override
@@ -66,8 +65,9 @@ public class EbftBlock extends AbstractBlock<EbftProto.EbftBlock> {
     }
 
     @Override
-    public Proto.Block getProtoBlock() {
-        return getInstance().getBlock();
+    public EbftProto.EbftBlock getInstance() {
+        EbftProto.ConsensusList list = EbftProto.ConsensusList.newBuilder().addAllConsensus(consensusList).build();
+        return EbftProto.EbftBlock.newBuilder().setBlock(getProtoBlock()).setConsensusList(list).build();
     }
 
     @Override
@@ -119,19 +119,5 @@ public class EbftBlock extends AbstractBlock<EbftProto.EbftBlock> {
         } catch (InvalidProtocolBufferException e) {
             throw new NotValidateException(e);
         }
-    }
-
-    private static EbftProto.EbftBlock toProto(Block block, List<String> consensusList) {
-        EbftProto.ConsensusList list = EbftProto.ConsensusList.newBuilder()
-                .addAllConsensusList(consensusList).build();
-
-        EbftProto.EbftBlock.Builder protoBlock = EbftProto.EbftBlock.newBuilder()
-                .setBlock(Block.toProtoBlock(block))
-                .setConsensusList(list);
-        return protoBlock.build();
-    }
-
-    public static EbftProto.EbftBlock toProto(EbftBlock ebftBlock) {
-        return toProto(ebftBlock.getData());
     }
 }

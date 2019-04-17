@@ -111,7 +111,7 @@ public class EbftStatus {
     private static EbftProto.EbftBlockList toProtoList(Collection<EbftBlock> collection) {
         EbftProto.EbftBlockList.Builder builder = EbftProto.EbftBlockList.newBuilder();
         for (EbftBlock ebftBlock : collection) {
-            builder.addEbftBlock(EbftBlock.toProto(ebftBlock));
+            builder.addEbftBlock(ebftBlock.getInstance());
         }
         return builder.build();
     }

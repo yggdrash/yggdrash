@@ -27,8 +27,6 @@ import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.Proto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -37,7 +35,6 @@ import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
 
 @Deprecated
 public class BlockHusk extends AbstractBlock<Proto.Block> implements Comparable<BlockHusk> {
-    private static final Logger log = LoggerFactory.getLogger(BlockHusk.class);
 
     public BlockHusk(byte[] bytes) {
         super(toProto(bytes));
@@ -48,18 +45,13 @@ public class BlockHusk extends AbstractBlock<Proto.Block> implements Comparable<
     }
 
     @Override
-    public void initConsensus() {
-        log.warn("Deprecated.");
-    }
-
-    @Override
     public Object getConsensusMessages() {
         throw new FailedOperationException("Not implemented");
     }
 
     @Override
-    public Proto.Block getProtoBlock() {
-        return getInstance();
+    public Proto.Block getInstance() {
+        return getProtoBlock();
     }
 
     @Override

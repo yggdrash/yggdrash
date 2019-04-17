@@ -3,7 +3,6 @@ package io.yggdrash.core.consensus;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.MessageOrBuilder;
 import com.google.protobuf.util.JsonFormat;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.blockchain.BranchId;
@@ -16,27 +15,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class AbstractBlock<T extends MessageOrBuilder> implements Block<T> {
-    private final T proto;
+public abstract class AbstractBlock<T> implements Block<T> {
+    private final Proto.Block protoBlock;
     private final transient io.yggdrash.core.blockchain.Block block;
     private transient List<TransactionHusk> body;
 
-    protected AbstractBlock(T proto) {
-        this.proto = proto;
+    protected AbstractBlock(Proto.Block protoBlock) {
+        this.protoBlock = protoBlock;
         this.block = io.yggdrash.core.blockchain.Block.toBlock(getProtoBlock());
-        initConsensus();
     }
 
-    protected abstract void initConsensus();
-
     @Override
-    public T getInstance() {
-        return proto;
+    public Proto.Block getProtoBlock() {
+        return protoBlock;
     }
 
     @Override
     public int getBodyCount() {
-        return getProtoBlock().getBody().getTransactionsCount();
+        return protoBlock.getBody().getTransactionsCount();
     }
 
     @Override
@@ -53,12 +49,12 @@ public abstract class AbstractBlock<T extends MessageOrBuilder> implements Block
 
     @Override
     public long getBodyLength() {
-        return getProtoBlock().getBody().getTransactionsCount();
+        return protoBlock.getBody().getTransactionsCount();
     }
 
     @Override
     public byte[] getSignature() {
-        return getProtoBlock().getSignature().toByteArray();
+        return protoBlock.getSignature().toByteArray();
     }
 
     @Override
@@ -73,12 +69,12 @@ public abstract class AbstractBlock<T extends MessageOrBuilder> implements Block
 
     @Override
     public BranchId getBranchId() {
-        return BranchId.of(block.getChain());
+        return BranchId.of(protoBlock.getHeader().getChain().toByteArray());
     }
 
     @Override
     public long getIndex() {
-        return this.block.getIndex();
+        return this.protoBlock.getHeader().getIndex();
     }
 
     @Override
@@ -93,7 +89,7 @@ public abstract class AbstractBlock<T extends MessageOrBuilder> implements Block
 
     @Override
     public Sha3Hash getPrevBlockHash() {
-        return Sha3Hash.createByHashed(block.getPrevBlockHash());
+        return Sha3Hash.createByHashed(protoBlock.getHeader().getPrevBlockHash().toByteArray());
     }
 
     @Override
@@ -127,7 +123,7 @@ public abstract class AbstractBlock<T extends MessageOrBuilder> implements Block
     public JsonObject toJsonObjectByProto() {
         try {
             String print = JsonFormat.printer()
-                    .includingDefaultValueFields().print(proto);
+                    .includingDefaultValueFields().print(protoBlock);
             JsonObject jsonObject = new JsonParser().parse(print).getAsJsonObject();
             jsonObject.addProperty("blockId", getHash().toString());
             return jsonObject;

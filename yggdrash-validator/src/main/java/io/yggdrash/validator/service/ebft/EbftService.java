@@ -224,13 +224,14 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
 
         List<EbftBlock> ebftBlockList = new ArrayList<>(client.getEbftBlockList(
                 this.blockChain.getLastConfirmedBlock().getIndex()));
-        log.debug("node: {}", client.getId());
-        log.debug("index: {}", (ebftBlockList.get(0) != null ? ebftBlockList.get(0).getIndex() : null));
-        log.debug("blockList size: {}", ebftBlockList.size());
 
         if (ebftBlockList.isEmpty()) {
             return;
         }
+
+        log.debug("node: {}", client.getId());
+        log.debug("index: {}", (ebftBlockList.get(0) != null ? ebftBlockList.get(0).getIndex() : null));
+        log.debug("blockList size: {}", ebftBlockList.size());
 
         EbftBlock ebftBlock;
         int i = 0;
@@ -495,7 +496,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
             }
             if (client.isRunning()) {
                 try {
-                    client.multicastEbftBlock(EbftBlock.toProto(block));
+                    client.multicastEbftBlock(block.getInstance());
                 } catch (Exception e) {
                     log.debug("multicast exception: {}", e.getMessage());
                     log.debug("client: {}", client.getId());
@@ -512,7 +513,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
                 continue;
             }
             try {
-                client.broadcastEbftBlock(EbftBlock.toProto(block));
+                client.broadcastEbftBlock(block.getInstance());
                 log.debug("BroadcastBlock [{}]{} to {}:{}", block.getIndex(), block.getHashHex(),
                         client.getHost(), client.getPort());
             } catch (Exception e) {

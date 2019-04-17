@@ -297,28 +297,28 @@ public class PbftBlockTest {
     @Test
     public void constuctorTest_Proto() {
         {
-            PbftProto.PbftBlock newBlockProto = PbftBlock.toProto(this.pbftBlock);
+            PbftProto.PbftBlock newBlockProto = this.pbftBlock.getInstance();
             PbftBlock newBlock = new PbftBlock(newBlockProto);
             log.debug(newBlock.toJsonObject().toString());
             assertEquals(newBlock, this.pbftBlock);
         }
 
         {
-            PbftProto.PbftBlock newBlockProto = PbftBlock.toProto(this.pbftBlock2);
+            PbftProto.PbftBlock newBlockProto = this.pbftBlock2.getInstance();
             PbftBlock newBlock = new PbftBlock(newBlockProto);
             log.debug(newBlock.toJsonObject().toString());
             assertEquals(newBlock, this.pbftBlock2);
         }
 
         {
-            PbftProto.PbftBlock newBlockProto = PbftBlock.toProto(this.pbftBlock3);
+            PbftProto.PbftBlock newBlockProto = this.pbftBlock3.getInstance();
             PbftBlock newBlock = new PbftBlock(newBlockProto);
             log.debug(newBlock.toJsonObject().toString());
             assertEquals(newBlock, this.pbftBlock3);
         }
 
         {
-            PbftProto.PbftBlock newBlockProto = PbftBlock.toProto(this.pbftBlock4);
+            PbftProto.PbftBlock newBlockProto = this.pbftBlock4.getInstance();
             PbftBlock newBlock = new PbftBlock(newBlockProto);
             log.debug(newBlock.toJsonObject().toString());
             assertEquals(newBlock, this.pbftBlock4);

@@ -247,7 +247,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
                 continue;
             }
             try {
-                client.broadcastPbftBlock(PbftBlock.toProto(block));
+                client.broadcastPbftBlock(block.getInstance());
                 log.debug("BroadcastBlock [{}]{} to {}:{}", block.getIndex(), block.getHashHex(),
                         client.getHost(), client.getPort());
             } catch (Exception e) {
@@ -684,7 +684,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
                     this.blockChain.getLastConfirmedBlock().getIndex());
 
             log.debug("node: " + client.getId());
-            log.debug("index: " + (pbftBlockList != null ? pbftBlockList.get(0).getIndex() : null));
+            log.debug("index: " + (!pbftBlockList.isEmpty() ? pbftBlockList.get(0).getIndex() : null));
             log.debug("blockList size: " + (pbftBlockList != null ? pbftBlockList.size() : null));
 
             if (pbftBlockList == null) {
