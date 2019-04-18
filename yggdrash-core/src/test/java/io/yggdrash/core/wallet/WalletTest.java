@@ -17,8 +17,8 @@
 package io.yggdrash.core.wallet;
 
 import com.google.common.base.Strings;
-import io.yggdrash.TestConstants.SlowTest;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.FileUtil;
 import org.junit.Test;
@@ -38,24 +38,41 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
-public class WalletTest extends SlowTest {
+public class WalletTest {
     private static final Logger log = LoggerFactory.getLogger(WalletTest.class);
+
 
     @Test
     public void testKeySave() throws IOException, InvalidCipherTextException {
         // generate key & save a file
-        Wallet wt = new Wallet(null, "/tmp/", "nodePri.key", "Password1234!");
+        Wallet wallet = new Wallet(null, "/tmp/", "nodePri.key", "Password1234!");
 
-        byte[] encData = FileUtil.readFile(wt.getKeyPath(), wt.getKeyName());
-        log.debug("path:" + wt.getKeyPath() + wt.getKeyName());
+        byte[] encData = FileUtil.readFile(wallet.getKeyPath(), wallet.getKeyName());
+        log.debug("path:" + wallet.getKeyPath() + wallet.getKeyName());
         log.debug("encData:" + Hex.toHexString(encData));
-        log.debug("pubKey:" + Hex.toHexString(wt.getPubicKey()));
+        log.debug("pubKey:" + Hex.toHexString(wallet.getPubicKey()));
 
         // load key
-        Wallet wt2 = new Wallet("/tmp/", wt.getKeyName(), "Password1234!");
-        log.debug("pubKey2:" + Hex.toHexString(wt2.getPubicKey()));
+        Wallet wallet1 = new Wallet("/tmp/", wallet.getKeyName(), "Password1234!");
+        log.debug("pubKey2:" + Hex.toHexString(wallet1.getPubicKey()));
 
-        assertArrayEquals(wt.getPubicKey(), wt2.getPubicKey());
+        assertArrayEquals(wallet.getPubicKey(), wallet1.getPubicKey());
+    }
+
+    @Test
+    public void testKeyGenerationWithConsole() throws IOException, InvalidCipherTextException {
+        // generate key & save a file
+        Wallet wallet = new Wallet((ECKey) null, "/tmp/nodePri.key");
+
+        byte[] encData = FileUtil.readFile(wallet.getKeyPath(), wallet.getKeyName());
+        log.debug("path:" + wallet.getKeyPath() + wallet.getKeyName());
+        log.debug("encData:" + Hex.toHexString(encData));
+        log.debug("pubKey:" + Hex.toHexString(wallet.getPubicKey()));
+
+        // load key
+        Wallet wallet1 = new Wallet(wallet.getKeyPath() + wallet.getKeyName());
+        log.debug("pubKey2:" + Hex.toHexString(wallet1.getPubicKey()));
+        assertArrayEquals(wallet.getPubicKey(), wallet1.getPubicKey());
     }
 
     /**
