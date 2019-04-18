@@ -1,6 +1,7 @@
-package io.yggdrash.common.crypto;
+package io.yggdrash.core.wallet;
 
 import io.yggdrash.TestConstants.SlowTest;
+import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.ByteUtil;
 import org.junit.Test;
 import org.slf4j.Logger;
