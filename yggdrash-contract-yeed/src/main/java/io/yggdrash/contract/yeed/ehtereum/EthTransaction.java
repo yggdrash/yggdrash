@@ -100,7 +100,7 @@ public class EthTransaction {
             log.debug("ChainId : {} ", chainId);
             log.debug("int {}, long {}", v.intValue(), v.longValue());
             rawData = getEncodedRaw();
-            if (chainId == null) { // TEST NET
+            if (chainId == null) { // NOT MAINNET
                 // TODO check chainId(network ID)
                 signature = ECKey.ECDSASignature.fromComponents(r, s, v.byteValue());
                 chainId = (int)getRealV(v);

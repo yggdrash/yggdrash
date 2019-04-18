@@ -194,4 +194,65 @@ public class SwapEthTransactionTest {
                 "f689d779d9108faa0ba447399fb2477687923278", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
         Assert.assertEquals("Send Value", "50000000000000000", ethTransaction.getValue().toString());
     }
+
+    @Test
+    public void klytnTransaction() {
+        // 2019 04 18 TEST COMPLATE
+        // KLYTH TEST NET
+        String klyth = "0xf86e808505d21dba008261a8945b71a37bb39b33dd40d267a989ac3e448735a7c2880de0"
+                + "b6b3a7640000808207f5a00ce36efc94d3335df54b73ed8224d22600016a4d7d686cec03901692f"
+                + "80c21b2a056f6dc38fa550e00f025166c7910497ec246a5b29f74f27033dfb39d4426eceb";
+        byte[] ethRawEncode = HexUtil.hexStringToBytes(klyth);
+
+        EthTransaction ethTransaction = new EthTransaction(ethRawEncode);
+
+        log.debug("txHash {} ", HexUtil.toHexString(ethTransaction.getTxHash()));
+
+        log.debug("Chain ID {} ", ethTransaction.getChainId());
+        log.debug("Sender {}", HexUtil.toHexString(ethTransaction.getSendAddress()));
+        log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+        log.debug("value {}", ethTransaction.getValue());
+        log.debug("data {}", ethTransaction.getData());
+        // https://baobab.klaytnscope.com/tx/0xdf2f5c43fe9b613b4692f089774d2d9ec4bc8df02fa73d8aa4196279898f4457
+
+        // 0x17b396E80db97258885FFbC0513eF1bbF1F1F1d0
+        // 0x5b71a37bb39b33dd40d267a989ac3e448735a7c2
+        // 1 KLAY = 1000000000000000000
+        Assert.assertEquals("sender", "17b396e80db97258885ffbc0513ef1bbf1f1f1d0",
+                HexUtil.toHexString(ethTransaction.getSendAddress()));
+        Assert.assertEquals("Receiver", "5b71a37bb39b33dd40d267a989ac3e448735a7c2",
+                HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+        Assert.assertEquals("Send Value", "1000000000000000000", ethTransaction.getValue().toString());
+
+
+
+        klyth = "0xf86e018505d21dba00826d60947eca82d239c3b1513d6368e2ff21763e469f129888016345785d"
+                + "8a0000808207f5a07379dc1afe1e467ccc966056a6232a4166d28032f683518d49a6290e2740dc"
+                + "a6a01d4d215150363958824f106ee97a42919faee68d3f87a3cb3473dbec0a9239ca";
+        // https://baobab.klaytnscope.com/tx/0x3dd862fad8cb4d33bbf284cf4b6481e5e5712f432f6c2f2a873fe306d249401d
+        // 0x17b396E80db97258885FFbC0513eF1bbF1F1F1d0
+        // 0x7eca82d239c3b1513d6368e2ff21763e469f1298
+        // 0.1 KLAY = 100000000000000000
+        ethRawEncode = HexUtil.hexStringToBytes(klyth);
+
+        ethTransaction = new EthTransaction(ethRawEncode);
+
+        log.debug("txHash {} ", HexUtil.toHexString(ethTransaction.getTxHash()));
+
+        log.debug("Chain ID {} ", ethTransaction.getChainId());
+        log.debug("Sender {}", HexUtil.toHexString(ethTransaction.getSendAddress()));
+        log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+        log.debug("value {}", ethTransaction.getValue());
+        log.debug("data {}", ethTransaction.getData());
+
+        Assert.assertEquals("sender", "17b396e80db97258885ffbc0513ef1bbf1f1f1d0",
+                HexUtil.toHexString(ethTransaction.getSendAddress()));
+        Assert.assertEquals("Receiver", "7eca82d239c3b1513d6368e2ff21763e469f1298",
+                HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+        Assert.assertEquals("Send Value", "100000000000000000", ethTransaction.getValue().toString());
+
+    }
+
 }
+
+
