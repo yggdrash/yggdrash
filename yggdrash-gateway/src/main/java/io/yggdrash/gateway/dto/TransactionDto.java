@@ -31,7 +31,7 @@ public class TransactionDto {
     public String branchId;
     public String version;
     public String type;
-    public long timestamp;
+    public String timestamp;
     public String bodyHash;
     public long bodyLength;
     public String signature;
@@ -44,7 +44,7 @@ public class TransactionDto {
                 .setChain(ByteString.copyFrom(Hex.decode(dto.branchId)))
                 .setVersion(ByteString.copyFrom(Hex.decode(dto.version)))
                 .setType(ByteString.copyFrom(Hex.decode(dto.type)))
-                .setTimestamp(Timestamps.fromMillis(dto.timestamp))
+                .setTimestamp(Timestamps.fromMillis(Long.parseLong(dto.timestamp)))
                 .setBodyHash(ByteString.copyFrom(Hex.decode(dto.bodyHash)))
                 .setBodyLength(dto.bodyLength)
                 .build();
@@ -64,7 +64,7 @@ public class TransactionDto {
         transactionDto.branchId = Hex.toHexString(header.getChain().toByteArray());
         transactionDto.version = Hex.toHexString(header.getVersion().toByteArray());
         transactionDto.type = Hex.toHexString(header.getType().toByteArray());
-        transactionDto.timestamp = Timestamps.toMillis(header.getTimestamp());
+        transactionDto.timestamp = Timestamps.toString(header.getTimestamp());;
         transactionDto.bodyHash = Hex.toHexString(header.getBodyHash().toByteArray());
         transactionDto.bodyLength = header.getBodyLength();
         transactionDto.signature = Hex.toHexString(tx.getInstance().getSignature().toByteArray());

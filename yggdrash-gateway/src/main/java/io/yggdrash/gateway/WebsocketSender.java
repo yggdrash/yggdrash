@@ -22,8 +22,10 @@ import io.yggdrash.core.blockchain.BranchEventListener;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.gateway.controller.BlockChainCollector;
 import io.yggdrash.gateway.dto.BlockDto;
 import io.yggdrash.gateway.dto.TransactionDto;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -34,13 +36,23 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
 public class WebsocketSender implements BranchEventListener {
 
+    @Value("${es.host")
+    private String esHost;
+    @Value("${es.transport")
+    private String esTransport;
+    @Value("${event.store")
+    private String[] eventStore;
+
+    private final BlockChainCollector blockChainCollector;
     private final SimpMessagingTemplate template;
 
-    public WebsocketSender(SimpMessagingTemplate template, BranchGroup branchGroup) {
+    public WebsocketSender(SimpMessagingTemplate template, BranchGroup branchGroup,
+                           BlockChainCollector blockChainCollector) {
         this.template = template;
         for (BlockChain bc : branchGroup.getAllBranch()) {
             bc.addListener(this);
         }
+        this.blockChainCollector =blockChainCollector;
     }
 
     @Override
@@ -49,6 +61,7 @@ public class WebsocketSender implements BranchEventListener {
         template.convertAndSend("/topic/blocks", BlockDto.createBy(block));
         template.convertAndSend("/topic/branches/" + branchId + "/blocks",
                 BlockDto.createBy(block));
+        blockChainCollector.block(block);
     }
 
     @Override
@@ -57,5 +70,6 @@ public class WebsocketSender implements BranchEventListener {
         template.convertAndSend("/topic/txs", TransactionDto.createBy(tx));
         template.convertAndSend("/topic/branches/" + branchId + "/txs",
                 TransactionDto.createBy(tx));
+        blockChainCollector.transaction(tx);
     }
 }

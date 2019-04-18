@@ -1,4 +1,4 @@
-package io.yggdrash.core.store.output.es;
+package io.yggdrash.gateway.store.es;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.contract.core.store.OutputStore;

@@ -51,7 +51,6 @@ public class BlockChain {
     // <Variable>
     private final Branch branch;
     private final BlockHusk genesisBlock;
-    private final List<BranchEventListener> listenerList = new ArrayList<>();
 
     private final BlockStore blockStore;
     private final TransactionStore transactionStore;
@@ -59,7 +58,7 @@ public class BlockChain {
     private final StateStore stateStore;
     private final TransactionReceiptStore transactionReceiptStore;
     private final List<Validator> validators = new ArrayList<>();
-
+    private final List<BranchEventListener> listenerList = new ArrayList<>();
     private BlockHusk prevBlock;
 
     private final ContractContainer contractContainer;
