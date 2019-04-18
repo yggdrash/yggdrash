@@ -33,6 +33,7 @@ import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.yeed.ehtereum.EthTransaction;
 import io.yggdrash.contract.yeed.intertransfer.TxConfirmStatus;
+import io.yggdrash.contract.yeed.propose.ProposeStatus;
 import io.yggdrash.contract.yeed.propose.ProposeType;
 import org.junit.Assert;
 import org.junit.Before;
@@ -58,9 +59,6 @@ public class YeedTest {
     private static final String ADDRESS_1 = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
     private static final String ADDRESS_2 = "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e";
     private static final String BRANCH_ID = "0x00";
-    private static final String ADDRESS_FORMAT = "{\"address\" : \"%s\"}";
-    private static final String ADDRESS_JSON_1 = String.format(ADDRESS_FORMAT, ADDRESS_1);
-    private static final String ADDRESS_JSON_2 = String.format(ADDRESS_FORMAT, ADDRESS_2);
     private Field txReceiptField;
 
     @Rule
@@ -152,7 +150,7 @@ public class YeedTest {
 
     @Test
     public void balanceOf() {
-        BigInteger res = yeedContract.balanceOf(createParams(ADDRESS_JSON_1));
+        BigInteger res = getBalance(ADDRESS_1);
 
         assertEquals(BigInteger.valueOf(1000000000), res);
     }
@@ -175,8 +173,8 @@ public class YeedTest {
         paramObj.addProperty("fee", 1);
 
         // tx 가 invoke 되지 않아 baseContract 에 sender 가 세팅되지 않아서 설정해줌
-        log.debug("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94:{}", yeedContract.balanceOf(createParams(ADDRESS_JSON_1)));
-        log.debug("1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e:{}", yeedContract.balanceOf(createParams(ADDRESS_JSON_2)));
+        log.debug("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94:{}", getBalance(ADDRESS_1));
+        log.debug("1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e:{}", getBalance(ADDRESS_2));
 
 
 
@@ -192,8 +190,8 @@ public class YeedTest {
 
         assertTrue(result.isSuccess());
 
-        assertEquals(BigInteger.valueOf(999999989), yeedContract.balanceOf(createParams(ADDRESS_JSON_1)));
-        assertEquals(BigInteger.valueOf(1000000010), yeedContract.balanceOf(createParams(ADDRESS_JSON_2)));
+        assertEquals(BigInteger.valueOf(999999989), getBalance(ADDRESS_1));
+        assertEquals(BigInteger.valueOf(1000000010), getBalance(ADDRESS_2));
 
         // To many amount
         addAmount(paramObj, BigInteger.valueOf(1000000010));
@@ -214,9 +212,11 @@ public class YeedTest {
 
         approveByOwner(to, owner, spender, "1000");
 
-        String transferParams = "{\"from\" : \"" + owner + "\", \"to\" : \"" + to + "\",\"amount\" : \"700\"}";
+        JsonObject transferFromObject = new JsonObject();
 
-        JsonObject transferFromObject = createParams(transferParams);
+        transferFromObject.addProperty("from", owner);
+        transferFromObject.addProperty("to", to);
+        transferFromObject.addProperty("amount", "700");
 
         TransactionReceipt result = new TransactionReceiptImpl();
         result.setBranchId(BRANCH_ID);
@@ -270,31 +270,21 @@ public class YeedTest {
         }
 
         assertTrue(result.isSuccess());
-
-        String spenderParams = String.format(ADDRESS_FORMAT, spender);
-        String senderParams = String.format(ADDRESS_FORMAT, owner);
-
-        assertEquals(BigInteger.valueOf(1000000000),
-                yeedContract.balanceOf(createParams(spenderParams)));
-        assertEquals(BigInteger.valueOf(1000000000),
-                yeedContract.balanceOf(createParams(senderParams)));
+        assertEquals(BigInteger.valueOf(1000000000), getBalance(spender));
+        assertEquals(BigInteger.valueOf(1000000000), getBalance(owner));
 
         assertTransferFrom(to, owner, spender);
     }
 
     private void assertTransferFrom(String to, String owner, String spender) {
+        JsonObject param = new JsonObject();
+        param.addProperty("owner", owner);
+        param.addProperty("spender", spender);
 
-        String allowanceParams = "{\"owner\" : \"" + owner + "\", \"spender\" : \"" + spender + "\"}";
-        assertEquals(BigInteger.valueOf(1000), yeedContract.allowance(createParams(allowanceParams)));
-
-        String toParams = String.format(ADDRESS_FORMAT, to);
-        assertEquals(BigInteger.valueOf(998000000000L), yeedContract.balanceOf(createParams(toParams)));
-
-        String fromParams = String.format(ADDRESS_FORMAT, owner);
-        assertEquals(BigInteger.valueOf(1000000000), yeedContract.balanceOf(createParams(fromParams)));
-
-        String spenderParams = String.format(ADDRESS_FORMAT, spender);
-        assertEquals(BigInteger.valueOf(1000000000), yeedContract.balanceOf(createParams(spenderParams)));
+        assertEquals(BigInteger.valueOf(1000), yeedContract.allowance(param));
+        assertEquals(BigInteger.valueOf(998000000000L), getBalance(to));
+        assertEquals(BigInteger.valueOf(1000000000), getBalance(owner));
+        assertEquals(BigInteger.valueOf(1000000000), getBalance(spender));
     }
 
     private void addAmount(JsonObject param, BigInteger amount) {
@@ -698,14 +688,13 @@ public class YeedTest {
 
         // issue propose
         yeedContract.issuePropose(proposal);
-
         assert receipt.getStatus() == ExecuteStatus.SUCCESS;
-
         BigInteger issuerIssuedBalance = getBalance(issuer);
         assert issuerOriginBalance.subtract(stakeYeed.add(fee)).compareTo(issuerIssuedBalance) == 0;
         log.debug("issuerIssuedBalance {} ", issuerIssuedBalance);
         assert issuerOriginBalance.subtract(issuerIssuedBalance).compareTo(stakeYeed.add(fee)) == 0;
 
+        // Get propose ID
         String proposeIssue = receipt.getTxLog().get(1);
         log.debug("Log 1 : {} ",proposeIssue);
         String proposeIssueIdPatten = "Propose [a-f0-9]{64} ISSUED";
@@ -719,18 +708,21 @@ public class YeedTest {
 
         log.debug("propose Issue ID : {}", proposeIssueId);
 
+        // Step-2 Send transaction in ethereum, and get raw transaction
+
         String ethRawTransaction = "0xf86f830414ac850df847580082afc894c3cf7a283a4415ce3c41f5374934612389"
                 + "334780880de0b6b3a76400008026a0c9938e35c6281a2003531ef19c0368fb0ec680d1bc073ee2881"
                 + "3602616ce172ca03885e6218dbd7a09fc250ce4eb982114cc25c0974f4adfbd08c4e834f9c74dc3";
 
 
         byte[] etheSendEncode = HexUtil.hexStringToBytes(ethRawTransaction);
-
+        // check raw transaction
         EthTransaction ethTransaction = new EthTransaction(etheSendEncode);
         log.debug("sender : {} ", HexUtil.toHexString(ethTransaction.getSendAddress()));
         log.debug("Receive : {}", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
         log.debug("{} WEI", ethTransaction.getValue());
 
+        // STEP 2 : Propose Issue processing
         JsonObject processJson = new JsonObject();
         processJson.addProperty("proposeId", proposeIssueId);
         processJson.addProperty("rawTransaction", ethRawTransaction);
@@ -743,7 +735,6 @@ public class YeedTest {
         receipt.getTxLog().stream().forEach(l -> log.debug(l));
 
         // Validator transaction confirm (check exist and block height, index)
-
         // tx id : a077dd42d4421dca5cb8a7a11aca5b27adaf40be2428f9dc8e42a56abdabeb66
         // network : 1
 
@@ -769,16 +760,28 @@ public class YeedTest {
         params.addProperty("index", 1);
 
         yeedContract.transactionConfirm(params);
-
         receipt.getTxLog().stream().forEach(l -> log.debug(l));
 
+        // check txConfirm Status
+        JsonObject param = new JsonObject();
+        param.addProperty("txConfirmId", "af22edcccb4d6e4568b701294479c99a04afbd5ab25578adbe58549e36e4abfa");
+        JsonObject queryConfirm = yeedContract.queryTransactionConfirm(param);
+        Assert.assertEquals(TxConfirmStatus.DONE.toValue(), queryConfirm.get("status").getAsInt());
+        log.debug(queryConfirm.toString());
+
         Assert.assertEquals(receipt.getStatus(), ExecuteStatus.SUCCESS);
-        log.debug("{} YEED", getBalance(proposeIssueId));
+        log.debug("PROPOSE STAKE : {} YEED", getBalance(proposeIssueId));
         // 1010000000000000000
         //   10000000000000000
         Assert.assertTrue(getBalance(proposeIssueId).compareTo(BigInteger.ZERO) == 0);
 
-
+        // Check propose STATUS
+        JsonObject proposeQueryParam = new JsonObject();
+        proposeQueryParam.addProperty("proposeId", proposeIssueId);
+        JsonObject queryResult = yeedContract.queryPropose(proposeQueryParam);
+        log.debug(queryResult.get("status").getAsString());
+        Assert.assertEquals("propose Is DONE", queryResult.get("status").getAsString(),
+                ProposeStatus.DONE.toString());
 
     }
 

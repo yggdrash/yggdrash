@@ -412,9 +412,6 @@ public class YeedContract implements BundleActivator, ServiceListener {
             return targetBalance.subtract(amount).compareTo(BigInteger.ZERO) >= 0;
         }
 
-
-
-
         // TODO withdraw fee amount by branchId
         // Issue InterTransfer Eth(or Token) To YEED
         @InvokeTransaction
@@ -499,6 +496,21 @@ public class YeedContract implements BundleActivator, ServiceListener {
                     );
             JsonObject txConfirm = this.store.get(txConfirmKey);
             return new TxConfirm(txConfirm);
+        }
+
+        private void setTxConfirm(TxConfirm txConfirm) {
+
+            String txConfirmKey = String.format("%s%s",PrefixKeyEnum.TRANSACTION_CONFIRM.toValue(),
+                    txConfirm.getTxConfirmId()
+            );
+            this.store.put(txConfirmKey, txConfirm.toJsonObject());
+        }
+
+        @ContractQuery
+        public JsonObject queryTransactionConfirm(JsonObject param) {
+            String transactionConfirmId = param.get("txConfirmId").getAsString();
+            TxConfirm confirm = getTxConfirm(transactionConfirmId);
+            return confirm.toJsonObject();
         }
 
 
@@ -601,19 +613,13 @@ public class YeedContract implements BundleActivator, ServiceListener {
                         String confirmTxId = HexUtil.toHexString(ethTransaction.getTxHash());
 
                         TxConfirm confirm = new TxConfirm(propose.getProposeId(), confirmTxId, senderAddress, transferYeed);
-                        String txConfirmKey = String.format("%s%s",PrefixKeyEnum.TRANSACTION_CONFIRM.toValue(),
-                                confirm.getTxConfirmId()
-                        );
                         // Save TxConfirm
-                        this.store.put(txConfirmKey, confirm.toJsonObject());
+                        setTxConfirm(confirm);
 
                         this.txReceipt.addLog(String.format("propose %s check %s network %s transaction %s confirm ID %s",
                                 propose.getProposeId(), propose.getProposeType(), ethTransaction.getChainId(),
-                                confirmTxId, txConfirmKey
+                                confirmTxId, confirm.getTxConfirmId()
                                 ));
-                        setProposeStatus(propose.getProposeId(), ProposeStatus.PROCESSING);
-                        this.txReceipt.addLog(String.format("propose %s %s",propose.getProposeId(),
-                                ProposeStatus.PROCESSING));
                     }
 
                     if (stakeBalance.compareTo(BigInteger.ZERO) <= 0) {
@@ -736,6 +742,10 @@ public class YeedContract implements BundleActivator, ServiceListener {
                                     setProposeStatus(pi.getProposeId(), ProposeStatus.DONE);
                                 }
                                 this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
+                                // Save Tx Confirm
+                                txConfirm.setStatus(TxConfirmStatus.DONE);
+                                // Save TxConfirm
+                                setTxConfirm(txConfirm);
                             } else {
                                 this.txReceipt.addLog(String.format("%s is DONE",txConfirm.getTxConfirmId()));
                             }
