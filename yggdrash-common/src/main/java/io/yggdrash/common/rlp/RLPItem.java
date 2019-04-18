@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.yggdrash.common.rlp;
 
 /**
@@ -28,8 +29,9 @@ public class RLPItem implements RLPElement {
     }
 
     public byte[] getRLPData() {
-        if (rlpData.length == 0)
+        if (rlpData.length == 0) {
             return null;
+        }
         return rlpData;
     }
 }

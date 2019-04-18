@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.yggdrash.common.rlp;
 
 import io.yggdrash.common.crypto.HashUtil;
@@ -47,14 +48,16 @@ public class Value {
     public Value(){
     }
 
-    public void init(byte[] rlp){
+    public void init(byte[] rlp) {
         this.rlp = rlp;
     }
 
     public Value(Object obj) {
 
         this.decoded = true;
-        if (obj == null) return;
+        if (obj == null) {
+            return;
+        }
 
         if (obj instanceof Value) {
             this.value = ((Value) obj).asObj();
@@ -128,11 +131,11 @@ public class Value {
         return ByteUtil.EMPTY_BYTE_ARRAY;
     }
 
-    public String getHex(){
+    public String getHex() {
         return Hex.toHexString(this.encode());
     }
 
-    public byte[] getData(){
+    public byte[] getData() {
         return this.encode();
     }
 
@@ -160,7 +163,7 @@ public class Value {
      *      Utility
      * *****************/
 
-    public void decode(){
+    public void decode() {
         if (!this.decoded) {
             this.value = RLP.decode(rlp, 0).getDecoded();
             this.decoded = true;
@@ -168,20 +171,18 @@ public class Value {
     }
 
     public byte[] encode() {
-        if (rlp == null)
+        if (rlp == null) {
             rlp = RLP.encode(value);
+        }
         return rlp;
     }
 
-    public byte[] hash(){
-        if (sha3 == null)
+    public byte[] hash() {
+        if (sha3 == null) {
             sha3 = HashUtil.sha3(encode());
+        }
         return sha3;
     }
-
-//    public boolean cmp(Value o) {
-//        return DeepEquals.deepEquals(this, o);
-//    }
 
     /* *****************
      *      Checks
@@ -228,8 +229,10 @@ public class Value {
             return true;
         }
 
-        for (byte aData : data) {
-            if (aData > 32 && aData < 126) ++readableChars;
+        for (byte a : data) {
+            if (a > 32 && a < 126) {
+                ++readableChars;
+            }
         }
 
         return (double) readableChars / (double) data.length > 0.55;
@@ -242,13 +245,11 @@ public class Value {
         int hexChars = 0;
         byte[] data = (byte[]) value;
 
-        for (byte aData : data) {
-
-            if ((aData >= 48 && aData <= 57)
-                    || (aData >= 97 && aData <= 102))
+        for (byte a : data) {
+            if ((a >= 48 && a <= 57) || (a >= 97 && a <= 102)) {
                 ++hexChars;
+            }
         }
-
         return (double) hexChars / (double) data.length > 0.9;
     }
 
@@ -264,10 +265,18 @@ public class Value {
 
     public boolean isEmpty() {
         decode();
-        if (isNull()) return true;
-        if (isBytes() && asBytes().length == 0) return true;
-        if (isList() && asList().isEmpty()) return true;
-        if (isString() && asString().isEmpty()) return true;
+        if (isNull()) {
+            return true;
+        }
+        if (isBytes() && asBytes().length == 0) {
+            return true;
+        }
+        if (isList() && asList().isEmpty()) {
+            return true;
+        }
+        if (isString() && asString().isEmpty()) {
+            return true;
+        }
 
         return false;
     }
@@ -321,8 +330,9 @@ public class Value {
                 } else {
                     stringBuilder.append(val.toString());
                 }
-                if (i < list.length - 1)
+                if (i < list.length - 1) {
                     stringBuilder.append(", ");
+                }
             }
             stringBuilder.append("] ");
 
