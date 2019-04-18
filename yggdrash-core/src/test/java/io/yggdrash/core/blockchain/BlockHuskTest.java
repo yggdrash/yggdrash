@@ -18,7 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.proto.Proto;
+import io.yggdrash.core.consensus.Block;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class BlockHuskTest {
 
-    private BlockHusk genesisBlock;
+    private Block genesisBlock;
 
     @Before
     public void setUp() {
@@ -41,29 +41,9 @@ public class BlockHuskTest {
 
     @Test
     public void blockCloneTest() {
-        BlockHusk cloned = new BlockHusk(genesisBlock.getInstance());
+        BlockHusk cloned = new BlockHusk(genesisBlock.getData());
         assertThat(cloned.hashCode()).isEqualTo(genesisBlock.hashCode());
-        assertThat(cloned.compareTo(genesisBlock)).isEqualTo(0);
-    }
-
-    @Test
-    public void deserializeTransactionFromProtoTest() {
-        Proto.Block protoBlock = genesisBlock.getInstance();
-        BlockHusk deserializeBlock = new BlockHusk(protoBlock);
-        assertThat(genesisBlock.getHash()).isEqualTo(deserializeBlock.getHash());
-    }
-
-    @Test
-    public void testToJsonObject() {
-        //todo: modify to checking jsonObject when the genesisBlock data format change to JsonObject.
-        assertThat(genesisBlock.toJsonObject().toString()).startsWith("{\"header\"");
-    }
-
-    @Test
-    public void constructorTest() {
-        BlockHusk block2 = new BlockHusk(new Block(genesisBlock.toJsonObject()));
-        assertThat(block2.getIndex()).isEqualTo(genesisBlock.getIndex());
-        assertThat(genesisBlock.toJsonObject().toString()).isEqualTo(block2.toJsonObject().toString());
+        assertThat(cloned).isEqualTo(genesisBlock);
     }
 
     @Test

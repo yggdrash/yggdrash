@@ -3,6 +3,7 @@ package io.yggdrash.validator.store.pbft;
 import com.anarsoft.vmlens.concurrent.junit.ConcurrentTestRunner;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.common.util.TimeUtils;
@@ -242,7 +243,7 @@ public class PbftBlockStoreMultiThreadTest {
 
         this.ds = new LevelDbDataSource(StoreTestUtils.getTestPath(), "pbftBlockKeyStoreTest");
         this.blockKeyStore = new PbftBlockKeyStore(ds);
-        this.blockKeyStore.put(this.pbftBlock.getIndex(), this.pbftBlock.getHash());
+        this.blockKeyStore.put(this.pbftBlock.getIndex(), this.pbftBlock.getHash().getBytes());
 
         this.blockDs = new LevelDbDataSource(StoreTestUtils.getTestPath(), "pbftBlockStoreTest");
         this.blockStore = new PbftBlockStore(blockDs);
@@ -254,7 +255,7 @@ public class PbftBlockStoreMultiThreadTest {
     public void putTestMultiThread() {
         long testNumber = 1000;
         for (long l = 0L; l < testNumber; l++) {
-            this.blockStore.put(HashUtil.sha3(ByteUtil.longToBytes(l)), pbftBlock);
+            this.blockStore.put(Sha3Hash.createByHashed(HashUtil.sha3(ByteUtil.longToBytes(l))), pbftBlock);
         }
         log.debug("blockStore size= " + this.blockStore.size());
         assertEquals(testNumber + 1, this.blockStore.size());

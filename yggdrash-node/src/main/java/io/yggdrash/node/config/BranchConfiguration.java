@@ -24,8 +24,10 @@ import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
+import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.ChainTask;
+import io.yggdrash.node.service.ValidatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,9 +59,8 @@ public class BranchConfiguration {
     private String[] eventStore;
 
     @Autowired
-    BranchConfiguration(StoreBuilder storeBuilder) {
-        log.info("Branch Path : {}", storeBuilder.getConfig().getBranchPath());
-        this.storeBuilder = storeBuilder;
+    BranchConfiguration(DefaultConfig defaultConfig) {
+        this.storeBuilder = StoreBuilder.newBuilder().setConfig(defaultConfig);
     }
 
     // TODO Remove Default Branch Load
@@ -111,14 +112,19 @@ public class BranchConfiguration {
                 .withEventStore(eventStore)
                 .build();
         try {
+            Consensus consensus = new Consensus(genesis.getBranch().getConsensus());
+            storeBuilder.setConsensusAlgorithm(consensus.getAlgorithm())
+                    .setBlockStoreFactory(ValidatorService.blockStoreFactory());
+
             BlockChain bc = BlockChainBuilder.newBuilder()
-                    .addGenesis(genesis)
+                    .setGenesis(genesis)
                     .setStoreBuilder(storeBuilder)
                     .setPolicyLoader(policyLoader)
                     .setSystemProperties(systemProperties)
+                    .setFactory(ValidatorService.factory())
                     .build();
 
-            log.info("Branch is Ready {}", bc.getBranch().getBranchId());
+            log.info("Branch is Ready {}", bc.getBranchId());
 
             return bc;
         } catch (Exception e) {

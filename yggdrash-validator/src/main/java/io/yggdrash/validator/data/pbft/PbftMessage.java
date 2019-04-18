@@ -6,6 +6,7 @@ import com.google.protobuf.ByteString;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.utils.JsonUtil;
+import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
@@ -14,9 +15,9 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class PbftMessage {
@@ -61,7 +62,7 @@ public class PbftMessage {
     }
 
     public PbftMessage(byte[] bytes) {
-        this(JsonUtil.parseJsonObject(new String(bytes, StandardCharsets.UTF_8)));
+        this(JsonUtil.parseJsonObject(SerializationUtil.deserializeString(bytes)));
     }
 
     public PbftMessage(PbftProto.PbftMessage protoPbftMessage) {
@@ -137,10 +138,10 @@ public class PbftMessage {
     }
 
     public byte[] toBinary() {
-        return this.toJsonObject().toString().getBytes(StandardCharsets.UTF_8);
+        return SerializationUtil.serializeJson(toJsonObject());
     }
 
-    public byte[] getHashForSigning() {
+    private byte[] getHashForSigning() {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
 
         try {
@@ -237,8 +238,7 @@ public class PbftMessage {
         return protoPbftMessageBuilder.build();
     }
 
-    public static PbftProto.PbftMessageList toProtoList(
-            List<PbftMessage> pbftMessageList) {
+    public static PbftProto.PbftMessageList toProtoList(Collection<PbftMessage> pbftMessageList) {
         if (pbftMessageList == null) {
             return null;
         }

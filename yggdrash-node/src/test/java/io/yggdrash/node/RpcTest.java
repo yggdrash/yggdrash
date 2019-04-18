@@ -16,8 +16,8 @@ import io.grpc.ManagedChannel;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BlockChain;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.p2p.Peer;
 import org.junit.Assert;
 import org.junit.Test;
@@ -32,7 +32,7 @@ public class RpcTest extends TcpNodeTesting {
     private static final Logger log = LoggerFactory.getLogger(RpcTest.class);
     private static final int NODE_CNT = 2;
 
-    private List<BlockHusk> blockHuskList;
+    private List<Block> blockList;
     private List<TransactionHusk> txHuskList;
     private GRpcPeerHandler handler;
 
@@ -53,17 +53,17 @@ public class RpcTest extends TcpNodeTesting {
 
         log.debug("{} nodes bootstrapped", NODE_CNT);
         log.debug("BlockHuskList and TxHuskList are set: size of BlockHuskList={}, TxHuskList={}",
-                blockHuskList.size(), txHuskList.size());
+                blockList.size(), txHuskList.size());
     }
 
     private void setBlockHuskList() {
-        blockHuskList = new ArrayList<>();
+        blockList = new ArrayList<>();
         createBlockList(BlockChainTestUtils.createNextBlock());
     }
 
-    private void createBlockList(BlockHusk blockHusk) {
-        while (blockHuskList.size() < 10) {
-            blockHuskList.add(blockHusk);
+    private void createBlockList(Block blockHusk) {
+        while (blockList.size() < 10) {
+            blockList.add(blockHusk);
             createBlockList(BlockChainTestUtils.createNextBlock(blockHusk));
         }
     }
@@ -109,18 +109,18 @@ public class RpcTest extends TcpNodeTesting {
         BlockChain branch = nodeList.get(1).getDefaultBranch();
         setSpecificBlockHeightOfBlockChain(branch);
 
-        Future<List<BlockHusk>> futureHusks = handler.syncBlock(branch.getBranchId(), 5);
+        Future<List<Block>> futureBlockList = handler.syncBlock(branch.getBranchId(), 5);
 
-        List<BlockHusk> blockHusks = futureHusks.get();
-        for (BlockHusk blockHusk : blockHusks) {
+        List<Block> blockList = futureBlockList.get();
+        for (Block blockHusk : blockList) {
             Assert.assertEquals(branch.getBlockByIndex(blockHusk.getIndex()), blockHusk);
         }
     }
 
     @Test
     public void broadcastBlockTest() {
-        for (BlockHusk blockHusk : blockHuskList) {
-            handler.broadcastBlock(blockHusk);
+        for (Block block : blockList) {
+            handler.broadcastBlock(block);
         }
         handler.stop();
     }

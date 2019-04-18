@@ -1,8 +1,8 @@
 package io.yggdrash.core.p2p;
 
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.consensus.Block;
 
 import java.util.List;
 import java.util.concurrent.Future;
@@ -16,11 +16,11 @@ public interface PeerHandler {
 
     void stop();
 
-    Future<List<BlockHusk>> syncBlock(BranchId branchId, long offset);
+    Future<List<Block>> syncBlock(BranchId branchId, long offset);
 
     Future<List<TransactionHusk>> syncTx(BranchId branchId);
 
-    void broadcastBlock(BlockHusk blockHusk);
+    void broadcastBlock(Block block);
 
     void broadcastTx(TransactionHusk txHusk);
 }

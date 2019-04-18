@@ -20,11 +20,9 @@ import com.google.common.base.Strings;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.common.crypto.AESEncrypt;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
-import io.yggdrash.common.crypto.Password;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
@@ -35,7 +33,6 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -46,13 +43,15 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import static io.yggdrash.common.utils.ByteUtil.EMPTY_BYTE_ARRAY;
+
 /**
  * Wallet Class.
+ *
  */
 public class Wallet {
 
     // todo: check security
-
     private static final Logger logger = LoggerFactory.getLogger(Wallet.class);
 
     private static final String WALLET_PBKDF2_NAME = "pbkdf2";
@@ -332,7 +331,7 @@ public class Wallet {
             ecKeyPub = ECKey.signatureToKey(hashedData, ecdsaSignature);
         } catch (SignatureException e) {
             logger.debug("Invalid signature err={}", e.getMessage());
-            return new byte[0];
+            return EMPTY_BYTE_ARRAY;
         }
 
         return ecKeyPub.getPubKey();
@@ -438,7 +437,7 @@ public class Wallet {
     private void decryptKeyFileInit(String keyPath, String keyName, String password)
             throws IOException, InvalidCipherTextException {
         File keyFile = FileUtil.getFile(keyPath, keyName);
-        String json = FileUtil.readFileToString(keyFile, StandardCharsets.UTF_8);
+        String json = FileUtil.readFileToString(keyFile, FileUtil.DEFAULT_CHARSET);
         JsonObject keyJsonObject = JsonUtil.parseJsonObject(json);
 
         byte[] salt = Hex.decode(getCryptoJsonObect(keyJsonObject)

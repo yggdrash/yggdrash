@@ -16,8 +16,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -88,7 +86,7 @@ public class BranchTest {
         File genesisFile = new File(
                 getClass().getClassLoader().getResource("./branch-yggdrash.json").getFile());
 
-        String genesisString = FileUtil.readFileToString(genesisFile, StandardCharsets.UTF_8);
+        String genesisString = FileUtil.readFileToString(genesisFile, FileUtil.DEFAULT_CHARSET);
         JsonObject branch = new JsonParser().parse(genesisString).getAsJsonObject();
         Branch yggdrashBranch = Branch.of(branch);
         Assert.assertEquals("YGGDRASH", yggdrashBranch.getName());
@@ -99,7 +97,7 @@ public class BranchTest {
         File genesisFile = new File(
                 getClass().getClassLoader().getResource("./branch-yggdrash.json").getFile());
 
-        String genesisString = FileUtil.readFileToString(genesisFile, StandardCharsets.UTF_8);
+        String genesisString = FileUtil.readFileToString(genesisFile, FileUtil.DEFAULT_CHARSET);
         JsonObject branch = new JsonParser().parse(genesisString).getAsJsonObject();
         Branch yggdrashBranch = Branch.of(branch);
 
@@ -109,9 +107,7 @@ public class BranchTest {
         Assert.assertEquals(yggdrashBranch.getName(), block.getBranch().getName());
         log.debug(JsonUtil.prettyFormat(block.getBlock().toJsonObject()));
 
-        List<TransactionHusk> txs = block.getBlock().getBody();
-
         // TODO Genesis Block has more by Transaction Type
-        Assert.assertEquals(1, txs.size());
+        Assert.assertEquals(1L, block.getBlock().getBody().getBodyCount());
     }
 }

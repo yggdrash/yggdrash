@@ -44,14 +44,12 @@ import static com.google.protobuf.util.Timestamps.fromMillis;
 import static io.yggdrash.common.config.Constants.KEY.BODY;
 import static io.yggdrash.common.config.Constants.KEY.HEADER;
 import static io.yggdrash.common.config.Constants.KEY.SIGNATURE;
+import static io.yggdrash.common.config.Constants.SIGNATURE_LENGTH;
 import static io.yggdrash.common.config.Constants.TIMESTAMP_2018;
 
 public class Block {
 
     private static final Logger log = LoggerFactory.getLogger(Block.class);
-
-    private static final int HEADER_LENGTH = 124;
-    private static final int SIGNATURE_LENGTH = 65;
 
     private BlockHeader header;
     private byte[] signature;
@@ -78,7 +76,7 @@ public class Block {
     public Block(byte[] blockBytes) {
         int position = 0;
 
-        byte[] headerBytes = new byte[HEADER_LENGTH];
+        byte[] headerBytes = new byte[BlockHeader.LENGTH];
         System.arraycopy(blockBytes, 0, headerBytes, 0, headerBytes.length);
         this.header = new BlockHeader(headerBytes);
         position += headerBytes.length;
@@ -304,11 +302,6 @@ public class Block {
         return Objects.hashCode(toBinary());
     }
 
-    @Deprecated
-    public Proto.Block toProtoBlock() {
-        return toProtoBlock(this);
-    }
-
     public static Proto.Block toProtoBlock(Block block) {
         if (block == null || block.getHeader() == null) {
             return null;
@@ -366,17 +359,17 @@ public class Block {
     }
 
     public static long getBlockLengthInBytes(byte[] bytes) {
-        if (bytes == null || bytes.length <= HEADER_LENGTH + SIGNATURE_LENGTH) {
+        if (bytes == null || bytes.length <= BlockHeader.LENGTH + SIGNATURE_LENGTH) {
             log.debug("Input bytes is not valid");
             return 0L;
         }
 
-        byte[] headerBytes = new byte[HEADER_LENGTH];
+        byte[] headerBytes = new byte[BlockHeader.LENGTH];
         System.arraycopy(bytes, 0, headerBytes, 0, headerBytes.length);
         BlockHeader header = new BlockHeader(headerBytes);
         long bodyLength = header.getBodyLength();
 
-        return (long) HEADER_LENGTH + (long) SIGNATURE_LENGTH + bodyLength;
+        return (long) BlockHeader.LENGTH + (long) SIGNATURE_LENGTH + bodyLength;
     }
 
     public void clear() {

@@ -25,9 +25,9 @@ import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.store.ReadWriterStore;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.TempStateStore;
@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -73,7 +74,7 @@ public class Runtime {
     }
 
 
-    public BlockRuntimeResult invokeBlock(BlockHusk block) {
+    public BlockRuntimeResult invokeBlock(Block block) {
         // Block Data
         // - Hash
         // - BranchId
@@ -87,7 +88,8 @@ public class Runtime {
 
         BlockRuntimeResult result = new BlockRuntimeResult(block);
         TempStateStore blockState = new TempStateStore(stateStore);
-        for (TransactionHusk tx: block.getBody()) {
+        List<TransactionHusk> txList = block.getBody();
+        for (TransactionHusk tx: txList) {
             TransactionReceipt txReceipt = ContractManager.createTransactionReceipt(tx);
             // set Block ID
             txReceipt.setBlockId(block.getHash().toString());

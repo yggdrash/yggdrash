@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.attribute.PosixFilePermission;
 import java.security.SecureRandom;
@@ -183,7 +182,7 @@ public class AdminApiImpl implements AdminApi {
                         Files.setPosixFilePermissions(file.toPath(), perms);
                     }
                     String params = body.get(0).getAsJsonObject().get("params").getAsString();
-                    FileUtil.writeStringToFile(file, params, StandardCharsets.UTF_8);
+                    FileUtil.writeStringToFile(file, params, FileUtil.DEFAULT_CHARSET);
 
                     perms = new HashSet<>();
                     perms.add(PosixFilePermission.OWNER_READ);

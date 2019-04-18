@@ -2,10 +2,10 @@ package io.yggdrash.validator.config;
 
 import com.typesafe.config.ConfigFactory;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.validator.service.ValidatorService;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
@@ -13,9 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -38,8 +36,8 @@ public class ValidatorConfiguration {
             log.debug(validatorConfig.getString("yggdrash.validator.host"));
 
             File genesisFile = new File(validatorDir, "genesis.json");
-            FileInputStream is = new FileInputStream(genesisFile);
-            Block genesisBlock = new Block(JsonUtil.parseJsonObject(IOUtils.toString(is, StandardCharsets.UTF_8)));
+            String genesisString = FileUtil.readFileToString(genesisFile, FileUtil.DEFAULT_CHARSET);
+            Block genesisBlock = new Block(JsonUtil.parseJsonObject(genesisString));
             log.debug(genesisBlock.getChainHex());
 
             validatorServiceList.add(new ValidatorService(validatorConfig, genesisBlock));
