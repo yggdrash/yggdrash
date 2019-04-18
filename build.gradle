@@ -96,6 +96,8 @@ project(':yggdrash-core') {
         compile "org.elasticsearch.client:transport:${esVersion}"
         compileOnly "javax.annotation:javax.annotation-api:${annotationVersion}"
         testCompile "org.assertj:assertj-core:${assertjVersion}"
+        compile 'org.beryx:text-io:3.3.0'
+
     }
 
     protobuf {
