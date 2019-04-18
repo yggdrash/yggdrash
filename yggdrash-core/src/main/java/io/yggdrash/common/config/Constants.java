@@ -44,6 +44,9 @@ public class Constants {
     public static final String PBFT_COMMIT = "COMMITMS";
     public static final String PBFT_VIEWCHANGE = "VIEWCHAN";
 
+    public static final int PASSWORD_MIN = 12;
+    public static final int PASSWORD_MAX = 32;
+
     public static BigInteger getSECP256K1N() {
         return SECP256K1N;
     }
