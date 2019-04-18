@@ -19,6 +19,7 @@ package io.yggdrash.core.wallet;
 import com.google.common.base.Strings;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
@@ -26,6 +27,7 @@ import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
+import org.beryx.textio.TextIoFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
@@ -50,8 +52,6 @@ import static io.yggdrash.common.utils.ByteUtil.EMPTY_BYTE_ARRAY;
  *
  */
 public class Wallet {
-
-    // todo: check security
     private static final Logger logger = LoggerFactory.getLogger(Wallet.class);
 
     private static final String WALLET_PBKDF2_NAME = "pbkdf2";
@@ -85,6 +85,27 @@ public class Wallet {
             throw new IOException("Invalid Password");
         }
         encryptKeyFileInit(key, keyPath, keyName, password);
+        password = null; // for security
+    }
+
+    public Wallet(ECKey key, String keyPathName, String password)
+            throws IOException, InvalidCipherTextException {
+        this(key, FileUtil.getFilePath(keyPathName), FileUtil.getFileName(keyPathName), password);
+    }
+
+    public Wallet(ECKey key, String keyPathName)
+            throws IOException, InvalidCipherTextException {
+        String password = getPasswordByConsole();
+        if (!Password.passwordValid(password)) {
+            logger.error("Invalid Password: {}", password);
+            throw new IOException("Invalid Password");
+        }
+
+        encryptKeyFileInit(key,
+                FileUtil.getFilePath(keyPathName),
+                FileUtil.getFileName(keyPathName),
+                password);
+        password = null; // for security
     }
 
     /**
@@ -111,8 +132,14 @@ public class Wallet {
      */
     public Wallet(String keyPathName, String password)
             throws IOException, InvalidCipherTextException {
-
         this(FileUtil.getFilePath(keyPathName), FileUtil.getFileName(keyPathName), password);
+    }
+
+    public Wallet(String keyPathName)
+            throws IOException, InvalidCipherTextException {
+        String password = getPasswordByConsole();
+        decryptKeyFileInit(FileUtil.getFilePath(keyPathName), FileUtil.getFileName(keyPathName), password);
+        password = null; // for security
     }
 
     /**
@@ -133,10 +160,11 @@ public class Wallet {
      * @throws InvalidCipherTextException InvalidCipherTextException
      */
     public Wallet(DefaultConfig config) throws IOException, InvalidCipherTextException {
-        //todo: change password logic to CLI for security
-
         String keyFilePathName = config.getKeyPath();
         String keyPassword = config.getKeyPassword();
+        if (keyPassword == null) {
+            keyPassword = getPasswordByConsole();
+        }
 
         if (Strings.isNullOrEmpty(keyFilePathName) || Strings.isNullOrEmpty(keyPassword)) {
             logger.error("Invalid keyPath or keyPassword");
@@ -170,6 +198,13 @@ public class Wallet {
             }
         }
 
+    }
+
+    private String getPasswordByConsole() {
+        return TextIoFactory.getTextIO().newStringInputReader()
+                .withMinLength(Constants.PASSWORD_MIN)
+                .withInputMasking(true)
+                .read("Password: ");
     }
 
     /**
@@ -310,7 +345,7 @@ public class Wallet {
         try {
             ecKeyPub = ECKey.signatureToKey(hashedData, ecdsaSignature);
         } catch (SignatureException e) {
-            logger.debug("Invalid signature err={}", e.getMessage());
+            logger.debug("Invalid signature");
             return false;
         }
 
@@ -330,7 +365,7 @@ public class Wallet {
         try {
             ecKeyPub = ECKey.signatureToKey(hashedData, ecdsaSignature);
         } catch (SignatureException e) {
-            logger.debug("Invalid signature err={}", e.getMessage());
+            logger.debug("Invalid signature", e.getMessage());
             return EMPTY_BYTE_ARRAY;
         }
 
