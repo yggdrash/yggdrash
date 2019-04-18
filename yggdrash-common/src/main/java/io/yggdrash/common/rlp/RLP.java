@@ -16,8 +16,9 @@
  * along with the ethereumJ library. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.ethereum.util;
+package io.yggdrash.common.rlp;
 
+import io.yggdrash.common.utils.ByteUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
@@ -27,10 +28,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Arrays.copyOfRange;
-import static org.ethereum.util.ByteUtil.byteArrayToInt;
-import static org.ethereum.util.ByteUtil.intToBytesNoLeadZeroes;
-import static org.ethereum.util.ByteUtil.isNullOrZeroArray;
-import static org.ethereum.util.ByteUtil.isSingleZero;
 import static org.spongycastle.util.Arrays.concatenate;
 import static org.spongycastle.util.BigIntegers.asUnsignedByteArray;
 
@@ -672,7 +669,7 @@ public class RLP {
             return new DecodeResult(pos + 1 + len, copyOfRange(data, pos + 1, pos + 1 + len));
         } else if (prefix < OFFSET_SHORT_LIST) {  // [0xb8, 0xbf]
             int lenlen = prefix - OFFSET_LONG_ITEM; // length of length the encoded bytes
-            int lenbytes = byteArrayToInt(copyOfRange(data, pos + 1, pos + 1 + lenlen)); // length of encoded bytes
+            int lenbytes = ByteUtil.byteArrayToInt(copyOfRange(data, pos + 1, pos + 1 + lenlen)); // length of encoded bytes
             // check that length is in payload bounds
             verifyLength(lenbytes, data.length - pos - 1 - lenlen);
             return new DecodeResult(pos + 1 + lenlen + lenbytes, copyOfRange(data, pos + 1 + lenlen, pos + 1 + lenlen
@@ -684,7 +681,7 @@ public class RLP {
             return decodeList(data, pos, prevPos, len);
         } else if (prefix <= 0xFF) {  // [0xf8, 0xff]
             int lenlen = prefix - OFFSET_LONG_LIST; // length of length the encoded list
-            int lenlist = byteArrayToInt(copyOfRange(data, pos + 1, pos + 1 + lenlen)); // length of encoded bytes
+            int lenlist = ByteUtil.byteArrayToInt(copyOfRange(data, pos + 1, pos + 1 + lenlen)); // length of encoded bytes
             pos = pos + lenlen + 1; // start at position of first element in list
             int prevPos = lenlist;
             return decodeList(data, pos, prevPos, lenlist);
@@ -763,7 +760,7 @@ public class RLP {
                 pos += len + 1;
             } else if (prefix < OFFSET_SHORT_LIST) {  // [0xb8, 0xbf]
                 int lenlen = prefix - OFFSET_LONG_ITEM; // length of length the encoded bytes
-                int lenbytes = byteArrayToInt(copyOfRange(data, pos + 1, pos + 1 + lenlen)); // length of encoded bytes
+                int lenbytes = ByteUtil.byteArrayToInt(copyOfRange(data, pos + 1, pos + 1 + lenlen)); // length of encoded bytes
                 // check that length is in payload bounds
                 verifyLength(lenbytes, data.length - pos - 1 - lenlen);
                 ret.add(pos + 1 + lenlen, lenbytes, false);
@@ -774,7 +771,7 @@ public class RLP {
                 pos += 1 + len;
             } else if (prefix <= 0xFF) {  // [0xf8, 0xff]
                 int lenlen = prefix - OFFSET_LONG_LIST; // length of length the encoded list
-                int lenlist = byteArrayToInt(copyOfRange(data, pos + 1, pos + 1 + lenlen)); // length of encoded bytes
+                int lenlist = ByteUtil.byteArrayToInt(copyOfRange(data, pos + 1, pos + 1 + lenlen)); // length of encoded bytes
                 // check that length is in payload bounds
                 verifyLength(lenlist, data.length - pos - 1 - lenlen);
                 ret.add(pos + 1 + lenlen, lenlist, true);
@@ -849,7 +846,7 @@ public class RLP {
         } else if (length < MAX_ITEM_LENGTH) {
             byte[] binaryLength;
             if (length > 0xFF) {
-                binaryLength = intToBytesNoLeadZeroes(length);
+                binaryLength = ByteUtil.intToBytesNoLeadZeroes(length);
             } else {
                 binaryLength = new byte[] {(byte) length};
             }
@@ -919,11 +916,11 @@ public class RLP {
     public static byte[] encodeElement(byte[] srcData) {
 
         // [0x80]
-        if (isNullOrZeroArray(srcData)) {
+        if (ByteUtil.isNullOrZeroArray(srcData)) {
             return new byte[]{(byte) OFFSET_SHORT_ITEM};
 
         // [0x00]
-        } else if (isSingleZero(srcData)) {
+        } else if (ByteUtil.isSingleZero(srcData)) {
             return srcData;
 
         // [0x01, 0x7f] - single byte, that byte is its own RLP encoding
@@ -970,9 +967,9 @@ public class RLP {
 
     public static int calcElementPrefixSize(byte[] srcData) {
 
-        if (isNullOrZeroArray(srcData)) {
+        if (ByteUtil.isNullOrZeroArray(srcData)) {
             return 0;
-        } else if (isSingleZero(srcData)) {
+        } else if (ByteUtil.isSingleZero(srcData)) {
             return 0;
         } else if (srcData.length == 1 && (srcData[0] & 0xFF) < 0x80) {
             return 0;

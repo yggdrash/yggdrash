@@ -77,7 +77,9 @@ public class SwapEthTransactionTest {
                 "735c4b587ae018c4733df6a8ef59711d15f551b4", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
         Assert.assertEquals("Send Value", "1000000000000000000", ethTransaction.getValue().toString());
 
-        ethHexString = "0xf86c0a8501dcd6500082520894d43276d9b9722a68cc2b5d6ff97a1380d3c9e85e880de0b6b3a76400008026a0682ec730a8358498eafdb3fadc9daed305acf59b91e95b234c7cab60285ebb2ea038697b3b2bdc325d9e573f36e6bc592f7a94fd9aee09b6424bb13c42d522cf39";
+        ethHexString = "0xf86c0a8501dcd6500082520894d43276d9b9722a68cc2b5d6ff97a1380d3c9e85e880de0b"
+                + "6b3a76400008026a0682ec730a8358498eafdb3fadc9daed305acf59b91e95b234c7cab60285ebb2ea"
+                + "038697b3b2bdc325d9e573f36e6bc592f7a94fd9aee09b6424bb13c42d522cf39";
         etheSendEncode = HexUtil.hexStringToBytes(ethHexString);
         ethTransaction = new EthTransaction(etheSendEncode);
         log.debug("txHash {} ", HexUtil.toHexString(ethTransaction.getTxHash()));

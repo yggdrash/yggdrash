@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.ethereum.util;
+package io.yggdrash.common.rlp;
 
 import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.crypto.HexUtil;
+import io.yggdrash.common.utils.ByteUtil;
 import org.spongycastle.util.encoders.Hex;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
-
-import static org.ethereum.util.ByteUtil.toHexString;
 
 /**
  * Class to encapsulate an object and provide utilities for conversion
@@ -333,7 +333,7 @@ public class Value {
 
             StringBuilder output = new StringBuilder();
             if (isHashCode()) {
-                output.append(toHexString(asBytes()));
+                output.append(HexUtil.toHexString(asBytes()));
             } else if (isReadableString()) {
                 output.append("'");
                 for (byte oneByte : asBytes()) {
@@ -346,7 +346,7 @@ public class Value {
                 output.append("'");
                 return output.toString();
             }
-            return toHexString(this.asBytes());
+            return HexUtil.toHexString(this.asBytes());
         } else if (isString()) {
             return asString();
         }

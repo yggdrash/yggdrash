@@ -13,23 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.ethereum.util;
+package io.yggdrash.common.rlp;
+
+import java.io.Serializable;
 
 /**
+ * Wrapper class for decoded elements from an RLP encoded byte array.
+ *
  * @author Roman Mandeleil
- * @since 21.04.14
+ * @since 01.04.2014
  */
-public class RLPItem implements RLPElement {
+public interface RLPElement extends Serializable {
 
-    private final byte[] rlpData;
-
-    public RLPItem(byte[] rlpData) {
-        this.rlpData = rlpData;
-    }
-
-    public byte[] getRLPData() {
-        if (rlpData.length == 0)
-            return null;
-        return rlpData;
-    }
+    byte[] getRLPData();
 }

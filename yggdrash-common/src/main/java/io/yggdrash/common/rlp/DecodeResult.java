@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.ethereum.util;
+package io.yggdrash.common.rlp;
 
 import org.spongycastle.util.encoders.Hex;
 import java.io.Serializable;

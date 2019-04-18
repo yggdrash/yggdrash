@@ -3,17 +3,16 @@ package io.yggdrash.contract.yeed.ehtereum;
 
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
-import io.yggdrash.common.crypto.HexUtil;
-import org.ethereum.util.ByteUtil;
-import org.ethereum.util.RLP;
-import org.ethereum.util.RLPList;
+
+import io.yggdrash.common.rlp.RLP;
+import io.yggdrash.common.rlp.RLPList;
+import io.yggdrash.common.utils.ByteUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.BigIntegers;
 import java.math.BigInteger;
 import java.security.SignatureException;
 
-import static org.ethereum.util.ByteUtil.EMPTY_BYTE_ARRAY;
+import static io.yggdrash.common.utils.ByteUtil.EMPTY_BYTE_ARRAY;
 
 
 public class EthTransaction {
