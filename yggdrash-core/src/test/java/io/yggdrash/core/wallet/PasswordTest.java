@@ -1,4 +1,4 @@
-package io.yggdrash.common.crypto;
+package io.yggdrash.core.wallet;
 
 import org.junit.Test;
 import org.slf4j.Logger;
