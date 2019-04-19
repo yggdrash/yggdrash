@@ -96,7 +96,7 @@ public class Wallet {
 
     public Wallet(ECKey key, String keyPathName)
             throws IOException, InvalidCipherTextException {
-        String password = getPasswordByConsole();
+        String password = getPasswordByConsole(keyPathName);
         if (!Password.passwordValid(password)) {
             log.error("Invalid Password.");
             throw new IOException("Invalid Password");
@@ -138,7 +138,7 @@ public class Wallet {
 
     public Wallet(String keyPathName)
             throws IOException, InvalidCipherTextException {
-        String password = getPasswordByConsole();
+        String password = getPasswordByConsole(keyPathName);
         decryptKeyFileInit(FileUtil.getFilePath(keyPathName), FileUtil.getFileName(keyPathName), password);
         password = null; // for security
     }
@@ -164,7 +164,7 @@ public class Wallet {
         String keyFilePathName = config.getKeyPath();
         String keyPassword = config.getKeyPassword();
         if (keyPassword == null) {
-            keyPassword = getPasswordByConsole();
+            keyPassword = getPasswordByConsole(keyFilePathName);
         }
 
         if (Strings.isNullOrEmpty(keyFilePathName) || Strings.isNullOrEmpty(keyPassword)) {
@@ -206,11 +206,11 @@ public class Wallet {
                         .withFallback(config.getConfig()).resolve()));
     }
 
-    private String getPasswordByConsole() {
+    private String getPasswordByConsole(String keyPath) {
         return TextIoFactory.getTextIO().newStringInputReader()
                 .withMinLength(Constants.PASSWORD_MIN)
                 .withInputMasking(true)
-                .read("Password: ");
+                .read(keyPath + " 's Password: ");
     }
 
     /**
