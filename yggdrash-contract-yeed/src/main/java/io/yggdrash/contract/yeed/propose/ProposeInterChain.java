@@ -1,5 +1,6 @@
 package io.yggdrash.contract.yeed.propose;
 
+import com.google.common.base.Strings;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import com.google.gson.JsonObject;
@@ -191,4 +192,48 @@ public class ProposeInterChain {
         return proposal;
     }
 
+
+    public int verificationProposeProcess(ProcessTransaction pt) {
+        int checkProcess = 0;
+
+        // check Send Address
+        if (!Strings.isNullOrEmpty(getSenderAddress())) {
+            checkProcess |= ProposeErrorCode.addCode(
+                    getSenderAddress().equals(pt.getSendAddress()),
+                    ProposeErrorCode.PROPOSE_SENDER_ADDRESS_INVALID);
+        }
+
+        // check Receive Address
+        checkProcess |= ProposeErrorCode.addCode(
+                getReceiveAddress().equals(pt.getReceiveAddress()),
+                ProposeErrorCode.PROPOSE_RECEIVE_ADDRESS_INVALID);
+
+        // Check Chain Id
+        if (getReceiveChainId() != -1) {
+            checkProcess |= ProposeErrorCode.addCode(
+                    getReceiveChainId() == pt.getChainId(),
+                    ProposeErrorCode.PROPOSE_RECEIVE_CHAIN_ID_INVALID);
+        }
+
+        // Check target Address - target (Token address or branch Address)
+        if (!Strings.isNullOrEmpty(getTargetAddress())) {
+            checkProcess |= ProposeErrorCode.addCode(
+                    getTargetAddress().equals(pt.getTargetAddress()),
+                    ProposeErrorCode.PROPOSE_RECEIVE_TARGET_INVALID);
+        }
+
+        if (pt.getAsset().compareTo(BigInteger.ZERO) == 0) {
+            checkProcess |= ProposeErrorCode.PROPOSE_RECEIVE_TARGET_INVALID.toValue();
+        }
+
+
+        return checkProcess;
+    }
+
+    public boolean proposeSender(String senderAddress) {
+        if (!Strings.isNullOrEmpty(this.senderAddress)) {
+            return senderAddress.equals(this.senderAddress);
+        }
+        return false;
+    }
 }

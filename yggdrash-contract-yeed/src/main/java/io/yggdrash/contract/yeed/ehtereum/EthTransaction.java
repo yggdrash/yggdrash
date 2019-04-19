@@ -4,6 +4,7 @@ package io.yggdrash.contract.yeed.ehtereum;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
 
+import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.rlp.RLP;
 import io.yggdrash.common.rlp.RLPList;
 import io.yggdrash.common.utils.ByteUtil;
@@ -70,8 +71,16 @@ public class EthTransaction {
     private static final int CHAIN_ID_INC = 35;
     private static final int LOWER_REAL_V = 27;
 
+    public EthTransaction(String rawTransaction) {
+        byte[] etheSendEncode = HexUtil.hexStringToBytes(rawTransaction);
+        parseRawTranasction(etheSendEncode);
+    }
 
     public EthTransaction(byte[] rawTransaction) {
+        parseRawTranasction(rawTransaction);
+    }
+
+    private void parseRawTranasction(byte[] rawTransaction) {
         // check rawTransaction
         RLPList decodedTxList = RLP.decode2(rawTransaction);
         RLPList ethTx = (RLPList) decodedTxList.get(0);
