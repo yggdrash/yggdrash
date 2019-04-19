@@ -559,114 +559,130 @@ public class YeedContract implements BundleActivator, ServiceListener {
             // check propose Status
             log.debug("issuer Check");
             // issuer Check
-            if (propose.getProposeType() == ProposeType.YEED_TO_ETHER) {
-                byte[] etheSendEncode = HexUtil.hexStringToBytes(rawTransaction);
-                EthTransaction ethTransaction = new EthTransaction(etheSendEncode);
+            switch (propose.getProposeType()) {
+                case YEED_TO_ETHER:
+                    processYeedToEth(propose, rawTransaction, fee);
+                    break;
+                case YEED_TO_ETHER_TOKEN:
+                    processYeedToEthToken(propose, rawTransaction, fee);
+                    break;
+                default:
+                    throw new RuntimeException("Not Supported Yet");
 
-                // check propose
-                int checkPropose = 0;
-                boolean proposeSender = false;
-                String senderAddress = HexUtil.toHexString(ethTransaction.getSendAddress());
-                String receiveAddress = HexUtil.toHexString(ethTransaction.getReceiveAddress());
-                checkPropose |= ProposeErrorCode.addCode(
-                        propose.getReceiveAddress().equals(receiveAddress),
-                        ProposeErrorCode.PROPOSE_RECEIVE_ADDRESS_INVALID);
-                // sender is option
-                if(!Strings.isNullOrEmpty(propose.getSenderAddress())) {
-                    checkPropose |= ProposeErrorCode.addCode(
-                            propose.getSenderAddress().equals(senderAddress),
-                            ProposeErrorCode.PROPOSE_SENDER_ADDRESS_INVALID);
-                    proposeSender = true;
-                }
-
-                // propose chainId did not check -1
-                if (propose.getReceiveChainId() != -1) {
-                    checkPropose |= ProposeErrorCode.addCode(
-                            propose.getReceiveChainId() == ethTransaction.getChainId(),
-                            ProposeErrorCode.PROPOSE_RECEIVE_CHAIN_ID_INVALID);
-                }
-
-                log.debug("check Propose : {}", checkPropose);
-                if (checkPropose == 0) {
-                    BigInteger receiveValue = ethTransaction.getValue();
-                    // calculate ratio
-                    BigInteger ratio = propose.getReceiveAsset().divide(propose.getStakeYeed());
-
-                    BigInteger transferYeed = ratio.multiply(receiveValue);
-                    BigInteger stakeBalance = getBalance(propose.getProposeId());
-                    stakeBalance = stakeBalance.subtract(propose.getFee());
-                    // balance check if transferYeed over stakeBalance, set stakeBalance
-                    if (stakeBalance.compareTo(transferYeed) < 0) {
-                        transferYeed = stakeBalance;
-                    }
-
-                    // issuer
-                    boolean isProposerAreIssuer = propose.getIssuer().equals(this.txReceipt.getIssuer());
-
-                    if (isProposerAreIssuer && proposeSender) {
-                        // 1. propose issuer and this transaction issuer are same
-                        // 2. Propose set Sender Address
-                        // 3. Propose Send Address send transaction to receive Address
-                        transfer(propose.getProposeId(), senderAddress, transferYeed, fee);
-                        stakeBalance = stakeBalance.subtract(transferYeed);
-                        // All stake YEED is transfer to sendAddress
-                    } else {
-                        // check validator
-                        // Save Transaction confirm
-                        // Transaction ID , propose ID, SendAddress, transfer YEED
-                        String confirmTxId = HexUtil.toHexString(ethTransaction.getTxHash());
-
-                        TxConfirm confirm = new TxConfirm(propose.getProposeId(), confirmTxId, senderAddress, transferYeed);
-                        // Save TxConfirm
-                        setTxConfirm(confirm);
-
-                        this.txReceipt.addLog(String.format("propose %s check %s network %s transaction %s confirm ID %s",
-                                propose.getProposeId(), propose.getProposeType(), ethTransaction.getChainId(),
-                                confirmTxId, confirm.getTxConfirmId()
-                                ));
-                    }
-
-                    if (stakeBalance.compareTo(BigInteger.ZERO) <= 0) {
-                        setProposeStatus(propose.getProposeId(), ProposeStatus.DONE);
-                        this.txReceipt.addLog(String.format("propose %s %s", propose.getProposeId(),
-                                ProposeStatus.DONE));
-                        BigInteger proposeFee = propose.getFee();
-                        // send network fee to branch
-                        // 1. propose issuer and process issuer are same
-                        // 2. receive Asset Value is more than propose receiveAsset or equal
-                        // 3. Propose set Sender Address
-                        if(isProposerAreIssuer && receiveValue.compareTo(propose.getReceiveAsset())
-                                >= 0 && proposeSender) {
-                            BigInteger returnFee = proposeFee.divide(BigInteger.valueOf(2L));
-                            proposeFee = proposeFee.subtract(returnFee);
-                            transfer(propose.getProposeId(), propose.getIssuer(), returnFee, proposeFee);
-                        } else {
-                            // Done propose so send Fee to branch
-                            transferFee(propose.getProposeId(), proposeFee);
-                        }
-                    } else {
-                        setProposeStatus(propose.getProposeId(), ProposeStatus.PROCESSING);
-                        this.txReceipt.addLog(String.format("propose %s %s",propose.getProposeId(),
-                                ProposeStatus.PROCESSING));
-
-                    }
-                    // send fee
-                    transferFee(this.txReceipt.getIssuer(), fee);
-                    this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
-                } else {
-                    log.error("{} error Code", checkPropose);
-                    List<String> errors = ProposeErrorCode.errorLogs(checkPropose);
-                    // add Error log to txReceipt
-                    errors.stream().forEach(l -> this.txReceipt.addLog(l));
-                    this.txReceipt.setStatus(ExecuteStatus.FALSE);
-                }
-
-
-            } else {
-                throw new RuntimeException("Not Supported Yet");
             }
             // or any other address can process propose
             // param get
+        }
+
+        public void processYeedToEth(ProposeInterChain propose, String rawTransaction, BigInteger fee) {
+            byte[] etheSendEncode = HexUtil.hexStringToBytes(rawTransaction);
+            EthTransaction ethTransaction = new EthTransaction(etheSendEncode);
+
+            // check propose
+            int checkPropose = 0;
+            boolean proposeSender = false;
+            String senderAddress = HexUtil.toHexString(ethTransaction.getSendAddress());
+            String receiveAddress = HexUtil.toHexString(ethTransaction.getReceiveAddress());
+            checkPropose |= ProposeErrorCode.addCode(
+                    propose.getReceiveAddress().equals(receiveAddress),
+                    ProposeErrorCode.PROPOSE_RECEIVE_ADDRESS_INVALID);
+            // sender is option
+            if(!Strings.isNullOrEmpty(propose.getSenderAddress())) {
+                checkPropose |= ProposeErrorCode.addCode(
+                        propose.getSenderAddress().equals(senderAddress),
+                        ProposeErrorCode.PROPOSE_SENDER_ADDRESS_INVALID);
+                proposeSender = true;
+            }
+
+            // propose chainId did not check -1
+            if (propose.getReceiveChainId() != -1) {
+                checkPropose |= ProposeErrorCode.addCode(
+                        propose.getReceiveChainId() == ethTransaction.getChainId(),
+                        ProposeErrorCode.PROPOSE_RECEIVE_CHAIN_ID_INVALID);
+            }
+
+            log.debug("check Propose : {}", checkPropose);
+            if (checkPropose == 0) {
+                BigInteger receiveValue = ethTransaction.getValue();
+                // calculate ratio
+                BigInteger ratio = propose.getReceiveAsset().divide(propose.getStakeYeed());
+
+                BigInteger transferYeed = ratio.multiply(receiveValue);
+                BigInteger stakeBalance = getBalance(propose.getProposeId());
+                stakeBalance = stakeBalance.subtract(propose.getFee());
+                // balance check if transferYeed over stakeBalance, set stakeBalance
+                if (stakeBalance.compareTo(transferYeed) < 0) {
+                    transferYeed = stakeBalance;
+                }
+
+                // issuer
+                boolean isProposerAreIssuer = propose.getIssuer().equals(this.txReceipt.getIssuer());
+
+                if (isProposerAreIssuer && proposeSender) {
+                    // 1. propose issuer and this transaction issuer are same
+                    // 2. Propose set Sender Address
+                    // 3. Propose Send Address send transaction to receive Address
+                    transfer(propose.getProposeId(), senderAddress, transferYeed, fee);
+                    stakeBalance = stakeBalance.subtract(transferYeed);
+                    // All stake YEED is transfer to sendAddress
+                } else {
+                    // check validator
+                    // Save Transaction confirm
+                    // Transaction ID , propose ID, SendAddress, transfer YEED
+                    String confirmTxId = HexUtil.toHexString(ethTransaction.getTxHash());
+
+                    TxConfirm confirm = new TxConfirm(propose.getProposeId(), confirmTxId, senderAddress, transferYeed);
+                    // Save TxConfirm
+                    setTxConfirm(confirm);
+
+                    this.txReceipt.addLog(String.format("propose %s check %s network %s transaction %s confirm ID %s",
+                            propose.getProposeId(), propose.getProposeType(), ethTransaction.getChainId(),
+                            confirmTxId, confirm.getTxConfirmId()
+                    ));
+                }
+
+                if (stakeBalance.compareTo(BigInteger.ZERO) <= 0) {
+                    setProposeStatus(propose.getProposeId(), ProposeStatus.DONE);
+                    this.txReceipt.addLog(String.format("propose %s %s", propose.getProposeId(),
+                            ProposeStatus.DONE));
+                    BigInteger proposeFee = propose.getFee();
+                    // send network fee to branch
+                    // 1. propose issuer and process issuer are same
+                    // 2. receive Asset Value is more than propose receiveAsset or equal
+                    // 3. Propose set Sender Address
+                    if(isProposerAreIssuer && receiveValue.compareTo(propose.getReceiveAsset())
+                            >= 0 && proposeSender) {
+                        BigInteger returnFee = proposeFee.divide(BigInteger.valueOf(2L));
+                        proposeFee = proposeFee.subtract(returnFee);
+                        transfer(propose.getProposeId(), propose.getIssuer(), returnFee, proposeFee);
+                    } else {
+                        // Done propose so send Fee to branch
+                        transferFee(propose.getProposeId(), proposeFee);
+                    }
+                } else {
+                    setProposeStatus(propose.getProposeId(), ProposeStatus.PROCESSING);
+                    this.txReceipt.addLog(String.format("propose %s %s",propose.getProposeId(),
+                            ProposeStatus.PROCESSING));
+
+                }
+                // send fee
+                transferFee(this.txReceipt.getIssuer(), fee);
+                this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
+            } else {
+                log.error("{} error Code", checkPropose);
+                List<String> errors = ProposeErrorCode.errorLogs(checkPropose);
+                // add Error log to txReceipt
+                errors.stream().forEach(l -> this.txReceipt.addLog(l));
+                this.txReceipt.setStatus(ExecuteStatus.FALSE);
+            }
+        }
+
+
+        public void processYeedToEthToken(ProposeInterChain propose, String rawTransaction, BigInteger fee) {
+            // Check Token
+
+
+
         }
 
         @InvokeTransaction
@@ -757,13 +773,14 @@ public class YeedContract implements BundleActivator, ServiceListener {
                         }
                     }
                 } else {
-
+                    // Propose Status is not Processing
+                    this.txReceipt.setStatus(ExecuteStatus.FALSE);
+                    this.txReceipt.addLog(String.format("%s is %s",pi.getProposeId(), pis.toString()));
                 }
-
-
             } else {
-                this.txReceipt.addLog("");
-                this.txReceipt.setStatus(ExecuteStatus.ERROR);
+                // Transaction Confirm Is Done
+                this.txReceipt.addLog(String.format("%s is %s",txConfirm.getTxConfirmId(), txConfirm.getStatus().toString()));
+                this.txReceipt.setStatus(ExecuteStatus.FALSE);
             }
         }
 
@@ -771,6 +788,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
         // propose close
         @InvokeTransaction
         public void closePropose(JsonObject param) {
+            // close Propose is issued by propose issuer
             String proposeIdParam = param.get("proposeId").getAsString();
             ProposeInterChain propose = getPropose(proposeIdParam);
             ProposeStatus proposeStatus = getProposeStatus(proposeIdParam);
@@ -786,11 +804,11 @@ public class YeedContract implements BundleActivator, ServiceListener {
             if (!propose.getIssuer().equals(this.txReceipt.getIssuer())) {
                 throw new RuntimeException("issuer is not propose issuer");
             }
-            // fee is not return
-            // TODO pay fee to branch
+            // pay fee to branch
             BigInteger proposeStakeYeed = getBalance(propose.getProposeId()).subtract(propose.getFee());
             // return issuer
             transfer(propose.getProposeId(), this.txReceipt.getIssuer(), proposeStakeYeed, propose.getFee());
+            // Save Propose Status
             setProposeStatus(propose.getProposeId(), ProposeStatus.CLOSED);
             txReceipt.setStatus(ExecuteStatus.SUCCESS);
             txReceipt.addLog(String.format("propose %s closed", propose.getProposeId()));

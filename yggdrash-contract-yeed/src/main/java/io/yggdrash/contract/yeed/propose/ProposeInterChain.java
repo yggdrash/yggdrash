@@ -15,7 +15,7 @@ public class ProposeInterChain {
     String transactionId;
     String proposeId;
 
-    String tokenAddress;
+    String targetAddress;
     String receiveAddress;
     BigInteger receiveAsset;
 
@@ -44,8 +44,8 @@ public class ProposeInterChain {
         return proposeId;
     }
 
-    public String getTokenAddress() {
-        return tokenAddress;
+    public String getTargetAddress() {
+        return targetAddress;
     }
 
     public String getReceiveAddress() {
@@ -94,7 +94,7 @@ public class ProposeInterChain {
 
     public ProposeInterChain(JsonObject object) {
         this.transactionId = object.get("transactionId").getAsString();
-        this.tokenAddress = JsonUtil.parseString(object, "tokenAddress", "");
+        this.targetAddress = JsonUtil.parseString(object, "targetAddress", "");
         this.receiveAddress = object.get("receiveAddress").getAsString();
         this.receiveAsset = object.get("receiveAsset").getAsBigInteger();
         this.receiveChainId = object.get("receiveChainId").getAsInt();
@@ -110,12 +110,12 @@ public class ProposeInterChain {
     }
 
 
-    public ProposeInterChain(String transactionId, String tokenAddress, String receiveAddress, BigInteger receiveAsset,
+    public ProposeInterChain(String transactionId, String targetAddress, String receiveAddress, BigInteger receiveAsset,
                              int receiveChainId, long networkBlockHeight, ProposeType proposeType, String senderAddress,
                              String inputData, BigInteger stakeYeed, long blockHeight,
                              BigInteger fee, String issuer) {
         this.transactionId = transactionId;
-        this.tokenAddress = tokenAddress;
+        this.targetAddress = targetAddress;
         this.receiveAddress = receiveAddress;
         this.receiveAsset = receiveAsset;
         this.receiveChainId = receiveChainId;
@@ -140,7 +140,7 @@ public class ProposeInterChain {
             baos.write(Ints.toByteArray(proposeType.toValue()));
 
             baos.write(issuer.getBytes());
-            baos.write(tokenAddress.getBytes());
+            baos.write(targetAddress.getBytes());
             baos.write(receiveAddress.getBytes());
             baos.write(receiveAsset.toByteArray());
             baos.write(Longs.toByteArray(networkBlockHeight));
