@@ -33,7 +33,7 @@ public class BlockDto {
     public String type;
     public String prevBlockId;
     public long index;
-    public long timestamp;
+    public String timestamp;
     public String merkleRoot;
     public long bodyLength;
     public long txSize;
@@ -54,7 +54,7 @@ public class BlockDto {
         blockDto.type = Hex.toHexString(header.getType());
         blockDto.prevBlockId = block.getPrevBlockHash().toString();
         blockDto.index = block.getIndex();
-        blockDto.timestamp = header.getTimestamp();
+        blockDto.timestamp = Timestamps.toString(Timestamps.fromMillis(header.getTimestamp()));
         blockDto.merkleRoot = Hex.toHexString(header.getMerkleRoot());
         blockDto.bodyLength = header.getBodyLength();
         blockDto.signature = Hex.toHexString(block.getSignature());

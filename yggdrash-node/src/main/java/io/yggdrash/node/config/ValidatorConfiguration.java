@@ -95,7 +95,6 @@ public class ValidatorConfiguration {
                         .setGenesis(genesis)
                         .setStoreBuilder(storeBuilder)
                         .setPolicyLoader(policyLoader)
-                        .setSystemProperties(systemProperties)
                         .setFactory(ValidatorService.factory())
                         .build();
 

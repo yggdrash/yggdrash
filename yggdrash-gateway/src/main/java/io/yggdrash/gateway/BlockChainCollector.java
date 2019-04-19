@@ -8,8 +8,8 @@ import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchEventListener;
 import io.yggdrash.core.blockchain.BranchGroup;
-import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.gateway.dto.BlockDto;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.store.es.EsClient;
@@ -53,7 +53,7 @@ public class BlockChainCollector implements BranchEventListener {
     }
 
     @Override
-    public void chainedBlock(Block block) {
+    public void chainedBlock(ConsensusBlock block) {
         String json;
         JsonObject jsonObject = null;
 
@@ -68,11 +68,11 @@ public class BlockChainCollector implements BranchEventListener {
 
         outputStores.put(jsonObject);
 
-        if (block.getBodyCount() > 0) {
+        if (block.getBlock().getBody().getLength() > 0) {
             Map<String, JsonObject> transactionMap = new HashMap<>();
-            List<TransactionHusk> txs = block.getBody();
+            List<Transaction> txs = (List<Transaction>) block.getBody();
             String txHash;
-            for (TransactionHusk tx : txs) {
+            for (Transaction tx : txs) {
                 try {
                     txHash = tx.getHash().toString();
                     json = mapper.writeValueAsString(TransactionDto.createBy(tx));
@@ -88,5 +88,7 @@ public class BlockChainCollector implements BranchEventListener {
     }
 
     @Override
-    public void receivedTransaction(TransactionHusk tx) { }
+    public void receivedTransaction(Transaction tx) {
+
+    }
 }
