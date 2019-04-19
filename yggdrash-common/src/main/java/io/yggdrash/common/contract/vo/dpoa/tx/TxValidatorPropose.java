@@ -7,7 +7,6 @@ import java.io.Serializable;
 
 public class TxValidatorPropose implements Serializable, TxPayload {
     private static final long serialVersionUID = SerialEnum.TX_VALIDATOR_PROPOSE.toValue();
-
     private String validatorAddr;
 
     public TxValidatorPropose() {

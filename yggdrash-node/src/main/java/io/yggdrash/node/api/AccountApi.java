@@ -16,7 +16,7 @@ public interface AccountApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.code)})
+                    code = NonExistObjectException.CODE)})
     String createAccount();
 
     /**
@@ -24,7 +24,7 @@ public interface AccountApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.code)})
+                    code = NonExistObjectException.CODE)})
     ArrayList<String> accounts();
 
     /**
@@ -35,7 +35,7 @@ public interface AccountApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.code)})
+                    code = NonExistObjectException.CODE)})
     long getBalance(@JsonRpcParam(value = "address") String address,
                    @JsonRpcParam(value = "blockNumber") int blockNumber);
 
@@ -47,7 +47,7 @@ public interface AccountApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.code)})
+                    code = NonExistObjectException.CODE)})
     long getBalance(@JsonRpcParam(value = "address") String address,
                    @JsonRpcParam(value = "tag") String tag);
 }

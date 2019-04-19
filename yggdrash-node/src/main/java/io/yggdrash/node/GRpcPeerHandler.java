@@ -24,6 +24,7 @@ import io.grpc.stub.StreamObserver;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerHandler;
 import io.yggdrash.proto.BlockChainGrpc;
@@ -34,6 +35,7 @@ import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -53,6 +55,7 @@ public class GRpcPeerHandler implements PeerHandler {
     private final StreamObserver<NetProto.Empty> emptyResponseStreamObserver;
     private StreamObserver<Proto.Block> broadcastBlockRequestObserver;
     private StreamObserver<Proto.Transaction> broadcastTxRequestObserver;
+    private boolean alive;
 
     GRpcPeerHandler(Peer peer) {
         this(ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext()
@@ -74,6 +77,7 @@ public class GRpcPeerHandler implements PeerHandler {
                     @Override
                     public void onError(Throwable t) {
                         log.warn("[PeerHandler] Broadcast Failed: {}", Status.fromThrowable(t));
+                        alive = false;
                     }
 
                     @Override
@@ -115,9 +119,9 @@ public class GRpcPeerHandler implements PeerHandler {
 
     @Override
     public void stop() {
-        log.debug("Stop for peer=" + peer.getYnodeUri());
+        log.debug("Stop for peer={}", peer.getYnodeUri());
 
-        if (isAlive()) {
+        if (channel != null) {
             if (broadcastBlockRequestObserver != null) {
                 try {
                     broadcastBlockRequestObserver.onCompleted();
@@ -137,7 +141,7 @@ public class GRpcPeerHandler implements PeerHandler {
     }
 
     @Override
-    public Future<List<BlockHusk>> syncBlock(BranchId branchId, long offset) {
+    public Future<List<Block>> syncBlock(BranchId branchId, long offset) {
         log.debug("Requesting sync block: branchId={}, offset={}", branchId, offset);
 
         SyncLimit syncLimit = SyncLimit.newBuilder()
@@ -146,16 +150,18 @@ public class GRpcPeerHandler implements PeerHandler {
                 .setBranch(ByteString.copyFrom(branchId.getBytes()))
                 .setFrom(peer.getYnodeUri()).build();
 
-        CompletableFuture<List<BlockHusk>> husksCompletableFuture = new CompletableFuture<>();
+        CompletableFuture<List<Block>> husksCompletableFuture = new CompletableFuture<>();
 
         blockChainAsyncStub.syncBlock(syncLimit,
                 new StreamObserver<Proto.BlockList>() {
                     @Override
-                    public void onNext(Proto.BlockList blockList) {
-                        List<BlockHusk> blockHusks = blockList.getBlocksList().stream()
-                                .map(BlockHusk::new).collect(Collectors.toList());
-                        log.debug("[PeerHandler] BlockList(size={}) Received", blockHusks.size());
-                        husksCompletableFuture.complete(blockHusks);
+                    public void onNext(Proto.BlockList protoBlockList) {
+                        List<Block> blockList = new ArrayList<>();
+                        for (Proto.Block block : protoBlockList.getBlocksList()) {
+                            blockList.add(new BlockHusk(block.toByteArray()));
+                        }
+                        log.debug("[PeerHandler] BlockList(size={}) Received", blockList.size());
+                        husksCompletableFuture.complete(blockList);
                     }
 
                     @Override
@@ -215,29 +221,27 @@ public class GRpcPeerHandler implements PeerHandler {
     // When we send a (single) block to the server and get back a (single) empty.
     // Use the asynchronous stub for this method.
     @Override
-    public void broadcastBlock(BlockHusk blockHusk) {
-        log.debug("Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
+    public void broadcastBlock(Block block) {
+        log.debug("Broadcasting blocks -> {}", peer.getYnodeUri());
 
-        if (this.broadcastBlockRequestObserver == null) {
+        if (!alive) {
+            alive = true;
             this.broadcastBlockRequestObserver =
                     blockChainAsyncStub.broadcastBlock(emptyResponseStreamObserver);
         }
 
-        broadcastBlockRequestObserver.onNext(blockHusk.getInstance());
+        broadcastBlockRequestObserver.onNext(block.getProtoBlock());
     }
 
     @Override
     public void broadcastTx(TransactionHusk txHusk) {
-        log.debug("Broadcasting txs -> {}", txHusk.getHash());
+        log.debug("Broadcasting txs -> {}", peer.getYnodeUri());
 
-        if (this.broadcastTxRequestObserver == null) {
+        if (!alive) {
+            alive = true;
             this.broadcastTxRequestObserver = blockChainAsyncStub.broadcastTx(emptyResponseStreamObserver);
         }
 
         broadcastTxRequestObserver.onNext(txHusk.getInstance());
-    }
-
-    private boolean isAlive() {
-        return channel != null && !channel.isTerminated() && !channel.isShutdown();
     }
 }

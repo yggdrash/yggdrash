@@ -2,6 +2,7 @@ package io.yggdrash.node.api;
 
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,7 +39,7 @@ public class PeerApiMockitoTest {
     @Test
     public void getAllActivePeerRpcTest() {
         try {
-            PEER_API.getAllActivePeer();
+            Assert.assertFalse(PEER_API.getAllActivePeer().isEmpty());
         } catch (Exception e) {
             e.printStackTrace();
         }

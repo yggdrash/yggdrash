@@ -1,90 +1,26 @@
 package io.yggdrash.validator.store.ebft;
 
-import io.yggdrash.common.config.Constants;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.store.datasource.DbSource;
+import io.yggdrash.core.exception.NonExistObjectException;
+import io.yggdrash.core.store.AbstractBlockStore;
+import io.yggdrash.proto.EbftProto;
 import io.yggdrash.validator.data.ebft.EbftBlock;
-import io.yggdrash.validator.store.BlockStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 
-import java.util.Arrays;
-import java.util.concurrent.locks.ReentrantLock;
-
-public class EbftBlockStore implements BlockStore<byte[], EbftBlock> {
-    private static final Logger log = LoggerFactory.getLogger(EbftBlockStore.class);
-
-    private final DbSource<byte[], byte[]> db;
-    private long size = 0;
-
-    private final ReentrantLock lock = new ReentrantLock();
+public class EbftBlockStore extends AbstractBlockStore<EbftProto.EbftBlock> {
 
     public EbftBlockStore(DbSource<byte[], byte[]> dbSource) {
-        this.db = dbSource.init();
+        super(dbSource);
     }
 
     @Override
-    public void put(byte[] key, EbftBlock value) {
-        if (key == null || value == null) {
-            log.debug("Key or value are not vaild.");
-            return;
-        }
-
-        byte[] valueBin = value.toBinary();
-        if (valueBin.length > Constants.MAX_MEMORY) {
-            log.error("Block size is not valid.");
-            log.error("put "
-                    + "(key: " + Hex.toHexString(key) + ")"
-                    + "(value length: " + valueBin.length + ")");
-            return;
-        }
-
+    public EbftBlock get(Sha3Hash key) {
         lock.lock();
-
-        try {
-            if (!contains(key)) {
-                log.trace("put "
-                        + "(key: " + Arrays.toString(key) + ")"
-                        + "(value length: " + valueBin.length + ")");
-                db.put(key, valueBin);
-                size++;
-            }
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-        } finally {
-            lock.unlock();
+        byte[] foundValue = db.get(key.getBytes());
+        lock.unlock();
+        if (foundValue != null) {
+            return new EbftBlock(foundValue);
         }
-
-    }
-
-    @Override
-    public EbftBlock get(byte[] key) {
-        if (key == null) {
-            log.debug("Key is not vaild.");
-            return null;
-        }
-
-        log.trace("get " + "(" + Hex.toHexString(key) + ")");
-        return new EbftBlock(db.get(key));
-    }
-
-    @Override
-    public boolean contains(byte[] key) {
-        if (key == null) {
-            return false;
-        }
-
-        return db.get(key) != null;
-    }
-
-
-    @Override
-    public long size() {
-        return this.size;
-    }
-
-    @Override
-    public void close() {
-        this.db.close();
+        throw new NonExistObjectException(key.toString());
     }
 }

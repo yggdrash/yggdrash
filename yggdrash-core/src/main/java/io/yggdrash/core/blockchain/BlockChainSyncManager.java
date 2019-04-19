@@ -12,6 +12,7 @@
 
 package io.yggdrash.core.blockchain;
 
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.net.CatchUpSyncEventListener;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerNetwork;
@@ -70,7 +71,7 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
 
     // When broadcastBlock is called (BlockChainServiceConsumer)
     @Override
-    public void catchUpRequest(BlockHusk block) {
+    public void catchUpRequest(Block block) {
         BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
         if (blockChain == null) {
             return;
@@ -119,21 +120,22 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
         long offset = blockChain.getLastIndex() + 1;
 
         BranchId branchId = blockChain.getBranchId();
-        Future<List<BlockHusk>> futureHusks = peerHandler.syncBlock(branchId, offset);
+        Future<List<Block>> futureBlockList = peerHandler.syncBlock(branchId, offset);
 
         try {
-            List<BlockHusk> blockHusks = futureHusks.get();
-            if (blockHusks.isEmpty()) {
+            List<Block> blockList = futureBlockList.get();
+            if (blockList.isEmpty()) {
                 return true;
             }
             log.info("[SyncManager] Synchronize block offset={} receivedSize={}, from={}",
-                    offset, blockHusks.size(), peerHandler.getPeer().toAddress());
+                    offset, blockList.size(), peerHandler.getPeer().getYnodeUri());
 
-            for (BlockHusk blockHusk : blockHusks) {
-                blockChain.addBlock(blockHusk, false);
+            for (Block block : blockList) {
+                blockChain.addBlock(block, false);
             }
         } catch (InterruptedException | ExecutionException e) {
             log.debug("[SyncManager] Sync Block ERR occurred: {}", e.getMessage(), e);
+            Thread.currentThread().interrupt();
         }
 
         return false;
@@ -146,17 +148,22 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
         try {
             List<TransactionHusk> txHusks = futureHusks.get();
             log.info("[SyncManager] Synchronize Tx receivedSize={}, from={}",
-                    txHusks.size(), peerHandler.getPeer().toAddress());
+                    txHusks.size(), peerHandler.getPeer().getYnodeUri());
+            addTransaction(blockChain, txHusks);
 
-            for (TransactionHusk txHusk : txHusks) {
-                try {
-                    blockChain.addTransaction(txHusk);
-                } catch (Exception e) {
-                    log.warn("[SyncManager] Add Tx ERR occurred: {}", e.getMessage());
-                }
-            }
         } catch (InterruptedException | ExecutionException e) {
             log.debug("[SyncManager] Sync Tx ERR occurred: {}", e.getMessage(), e);
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private void addTransaction(BlockChain blockChain, List<TransactionHusk> txHusks) {
+        for (TransactionHusk txHusk : txHusks) {
+            try {
+                blockChain.addTransaction(txHusk);
+            } catch (Exception e) {
+                log.warn("[SyncManager] Add Tx ERR occurred: {}", e.getMessage());
+            }
         }
     }
 

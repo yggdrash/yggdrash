@@ -20,6 +20,7 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.util.TimeUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,7 +30,6 @@ import org.spongycastle.util.encoders.Hex;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-
 
 public class TransactionSignatureTest {
 
@@ -51,9 +51,9 @@ public class TransactionSignatureTest {
 
         TransactionBody txBody = new TransactionBody(jsonArray);
 
-        byte[] chain = new byte[20];
-        byte[] version = new byte[8];
-        byte[] type = new byte[8];
+        byte[] chain = Constants.EMPTY_BRANCH;
+        byte[] version = Constants.EMPTY_BYTE8;
+        byte[] type = Constants.EMPTY_BYTE8;
         long timestamp = TimeUtils.time();
 
         TransactionHeader txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
@@ -83,7 +83,7 @@ public class TransactionSignatureTest {
 
     @Test
     public void testTransactionSignatureClone() {
-        TransactionSignature txSig2 = txSig1.clone();
+        TransactionSignature txSig2 = new TransactionSignature(txSig1.toJsonObject());
         log.debug("txSig1=" + txSig1.getSignatureHexString());
         log.debug("txSig2=" + txSig2.getSignatureHexString());
 

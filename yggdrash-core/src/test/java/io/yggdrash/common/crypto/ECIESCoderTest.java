@@ -71,7 +71,7 @@ public class ECIESCoderTest {
             log.error(e.getMessage());
         }
 
-        log.debug(Hex.toHexString(decrypted_payload));
+        Assert.assertEquals("1122334455", Hex.toHexString(decrypted_payload));
     }
 
 }

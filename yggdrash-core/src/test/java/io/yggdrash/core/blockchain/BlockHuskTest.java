@@ -18,19 +18,15 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.proto.Proto;
+import io.yggdrash.core.consensus.Block;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BlockHuskTest {
 
-    private static final Logger log = LoggerFactory.getLogger(BlockHuskTest.class);
-
-    private BlockHusk genesisBlock;
+    private Block genesisBlock;
 
     @Before
     public void setUp() {
@@ -39,34 +35,14 @@ public class BlockHuskTest {
 
     @Test
     public void genesisBlockTest() {
-        assert genesisBlock.getInstance() != null;
-        assert genesisBlock.getIndex() == 0;
+        assertThat(genesisBlock.getInstance()).isNotNull();
+        assertThat(genesisBlock.getIndex()).isEqualTo(0);
     }
 
     @Test
     public void blockCloneTest() {
-        BlockHusk cloned = new BlockHusk(genesisBlock.getInstance());
-        assert cloned.hashCode() == genesisBlock.hashCode();
-        assert cloned.compareTo(genesisBlock) == 0;
-    }
-
-    @Test
-    public void deserializeTransactionFromProtoTest() {
-        Proto.Block protoBlock = genesisBlock.getInstance();
-        BlockHusk deserializeBlock = new BlockHusk(protoBlock);
-        assert genesisBlock.getHash().equals(deserializeBlock.getHash());
-    }
-
-    @Test
-    public void testToJsonObject() {
-        //todo: modify to checking jsonObject when the genesisBlock data format change to JsonObject.
-        log.debug(genesisBlock.toJsonObject().toString());
-    }
-
-    @Test
-    public void constructorTest() {
-        BlockHusk block2 = new BlockHusk(new Block(genesisBlock.toJsonObject()));
-        assert block2.getIndex() == genesisBlock.getIndex();
-        assertThat(genesisBlock.toJsonObject().toString()).isEqualTo(block2.toJsonObject().toString());
+        BlockHusk cloned = new BlockHusk(genesisBlock.getData());
+        assertThat(cloned.hashCode()).isEqualTo(genesisBlock.hashCode());
+        assertThat(cloned).isEqualTo(genesisBlock);
     }
 }

@@ -59,9 +59,9 @@ public class TransactionSpeedTest extends PerformanceTest {
 
         txBody = new TransactionBody(txArrayBody);
 
-        byte[] chain = new byte[20];
-        byte[] version = new byte[8];
-        byte[] type = new byte[8];
+        byte[] chain = Constants.EMPTY_BRANCH;
+        byte[] version = Constants.EMPTY_BYTE8;
+        byte[] type = Constants.EMPTY_BYTE8;
         long timestamp = TimeUtils.time();
 
         txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);

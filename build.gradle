@@ -83,7 +83,9 @@ project(':yggdrash-core') {
 
     dependencies {
         compile project(':yggdrash-common')
-        implementation project(':yggdrash-contract')
+        implementation project(':yggdrash-contract-coin')
+        implementation project(':yggdrash-contract-dpoa')
+        implementation project(':yggdrash-contract-versioning')
 
         compile "io.grpc:grpc-services:${grpcVersion}"
         compile "io.grpc:grpc-netty:${grpcVersion}"
@@ -130,7 +132,7 @@ project(':yggdrash-validator') {
 
     dependencies {
         compile project(':yggdrash-core')
-        compile "io.github.lognet:grpc-spring-boot-starter:3.0.0"
+        compile "org.springframework.boot:spring-boot-starter"
         testCompile project(':yggdrash-core').sourceSets.test.output
         testCompile "com.vmlens:concurrent-junit:1.0.2"
         testCompile "org.springframework.boot:spring-boot-starter-test"
@@ -147,7 +149,7 @@ project(':yggdrash-validator') {
     }
 
     bootJar {
-        enabled = false
+        enabled = true
     }
 }
 
@@ -157,13 +159,13 @@ project(':yggdrash-node') {
 
     dependencies {
         compile(project(':yggdrash-core')) {
-            exclude module: 'yggdrash-contract'
+            exclude module: 'yggdrash-contract-dpoa'
         }
         compile(project(':yggdrash-validator')) {
-            exclude module: 'yggdrash-contract'
+            exclude module: 'yggdrash-contract-dpoa'
         }
         compile(project(':yggdrash-gateway')) {
-            exclude module: 'yggdrash-contract'
+            exclude module: 'yggdrash-contract-dpoa'
         }
         compile "org.springframework.boot:spring-boot-starter-web"
         compile "org.springframework.boot:spring-boot-starter-undertow"
@@ -268,7 +270,7 @@ coveralls {
 
 sonarqube {
     properties {
-        property "sonar.exclusions", "**/io/yggdrash/proto/*"
+        property "sonar.exclusions", "**/io/yggdrash/proto/*, **/io/yggdrash/common/crypto/**"
     }
 }
 

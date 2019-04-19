@@ -20,9 +20,9 @@ import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.net.BlockChainConsumer;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
@@ -48,10 +48,10 @@ public class GrpcBlockChainServiceTest {
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();
 
     @Mock
-    private BlockChainConsumer blockChainConsumerMock;
+    private BlockChainConsumer<Proto.Block> blockChainConsumerMock;
 
     private TransactionHusk tx;
-    private BlockHusk block;
+    private Block block;
     private BranchId branchId;
 
     @Before

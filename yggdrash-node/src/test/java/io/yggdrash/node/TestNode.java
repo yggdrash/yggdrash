@@ -14,6 +14,7 @@ import io.yggdrash.core.net.BootStrapNode;
 import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.net.DiscoveryServiceConsumer;
 import io.yggdrash.core.net.NodeStatusMock;
+import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
 import io.yggdrash.core.p2p.PeerHandlerFactory;
 import io.yggdrash.core.p2p.PeerTable;
@@ -21,12 +22,20 @@ import io.yggdrash.core.p2p.PeerTableGroup;
 import io.yggdrash.core.p2p.SimplePeerDialer;
 import io.yggdrash.core.util.PeerTableCounter;
 import io.yggdrash.node.config.NetworkConfiguration;
+import io.yggdrash.node.config.NodeProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TestNode extends BootStrapNode {
     private static final Logger log = LoggerFactory.getLogger(TestNode.class);
     private final BranchId branchId = TestConstants.yggdrash();
+
+    private PeerHandlerFactory factory;
+    private boolean enableBranch;
+    private NodeProperties nodeProperties;
 
     final int port;
     Server server;
@@ -40,17 +49,32 @@ public class TestNode extends BootStrapNode {
     // branch specific
     public BlockChainConsumer blockChainConsumer;
 
-    TestNode(PeerHandlerFactory factory, int port, boolean enableBranch) {
+    private TestNode(PeerHandlerFactory factory, int port, NodeProperties nodeProperties) {
+        this.factory = factory;
         this.port = port;
+        this.nodeProperties = nodeProperties;
+        this.enableBranch = true;
+    }
 
-        p2pConfiguration(factory);
+    TestNode(PeerHandlerFactory factory, int port, boolean enableBranch) {
+        this(factory, port, createNodeProperties(new ArrayList<>()));
+        this.enableBranch = enableBranch;
+        config();
+    }
 
-        branchConfiguration(enableBranch);
+    private static NodeProperties createNodeProperties(List<String> validatorList) {
+        NodeProperties nodeProperties = new NodeProperties();
+        nodeProperties.setValidatorList(validatorList);
+        return nodeProperties;
+    }
 
+    private void config() {
+        p2pConfiguration();
+        branchConfiguration();
         networkConfiguration();
     }
 
-    private void p2pConfiguration(PeerHandlerFactory factory) {
+    private void p2pConfiguration() {
         this.nodeStatus = NodeStatusMock.create();
         this.peerDialer = new SimplePeerDialer(factory);
         this.peerTableGroup = PeerTestUtils.createTableGroup(port, peerDialer);
@@ -62,7 +86,7 @@ public class TestNode extends BootStrapNode {
         peerTask.setPeerTableGroup(peerTableGroup);
     }
 
-    private void branchConfiguration(boolean enableBranch) {
+    private void branchConfiguration() {
         this.branchGroup = new BranchGroup();
         if (isSeed()) {
             return;
@@ -76,12 +100,16 @@ public class TestNode extends BootStrapNode {
     }
 
     private void networkConfiguration() {
-        NetworkConfiguration config = new NetworkConfiguration();
+        NetworkConfiguration config = new NetworkConfiguration(nodeProperties);
         this.peerNetwork = config.peerNetwork(peerTableGroup, peerDialer, branchGroup);
         setSyncManager(config.syncManager(nodeStatus, peerNetwork, branchGroup));
         if (blockChainConsumer != null) {
             blockChainConsumer.setListener(getSyncManger());
         }
+    }
+
+    public Peer getPeer() {
+        return peerTableGroup.getOwner();
     }
 
     public BranchGroup getBranchGroup() {
@@ -92,12 +120,16 @@ public class TestNode extends BootStrapNode {
         return branchGroup.getBranch(branchId);
     }
 
+    public int countUnconfirmedTx() {
+        return branchGroup.getUnconfirmedTxs(branchId).size();
+    }
+
     public BlockChainSyncManager getSyncManger() {
         return (BlockChainSyncManager) this.syncManager;
     }
 
     public void generateBlock() {
-        branchGroup.generateBlock(TestConstants.wallet(), branchId);
+        BlockChainTestUtils.generateBlock(branchGroup, branchId);
     }
 
     public int getActivePeerCount() {
@@ -114,7 +146,7 @@ public class TestNode extends BootStrapNode {
         String branchInfo = "";
         if (getDefaultBranch() != null) {
             branchInfo = String.format(" bestBlock=%d, txCnt=%d, unConfirmed=%d,", getDefaultBranch().getLastIndex(),
-                    getDefaultBranch().transactionCount(), branchGroup.getUnconfirmedTxs(branchId).size());
+                    getDefaultBranch().countOfTxs(), branchGroup.getUnconfirmedTxs(branchId).size());
         }
 
         log.info("{} =>{} peer={}, bucket={}, active={}",
@@ -126,5 +158,12 @@ public class TestNode extends BootStrapNode {
 
     public boolean isSeed() {
         return port == PeerTestUtils.SEED_PORT;
+    }
+
+    public static TestNode createDeliveryNode(PeerHandlerFactory factory, List<String> validatorList) {
+        NodeProperties nodeProperties = createNodeProperties(validatorList);
+        TestNode node = new TestNode(factory, PeerTestUtils.OWNER_PORT, nodeProperties);
+        node.config();
+        return node;
     }
 }

@@ -1,5 +1,6 @@
 package io.yggdrash.validator.data.ebft;
 
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
@@ -16,7 +17,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -63,7 +63,7 @@ public class EbftStatusTest {
         wallet3 = new Wallet(null, "/tmp/",
                 "test3" + TimeUtils.time(), "Password1234!");
 
-        block0 = new TestUtils(wallet0).sampleBlock(0, EMPTY_BYTE32);
+        block0 = new TestUtils(wallet0).sampleBlock(0, Constants.EMPTY_HASH);
         block1 = new TestUtils(wallet1).sampleBlock(block0.getIndex() + 1, block0.getHash());
         block11 = new TestUtils(wallet2).sampleBlock(block0.getIndex() + 1, block0.getHash());
         block12 = new TestUtils(wallet3).sampleBlock(block0.getIndex() + 1, block0.getHash());
@@ -74,7 +74,7 @@ public class EbftStatusTest {
         block31 = new TestUtils(wallet2).sampleBlock(block2.getIndex() + 1, block2.getHash());
         block32 = new TestUtils(wallet3).sampleBlock(block2.getIndex() + 1, block2.getHash());
 
-        this.ebftBlock0 = new EbftBlock(this.block0, null);
+        this.ebftBlock0 = new EbftBlock(this.block0);
 
         List<String> consensusList1 = new ArrayList<>();
         consensusList1.add(wallet0.signHex(block1.getHash(), true));
@@ -85,8 +85,8 @@ public class EbftStatusTest {
 
         List<EbftBlock> unConfirmedList1 = new ArrayList<>();
         unConfirmedList1.add(ebftBlock1);
-        unConfirmedList1.add(new EbftBlock(block11, null));
-        unConfirmedList1.add(new EbftBlock(block12, null));
+        unConfirmedList1.add(new EbftBlock(block11));
+        unConfirmedList1.add(new EbftBlock(block12));
 
         List<String> consensusList2 = new ArrayList<>();
         consensusList2.add(wallet0.signHex(block2.getHash(), true));
@@ -97,8 +97,8 @@ public class EbftStatusTest {
 
         List<EbftBlock> unConfirmedList2 = new ArrayList<>();
         unConfirmedList2.add(ebftBlock2);
-        unConfirmedList2.add(new EbftBlock(block21, null));
-        unConfirmedList2.add(new EbftBlock(block22, null));
+        unConfirmedList2.add(new EbftBlock(block21));
+        unConfirmedList2.add(new EbftBlock(block22));
 
         List<String> consensusList3 = new ArrayList<>();
         consensusList3.add(wallet0.signHex(block3.getHash(), true));
@@ -109,8 +109,8 @@ public class EbftStatusTest {
 
         List<EbftBlock> unConfirmedList3 = new ArrayList<>();
         unConfirmedList3.add(ebftBlock3);
-        unConfirmedList3.add(new EbftBlock(block31, null));
-        unConfirmedList3.add(new EbftBlock(block32, null));
+        unConfirmedList3.add(new EbftBlock(block31));
+        unConfirmedList3.add(new EbftBlock(block32));
 
         ebftStatus1 = new EbftStatus(block1.getIndex() - 1, unConfirmedList1, wallet1);
         ebftStatus2 = new EbftStatus(block2.getIndex() - 1, unConfirmedList2, wallet2);
@@ -120,9 +120,9 @@ public class EbftStatusTest {
 
     @Test
     public void constuctorTest_Default() {
-        assertEquals(ebftStatus1.getUnConfirmedEbftBlockList().size(), 3);
-        assertEquals(ebftStatus2.getUnConfirmedEbftBlockList().size(), 3);
-        assertEquals(ebftStatus3.getUnConfirmedEbftBlockList().size(), 3);
+        assertEquals(3, ebftStatus1.getUnConfirmedEbftBlockList().size());
+        assertEquals(3, ebftStatus2.getUnConfirmedEbftBlockList().size());
+        assertEquals(3, ebftStatus3.getUnConfirmedEbftBlockList().size());
     }
 
     @Test

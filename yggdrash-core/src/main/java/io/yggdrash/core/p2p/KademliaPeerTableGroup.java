@@ -1,6 +1,7 @@
 package io.yggdrash.core.p2p;
 
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.store.PeerStore;
 import io.yggdrash.core.store.StoreBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +41,8 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
         if (tableMap.containsKey(branchId)) {
             return tableMap.get(branchId);
         }
-        PeerTable peerTable = new KademliaPeerTable(owner, storeBuilder.buildPeerStore(branchId));
+        PeerStore peerStore = storeBuilder.setBranchId(branchId).buildPeerStore();
+        PeerTable peerTable = new KademliaPeerTable(owner, peerStore);
         tableMap.put(branchId, peerTable);
         return peerTable;
     }
@@ -121,49 +123,17 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
         lookup(0, new ArrayList<>(), getOwner(), entry);
     }
 
-    private synchronized void lookup(int round,
-                                     List<Peer> prevTried,
-                                     Peer target,
-                                     Map.Entry<BranchId,
-                                             PeerTable> entry) {
+    private synchronized void lookup(int round, List<Peer> prevTried, Peer target,
+                                     Map.Entry<BranchId, PeerTable> entry) {
         try {
             if (round == KademliaOptions.MAX_STEPS) {
                 log.debug("(MAX_STEPS) Terminating discover after {} rounds.", round);
                 return;
             }
 
-            List<Peer> closest = entry.getValue().getClosestPeers(
-                    target, KademliaOptions.BUCKET_SIZE);
-            List<Peer> tried = new ArrayList<>();
-
-            for (Peer peer : closest) {
-                if (!tried.contains(peer) && !prevTried.contains(peer)) {
-                    PeerHandler peerHandler = peerDialer.getPeerHandler(peer);
-                    try {
-                        List<Peer> peerList = peerHandler.findPeers(entry.getKey(), target);
-                        for (Peer findPeer : peerList) {
-                            // ignore to add owner
-                            if (!owner.equals(findPeer)) {
-                                entry.getValue().addPeer(findPeer);
-                            }
-                        }
-                        tried.add(peer);
-                    } catch (Exception e) {
-                        log.warn("lookup for {} err={}", peer.toAddress(), e.getMessage());
-                        peerDialer.removeHandler(peerHandler);
-                    }
-                }
-                if (tried.size() == KademliaOptions.ALPHA) {
-                    break;
-                }
-            }
+            List<Peer> tried = getPeers(prevTried, target, entry);
 
             if (tried.isEmpty()) {
-                /*
-                log.debug("Terminating discover after {} rounds.", round);
-                log.trace("NumberOfBuckets: {}\nPeers discovered {}",
-                        entry.getValue().getBucketsCount(), entry.getValue().getPeerUriList());
-                        */
                 return;
             }
 
@@ -171,6 +141,39 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
             lookup(round + 1, tried, target, entry);
         } catch (Exception e) {
             log.info("{}", e.getMessage());
+        }
+    }
+
+    private List<Peer> getPeers(List<Peer> prevTried, Peer target, Map.Entry<BranchId, PeerTable> entry) {
+        List<Peer> closest = entry.getValue().getClosestPeers(target, KademliaOptions.BUCKET_SIZE);
+        List<Peer> tried = new ArrayList<>();
+
+        for (Peer peer : closest) {
+            if (!tried.contains(peer) && !prevTried.contains(peer)) {
+                PeerHandler peerHandler = peerDialer.getPeerHandler(peer);
+                findPeers(target, entry, tried, peer, peerHandler);
+            }
+            if (tried.size() == KademliaOptions.ALPHA) {
+                break;
+            }
+        }
+        return tried;
+    }
+
+    private void findPeers(Peer target, Map.Entry<BranchId, PeerTable> entry, List<Peer> tried, Peer peer,
+                           PeerHandler peerHandler) {
+        try {
+            List<Peer> peerList = peerHandler.findPeers(entry.getKey(), target);
+            for (Peer findPeer : peerList) {
+                // ignore to add owner
+                if (!owner.equals(findPeer)) {
+                    entry.getValue().addPeer(findPeer);
+                }
+            }
+            tried.add(peer);
+        } catch (Exception e) {
+            log.warn("lookup for {} err={}", peer.toAddress(), e.getMessage());
+            peerDialer.removeHandler(peerHandler);
         }
     }
 
@@ -184,7 +187,6 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
         Peer randomTarget = randomTargetGeneration();
         for (Map.Entry<BranchId, PeerTable> entry : tableMap.entrySet()) {
             int size = entry.getValue().getClosestPeers(randomTarget, 1).size();
-            //log.trace("peerTable :: refresh => size={}, branch={}", size, entry.getKey());
             if (size < 1) {
                 // The result set is empty, all peers were dropped, discover.
                 // We actually wait for the discover to complete here.

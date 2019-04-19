@@ -16,6 +16,7 @@
 
 package io.yggdrash.common.store.datasource;
 
+import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.utils.FileUtil;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.DBIterator;
@@ -70,7 +71,31 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
             openDb(options);
             alive = true;
         } catch (IOException e) {
-            throw new RuntimeException("Can't initialize db");
+            throw new FailedOperationException("Can't initialize db");
+        } finally {
+            resetDbLock.writeLock().unlock();
+        }
+
+        return this;
+    }
+
+    public DbSource<byte[], byte[]> init(Options options) {
+        resetDbLock.writeLock().lock();
+        try {
+            log.info("Initialize db: {}", name);
+
+            if (isAlive()) {
+                log.warn("DbSource is alive.");
+            }
+
+            if (name == null) {
+                throw new NullPointerException("no name set to the dbStore");
+            }
+
+            openDb(options);
+            alive = true;
+        } catch (IOException e) {
+            throw new FailedOperationException("Can't initialize db");
         } finally {
             resetDbLock.writeLock().unlock();
         }
@@ -119,8 +144,7 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
 
     void updateByBatch(Map<byte[], byte[]> rows) {
         resetDbLock.readLock().lock();
-        try {
-            WriteBatch batch = db.createWriteBatch();
+        try (WriteBatch batch = db.createWriteBatch()) {
             rows.forEach((key, value) -> {
                 if (value == null) {
                     batch.delete(key);
@@ -129,6 +153,8 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
                 }
             });
             db.write(batch);
+        } catch (IOException e) {
+            log.debug(e.getMessage());
         } finally {
             resetDbLock.readLock().unlock();
         }

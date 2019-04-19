@@ -1,13 +1,15 @@
 package io.yggdrash.validator.service;
 
+import ch.qos.logback.classic.Level;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.consensus.Consensus;
+import io.yggdrash.core.consensus.ConsensusBlockChain;
+import io.yggdrash.core.consensus.ConsensusService;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.validator.config.Consensus;
-import io.yggdrash.validator.data.ConsensusBlockChain;
 import io.yggdrash.validator.data.ebft.EbftBlockChain;
 import io.yggdrash.validator.data.pbft.PbftBlockChain;
 import io.yggdrash.validator.service.ebft.EbftServerStub;
@@ -15,16 +17,18 @@ import io.yggdrash.validator.service.ebft.EbftService;
 import io.yggdrash.validator.service.node.NodeServerStub;
 import io.yggdrash.validator.service.pbft.PbftServerStub;
 import io.yggdrash.validator.service.pbft.PbftService;
+import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 
+@Deprecated
 public class ValidatorService {
 
-    private final DefaultConfig validatorConfig;
+    private final DefaultConfig defaultConfig;
     private final Consensus consensus;
 
     private final String host;
@@ -39,28 +43,25 @@ public class ValidatorService {
     private final Server grpcServer;
 
     public ValidatorService(
-            DefaultConfig validatorConfig, Block genesisBlock) throws IOException, InvalidCipherTextException {
-        this.validatorConfig = validatorConfig;
-        this.host = validatorConfig.getString("yggdrash.validator.host");
-        this.port = validatorConfig.getInt("yggdrash.validator.port");
-        this.wallet = new Wallet(validatorConfig.getString("yggdrash.validator.key.path"),
-                validatorConfig.getString("yggdrash.validator.key.password"));
+            DefaultConfig defaultConfig, Block genesisBlock) throws IOException, InvalidCipherTextException {
+        this.defaultConfig = defaultConfig;
+        setLogLevel();
+        this.host = defaultConfig.getString("yggdrash.validator.host");
+        this.port = defaultConfig.getInt("yggdrash.validator.port");
+        this.wallet = new Wallet(defaultConfig.getString("yggdrash.validator.key.path"),
+                defaultConfig.getString("yggdrash.validator.key.password"));
         this.consensus = new Consensus(genesisBlock);
         this.genesisBlock = genesisBlock;
         this.taskScheduler = threadPoolTaskScheduler();
         this.blockChain = consensusBlockChain();
 
-        Map<String, Object> validatorInfoMap =
-                this.validatorConfig.getConfig()
-                        .getObject("yggdrash.validator.info").unwrapped();
-
         switch (consensus.getAlgorithm()) {
             case "pbft":
-                consensusService = new PbftService(wallet, blockChain, validatorInfoMap, host, port);
+                this.consensusService = new PbftService(wallet, blockChain, defaultConfig, host, port);
                 taskScheduler.schedule(consensusService, new CronTrigger(consensus.getPeriod()));
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
-                            .addService(new PbftServerStub(blockChain, consensusService))
+                            .addService(new PbftServerStub((PbftService) consensusService))
                             .addService(new NodeServerStub(blockChain))
                             .build()
                             .start();
@@ -69,11 +70,11 @@ public class ValidatorService {
                 }
                 break;
             case "ebft":
-                consensusService = new EbftService(wallet, blockChain, validatorInfoMap, host, port);
+                this.consensusService = new EbftService(wallet, blockChain, defaultConfig, host, port);
                 taskScheduler.schedule(consensusService, new CronTrigger(consensus.getPeriod()));
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
-                            .addService(new EbftServerStub(blockChain, consensusService))
+                            .addService(new EbftServerStub((EbftService) consensusService))
                             .addService(new NodeServerStub(blockChain))
                             .build()
                             .start();
@@ -84,6 +85,12 @@ public class ValidatorService {
             default:
                 throw new NotValidateException("Algorithm is not valid.");
         }
+    }
+
+    private void setLogLevel() {
+        String logLevel = this.defaultConfig.getString("yggdrash.validator.log.level");
+        ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger("io.yggdrash.validator"))
+                .setLevel(Level.toLevel(logLevel, Level.INFO));
     }
 
     private ThreadPoolTaskScheduler threadPoolTaskScheduler() {
@@ -96,14 +103,14 @@ public class ValidatorService {
 
     private ConsensusBlockChain consensusBlockChain() {
         String algorithm = consensus.getAlgorithm();
-        String dbPath = validatorConfig.getDatabasePath();
+        String dbPath = defaultConfig.getDatabasePath();
         String host = this.host;
         int port = this.port;
         String chain = genesisBlock.getChainHex();
 
-        String keyStorePath = host + "_" + port + "/" + chain + "/" + algorithm + "Key";
-        String blockStorePath = host + "_" + port + "/" + chain + "/" + algorithm + "Block";
-        String txStorePath = host + "_" + port + "/" + chain + "/" + algorithm + "Tx";
+        String keyStorePath = host + "_" + port + File.separator + chain + File.separator + algorithm + "Key";
+        String blockStorePath = host + "_" + port + File.separator + chain + File.separator + algorithm + "Block";
+        String txStorePath = host + "_" + port + File.separator + chain + File.separator + algorithm + "Tx";
 
         switch (algorithm) {
             case "pbft":
@@ -116,5 +123,9 @@ public class ValidatorService {
             default:
                 throw new NotValidateException("Algorithm is not valid.");
         }
+    }
+
+    public void shutdown() {
+        grpcServer.shutdown();
     }
 }

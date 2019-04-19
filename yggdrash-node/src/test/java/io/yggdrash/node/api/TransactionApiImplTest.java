@@ -21,12 +21,14 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.gateway.dto.TransactionDto;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.ParseException;
 
 import static io.yggdrash.node.api.JsonRpcConfig.BLOCK_API;
 import static io.yggdrash.node.api.JsonRpcConfig.TX_API;
@@ -114,7 +116,7 @@ public class TransactionApiImplTest {
     public void getTransactionByBlockNumberWithTagTest() {
         try {
             String tag = "latest";
-            TX_API.getTransactionByBlockNumber(yggdrashBranch, tag, txIndexPosition);
+            Assert.assertNotNull(TX_API.getTransactionByBlockNumber(yggdrashBranch, tag, txIndexPosition));
         } catch (Exception e) {
             log.debug("\n\ngetTransactionByBlockNumberWithTagTest :: exception => " + e);
         }
@@ -123,8 +125,8 @@ public class TransactionApiImplTest {
     @Test
     public void checkTransactionJsonFormat() throws IOException {
         TransactionHusk tx = createTx();
-        log.debug("\n\nTransaction Format : "
-                + new ObjectMapper().writeValueAsString(TransactionDto.createBy(tx)));
+        String txString = new ObjectMapper().writeValueAsString(TransactionDto.createBy(tx));
+        assertTrue(txString.contains(tx.getBranchId().toString()));
     }
 
     @Test
@@ -162,7 +164,7 @@ public class TransactionApiImplTest {
     }
 
     @Test
-    public void txSigValidateTest() throws IOException {
+    public void txSigValidateTest() throws IOException, ParseException {
         // Create Transaction
         TransactionHusk tx = createTx();
 

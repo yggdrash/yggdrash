@@ -101,7 +101,7 @@ public class CryptoTest {
 
         byte[] blockHashB = sha3(Hex.decode(blockRaw));
         String blockHash = Hex.toHexString(blockHashB);
-        log.debug(blockHash);
+        assertEquals("f679aaf4718321ffef90c9a25fb2e5411f80dbbdb4433160d0972ac19025eeaa", blockHash);
     }
 
     @Test
@@ -256,7 +256,7 @@ public class CryptoTest {
 
         byte[] orig = decryptorIES_Engine.processBlock(cipher, 0, cipher.length);
 
-        log.info("orig: " + Hex.toHexString(orig));
+        assertEquals("010101", Hex.toHexString(orig));
     }
 
 }

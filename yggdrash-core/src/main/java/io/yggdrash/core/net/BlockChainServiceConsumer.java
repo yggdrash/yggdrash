@@ -18,11 +18,10 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.common.config.Constants.LIMIT;
 import io.yggdrash.core.blockchain.BlockChain;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.consensus.Block;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,57 +42,20 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
         this.listener = listener;
     }
 
-    private boolean isNeedBlockSync(long curIndex, long reqIndex, Peer from) {
-        // TODO limit maxDiff
-        long maxDiffBetweenCurrentAndReceivedBlockHeight = 10000;
-        if (curIndex < reqIndex) {
-            long diff = reqIndex - curIndex;
-            // TODO 'from' is a bad peer if 'diff' is greater then 10000. Add 'from' peer to the blackList.
-            return diff < maxDiffBetweenCurrentAndReceivedBlockHeight;
-        }
-        return false;
-    }
-
     @Override
-    public List<BlockHusk> syncBlock(BranchId branchId, long offset, long limit) {
-        return syncBlock(branchId, offset, limit, null);
-    }
-
-    @Override
-    public List<BlockHusk> syncBlock(BranchId branchId, long offset, long limit, Peer from) {
+    public List<Block> syncBlock(BranchId branchId, long offset, long limit) {
         long curBestBlock = branchGroup.getLastIndex(branchId);
-        List<BlockHusk> blockHuskList = new ArrayList<>();
+        List<Block> blockHuskList = new ArrayList<>();
         if (curBestBlock == 0) {
             return blockHuskList;
         }
-        if (isNeedBlockSync(curBestBlock, offset, from)) {
+        if (isNeedBlockSync(curBestBlock, offset)) {
             // Catchup Event!
             if (listener != null) {
                 listener.catchUpRequest(branchId, offset);
             }
         } else {
-            BlockChain blockChain = branchGroup.getBranch(branchId);
-
-            if (blockChain == null) {
-                log.warn("Invalid syncBlock request for branchId={}", branchId);
-                return blockHuskList;
-            }
-            if (offset < 0) {
-                offset = 0;
-            }
-
-            long bodyLengthSum = 0;
-            for (int i = 0; i < limit; i++) {
-                BlockHusk block = branchGroup.getBlockByIndex(branchId, offset++);
-                if (block == null) {
-                    break;
-                }
-                bodyLengthSum += block.getBodyLength();
-                if (bodyLengthSum > LIMIT.BLOCK_SYNC_SIZE) {
-                    break;
-                }
-                blockHuskList.add(block);
-            }
+            updateBlockList(branchId, offset, limit, blockHuskList);
         }
         return blockHuskList;
     }
@@ -104,7 +66,7 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
     }
 
     @Override
-    public void broadcastBlock(BlockHusk block) {
+    public void broadcastBlock(Block block) {
         try {
             long nextIndex = branchGroup.getLastIndex(block.getBranchId()) + 1;
             long receivedIndex = block.getIndex();
@@ -131,4 +93,42 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
             log.warn(e.getMessage());
         }
     }
+
+    private boolean isNeedBlockSync(long curIndex, long reqIndex) {
+        // TODO limit maxDiff
+        long maxDiffBetweenCurrentAndReceivedBlockHeight = 10000;
+        if (curIndex < reqIndex) {
+            long diff = reqIndex - curIndex;
+            // TODO 'from' is a bad peer if 'diff' is greater then 10000. Add 'from' peer to the blackList.
+            return diff < maxDiffBetweenCurrentAndReceivedBlockHeight;
+        }
+        return false;
+    }
+
+    private void updateBlockList(BranchId branchId, long offset, long limit, List<Block> blockList) {
+        BlockChain blockChain = branchGroup.getBranch(branchId);
+
+        if (blockChain == null) {
+            log.warn("Invalid syncBlock request for branchId={}", branchId);
+            return;
+        }
+        if (offset < 0) {
+            offset = 0;
+        }
+
+        long bodyLengthSum = 0;
+
+        for (int i = 0; i < limit; i++) {
+            Block block = branchGroup.getBlockByIndex(branchId, offset++);
+            if (block == null) {
+                return;
+            }
+            bodyLengthSum += block.getBodyLength();
+            if (bodyLengthSum > LIMIT.BLOCK_SYNC_SIZE) {
+                return;
+            }
+            blockList.add(block);
+        }
+    }
+
 }

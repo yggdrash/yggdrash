@@ -17,7 +17,8 @@
 package io.yggdrash.gateway.dto;
 
 import com.google.protobuf.util.Timestamps;
-import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.proto.Proto;
 import org.spongycastle.util.encoders.Hex;
 
@@ -41,25 +42,26 @@ public class BlockDto {
     public String author;
     public String blockId;
 
-    public static BlockDto createBy(BlockHusk block) {
+    public static BlockDto createBy(Block block) {
         return createBy(block, block.getBodyCount() < MAX_TX_BODY);
     }
 
-    private static BlockDto createBy(BlockHusk block, boolean withBody) {
+    private static BlockDto createBy(Block block, boolean withBody) {
         BlockDto blockDto = new BlockDto();
-        Proto.Block.Header header = block.getInstance().getHeader();
+        Proto.Block.Header header = block.getProtoBlock().getHeader();
         blockDto.branchId = Hex.toHexString(header.getChain().toByteArray());
         blockDto.version = Hex.toHexString(header.getVersion().toByteArray());
         blockDto.type = Hex.toHexString(header.getType().toByteArray());
-        blockDto.prevBlockId = Hex.toHexString(block.getPrevHash().getBytes());
+        blockDto.prevBlockId = Hex.toHexString(block.getPrevBlockHash().getBytes());
         blockDto.index = block.getIndex();
         blockDto.timestamp = Timestamps.toString(header.getTimestamp());
         blockDto.merkleRoot = Hex.toHexString(header.getMerkleRoot().toByteArray());
         blockDto.bodyLength = header.getBodyLength();
-        blockDto.signature = Hex.toHexString(block.getInstance().getSignature().toByteArray());
+        blockDto.signature = Hex.toHexString(block.getSignature());
         blockDto.txSize = block.getBodyCount();
         if (withBody) {
-            blockDto.body = block.getBody().stream().map(TransactionDto::createBy)
+            List<TransactionHusk> txList = block.getBody();
+            blockDto.body = txList.stream().map(TransactionDto::createBy)
                     .collect(Collectors.toList());
         }
         if (block.getIndex() != 0) {

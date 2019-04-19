@@ -34,13 +34,13 @@ public class GrpcServerEnvironment implements EnvironmentPostProcessor {
         Integer configuredPort = environment.getProperty("yggdrash.node.grpc.port", Integer.class);
 
         if (configuredPort == null) {
-            properties.put(LocalRunningGrpcPort.propertyName,
+            properties.put(LocalRunningGrpcPort.PROPERTY_NAME,
                     GrpcServerProperties.DEFAULT_GRPC_PORT);
         } else if (configuredPort == 0) {
-            properties.put(LocalRunningGrpcPort.propertyName, SocketUtils.findAvailableTcpPort());
+            properties.put(LocalRunningGrpcPort.PROPERTY_NAME, SocketUtils.findAvailableTcpPort());
         } else {
             properties.put("yggdrash.node.grpc.port", configuredPort);
-            properties.put(LocalRunningGrpcPort.propertyName, configuredPort);
+            properties.put(LocalRunningGrpcPort.PROPERTY_NAME, configuredPort);
         }
 
         propertySources.addLast(new PropertiesPropertySource("yggdrash", properties));

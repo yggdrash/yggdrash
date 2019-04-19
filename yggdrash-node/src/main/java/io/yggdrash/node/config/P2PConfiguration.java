@@ -16,6 +16,7 @@
 
 package io.yggdrash.node.config;
 
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.net.BlockChainConsumer;
 import io.yggdrash.core.net.BlockChainServiceConsumer;
@@ -30,6 +31,8 @@ import io.yggdrash.core.p2p.SimplePeerDialer;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.node.GRpcPeerHandlerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -42,20 +45,19 @@ import java.util.Arrays;
 @Configuration
 @EnableConfigurationProperties(NodeProperties.class)
 public class P2PConfiguration {
+    private static final Logger log = LoggerFactory.getLogger(P2PConfiguration.class);
 
     private final NodeProperties nodeProperties;
-    private final StoreBuilder storeBuilder;
 
     @Autowired
-    P2PConfiguration(NodeProperties nodeProperties, StoreBuilder storeBuilder, Environment env) {
+    P2PConfiguration(NodeProperties nodeProperties, DefaultConfig defaultConfig, Environment env) {
         this.nodeProperties = nodeProperties;
-        this.storeBuilder = storeBuilder;
         boolean isLocal = Arrays.asList(env.getActiveProfiles()).contains("local");
         if (!isLocal && "localhost".equals(nodeProperties.getGrpc().getHost())) {
             try {
                 nodeProperties.getGrpc().setHost(InetAddress.getLocalHost().getHostAddress());
             } catch (Exception e) {
-                e.printStackTrace();
+                log.warn(e.getMessage());
             }
         }
     }
@@ -77,9 +79,9 @@ public class P2PConfiguration {
     }
 
     @Bean
-    PeerTableGroup peerTableGroup(Peer owner, PeerDialer peerDialer) {
-
-        return PeerTableGroupBuilder.Builder()
+    PeerTableGroup peerTableGroup(Peer owner, PeerDialer peerDialer, DefaultConfig defaultConfig) {
+        StoreBuilder storeBuilder = StoreBuilder.newBuilder().setConfig(defaultConfig);
+        return PeerTableGroupBuilder.newBuilder()
                 .setOwner(owner)
                 .setStoreBuilder(storeBuilder)
                 .setPeerDialer(peerDialer)

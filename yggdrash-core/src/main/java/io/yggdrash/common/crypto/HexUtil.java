@@ -19,6 +19,7 @@
 package io.yggdrash.common.crypto;
 
 import io.yggdrash.common.utils.ByteUtil;
+import io.yggdrash.core.exception.NotValidateException;
 import org.spongycastle.util.encoders.DecoderException;
 import org.spongycastle.util.encoders.Hex;
 
@@ -26,7 +27,13 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static io.yggdrash.common.utils.ByteUtil.EMPTY_BYTE_ARRAY;
+
 public class HexUtil {
+
+    private HexUtil() {
+        throw new IllegalStateException("Utility class");
+    }
 
     /**
      * Convert a byte-array into a hex String.<br>
@@ -63,7 +70,7 @@ public class HexUtil {
      */
     public static byte[] hexStringToBytes(String data) {
         if (data == null) {
-            return new byte[0];
+            return EMPTY_BYTE_ARRAY;
         }
         if (data.startsWith("0x")) {
             data = data.substring(2);
@@ -113,13 +120,13 @@ public class HexUtil {
         try {
             addr = Hex.decode(hex);
         } catch (DecoderException addressIsNotValid) {
-            return null;
+            return EMPTY_BYTE_ARRAY;
         }
 
         if (isValidAddress(addr)) {
             return addr;
         }
-        return null;
+        return EMPTY_BYTE_ARRAY;
     }
 
     /**
@@ -129,7 +136,7 @@ public class HexUtil {
     public static String getAddressShortString(byte[] addr) {
 
         if (!isValidAddress(addr)) {
-            throw new Error("not an address");
+            throw new NotValidateException("not an address");
         }
 
         String addrShort = Hex.toHexString(addr, 0, 3);

@@ -48,6 +48,7 @@ public class BlockChainSyncManagerTest {
     @Test
     public void syncTransaction() {
         syncManager.syncTransaction(handler, blockChain);
+        assertThat(blockChain.countOfTxs()).isEqualTo(1);
     }
 
 }

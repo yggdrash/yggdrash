@@ -21,11 +21,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HexUtil;
+import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import org.apache.commons.io.IOUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -70,8 +71,8 @@ public class Branch {
         this.description = json.get("description").getAsString();
         this.validators = JsonUtil.convertJsonArrayToSet(
                 json.get("validator").getAsJsonArray());
-        consensus = json.get("consensus").getAsJsonObject();
-        this.branchId = BranchId.of(getBranchJson());
+        this.consensus = json.get("consensus").getAsJsonObject();
+        this.branchId = BranchId.of(toJsonObject());
     }
 
     public BranchId getBranchId() {
@@ -127,25 +128,12 @@ public class Branch {
         return consensus;
     }
 
-    public JsonObject getBranchJson() {
-        JsonObject branch = new JsonObject();
-        branch.addProperty("name", name);
-        branch.addProperty("symbol", symbol);
-        branch.addProperty("property", property);
-        branch.addProperty("description", description);
-        branch.addProperty("timestamp", timestamp);
-        branch.add("contracts", json.getAsJsonArray("contracts"));
-        branch.add("validator", json.get("validator").getAsJsonArray());
-        branch.add("consensus", consensus);
-        return branch;
-    }
-
     public boolean isYggdrash() {
         return Constants.YGGDRASH.equals(symbol);
     }
 
     public static Branch of(InputStream is) throws IOException {
-        String branchString = IOUtils.toString(is, StandardCharsets.UTF_8);
+        String branchString = IOUtils.toString(is, FileUtil.DEFAULT_CHARSET);
         JsonObject json = JsonUtil.parseJsonObject(branchString);
         return of(json);
     }
@@ -159,13 +147,12 @@ public class Branch {
 
         public static BranchType of(String val) {
             return Arrays.stream(BranchType.values())
-                    .filter(e -> e.toString().toLowerCase().equals(val))
+                    .filter(e -> e.toString().equalsIgnoreCase(val))
                     .findFirst()
                     .orElseThrow(() -> new IllegalStateException(
                             String.format("Unsupported type %s.", val)));
         }
     }
-
     // Branch object to JsonObject
 
     public JsonObject toJsonObject() {
@@ -178,10 +165,10 @@ public class Branch {
         branchJson.addProperty("description", description);
         branchJson.addProperty("timestamp", HexUtil.toHexString(timestamp));
         JsonArray contractJson = new JsonArray();
-        contracts.stream().forEach(c -> contractJson.add(c.getJson()));
+        contracts.forEach(c -> contractJson.add(c.getJson()));
         branchJson.add("contracts", contractJson);
         JsonArray validatorArray = new JsonArray();
-        validators.stream().forEach(v -> validatorArray.add(v));
+        validators.forEach(validatorArray::add);
         branchJson.add("validator", validatorArray);
         branchJson.add("consensus", consensus);
         return branchJson;

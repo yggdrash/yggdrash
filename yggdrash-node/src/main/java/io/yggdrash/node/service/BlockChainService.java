@@ -2,10 +2,10 @@ package io.yggdrash.node.service;
 
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
-import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.net.BlockChainConsumer;
 import io.yggdrash.node.springboot.grpc.GrpcService;
 import io.yggdrash.proto.BlockChainGrpc;
@@ -22,10 +22,10 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
     private static final Logger log = LoggerFactory.getLogger(BlockChainService.class);
     private static final NetProto.Empty EMPTY = NetProto.Empty.getDefaultInstance();
 
-    private final BlockChainConsumer blockChainConsumer;
+    private final BlockChainConsumer<Proto.Block> blockChainConsumer;
 
     @Autowired
-    public BlockChainService(BlockChainConsumer blockChainConsumer) {
+    public BlockChainService(BlockChainConsumer<Proto.Block> blockChainConsumer) {
         this.blockChainConsumer = blockChainConsumer;
     }
 
@@ -43,26 +43,11 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
         long limit = syncLimit.getLimit();
         log.debug("Received syncBlock request branch={} offset={}, limit={}",
                 branchId, offset, limit);
-        List<BlockHusk> blockList = blockChainConsumer.syncBlock(branchId, offset, limit);
+        List<Block<Proto.Block>> blockList = blockChainConsumer.syncBlock(branchId, offset, limit);
         Proto.BlockList.Builder builder = Proto.BlockList.newBuilder();
-        for (BlockHusk block : blockList) {
+        for (Block<Proto.Block> block : blockList) {
             builder.addBlocks(block.getInstance());
         }
-        /*
-        for (BlockHusk block : blockList) {
-            if (builder.build().getSerializedSize() > Constants.LIMIT.BLOCK_SYNC_SIZE) {
-                log.debug("Serialized size of blockList ({}) is over block_sync_size({})",
-                        builder.build().getSerializedSize(),
-                        Constants.LIMIT.BLOCK_SYNC_SIZE);
-                builder.removeBlocks((int) block.getIndex() - 1);
-                break;
-            }
-            builder.addBlocks(block.getInstance());
-        }
-
-        log.debug("Return blockList size => {}, cnt => {}",
-                builder.build().getSerializedSize(), builder.build().getBlocksCount());
-        */
         responseObserver.onNext(builder.build());
         responseObserver.onCompleted();
     }
@@ -94,7 +79,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
             @Override
             public void onNext(Proto.Block block) {
                 long id = block.getHeader().getIndex();
-                BlockHusk blockHusk = new BlockHusk(block);
+                BlockHusk blockHusk = new BlockHusk(block.toByteArray());
                 log.debug("[BlockChainService] Received block: id=[{}], hash={}",
                         id, blockHusk.getHash());
 
@@ -123,15 +108,14 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
             @Override
             public void onNext(Proto.Transaction tx) {
                 TransactionHusk txHusk = new TransactionHusk(tx);
-                log.debug("[BlockChainService] Received transaction: hash={}", txHusk.getHash());
+                log.debug("Received transaction: hash={}, {}", txHusk.getHash(), this);
 
                 blockChainConsumer.broadcastTx(txHusk);
             }
 
             @Override
             public void onError(Throwable t) {
-                log.warn("[BlockChainService] Encountered error in broadcastTx: {}",
-                        Status.fromThrowable(t));
+                log.warn("Encountered error in broadcastTx: {}", Status.fromThrowable(t));
             }
 
             @Override

@@ -1,9 +1,12 @@
 package io.yggdrash.validator.store.pbft;
 
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.validator.store.BlockKeyStore;
+import io.yggdrash.core.store.BlockKeyStore;
+import org.iq80.leveldb.CompressionType;
+import org.iq80.leveldb.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
@@ -20,24 +23,33 @@ public class PbftBlockKeyStore implements BlockKeyStore<Long, byte[]> {
     private final ReentrantLock lock = new ReentrantLock();
 
     public PbftBlockKeyStore(DbSource<byte[], byte[]> dbSource) {
-        this.db = dbSource.init();
+        Options options = new Options();
+        options.createIfMissing(true);
+        options.compressionType(CompressionType.NONE);
+        options.blockSize(10 * 1024 * 1024);
+        options.writeBufferSize(10 * 1024 * 1024);
+        options.cacheSize(0);
+        options.paranoidChecks(true);
+        options.verifyChecksums(true);
+        options.maxOpenFiles(32);
+        this.db = dbSource.init(options);
+
         try {
             this.size = this.db.getAll().size();
         } catch (IOException e) {
             log.debug(e.getMessage());
-            throw new NotValidateException("BlockKeyStore is not valid.");
+            throw new NotValidateException("Store is not valid.");
         }
     }
 
     @Override
     public void put(Long key, byte[] value) {
-        if (key < 0) {
-            log.debug("Key is not vaild.");
+        if (key < 0 || value == null || value.length != Constants.HASH_LENGTH) {
+            log.debug("Key or value are not vaild. {}", key);
             return;
         }
 
         lock.lock();
-
         try {
             if (!contains(key)) {
                 log.trace("put "
@@ -60,8 +72,16 @@ public class PbftBlockKeyStore implements BlockKeyStore<Long, byte[]> {
             return null;
         }
 
-        log.trace("get " + "(" + key + ")");
-        return db.get(ByteUtil.longToBytes(key));
+        lock.lock();
+        try {
+            log.trace("get " + "(" + key + ")");
+            return db.get(ByteUtil.longToBytes(key));
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            return null;
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -75,11 +95,21 @@ public class PbftBlockKeyStore implements BlockKeyStore<Long, byte[]> {
 
     @Override
     public long size() {
-        return this.size;
+        lock.lock();
+        try {
+            return this.size;
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public void close() {
-        this.db.close();
+        lock.lock();
+        try {
+            this.db.close();
+        } finally {
+            lock.unlock();
+        }
     }
 }

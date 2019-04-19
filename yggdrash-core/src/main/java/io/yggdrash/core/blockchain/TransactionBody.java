@@ -19,24 +19,26 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.JsonArray;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.JsonUtil;
-import org.spongycastle.util.encoders.Hex;
+import io.yggdrash.common.utils.SerializationUtil;
 
-import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public class TransactionBody {
 
     private final JsonArray body = new JsonArray();
 
+    private byte[] binary;
+
     public TransactionBody(JsonArray body) {
         this.body.addAll(body);
     }
 
-    public TransactionBody(String body) {
-        this.body.addAll(JsonUtil.parseJsonArray(body));
+    public TransactionBody(byte[] bodyBytes) {
+        this(SerializationUtil.deserializeString(bodyBytes));
     }
 
-    public TransactionBody(byte[] bodyBytes) {
-        this(new String(bodyBytes, StandardCharsets.UTF_8));
+    public TransactionBody(String body) {
+        this.body.addAll(JsonUtil.parseJsonArray(body));
     }
 
     public JsonArray getBody() {
@@ -48,26 +50,35 @@ public class TransactionBody {
     }
 
     public long length() {
-        return this.body.toString().length();
+        return toBinary().length;
     }
 
     public byte[] getBodyHash() {
-        return HashUtil.sha3(this.toBinary());
-    }
-
-    public String toString() {
-        return this.body.toString();
-    }
-
-    public String toHexString() {
-        return Hex.toHexString(this.body.toString().getBytes());
+        return HashUtil.sha3(toBinary());
     }
 
     public byte[] toBinary() {
-        return this.body.toString().getBytes(StandardCharsets.UTF_8);
+        if (binary != null) {
+            return binary;
+        }
+        binary = SerializationUtil.serializeString(body.toString());
+        return binary;
     }
 
-    public TransactionBody clone() {
-        return new TransactionBody(this.body);
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        TransactionBody that = (TransactionBody) o;
+        return Arrays.equals(toBinary(), that.toBinary());
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(toBinary());
     }
 }

@@ -16,8 +16,10 @@
 
 package io.yggdrash.core.blockchain;
 
+import io.yggdrash.core.consensus.Block;
+
 public interface BranchEventListener {
-    void chainedBlock(BlockHusk block);
+    void chainedBlock(Block block);
 
     void receivedTransaction(TransactionHusk tx);
 }

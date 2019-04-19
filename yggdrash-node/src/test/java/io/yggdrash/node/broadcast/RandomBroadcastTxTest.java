@@ -22,13 +22,10 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.node.TestNode;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 
 import java.util.function.Consumer;
 
-@RunWith(JUnit4.class)
-public class RandomBroadcastTxTest extends RandomBroadcastTest {
+public class RandomBroadcastTxTest extends RandomBroadcastTesting {
 
     @Test
     public void test() {
@@ -36,16 +33,16 @@ public class RandomBroadcastTxTest extends RandomBroadcastTest {
 
         // arrange
         rootLogger.setLevel(Level.ERROR);
-        final int MAX_NODE_COUNT = 50;
-        final int TX_COUNT = 100;
+        final int maxNodeCount = 50;
+        final int txCount = 100;
 
-        bootstrapNodes(MAX_NODE_COUNT, true);
+        bootstrapNodes(maxNodeCount, true);
         nodeList.forEach(this::refreshAndHealthCheck);
 
         // act
         Consumer<TestNode> consumer = (n) ->
                 n.getBranchGroup().addTransaction(BlockChainTestUtils.createTransferTxHusk());
-        broadcastByRandomNode(TX_COUNT, consumer);
+        broadcastByRandomNode(txCount, consumer);
 
         // assert
         for (TestNode node : nodeList) {
@@ -54,7 +51,7 @@ public class RandomBroadcastTxTest extends RandomBroadcastTest {
             }
             node.logDebugging();
             node.shutdown();
-            Assert.assertEquals(TX_COUNT, node.getBranchGroup().getUnconfirmedTxs(TestConstants.yggdrash()).size());
+            Assert.assertEquals(txCount, node.getBranchGroup().getUnconfirmedTxs(TestConstants.yggdrash()).size());
         }
     }
 }

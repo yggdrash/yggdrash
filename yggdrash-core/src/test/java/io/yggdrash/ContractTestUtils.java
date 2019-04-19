@@ -21,11 +21,11 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.wallet.Wallet;
 import org.spongycastle.util.encoders.Hex;
 
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 
 public class ContractTestUtils {
 
@@ -60,15 +60,15 @@ public class ContractTestUtils {
         return createSampleBranchJson(validator);
     }
 
-    public static JsonObject createSampleBranchJson(String validator) {
+    static JsonObject createSampleBranchJson(String validator) {
         TestConstants.yggdrash();
 
         final String name = "STEM";
         final String symbol = "STEM";
         final String property = "ecosystem";
-        final String description = "The Basis of the YGGDRASH Ecosystem." +
-                "It is also an aggregate and a blockchain containing information" +
-                "of all Branch Chains.";
+        final String description = "The Basis of the YGGDRASH Ecosystem."
+                + "It is also an aggregate and a blockchain containing information"
+                + "of all Branch Chains.";
         final BigDecimal fee = BigDecimal.valueOf(100);
 
         JsonObject contractSample = new JsonObject();
@@ -93,7 +93,6 @@ public class ContractTestUtils {
                                               JsonArray contracts,
                                               BigDecimal fee,
                                               String timestamp) {
-        JsonObject branchSample = new JsonObject();
         JsonObject branch = new JsonObject();
         branch.addProperty("name", name);
         branch.addProperty("symbol", symbol);
@@ -129,9 +128,6 @@ public class ContractTestUtils {
         branch.add("consensus", consensus);
         branch.addProperty("fee", fee);
 
-//        branchSample.add("branch", branch);
-//        branchSample.addProperty("fee", fee);
-
         return branch;
     }
 
@@ -141,7 +137,7 @@ public class ContractTestUtils {
         raw.addProperty("validator", wallet.getHexAddress());
         if (!raw.has("signature")) {
 
-            Sha3Hash hashForSign = new Sha3Hash(raw.toString().getBytes(StandardCharsets.UTF_8));
+            Sha3Hash hashForSign = new Sha3Hash(SerializationUtil.serializeJson(raw));
             byte[] signature = wallet.sign(hashForSign.getBytes(), true);
             raw.addProperty("signature", Hex.toHexString(signature));
         }

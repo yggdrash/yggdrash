@@ -19,6 +19,7 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.util.TimeUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -34,10 +35,10 @@ public class BlockHeaderTest {
 
     private static final Logger log = LoggerFactory.getLogger(BlockHeaderTest.class);
 
-    private final byte[] chain = new byte[20];
-    private final byte[] version = new byte[8];
-    private final byte[] type = new byte[8];
-    private final byte[] prevBlockHash = new byte[32];
+    private final byte[] chain = Constants.EMPTY_BRANCH;
+    private final byte[] version = Constants.EMPTY_BYTE8;
+    private final byte[] type = Constants.EMPTY_BYTE8;
+    private final byte[] prevBlockHash = Constants.EMPTY_HASH;
     private final long index = 0;
     private final long timestamp = TimeUtils.time();
 
@@ -71,7 +72,7 @@ public class BlockHeaderTest {
                 new TransactionSignature(TestConstants.wallet(), txHeader.getHashForSigning());
 
         Transaction tx1 = new Transaction(txHeader, txSig.getSignature(), txBody);
-        Transaction tx2 = tx1.clone();
+        Transaction tx2 = new Transaction(tx1.toBinary());
 
         List<Transaction> txs1 = new ArrayList<>();
         txs1.add(tx1);
@@ -84,7 +85,7 @@ public class BlockHeaderTest {
                 chain, version, type, prevBlockHash, index, timestamp,
                 blockBody1.getMerkleRoot(), blockBody1.length());
 
-        BlockHeader blockHeader2 = blockHeader1.clone();
+        BlockHeader blockHeader2 = new BlockHeader(blockHeader1.toBinary());
         assertEquals(blockHeader1.toJsonObject(), blockHeader2.toJsonObject());
         assertArrayEquals(blockHeader1.getHashForSigning(), blockHeader2.getHashForSigning());
 

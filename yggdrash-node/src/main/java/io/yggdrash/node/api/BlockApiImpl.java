@@ -1,14 +1,12 @@
 package io.yggdrash.node.api;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.gateway.dto.BlockDto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +14,6 @@ import org.springframework.stereotype.Service;
 @AutoJsonRpcServiceImpl
 public class BlockApiImpl implements BlockApi {
 
-    private static final Logger log = LoggerFactory.getLogger(BlockApiImpl.class);
     private final BranchGroup branchGroup;
 
     @Autowired
@@ -36,8 +33,8 @@ public class BlockApiImpl implements BlockApi {
     @Override
     public BlockDto getBlockByHash(String branchId, String blockId, Boolean bool) {
         try {
-            BlockHusk blockHusk = branchGroup.getBlockByHash(BranchId.of(branchId), blockId);
-            return BlockDto.createBy(blockHusk);
+            Block block = branchGroup.getBlockByHash(BranchId.of(branchId), blockId);
+            return BlockDto.createBy(block);
         } catch (Exception exception) {
             throw new NonExistObjectException("block");
         }
@@ -46,8 +43,8 @@ public class BlockApiImpl implements BlockApi {
     @Override
     public BlockDto getBlockByNumber(String branchId, long numOfBlock, Boolean bool) {
         try {
-            BlockHusk blockHusk = branchGroup.getBlockByIndex(BranchId.of(branchId), numOfBlock);
-            return BlockDto.createBy(blockHusk);
+            Block block = branchGroup.getBlockByIndex(BranchId.of(branchId), numOfBlock);
+            return BlockDto.createBy(block);
         } catch (Exception exception) {
             throw new NonExistObjectException("block");
         }
@@ -65,7 +62,7 @@ public class BlockApiImpl implements BlockApi {
     @Override
     public BlockDto getLastBlock(String branchId) {
         BranchId id = BranchId.of(branchId);
-        BlockHusk blockHusk = branchGroup.getBlockByIndex(id, branchGroup.getLastIndex(id));
+        Block blockHusk = branchGroup.getBlockByIndex(id, branchGroup.getLastIndex(id));
         return BlockDto.createBy(blockHusk);
     }
 }

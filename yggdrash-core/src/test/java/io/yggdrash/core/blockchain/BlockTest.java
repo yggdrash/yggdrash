@@ -19,6 +19,7 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.wallet.Wallet;
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,10 +40,10 @@ public class BlockTest {
 
     private static final Logger log = LoggerFactory.getLogger(BlockTest.class);
 
-    private final byte[] chain = new byte[20];
-    private final byte[] version = new byte[8];
-    private final byte[] type = new byte[8];
-    private final byte[] prevBlockHash = new byte[32];
+    private final byte[] chain = Constants.EMPTY_BRANCH;
+    private final byte[] version = Constants.EMPTY_BYTE8;
+    private final byte[] type = Constants.EMPTY_BYTE8;
+    private final byte[] prevBlockHash = Constants.EMPTY_HASH;
 
     private final Wallet wallet = TestConstants.wallet();
     private Block block1;
@@ -75,7 +77,7 @@ public class BlockTest {
         TransactionSignature txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
 
         Transaction tx1 = new Transaction(txHeader, txSig.getSignature(), txBody);
-        Transaction tx2 = tx1.clone();
+        Transaction tx2 = new Transaction(tx1.toBinary());
 
         List<Transaction> txs1 = new ArrayList<>();
         txs1.add(tx1);
@@ -98,6 +100,17 @@ public class BlockTest {
     }
 
     @Test
+    public void testEmptyBlockVerify() {
+        BlockBody blockBody = new BlockBody(Collections.emptyList());
+        BlockHeader blockHeader = new BlockHeader(
+                chain, version, type, prevBlockHash, 0, TimeUtils.time(),
+                blockBody.getMerkleRoot(), blockBody.length());
+        BlockSignature blockSig = new BlockSignature(wallet, blockHeader.getHashForSigning());
+        Block emptyBlock = new Block(blockHeader, blockSig.getSignature(), blockBody);
+        assertThat(emptyBlock.verify()).isTrue();
+    }
+
+    @Test
     public void shouldBeLoadedBranchJsonFile() throws IOException {
         ClassLoader loader = BlockTest.class.getClassLoader();
         InputStream is = loader.getResourceAsStream("branch-sample.json");
@@ -109,16 +122,15 @@ public class BlockTest {
 
     @Test
     public void testBlockConstructor() {
-        BlockHeader blockHeader2 = block1.getHeader().clone();
-        BlockBody blockBody2 = block1.getBody().clone();
+        BlockHeader blockHeader2 = new BlockHeader(block1.getHeader().toBinary());
+        BlockBody blockBody2 = new BlockBody(block1.getBody().toBinary());
         BlockSignature blockSig2 = new BlockSignature(wallet, blockHeader2.getHashForSigning());
         Block block2 = new Block(blockHeader2, blockSig2.getSignature(), blockBody2);
 
         assertThat(block2.verify()).isTrue();
         assertThat(block1.toJsonObject()).isEqualTo(block2.toJsonObject());
 
-        Block block3 = new Block(
-                blockHeader2.clone(), wallet, block2.getBody().clone());
+        Block block3 = new Block(blockHeader2, wallet, block2.getBody());
 
         assertThat(block3.verify()).isTrue();
         assertThat(block1.toJsonObject()).isEqualTo(block3.toJsonObject());
@@ -134,7 +146,7 @@ public class BlockTest {
 
     @Test
     public void testBlockClone() {
-        Block block2 = block1.clone();
+        Block block2 = new Block(block1.toBinary());
         log.debug("block2=" + block2.toJsonObject());
 
         assertThat(block1.getHashHex()).isEqualTo(block2.getHashHex());
@@ -144,7 +156,7 @@ public class BlockTest {
 
     @Test
     public void testBlockKey() {
-        Block block2 = block1.clone();
+        Block block2 = new Block(block1.toBinary());
         log.debug("block2 pubKey=" + block2.getPubKeyHex());
 
         assertThat(block1.getPubKeyHex()).isEqualTo(block2.getPubKeyHex());

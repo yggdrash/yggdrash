@@ -2,18 +2,19 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.PeerTestUtils;
-import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
 import io.yggdrash.core.p2p.PeerHandlerMock;
 import io.yggdrash.core.p2p.PeerTableGroup;
 import io.yggdrash.core.p2p.SimplePeerDialer;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 public class PeerNetworkTest {
-    private PeerNetwork peerNetwork;
-    private final BlockHusk genesis = BlockChainTestUtils.genesisBlock();
+    private KademliaPeerNetwork peerNetwork;
+    private final Block genesis = BlockChainTestUtils.genesisBlock();
 
     @Before
     public void setUp() {
@@ -27,7 +28,7 @@ public class PeerNetworkTest {
 
     @Test
     public void getHandlerList() {
-        assert peerNetwork.getHandlerList(genesis.getBranchId()).size() > 0;
+        Assert.assertFalse(peerNetwork.getHandlerList(genesis.getBranchId()).isEmpty());
     }
 
     @Test

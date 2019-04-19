@@ -16,6 +16,7 @@
 
 package io.yggdrash.common.util;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.math.BigInteger;
@@ -24,71 +25,71 @@ public class BiUtilTest {
 
     @Test
     public void isZero() {
-        assert BiUtil.isZero(BigInteger.ZERO);
+        Assert.assertTrue(BiUtil.isZero(BigInteger.ZERO));
     }
 
     @Test
     public void isEqual() {
-        assert BiUtil.isEqual(BigInteger.ONE, BigInteger.ONE);
+        Assert.assertTrue(BiUtil.isEqual(BigInteger.ONE, BigInteger.ONE));
     }
 
     @Test
     public void isNotEqual() {
-        assert BiUtil.isNotEqual(BigInteger.ZERO, BigInteger.ONE);
+        Assert.assertTrue(BiUtil.isNotEqual(BigInteger.ZERO, BigInteger.ONE));
     }
 
     @Test
     public void isLessThan() {
-        assert BiUtil.isLessThan(BigInteger.ZERO, BigInteger.ONE);
+        Assert.assertTrue(BiUtil.isLessThan(BigInteger.ZERO, BigInteger.ONE));
     }
 
     @Test
     public void isMoreThan() {
-        assert BiUtil.isMoreThan(BigInteger.ONE, BigInteger.ZERO);
+        Assert.assertTrue(BiUtil.isMoreThan(BigInteger.ONE, BigInteger.ZERO));
     }
 
     @Test
     public void sum() {
-        assert BiUtil.sum(BigInteger.ONE, BigInteger.TEN).intValue() == 11;
+        Assert.assertEquals(11, BiUtil.sum(BigInteger.ONE, BigInteger.TEN).intValue());
     }
 
     @Test
     public void toBi() {
-        assert BiUtil.toBi(1).equals(BigInteger.ONE);
+        Assert.assertEquals(BigInteger.ONE, BiUtil.toBi(1));
     }
 
     @Test
     public void isPositive() {
-        assert BiUtil.isPositive(BigInteger.ONE);
+        Assert.assertTrue(BiUtil.isPositive(BigInteger.ONE));
     }
 
     @Test
     public void isCovers() {
-        assert BiUtil.isCovers(BigInteger.ONE, BigInteger.ZERO);
+        Assert.assertTrue(BiUtil.isCovers(BigInteger.ONE, BigInteger.ZERO));
     }
 
     @Test
     public void isNotCovers() {
-        assert BiUtil.isNotCovers(BigInteger.ZERO, BigInteger.ONE);
+        Assert.assertTrue(BiUtil.isNotCovers(BigInteger.ZERO, BigInteger.ONE));
     }
 
     @Test
     public void exitLong() {
-        assert BiUtil.exitLong(new BigInteger(Long.MAX_VALUE + ""));
+        Assert.assertTrue(BiUtil.exitLong(new BigInteger(Long.MAX_VALUE + "")));
     }
 
     @Test
     public void isIn20PercentRange() {
-        assert BiUtil.isIn20PercentRange(BigInteger.valueOf(5), BigInteger.ONE);
+        Assert.assertTrue(BiUtil.isIn20PercentRange(BigInteger.valueOf(5), BigInteger.ONE));
     }
 
     @Test
     public void max() {
-        assert BiUtil.max(BigInteger.ONE, BigInteger.ZERO).equals(BigInteger.ONE);
+        Assert.assertEquals(BigInteger.ONE, BiUtil.max(BigInteger.ONE, BigInteger.ZERO));
     }
 
     @Test
     public void addSafely() {
-        assert BiUtil.addSafely(1, 9) == 10;
+        Assert.assertEquals(10,BiUtil.addSafely(1, 9));
     }
 }

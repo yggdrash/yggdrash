@@ -62,7 +62,6 @@ public class PeerTask {
             PeerTable peerTable = peerTableGroup.getPeerTable(branchId);
             List<Peer> closestPeerList =
                     peerTable.getClosestPeers(peerTableGroup.getOwner(), KademliaOptions.BROADCAST_SIZE);
-            //log.trace("peerTask  :: healthCheck => size={}, branch={}", closestPeerList.size(), branchId);
             closestPeerList.forEach(peer -> peerDialer.healthCheck(branchId, peerTableGroup.getOwner(), peer));
         }
     }
@@ -86,7 +85,6 @@ public class PeerTask {
                 return;
             }
             // Ping the selected node and wait for a pong (set last.id to ping msg)
-            //log.debug("[revalidate] last ynodeUri => " + last.getYnodeUri());
             if (peerDialer.healthCheck(branchId, peerTableGroup.getOwner(), last)) {
                 // The peer responded, move it to the front
                 peerTable.getBucketByPeer(last).bump(last);
@@ -109,9 +107,5 @@ public class PeerTask {
     @Scheduled(cron = "*/30 * * * * *")
     public void copyLiveNode() {
         peerTableGroup.copyLiveNode();
-    }
-
-    public PeerDialer getPeerDialer() { //For Test
-        return peerDialer;
     }
 }

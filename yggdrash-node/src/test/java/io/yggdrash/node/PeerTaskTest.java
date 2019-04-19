@@ -40,10 +40,6 @@ public class PeerTaskTest {
         peerTask.setPeerTableGroup(peerTableGroup);
         peerTask.setPeerDialer(peerDialer);
         peerTask.setNodeStatus(NodeStatusMock.mock);
-    }
-
-    @Test
-    public void healthCheckTest() {
         peerTask.healthCheck();
     }
 

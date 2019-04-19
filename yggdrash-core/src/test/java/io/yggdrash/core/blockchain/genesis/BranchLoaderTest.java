@@ -22,25 +22,23 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.core.blockchain.Branch;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class BranchLoaderTest {
-    Branch branch;
-    private static final Logger log = LoggerFactory.getLogger(BranchLoaderTest.class);
+    private Branch branch;
 
     @Before
     public void setUpBranch() throws IOException {
         File genesisFile = new File(
                 getClass().getClassLoader().getResource("./branch-yggdrash.json").getFile());
-        String genesisString = FileUtil.readFileToString(genesisFile, StandardCharsets.UTF_8);
+        String genesisString = FileUtil.readFileToString(genesisFile, FileUtil.DEFAULT_CHARSET);
         JsonObject branchJson = new JsonParser().parse(genesisString).getAsJsonObject();
         this.branch = Branch.of(branchJson);
     }
@@ -52,28 +50,24 @@ public class BranchLoaderTest {
         FileUtil.recursiveDelete(targetBranchPath);
     }
 
-
     @Test
     public void getBranchInfo() {
         String branchPath = new DefaultConfig().getBranchPath();
         BranchLoader loader = new BranchLoader(branchPath);
-        loader.getGenesisBlockList();
+        Assert.assertNotNull(loader.getGenesisBlockList());
     }
 
     @Test
     public void saveBranchTest() throws IOException {
         String branchPath = new DefaultConfig().getBranchPath();
         BranchLoader loader = new BranchLoader(branchPath);
-        boolean testSaveBranch = loader.saveBranch(branch);
-        assert testSaveBranch;
+        Assert.assertTrue(loader.saveBranch(branch));
         // reload branch by branch.json
-        Path targetBranch = Paths.get(branchPath, branch.getBranchId().toString(),
-                BranchLoader.BRANCH_FILE);
-        String reloadBranch = FileUtil.readFileToString(targetBranch.toFile(),
-                StandardCharsets.UTF_8);
+        Path targetBranch = Paths.get(branchPath, branch.getBranchId().toString(), BranchLoader.BRANCH_FILE);
+        String reloadBranch = FileUtil.readFileToString(targetBranch.toFile(), FileUtil.DEFAULT_CHARSET);
         JsonObject branchJson = new JsonParser().parse(reloadBranch).getAsJsonObject();
 
-        assert Branch.of(branchJson).getBranchId().equals(branch.getBranchId());
+        Assert.assertEquals(Branch.of(branchJson).getBranchId(), branch.getBranchId());
 
     }
 }

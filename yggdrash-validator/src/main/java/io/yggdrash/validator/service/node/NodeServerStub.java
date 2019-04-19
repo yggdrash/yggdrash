@@ -2,11 +2,11 @@ package io.yggdrash.validator.service.node;
 
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.Proto;
-import io.yggdrash.validator.data.ConsensusBlock;
-import io.yggdrash.validator.data.ConsensusBlockChain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,12 +33,15 @@ public class NodeServerStub extends BlockChainGrpc.BlockChainImplBase {
         log.debug("syncBlock() request offset={}, limit={}", offset, limit);
 
         Proto.BlockList.Builder builder = Proto.BlockList.newBuilder();
-        if (Arrays.equals(syncLimit.getBranch().toByteArray(), blockChain.getChain())
+        if (Arrays.equals(syncLimit.getBranch().toByteArray(), blockChain.getBranchId().getBytes())
                 && offset >= 0
                 && offset <= blockChain.getLastConfirmedBlock().getIndex()) {
-            List<ConsensusBlock> blockList = blockChain.getBlockList(offset, limit);
-            for (ConsensusBlock consensusBlock : blockList) {
-                builder.addBlocks(consensusBlock.getBlock().toProtoBlock());
+            List blockList = blockChain.getBlockList(offset, limit);
+            for (Object object : blockList) {
+                Block consensusBlock = (Block) object;
+                if (consensusBlock.getBlock() != null) {
+                    builder.addBlocks(io.yggdrash.core.blockchain.Block.toProtoBlock(consensusBlock.getBlock()));
+                }
             }
         }
 
@@ -55,7 +58,7 @@ public class NodeServerStub extends BlockChainGrpc.BlockChainImplBase {
         log.debug("syncTransaction() request offset={}, limit={}", offset, limit);
 
         Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
-        if (Arrays.equals(syncLimit.getBranch().toByteArray(), blockChain.getChain())) {
+        if (Arrays.equals(syncLimit.getBranch().toByteArray(), blockChain.getBranchId().getBytes())) {
             //todo: check memory leak
             for (TransactionHusk husk :
                     new ArrayList<>(blockChain.getTransactionStore().getUnconfirmedTxs())) {
@@ -98,7 +101,7 @@ public class NodeServerStub extends BlockChainGrpc.BlockChainImplBase {
                 log.debug("NodeService broadcastTransaction");
                 log.debug("Received transaction: {}", value);
                 TransactionHusk tx = new TransactionHusk(value);
-                if (Arrays.equals(tx.getBranchId().getBytes(), blockChain.getChain())) {
+                if (tx.getBranchId().equals(blockChain.getBranchId())) {
                     blockChain.getTransactionStore().put(tx.getHash(), tx);
                 }
             }

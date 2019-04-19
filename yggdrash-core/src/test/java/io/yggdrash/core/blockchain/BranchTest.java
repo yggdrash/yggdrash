@@ -8,6 +8,7 @@ import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,8 +16,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -33,7 +32,6 @@ public class BranchTest {
                 "The Basis of the YGGDRASH Ecosystem. "
                         + "It is also an aggregate and a blockchain containing information "
                         + "of all Branch Chains.";
-        String contractId = "d399cd6d34288d04ba9e68ddfda9f5fe99dd778e";
         String timestamp = "00000166c837f0c9";
         String consensusString = new StringBuilder()
                 .append("{\"consensus\": {\n")
@@ -82,44 +80,34 @@ public class BranchTest {
         assertEquals(fromJson.getBranchId(), branch.getBranchId());
     }
 
-
     @Test
     public void loadTest() throws IOException {
 
         File genesisFile = new File(
                 getClass().getClassLoader().getResource("./branch-yggdrash.json").getFile());
 
-        String genesisString = FileUtil.readFileToString(genesisFile, StandardCharsets.UTF_8);
+        String genesisString = FileUtil.readFileToString(genesisFile, FileUtil.DEFAULT_CHARSET);
         JsonObject branch = new JsonParser().parse(genesisString).getAsJsonObject();
         Branch yggdrashBranch = Branch.of(branch);
-        assert "YGGDRASH".equals(yggdrashBranch.getName());
-
+        Assert.assertEquals("YGGDRASH", yggdrashBranch.getName());
     }
-
 
     @Test
     public void generatorGenesisBlock() throws IOException {
         File genesisFile = new File(
                 getClass().getClassLoader().getResource("./branch-yggdrash.json").getFile());
 
-        String genesisString = FileUtil.readFileToString(genesisFile, StandardCharsets.UTF_8);
+        String genesisString = FileUtil.readFileToString(genesisFile, FileUtil.DEFAULT_CHARSET);
         JsonObject branch = new JsonParser().parse(genesisString).getAsJsonObject();
         Branch yggdrashBranch = Branch.of(branch);
 
         FileInputStream inputBranch = new FileInputStream(genesisFile);
         GenesisBlock block = GenesisBlock.of(inputBranch);
-        assert block.getBlock().getIndex() == 0;
-        assert yggdrashBranch.getName().equals(block.getBranch().getName());
+        Assert.assertEquals(0, block.getBlock().getIndex());
+        Assert.assertEquals(yggdrashBranch.getName(), block.getBranch().getName());
         log.debug(JsonUtil.prettyFormat(block.getBlock().toJsonObject()));
 
-        List<TransactionHusk> txs = block.getBlock().getBody();
-
         // TODO Genesis Block has more by Transaction Type
-        assert txs.size() == 1;
-
+        Assert.assertEquals(1L, block.getBlock().getBody().getBodyCount());
     }
-
-
-
-
 }

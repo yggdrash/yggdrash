@@ -16,9 +16,9 @@
 
 package io.yggdrash.core.net;
 
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.p2p.KademliaOptions;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
@@ -27,7 +27,9 @@ import io.yggdrash.core.p2p.PeerTableGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -39,12 +41,14 @@ public class KademliaPeerNetwork implements PeerNetwork {
     private final BlockingQueue<TransactionHusk> txQueue = new LinkedBlockingQueue<>();
     private final ExecutorService txExecutor = Executors.newSingleThreadExecutor();
 
-    private final BlockingQueue<BlockHusk> blockQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Block> blockQueue = new LinkedBlockingQueue<>();
     private final ExecutorService blockExecutor = Executors.newSingleThreadExecutor();
 
     private final PeerTableGroup peerTableGroup;
 
     private final PeerDialer peerDialer;
+
+    private final Map<BranchId, List<Peer>> validatorMap = new HashMap<>();
 
     public KademliaPeerNetwork(PeerTableGroup peerTableGroup, PeerDialer peerDialer) {
         this.peerTableGroup = peerTableGroup;
@@ -53,7 +57,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
 
     @Override
     public void init() {
-        log.info("Init node={}", peerTableGroup.getOwner().toString());
+        log.info("Init node={}", peerTableGroup.getOwner());
         peerTableGroup.selfRefresh();
 
         for (BranchId branchId : peerTableGroup.getAllBranchId()) {
@@ -63,8 +67,8 @@ public class KademliaPeerNetwork implements PeerNetwork {
                 peerDialer.healthCheck(branchId, peerTableGroup.getOwner(), peer);
             }
         }
-        txExecutor.execute(new TxWorker(txQueue));
-        blockExecutor.execute(new BlockWorker(blockQueue));
+        txExecutor.execute(new TxWorker());
+        blockExecutor.execute(new BlockWorker());
     }
 
     @Override
@@ -72,11 +76,6 @@ public class KademliaPeerNetwork implements PeerNetwork {
         peerDialer.destroyAll();
         txExecutor.shutdown();
         blockExecutor.shutdown();
-    }
-
-    @Override
-    public void addNetwork(BranchId branchId) {
-        peerTableGroup.createTable(branchId);
     }
 
     @Override
@@ -95,7 +94,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
     }
 
     @Override
-    public void chainedBlock(BlockHusk block) { //TODO AddBlock BP
+    public void chainedBlock(Block block) { //TODO AddBlock BP
         try {
             blockQueue.put(block);
         } catch (Exception e) {
@@ -103,58 +102,73 @@ public class KademliaPeerNetwork implements PeerNetwork {
         }
     }
 
-    private class TxWorker implements Runnable {
-        private final BlockingQueue<TransactionHusk> queue;
+    public void addNetwork(BranchId branchId) {
+        peerTableGroup.createTable(branchId);
+    }
 
-        TxWorker(BlockingQueue<TransactionHusk> queue) {
-            this.queue = queue;
-        }
+    public void setValidator(BranchId branchId, List<Peer> validatorList) {
+        validatorMap.put(branchId, validatorList);
+    }
+
+    private class TxWorker implements Runnable {
 
         public void run() {
             try {
                 while (!txExecutor.isTerminated()) {
-                    TransactionHusk tx = queue.take();
-                    List<PeerHandler> getHandlerList = getHandlerList(tx.getBranchId());
-                    for (PeerHandler peerHandler : getHandlerList) {
-                        try {
-                            peerHandler.broadcastTx(tx);
-                        } catch (Exception e) {
-                            log.warn("[KademliaPeerNetwork] broadcast {} -> {}, tx ERR: {}",
-                                    peerTableGroup.getOwner().getPort(),
-                                    peerHandler.getPeer().getPort(), e.getMessage());
-                            peerDialer.removeHandler(peerHandler);
-                        }
-                    }
+                    TransactionHusk tx = txQueue.take();
+                    broadcastTx(tx);
                 }
             } catch (InterruptedException e) {
                 txExecutor.shutdown();
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        private void broadcastTx(TransactionHusk tx) {
+            if (validatorMap.containsKey(tx.getBranchId())) {
+                List<Peer> validatorPeerList = validatorMap.get(tx.getBranchId());
+                for (PeerHandler peerHandler : peerDialer.getHandlerList(validatorPeerList)) {
+                    peerHandler.broadcastTx(tx);
+                }
+            }
+
+            List<PeerHandler> getHandlerList = getHandlerList(tx.getBranchId());
+            for (PeerHandler peerHandler : getHandlerList) {
+                try {
+                    peerHandler.broadcastTx(tx);
+                } catch (Exception e) {
+                    log.warn("[KademliaPeerNetwork] broadcast {} -> {}, tx ERR: {}",
+                            peerTableGroup.getOwner().getPort(),
+                            peerHandler.getPeer().getPort(), e.getMessage());
+                    peerDialer.removeHandler(peerHandler);
+                }
             }
         }
     }
 
     private class BlockWorker implements Runnable {
-        private final BlockingQueue<BlockHusk> queue;
-
-        BlockWorker(BlockingQueue<BlockHusk> queue) {
-            this.queue = queue;
-        }
 
         public void run() {
             try {
                 while (!blockExecutor.isTerminated()) {
-                    BlockHusk block = queue.take();
-                    List<PeerHandler> getHandlerList = getHandlerList(block.getBranchId());
-                    for (PeerHandler peerHandler : getHandlerList) { //TODO Verify NULL
-                        try {
-                            peerHandler.broadcastBlock(block);
-                        } catch (Exception e) {
-                            log.warn("[KademliaPeerNetwork] broadcast block ERR: {}", e.getMessage());
-                            peerDialer.removeHandler(peerHandler);
-                        }
-                    }
+                    Block block = blockQueue.take();
+                    broadcastBlock(block);
                 }
             } catch (InterruptedException e) {
                 blockExecutor.shutdown();
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        private void broadcastBlock(Block block) {
+            List<PeerHandler> handlerList = getHandlerList(block.getBranchId());
+            for (PeerHandler peerHandler : handlerList) {
+                try {
+                    peerHandler.broadcastBlock(block);
+                } catch (Exception e) {
+                    log.warn("[KademliaPeerNetwork] broadcast block ERR: {}", e.getMessage());
+                    peerDialer.removeHandler(peerHandler);
+                }
             }
         }
     }

@@ -18,12 +18,11 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.utils.SerializationUtil;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
-
-import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -63,9 +62,6 @@ public class TransactionBodyTest {
         log.debug("txBody=" + txBody.getBody().toString());
         assertEquals(jsonArray.toString(), txBody.getBody().toString());
 
-        log.debug("txBody Hex String=" + txBody.toHexString());
-        assertEquals(Hex.toHexString(jsonArray.toString().getBytes()), txBody.toHexString());
-
         log.debug("txBody length=" + txBody.length());
         assertEquals(jsonArray.toString().length(), txBody.length());
 
@@ -75,21 +71,19 @@ public class TransactionBodyTest {
 
         log.debug("txBody count=" + txBody.getBodyCount());
 
-        assertEquals(txBody.getBodyCount(), 2);
+        assertEquals(2, txBody.getBodyCount());
 
-        TransactionBody txBody2 = new TransactionBody(jsonArray.toString());
-        log.debug("txBody1 Hex String=" + txBody.toHexString());
-        log.debug("txBody2 Hex String=" + txBody2.toHexString());
+        TransactionBody txBody2 = new TransactionBody(jsonArray);
 
-        assertEquals(txBody.toString(), txBody2.toString());
+        assertEquals(txBody, txBody2);
 
         TransactionBody txBody3 = new TransactionBody(jsonArray.toString().getBytes());
         log.debug("txBody1 Hex String=" + txBody.toString());
         log.debug("txBody3 Hex String=" + txBody3.toString());
         assertEquals(txBody.toString(), txBody3.toString());
 
-        TransactionBody txBody4
-                = new TransactionBody(jsonArray.toString().getBytes(StandardCharsets.UTF_8));
+        byte[] data = SerializationUtil.serializeString(jsonArray.toString());
+        TransactionBody txBody4 = new TransactionBody(data);
         log.debug("txBody1 Hex String=" + txBody.toString());
         log.debug("txBody4 Hex String=" + txBody3.toString());
         assertEquals(txBody.toString(), txBody4.toString());

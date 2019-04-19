@@ -16,6 +16,7 @@
 
 package io.yggdrash.core.p2p;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 public class PeerIdTest {
@@ -32,13 +33,13 @@ public class PeerIdTest {
         PeerId peerId1 = PeerId.of(ynodeUri1);
         byte[] b = peerId1.getBytes();
         PeerId peerId2 = PeerId.of(b);
-        assert peerId1.equals(peerId2);
+        Assert.assertEquals(peerId1, peerId2);
     }
 
     @Test
     public void shouldBeSameDistance() {
         PeerId peerId1 = PeerId.of(ynodeUri1);
         PeerId peerId2 = PeerId.of(ynodeUri2);
-        assert peerId1.distanceTo(peerId2.getBytes()) == peerId2.distanceTo(peerId1.getBytes());
+        Assert.assertEquals(peerId1.distanceTo(peerId2.getBytes()), peerId2.distanceTo(peerId1.getBytes()));
     }
 }

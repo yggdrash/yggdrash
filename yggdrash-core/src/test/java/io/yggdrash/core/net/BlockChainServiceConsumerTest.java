@@ -3,9 +3,9 @@ package io.yggdrash.core.net;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BlockChain;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.consensus.Block;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,13 +29,13 @@ public class BlockChainServiceConsumerTest {
 
     @Test
     public void syncBlock() {
-        branchGroup.generateBlock(TestConstants.wallet(), branchId);
-        blockChainServiceConsumer.setListener(BlockChainSyncManagerMock.getMockWithBranchGroup(branchGroup));
+        BlockChainTestUtils.generateBlock(branchGroup, branchId);
         Assert.assertEquals(1, branch.getLastIndex());
 
-        List<BlockHusk> blockHuskList = blockChainServiceConsumer.syncBlock(branchId, 1, 10);
+        blockChainServiceConsumer.setListener(BlockChainSyncManagerMock.getMockWithBranchGroup(branchGroup));
+        List<Block> blockList = blockChainServiceConsumer.syncBlock(branchId, 1, 10);
 
-        Assert.assertEquals(1, blockHuskList.size());
+        Assert.assertEquals(1, blockList.size());
         Assert.assertEquals(1, branch.getLastIndex());
     }
 
@@ -44,13 +44,13 @@ public class BlockChainServiceConsumerTest {
         TestConstants.SlowTest.apply();
         // arrange
         int height = 110;
-        List<BlockHusk> blockHuskList = BlockChainTestUtils.createBlockListFilledWithTx(height, 100);
+        List<Block> blockList = BlockChainTestUtils.createBlockListFilledWithTx(height, 100);
 
-        blockHuskList.forEach(b -> branch.addBlock(b, false));
+        blockList.forEach(b -> branch.addBlock(b, false));
         Assert.assertEquals(height, branch.getLastIndex());
 
         // act
-        List<BlockHusk> received = blockChainServiceConsumer.syncBlock(branchId, 1, height);
+        List<Block> received = blockChainServiceConsumer.syncBlock(branchId, 1, height);
 
         // assert
         Assert.assertEquals(106, received.size());
@@ -60,9 +60,9 @@ public class BlockChainServiceConsumerTest {
     public void syncBLockRequestingCatchUp() {
         BlockChainTestUtils.setBlockHeightOfBlockChain(branch, 10);
 
-        List<BlockHusk> blockHuskList = blockChainServiceConsumer.syncBlock(branchId, 3, 10);
+        List<Block> blockList = blockChainServiceConsumer.syncBlock(branchId, 3, 10);
 
-        Assert.assertEquals(8, blockHuskList.size());
+        Assert.assertEquals(8, blockList.size());
         Assert.assertEquals(10, branch.getLastIndex());
     }
 

@@ -17,11 +17,10 @@
 package io.yggdrash.core.store;
 
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.p2p.Peer;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,20 +28,19 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class StoreBuilderTest {
-    private static final BranchId BRANCH_ID = BranchId.NULL;
     private StoreBuilder builder;
 
     @Before
     public void setUp() {
-        builder = new StoreBuilder(new DefaultConfig());
+        builder = StoreBuilder.newBuilder()
+                .setBranchId(BranchId.NULL)
+                .setConfig(new DefaultConfig());
     }
-
 
     @Test
     public void shouldBeBuiltMetaStore() {
-        BlockHusk block = BlockChainTestUtils.genesisBlock();
-        StoreBuilder builder = new StoreBuilder(new DefaultConfig());
-        BranchStore store = builder.buildMetaStore(BRANCH_ID);
+        Block block = BlockChainTestUtils.genesisBlock();
+        BranchStore store = builder.buildBranchStore();
         store.setBestBlock(block);
 
         assertThat(store.getBestBlockHash()).isEqualTo(block.getHash());
@@ -50,28 +48,28 @@ public class StoreBuilderTest {
 
     @Test
     public void buildBlockStore() {
-        BlockHusk block = BlockChainTestUtils.genesisBlock();
-        BlockStore store = builder.buildBlockStore(BRANCH_ID);
+        Block block = BlockChainTestUtils.genesisBlock();
+        ConsensusBlockStore store = builder.buildBlockStore();
         store.put(block.getHash(), block);
-        assert store.contains(block.getHash());
-        assert store.get(block.getHash()).equals(block);
+        assertThat(store.contains(block.getHash())).isTrue();
+        assertThat(store.get(block.getHash())).isEqualTo(block);
     }
 
     @Test
     public void buildTxStore() {
         TransactionHusk tx = BlockChainTestUtils.createTransferTxHusk();
-        TransactionStore store = builder.buildTxStore(BRANCH_ID);
+        TransactionStore store = builder.buildTxStore();
         store.put(tx.getHash(), tx);
-        assert store.contains(tx.getHash());
-        assert store.get(tx.getHash()).equals(tx);
+        assertThat(store.contains(tx.getHash())).isTrue();
+        assertThat(store.get(tx.getHash())).isEqualTo(tx);
     }
 
     @Test
     public void buildPeerStore() {
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        PeerStore store = builder.buildPeerStore(TestConstants.yggdrash());
+        PeerStore store = builder.buildPeerStore();
         store.put(peer.getPeerId(), peer);
-        assert store.contains(peer.getPeerId());
-        assert store.get(peer.getPeerId()).equals(peer);
+        assertThat(store.contains(peer.getPeerId())).isTrue();
+        assertThat(store.get(peer.getPeerId())).isEqualTo(peer);
     }
 }

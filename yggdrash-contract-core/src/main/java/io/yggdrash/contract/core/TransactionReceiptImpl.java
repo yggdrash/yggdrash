@@ -33,7 +33,6 @@ public class TransactionReceiptImpl implements TransactionReceipt {
     private String methodName;
 
     public TransactionReceiptImpl() {
-        //init;
     }
 
     public TransactionReceiptImpl(String txId, Long txSize, String issuer) {
@@ -58,7 +57,9 @@ public class TransactionReceiptImpl implements TransactionReceipt {
         return txId;
     }
 
-    public Long getTxSize() { return txSize; }
+    public Long getTxSize() {
+        return txSize;
+    }
 
     public void setTxId(String txId) {
         this.txId = txId;
@@ -113,11 +114,6 @@ public class TransactionReceiptImpl implements TransactionReceipt {
     public boolean isSuccess() {
         return status == ExecuteStatus.SUCCESS;
     }
-
-//    @Override
-//    public String toString() {
-//        return JsonUtil.convertObjToString(this);
-//    }
 
     public String getIssuer() {
         return issuer;

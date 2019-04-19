@@ -17,22 +17,22 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonArray;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.trie.Trie;
+import io.yggdrash.core.exception.InternalErrorException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
+import java.util.Objects;
 
 public class BlockBody {
 
-    private static final int TX_HEADER_LENGTH = 84;
-    private static final int SIGNATURE_LENGTH = 65;
-
     private final List<Transaction> body = new ArrayList<>();
+
+    private byte[] binary;
 
     /**
      * Constructor for BlockBody class.
@@ -50,18 +50,17 @@ public class BlockBody {
     }
 
     public BlockBody(byte[] bodyBytes) {
-        if (bodyBytes.length <= TX_HEADER_LENGTH + SIGNATURE_LENGTH) {
+        if (bodyBytes.length <= TransactionHeader.LENGTH + Constants.SIGNATURE_LENGTH) {
             return;
         }
 
         int pos = 0;
-        byte[] txHeaderBytes = new byte[TX_HEADER_LENGTH];
-        byte[] txSigBytes = new byte[SIGNATURE_LENGTH];
+        byte[] txHeaderBytes = new byte[TransactionHeader.LENGTH];
+        byte[] txSigBytes = new byte[Constants.SIGNATURE_LENGTH];
         byte[] txBodyBytes;
 
         TransactionHeader txHeader;
         TransactionBody txBody;
-        List<Transaction> txList = new ArrayList<>();
 
         do {
             System.arraycopy(bodyBytes, pos, txHeaderBytes, 0, txHeaderBytes.length);
@@ -77,14 +76,9 @@ public class BlockBody {
             pos += txBodyBytes.length;
 
             txBody = new TransactionBody(txBodyBytes);
-            txBodyBytes = null;
 
-            txList.add(new Transaction(txHeader, txSigBytes, txBody));
+            body.add(new Transaction(txHeader, txSigBytes, txBody));
         } while (pos < bodyBytes.length);
-
-        txHeaderBytes = null;
-
-        this.body.addAll(txList);
     }
 
     public List<Transaction> getBody() {
@@ -112,8 +106,7 @@ public class BlockBody {
     }
 
     public byte[] getMerkleRoot() {
-        byte[] merkleRoot = Trie.getMerkleRoot(this.body);
-        return merkleRoot == null ? EMPTY_BYTE32 : merkleRoot;
+        return Trie.getMerkleRoot(this.body);
     }
 
     /**
@@ -135,33 +128,49 @@ public class BlockBody {
         return this.toJsonArray().toString();
     }
 
-    public byte[] toBinary() throws IOException {
-        ByteArrayOutputStream bao = new ByteArrayOutputStream();
-
-        for (Transaction tx : this.body) {
-            bao.write(tx.toBinary());
+    public byte[] toBinary() {
+        if (binary != null) {
+            return binary;
         }
-
-        return bao.toByteArray();
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        try {
+            for (Transaction tx : this.body) {
+                bao.write(tx.toBinary());
+            }
+            binary = bao.toByteArray();
+            return binary;
+        } catch (IOException e) {
+            throw new InternalErrorException("toBinary error");
+        }
     }
 
-    public BlockBody clone() {
-        return new BlockBody(this.body);
-    }
-
-    public boolean equals(BlockBody newBlockBody) {
-        if (this.body.size() != newBlockBody.getBody().size()) {
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
 
-        for (int i = 0; i < newBlockBody.getBody().size(); i++) {
+        BlockBody other = (BlockBody) o;
+        if (this.body.size() != other.getBody().size()) {
+            return false;
+        }
+
+        for (int i = 0; i < other.getBody().size(); i++) {
             if (!Arrays.equals(this.getBody().get(i).getHash(),
-                    newBlockBody.getBody().get(i).getHash())) {
+                    other.getBody().get(i).getHash())) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(toBinary());
     }
 
     public void clear() {

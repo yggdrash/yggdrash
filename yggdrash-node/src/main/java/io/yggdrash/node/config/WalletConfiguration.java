@@ -17,8 +17,9 @@
 package io.yggdrash.node.config;
 
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.wallet.Wallet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,16 +30,14 @@ import java.util.Arrays;
 
 @Configuration
 public class WalletConfiguration {
+    private static final Logger log = LoggerFactory.getLogger(WalletConfiguration.class);
 
     @Bean
     DefaultConfig defaultConfig(Environment env) {
         boolean isProductionMode = Arrays.asList(env.getActiveProfiles()).contains("prod");
-        return new DefaultConfig(isProductionMode);
-    }
-
-    @Bean
-    StoreBuilder storeBuilder(DefaultConfig defaultConfig) {
-        return new StoreBuilder(defaultConfig);
+        DefaultConfig defaultConfig = new DefaultConfig(isProductionMode);
+        log.info("Yggdrash Data Path : {}", defaultConfig.getYggDataPath());
+        return defaultConfig;
     }
 
     @Bean

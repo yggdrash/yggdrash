@@ -25,8 +25,12 @@ import java.util.Arrays;
 
 public class ByteUtil {
 
-    private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
+    public static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
     private static final byte[] ZERO_BYTE_ARRAY = new byte[] {0};
+
+    private ByteUtil() {
+        throw new IllegalStateException("Utility class");
+    }
 
     /**
      * Creates a copy of bytes and appends b to the end of it
@@ -57,19 +61,6 @@ public class ByteUtil {
         return bytes;
     }
 
-    public static byte[] bigIntegerToBytesSigned(BigInteger b, int numBytes) {
-        if (b == null) {
-            return null;
-        }
-        byte[] bytes = new byte[numBytes];
-        Arrays.fill(bytes, b.signum() < 0 ? (byte) 0xFF : 0x00);
-        byte[] biBytes = b.toByteArray();
-        int start = (biBytes.length == numBytes + 1) ? 1 : 0;
-        int length = Math.min(biBytes.length, numBytes);
-        System.arraycopy(biBytes, start, bytes, numBytes - length, length);
-        return bytes;
-    }
-
     /**
      * Omitting sign indication byte.
      * <br><br>
@@ -93,6 +84,19 @@ public class ByteUtil {
             data = tmp;
         }
         return data;
+    }
+
+    public static byte[] bigIntegerToBytesSigned(BigInteger b, int numBytes) {
+        if (b == null) {
+            return null;
+        }
+        byte[] bytes = new byte[numBytes];
+        Arrays.fill(bytes, b.signum() < 0 ? (byte) 0xFF : 0x00);
+        byte[] biBytes = b.toByteArray();
+        int start = (biBytes.length == numBytes + 1) ? 1 : 0;
+        int length = Math.min(biBytes.length, numBytes);
+        System.arraycopy(biBytes, start, bytes, numBytes - length, length);
+        return bytes;
     }
 
     /**
@@ -278,12 +282,15 @@ public class ByteUtil {
      * @return number of min bytes used to encode the number
      */
     public static int numBytes(String val) {
+        if (!val.matches("^[0-9]+$")) {
+            throw new Error("value is not number");
+        }
 
-        BigInteger bInt = new BigInteger(val);
+        BigInteger bigInt = new BigInteger(val);
         int bytes = 0;
 
-        while (!bInt.equals(BigInteger.ZERO)) {
-            bInt = bInt.shiftRight(8);
+        while (!bigInt.equals(BigInteger.ZERO)) {
+            bigInt = bigInt.shiftRight(8);
             ++bytes;
         }
         if (bytes == 0) {
@@ -353,7 +360,7 @@ public class ByteUtil {
         int posByte = data.length - 1 - pos / 8;
         int posBit = pos % 8;
         byte dataByte = data[posByte];
-        return Math.min(1, (dataByte & (1 << (posBit))));
+        return Math.min(1, ((dataByte & 0xff) & (1 << (posBit))));
     }
 
     public static byte[] and(byte[] b1, byte[] b2) {
@@ -456,7 +463,8 @@ public class ByteUtil {
     /**
      * Parses fixed number of bytes starting from {@code offset} in {@code input} array.
      * If {@code input} has not enough bytes return array will be right padded with zero bytes.
-     * I.e. if {@code offset} is higher than {@code input.length} then zero byte array of length {@code len} will be returned
+     * I.e. if {@code offset} is higher than {@code input.length} then zero byte array of length
+     * {@code len} will be returned
      */
     public static byte[] parseBytes(byte[] input, int offset, int len) {
 

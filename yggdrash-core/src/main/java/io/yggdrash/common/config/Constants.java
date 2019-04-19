@@ -8,13 +8,16 @@ import java.math.BigInteger;
 
 public class Constants {
 
-    public static final int DEFAULT_PORT = 32918;
+    private Constants() {
+        throw new IllegalStateException("Constants class");
+    }
 
-    public static final int BRANCH_HEX_LENGTH = 40;
+    private static final int BRANCH_LENGTH = 20;
+    public static final int BRANCH_HEX_LENGTH = BRANCH_LENGTH * 2;
 
     private static final String STEM = "STEM";
     private static final String YEED = "YEED";
-    public static final String VALIDATOR = "VALIDATOR";
+    private static final String VALIDATOR = "VALIDATOR";
     public static final String YGGDRASH = "YGGDRASH";
     public static final String BRANCH_ID = "branchId";
     public static final String TX_ID = "txId";
@@ -24,17 +27,17 @@ public class Constants {
     public static final long TIMESTAMP_2018 = 1514764800000L;
     public static final int MAX_MEMORY = 10000000;
 
-    public static final byte[] EMPTY_BYTE8 = new byte[8];
-    public static final byte[] EMPTY_BYTE20 = new byte[20];
-    public static final byte[] EMPTY_BYTE32 = new byte[32];
-    public static final byte[] EMPTY_BYTE1K = new byte[1024];
-    public static final byte[] EMPTY_BYTE10K = new byte[10240];
-    public static final byte[] EMPTY_BYTE100K = new byte[102400];
-    public static final byte[] EMPTY_BYTE1M = new byte[1024000];
+    public static final int HASH_LENGTH = 32;
+    public static final int SIGNATURE_LENGTH = 65;
 
-    public static final int TX_HEADER_LENGTH = 84;
-    public static final int TX_SIG_LENGTH = 65;
     public static final int TX_BODY_MAX_LENGTH = 10000000; // 10 Mb
+
+    public static final byte[] EMPTY_BRANCH = new byte[BRANCH_LENGTH];
+    public static final byte[] EMPTY_HASH = new byte[HASH_LENGTH];
+    public static final byte[] EMPTY_SIGNATURE = new byte[SIGNATURE_LENGTH];
+
+    public static final byte[] EMPTY_BYTE8 = new byte[8];
+    public static final byte[] EMPTY_BYTE1K = new byte[1024];
 
     public static final String PBFT_PREPREPARE = "PREPREPA";
     public static final String PBFT_PREPARE = "PREPAREM";
@@ -48,12 +51,21 @@ public class Constants {
     private static final BigInteger SECP256K1N = new BigInteger("fffffffffffffffffffffffffff"
             + "ffffebaaedce6af48a03bbfd25e8cd0364141", 16);
 
-    private Constants() {
+    public final class LIMIT {
+        private LIMIT() {
+        }
 
+        public static final long BLOCK_SYNC_SIZE = 3 * 1024 * 1024L; // 3MB
     }
 
-    public interface LIMIT {
-        long BLOCK_SYNC_SIZE = 3 * 1024 * 1024; // 3MB
+    public final class KEY {
+        private KEY() {
+        }
+
+        public static final String HEADER = "header";
+        public static final String SIGNATURE = "signature";
+        public static final String BODY = "body";
+        public static final String VALIDATOR = "validator";
     }
 
     // TODO Contract Version fix

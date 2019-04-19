@@ -32,7 +32,7 @@ public class PeerBucketTest {
         bucket.dropPeer(peer1);
         assert bucket.getPeersCount() == 1;
         bucket.dropPeer(peer2);
-        assert bucket.getPeersCount() == 0;
+        assertEquals(0, bucket.getPeersCount());
     }
 
     @Test
@@ -45,7 +45,7 @@ public class PeerBucketTest {
         bucket.addPeer(peer2);
         assert bucket.getPeersCount() == 1;
         bucket.dropPeer(peer1);
-        assert bucket.getPeersCount() == 0;
+        assertEquals(0, bucket.getPeersCount());
     }
 
     @Test
@@ -55,7 +55,7 @@ public class PeerBucketTest {
         bucket.addPeer(peer1);
         assert bucket.getPeersCount() == 1;
         bucket.addPeer(peer1);
-        assert bucket.getPeersCount() == 1;
+        assertEquals(1, bucket.getPeersCount());
     }
 
     /*
@@ -73,7 +73,7 @@ public class PeerBucketTest {
         bucket.bump(peer3);
 
         assert bucket.getPeersCount() == 3;
-        assert getLastPeer(peer2);
+        assertTrue(getLastPeer(peer2));
     }
 
     private boolean getLastPeer(Peer peer) {
@@ -91,8 +91,8 @@ public class PeerBucketTest {
 
         addPeerToBucket(32920, 32930);
 
-        assertEquals(bucket.getPeersCount(), 5);
-        assertEquals(bucket.getReplacements().size(), 5);
+        assertEquals(5, bucket.getPeersCount());
+        assertEquals(5, bucket.getReplacements().size());
         assertTrue(getLastPeer(Peer.valueOf("ynode://75bff16c@127.0.0.1:" + 32924)));
         Peer lastPeerOfReplacements = bucket.getReplacements()
                 .stream()
@@ -119,7 +119,7 @@ public class PeerBucketTest {
         Peer randomPeer = Peer.valueOf("ynode://75bff16c@127.0.0.1:" + 9999);
 
         assertNull(bucket.replace(randomPeer));
-        assertEquals(bucket.getPeersCount(), 5);
+        assertEquals(5, bucket.getPeersCount());
         assertTrue(getLastPeer(Peer.valueOf("ynode://75bff16c@127.0.0.1:" + 32924)));
 
         // 마지막 피어가 healthCheck 에 실패했다고 가정하고 replace 시킨다.
@@ -127,7 +127,7 @@ public class PeerBucketTest {
         //        replacement 리스트 사이즈가 0이므로 그냥 drop 만 시킨다.
         //        피어 버킷의 사이즈는 4이다.
         assertNull(bucket.replace(bucket.getLastPeer()));
-        assertEquals(bucket.getPeersCount(), 4);
+        assertEquals(4, bucket.getPeersCount());
         assertTrue(getLastPeer(Peer.valueOf("ynode://75bff16c@127.0.0.1:" + 32923)));
 
         // 6개의 피어를 피어버킷에 추가한다. 5개는 replacement 리스트에 추가된다.
@@ -137,14 +137,14 @@ public class PeerBucketTest {
         //        피어 버킷의 사이즈는 5이며, 마지막 피어는 6번째 피어이다.
         //        replacement 리스트의 마지막 피어는 7번째 피어이고 사이즈는 4이다.
         addPeerToBucket(32924, 32930);
-        assertEquals(bucket.getReplacements().size(), 5);
+        assertEquals(5, bucket.getReplacements().size());
         assertEquals(bucket.replace(bucket.getLastPeer()),
                 Peer.valueOf("ynode://75bff16c@127.0.0.1:" + 32925));
 
         printList(bucket.getReplacements(), "replace");
         printList(bucket.getPeers(), "p");
 
-        assertEquals(bucket.getReplacements().size(), 4);
+        assertEquals(4, bucket.getReplacements().size());
         assertTrue(getLastPeer(Peer.valueOf("ynode://75bff16c@127.0.0.1:" + 32925)));
     }
 

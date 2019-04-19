@@ -22,22 +22,28 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.TestConstants.CiTest;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.exception.NotValidateException;
+import org.junit.After;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BlockChainTest extends CiTest {
-    private static final Logger log = LoggerFactory.getLogger(BlockChainTest.class);
+
+    @After
+    public void tearDown() {
+        StoreTestUtils.clearDefaultConfigDb();
+    }
 
     @Test
     public void shouldBeGetBlockByHash() {
         BlockChain blockChain = generateTestBlockChain(false);
-        BlockHusk prevBlock = blockChain.getPrevBlock(); // goto Genesis
+        Block block = blockChain.getLastConfirmedBlock(); // goto Genesis
         long nextIndex = blockChain.getLastIndex() + 1;
-        BlockHusk testBlock = getBlockFixture(nextIndex, prevBlock.getHash());
+        Block testBlock = getBlockFixture(nextIndex, block.getHash());
         blockChain.addBlock(testBlock, false);
 
         assertThat(blockChain.getBlockByHash(testBlock.getHash()))
@@ -47,76 +53,66 @@ public class BlockChainTest extends CiTest {
     @Test
     public void shouldBeGetBlockByIndex() {
         BlockChain blockChain = generateTestBlockChain();
-        BlockHusk prevBlock = blockChain.getPrevBlock(); // goto Genesis
+        Block block = blockChain.getLastConfirmedBlock(); // goto Genesis
         long nextIndex = blockChain.getLastIndex() + 1;
-        BlockHusk testBlock = getBlockFixture(nextIndex, prevBlock.getHash());
+        Block testBlock = getBlockFixture(nextIndex, block.getHash());
         blockChain.addBlock(testBlock, false);
 
         assertThat(blockChain.getBlockByIndex(nextIndex)).isEqualTo(testBlock);
-    }
-
-    @Test
-    public void shouldBeVerifiedBlockChain() {
-        BlockChain blockChain = generateTestBlockChain();
-        assertThat(blockChain.isValidChain()).isEqualTo(true);
     }
 
     @Test(expected = NotValidateException.class)
     public void shouldBeExceptedNotValidateException() {
         BlockChain blockChain = generateTestBlockChain(false);
         Sha3Hash prevHash = new Sha3Hash("9358");
-        BlockHusk block1 = getBlockFixture(1L, prevHash);
+        Block block1 = getBlockFixture(1L, prevHash);
         blockChain.addBlock(block1, false);
-        BlockHusk block2 =  getBlockFixture(2L, prevHash);
+        Block block2 =  getBlockFixture(2L, prevHash);
         blockChain.addBlock(block2, false);
     }
 
     @Test
     public void shouldBeLoadedStoredBlocks() {
         BlockChain blockChain1 = generateTestBlockChain(true);
-        BlockHusk genesisBlock = blockChain1.getGenesisBlock();
+        Block genesisBlock = blockChain1.getGenesisBlock();
 
-        BlockHusk testBlock = getBlockFixture(1L, genesisBlock.getHash());
+        Block testBlock = getBlockFixture(1L, genesisBlock.getHash());
         blockChain1.addBlock(testBlock, false);
         blockChain1.close();
 
         BlockChain blockChain2 = generateTestBlockChain(true);
-        BlockHusk foundBlock = blockChain2.getBlockByHash(testBlock.getHash());
+        Block foundBlock = blockChain2.getBlockByHash(testBlock.getHash());
         blockChain2.close();
         long nextIndex = blockChain2.getLastIndex() + 1;
         assertThat(nextIndex).isEqualTo(2);
         assertThat(testBlock).isEqualTo(foundBlock);
 
-        clearDefaultConfigDb();
     }
 
     @Test
     public void shouldBeStoredGenesisTxs() {
         BlockChain blockChain = generateTestBlockChain(true);
-        BlockHusk genesis = blockChain.getGenesisBlock();
-        for (TransactionHusk tx : genesis.getBody()) {
+        Block genesis = blockChain.getGenesisBlock();
+        List<TransactionHusk> txList = genesis.getBody();
+        for (TransactionHusk tx : txList) {
             assertThat(blockChain.getTxByHash(tx.getHash())).isNotNull();
         }
         assertThat(blockChain.countOfTxs()).isEqualTo(genesis.getBody().size());
         blockChain.close();
-        clearDefaultConfigDb();
     }
 
     @Test
     public void shouldBeGeneratedAfterLoadedStoredBlocks() {
         BlockChain newDbBlockChain = generateTestBlockChain(true);
-        BlockHusk genesisBlock = newDbBlockChain.getGenesisBlock();
+        Block genesisBlock = newDbBlockChain.getGenesisBlock();
 
-        BlockHusk testBlock = getBlockFixture(1L, genesisBlock.getHash());
+        Block testBlock = getBlockFixture(1L, genesisBlock.getHash());
         newDbBlockChain.addBlock(testBlock, false);
-        newDbBlockChain.generateBlock(TestConstants.wallet());
-        assertThat(newDbBlockChain.getLastIndex()).isEqualTo(2);
+        assertThat(newDbBlockChain.getLastIndex()).isEqualTo(1);
         newDbBlockChain.close();
 
         BlockChain loadedDbBlockChain = generateTestBlockChain(true);
-        loadedDbBlockChain.generateBlock(TestConstants.wallet());
-        assertThat(loadedDbBlockChain.getLastIndex()).isEqualTo(3);
-        clearDefaultConfigDb();
+        assertThat(loadedDbBlockChain.getLastIndex()).isEqualTo(1);
     }
 
     @Test
@@ -124,7 +120,7 @@ public class BlockChainTest extends CiTest {
         BlockChain blockChain = generateTestBlockChain(false);
         blockChain.addListener(new BranchEventListener() {
             @Override
-            public void chainedBlock(BlockHusk block) {
+            public void chainedBlock(Block block) {
                 assertThat(block).isNotNull();
             }
 
@@ -133,9 +129,9 @@ public class BlockChainTest extends CiTest {
                 assertThat(tx).isNotNull();
             }
         });
-        BlockHusk prevBlock = blockChain.getPrevBlock(); // goto Genesis
+        Block block = blockChain.getLastConfirmedBlock(); // goto Genesis
         long nextIndex = blockChain.getLastIndex() + 1;
-        BlockHusk testBlock = getBlockFixture(nextIndex, prevBlock.getHash());
+        Block testBlock = getBlockFixture(nextIndex, block.getHash());
         blockChain.addBlock(testBlock, false);
         blockChain.addTransaction(BlockChainTestUtils.createTransferTxHusk());
     }
@@ -146,22 +142,22 @@ public class BlockChainTest extends CiTest {
 
     private BlockChain generateTestBlockChain() {
         BlockChain blockChain = generateTestBlockChain(false);
-        BlockHusk genesisBlock = blockChain.getGenesisBlock();
-        BlockHusk block1 = getBlockFixture(1L, genesisBlock.getHash());
+        Block genesisBlock = blockChain.getGenesisBlock();
+        Block block1 = getBlockFixture(1L, genesisBlock.getHash());
         blockChain.addBlock(block1, false);
-        BlockHusk block2 = getBlockFixture(2L, block1.getHash());
+        Block block2 = getBlockFixture(2L, block1.getHash());
         blockChain.addBlock(block2, false);
         return blockChain;
     }
 
-    private static void clearDefaultConfigDb() {
-        StoreTestUtils.clearDefaultConfigDb();
+    private static Block getBlockFixture(Long index, Sha3Hash prevHash) {
+        return getBlockFixture(index, prevHash.getBytes());
     }
 
-    private static BlockHusk getBlockFixture(Long index, Sha3Hash prevHash) {
+    private static Block getBlockFixture(Long index, byte[] prevHash) {
 
         try {
-            Block tmpBlock = new Block(BlockChainTestUtils.genesisBlock().toJsonObject());
+            io.yggdrash.core.blockchain.Block tmpBlock = new io.yggdrash.core.blockchain.Block(BlockChainTestUtils.genesisBlock().toJsonObject());
             BlockHeader tmpBlockHeader = tmpBlock.getHeader();
             BlockBody tmpBlockBody = tmpBlock.getBody();
 
@@ -169,13 +165,13 @@ public class BlockChainTest extends CiTest {
                     tmpBlockHeader.getChain(),
                     tmpBlockHeader.getVersion(),
                     tmpBlockHeader.getType(),
-                    prevHash.getBytes(),
+                    prevHash,
                     index,
                     TimeUtils.time(),
                     tmpBlockBody);
 
-            Block block = new Block(newBlockHeader, TestConstants.wallet(), tmpBlockBody);
-            return new BlockHusk(block.toProtoBlock());
+            io.yggdrash.core.blockchain.Block block = new io.yggdrash.core.blockchain.Block(newBlockHeader, TestConstants.wallet(), tmpBlockBody);
+            return new BlockHusk(block);
         } catch (Exception e) {
             throw new NotValidateException(e);
         }

@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2018 Akashic Foundation
  *
@@ -21,10 +22,10 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.store.TransactionReceiptStore;
-import io.yggdrash.core.wallet.Wallet;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -89,45 +90,40 @@ public class BranchGroup {
         return branches.get(branchId).getTxByHash(hash);
     }
 
-    public void generateBlock(Wallet wallet, BranchId branchId) {
-        branches.get(branchId).generateBlock(wallet);
-    }
-
-    BlockHusk addBlock(BlockHusk block) {
+    Block addBlock(Block block) {
         return addBlock(block, true);
     }
 
-    public BlockHusk addBlock(BlockHusk block, boolean broadcast) {
+    public Block addBlock(Block block, boolean broadcast) {
         if (branches.containsKey(block.getBranchId())) {
-            return branches.get(block.getBranchId()).addBlock(block, broadcast).blockingFirst();
+            return branches.get(block.getBranchId()).addBlock(block, broadcast);
         }
         return block;
     }
 
-    public BlockHusk getBlockByIndex(BranchId branchId, long index) {
+    public Block getBlockByIndex(BranchId branchId, long index) {
         return branches.get(branchId).getBlockByIndex(index);
     }
 
-    public BlockHusk getBlockByHash(BranchId branchId, String hash) {
-        return branches.get(branchId).getBlockByHash(hash);
+    public Block getBlockByHash(BranchId branchId, String hash) {
+        return branches.get(branchId).getBlockByHash(new Sha3Hash(hash));
     }
 
     int getBranchSize() {
         return branches.size();
     }
 
-    public StateStore<?> getStateStore(BranchId branchId) {
+    public StateStore getStateStore(BranchId branchId) {
         return branches.get(branchId).getStateStore();
     }
 
-    public TransactionReceiptStore getTransactionReceiptStore(BranchId branchId) {
+    TransactionReceiptStore getTransactionReceiptStore(BranchId branchId) {
         return branches.get(branchId).getTransactionReceiptStore();
     }
 
     public TransactionReceipt getTransactionReceipt(BranchId branchId, String transactionId) {
         return branches.get(branchId).getTransactionReceipt(transactionId);
     }
-
 
     public List<TransactionHusk> getUnconfirmedTxs(BranchId branchId) {
         if (branches.containsKey(branchId)) {
@@ -142,8 +138,8 @@ public class BranchGroup {
             throw new NonExistObjectException(branchId.toString() + " branch");
         }
         try {
-            BlockChain chain = branches.get(branchId);
-            return chain.getContractContainer().getContractManager().query(contractVersion, method, params);
+            BlockChain branch = branches.get(branchId);
+            return branch.getContractContainer().getContractManager().query(contractVersion, method, params);
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }
@@ -151,15 +147,5 @@ public class BranchGroup {
 
     public long countOfTxs(BranchId branchId) {
         return branches.get(branchId).countOfTxs();
-    }
-
-    private boolean isHexString(String version) {
-        String hexVersion = "0x" + version;
-        for(int i = 0; i < hexVersion.length(); i++) {
-            if(Character.digit(hexVersion.charAt(i), 16) == -1) {
-                return false;
-            }
-        }
-        return true;
     }
 }

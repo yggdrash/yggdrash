@@ -30,15 +30,17 @@ import java.util.Arrays;
 public class IpBlockInterceptor implements ServerInterceptor {
     private static final Logger log = LoggerFactory.getLogger("interceptor.ipBlock");
     private String[] blackIps = {};
+    private String blackIpsForLog;
 
     public void setBlackIps(String[] ips) {
         this.blackIps = ips;
+        this.blackIpsForLog = Arrays.toString(blackIps);
     }
 
     @Override
     public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(
             ServerCall<ReqT, RespT> call, Metadata headers, ServerCallHandler<ReqT, RespT> next) {
-        log.info("blocked ips:{}", Arrays.toString(blackIps));
+        log.info("blocked ips:{}", blackIpsForLog);
 
         if (isBlocked(getRemoteHost(getRemoteInetSocketString(call)))) {
             call.close(Status.ABORTED, headers);

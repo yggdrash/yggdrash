@@ -25,9 +25,9 @@ import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.store.ReadWriterStore;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.TempStateStore;
@@ -36,13 +36,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class Runtime<T> {
+public class Runtime {
     private static final Logger log = LoggerFactory.getLogger(Runtime.class);
 
-    private final StateStore<T> stateStore;
+    private final StateStore stateStore;
     private final TransactionReceiptStore txReceiptStore;
     private final Map<ContractVersion, RuntimeContractWrap> contracts = new HashMap<>();
 
@@ -52,11 +53,9 @@ public class Runtime<T> {
 
     // FIX runtime run contract will init
     // TODO Runtime get multi Contract
-    public Runtime(StateStore<T> stateStore,
-                   TransactionReceiptStore txReceiptStore) {
+    public Runtime(StateStore stateStore, TransactionReceiptStore txReceiptStore) {
         this.stateStore = stateStore;
         this.txReceiptStore = txReceiptStore;
-
     }
 
     public Set<ContractVersion> executeAbleContract() {
@@ -75,7 +74,7 @@ public class Runtime<T> {
     }
 
 
-    public BlockRuntimeResult invokeBlock(BlockHusk block) {
+    public BlockRuntimeResult invokeBlock(Block block) {
         // Block Data
         // - Hash
         // - BranchId
@@ -89,7 +88,8 @@ public class Runtime<T> {
 
         BlockRuntimeResult result = new BlockRuntimeResult(block);
         TempStateStore blockState = new TempStateStore(stateStore);
-        for (TransactionHusk tx: block.getBody()) {
+        List<TransactionHusk> txList = block.getBody();
+        for (TransactionHusk tx: txList) {
             TransactionReceipt txReceipt = ContractManager.createTransactionReceipt(tx);
             // set Block ID
             txReceipt.setBlockId(block.getHash().toString());
@@ -145,7 +145,8 @@ public class Runtime<T> {
             for (JsonElement transactionElement: JsonUtil.parseJsonArray(tx.getBody())) {
                 JsonObject txBody = transactionElement.getAsJsonObject();
                 // check contract Version
-                ContractVersion txContractVersion = ContractVersion.ofNonHex(txBody.get("contractVersion").getAsString());
+                String contractVersion = txBody.get("contractVersion").getAsString();
+                ContractVersion txContractVersion = ContractVersion.ofNonHex(contractVersion);
                 RuntimeContractWrap wrap = contracts.get(txContractVersion);
                 // TODO remove this (retry if not system contract)
                 if (wrap == null) {
@@ -162,7 +163,7 @@ public class Runtime<T> {
             }
 
         } catch (Throwable e) {
-            e.printStackTrace();
+            log.warn(e.getMessage());
             txReceipt.setStatus(ExecuteStatus.ERROR);
             JsonObject errorLog = new JsonObject();
             errorLog.addProperty("error", e.getMessage());
@@ -177,7 +178,7 @@ public class Runtime<T> {
     }
 
     // TODO Remove This
-    public StateStore<T> getStateStore() {
+    public StateStore getStateStore() {
         return this.stateStore;
     }
 

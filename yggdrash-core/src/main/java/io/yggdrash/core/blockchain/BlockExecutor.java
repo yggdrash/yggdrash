@@ -17,14 +17,15 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.exception.FailedOperationException;
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.runtime.Runtime;
-import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.BranchStore;
+import io.yggdrash.core.store.ConsensusBlockStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class BlockExecutor {
-    private final BlockStore store;
+    private final ConsensusBlockStore store;
     private final BranchStore branchStore;
     private final Runtime runtime;
     private boolean runExecute;
@@ -32,13 +33,13 @@ class BlockExecutor {
 
     private static final Logger log = LoggerFactory.getLogger(BlockExecutor.class);
 
-    BlockExecutor(BlockStore store, BranchStore branchStore, Runtime runtime) {
+    BlockExecutor(ConsensusBlockStore store, BranchStore branchStore, Runtime runtime) {
         this.store = store;
         this.branchStore = branchStore;
         this.runtime = runtime;
     }
 
-    public boolean isRunExecute() {
+    boolean isRunExecute() {
         return runExecute;
     }
 
@@ -58,7 +59,7 @@ class BlockExecutor {
             runExecute = true;
             while (lastExecuteBlock < bestBlock) {
                 lastExecuteBlock++;
-                BlockHusk block = store.getBlockByIndex(lastExecuteBlock);
+                Block block = store.getBlockByIndex(lastExecuteBlock);
                 if (block == null) {
                     throw new FailedOperationException("Blockchain is not wired");
                 }
@@ -67,7 +68,7 @@ class BlockExecutor {
                 runtime.invokeBlock(block);
                 // Set Next ExecuteBlock
                 branchStore.setLastExecuteBlock(block);
-                log.info("Block " + block.getIndex() + " Execute Complete");
+                log.info("Block {} Execute Complete", block.getIndex());
             }
             runExecute = false;
         }

@@ -20,11 +20,9 @@ import com.google.common.base.Strings;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.common.crypto.AESEncrypt;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
-import io.yggdrash.common.crypto.Password;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
@@ -35,7 +33,6 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -46,13 +43,15 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import static io.yggdrash.common.utils.ByteUtil.EMPTY_BYTE_ARRAY;
+
 /**
  * Wallet Class.
+ *
  */
 public class Wallet {
 
     // todo: check security
-
     private static final Logger logger = LoggerFactory.getLogger(Wallet.class);
 
     private static final String WALLET_PBKDF2_NAME = "pbkdf2";
@@ -151,21 +150,21 @@ public class Wallet {
             }
 
             Path path = Paths.get(keyFilePathName);
-            String keyPath = path.getParent().toString();
-            String keyName = path.getFileName().toString();
+            String keyPathStr = path.getParent().toString();
+            String keyNameStr = path.getFileName().toString();
 
             try {
-                decryptKeyFileInit(keyPath, keyName, keyPassword);
+                decryptKeyFileInit(keyPathStr, keyNameStr, keyPassword);
             } catch (Exception e) {
                 logger.debug("Key file is not exist. Create New key file.");
 
                 try {
-                    encryptKeyFileInit(key, keyPath, keyName, keyPassword);
+                    encryptKeyFileInit(key, keyPathStr, keyNameStr, keyPassword);
                 } catch (IOException ioe) {
-                    logger.error("Cannot generate the Key file at " + keyPath + keyName);
+                    logger.error("Cannot generate the Key file at {}", keyPathStr + keyNameStr);
                     throw new IOException("Cannot generate the Key file");
                 } catch (InvalidCipherTextException ice) {
-                    logger.error("Error InvalidCipherTextException: " + keyPath + keyName);
+                    logger.error("Error InvalidCipherTextException: {}", keyPathStr + keyNameStr);
                     throw new InvalidCipherTextException("Error InvalidCipherTextException");
                 }
             }
@@ -247,18 +246,6 @@ public class Wallet {
         }
     }
 
-
-    /**
-     * Sign the hashed data by sha3().
-     *
-     * @param hashedData hashed data
-     * @return signature as byte[65]
-     * @deprecated use sign(byte[] data, boolean hashed)
-     */
-    public byte[] signHashedData(byte[] hashedData) {
-        return this.sign(hashedData, true);
-    }
-
     /**
      * Sign data as hex string.
      *
@@ -323,7 +310,7 @@ public class Wallet {
         try {
             ecKeyPub = ECKey.signatureToKey(hashedData, ecdsaSignature);
         } catch (SignatureException e) {
-            logger.debug("Invalid signature" + e.getMessage());
+            logger.debug("Invalid signature err={}", e.getMessage());
             return false;
         }
 
@@ -343,8 +330,8 @@ public class Wallet {
         try {
             ecKeyPub = ECKey.signatureToKey(hashedData, ecdsaSignature);
         } catch (SignatureException e) {
-            logger.debug("Invalid signature" + e.getMessage());
-            return null;
+            logger.debug("Invalid signature err={}", e.getMessage());
+            return EMPTY_BYTE_ARRAY;
         }
 
         return ecKeyPub.getPubKey();
@@ -411,9 +398,6 @@ public class Wallet {
                 Hex.toHexString(salt),
                 Hex.toHexString(mac));
 
-        iv = null;
-        salt = null;
-
         FileUtil.writeFile(file,
                 new GsonBuilder().setPrettyPrinting().create().toJson(keyJsonObject).getBytes());
 
@@ -453,10 +437,10 @@ public class Wallet {
     private void decryptKeyFileInit(String keyPath, String keyName, String password)
             throws IOException, InvalidCipherTextException {
         File keyFile = FileUtil.getFile(keyPath, keyName);
-        String json = FileUtil.readFileToString(keyFile, StandardCharsets.UTF_8);
+        String json = FileUtil.readFileToString(keyFile, FileUtil.DEFAULT_CHARSET);
         JsonObject keyJsonObject = JsonUtil.parseJsonObject(json);
 
-        byte[] salt = Hex.decode(keyJsonObject.getAsJsonObject("crypto")
+        byte[] salt = Hex.decode(getCryptoJsonObect(keyJsonObject)
                 .getAsJsonObject("kdfparams")
                 .get("salt")
                 .getAsString());
@@ -466,21 +450,21 @@ public class Wallet {
                 WALLET_PBKDF2_ITERATION,
                 WALLET_PBKDF2_DKLEN,
                 WALLET_PBKDF2_ALGORITHM);
-        byte[] encData = Hex.decode(keyJsonObject.getAsJsonObject("crypto")
+        byte[] encData = Hex.decode(getCryptoJsonObect(keyJsonObject)
                 .get("ciphertext")
                 .getAsString());
 
         byte[] newMac = HashUtil.hash(
                 ByteUtil.merge(ByteUtil.parseBytes(kdfPass, 16, 16), encData),
                 WALLET_PBKDF2_HMAC_HASH);
-        byte[] mac = Hex.decode(keyJsonObject.getAsJsonObject("crypto")
+        byte[] mac = Hex.decode(getCryptoJsonObect(keyJsonObject)
                 .get("mac")
                 .getAsString());
         if (!Arrays.equals(newMac, mac)) {
             throw new InvalidCipherTextException("mac is not valid");
         }
 
-        byte[] iv = Hex.decode(keyJsonObject.getAsJsonObject("crypto")
+        byte[] iv = Hex.decode(getCryptoJsonObect(keyJsonObject)
                 .getAsJsonObject("cipherparams")
                 .get("iv")
                 .getAsString());
@@ -492,6 +476,10 @@ public class Wallet {
         this.keyName = keyName;
         this.address = key.getAddress();
         this.publicKey = key.getPubKey();
+    }
+
+    private JsonObject getCryptoJsonObect(JsonObject keyJsonObject) {
+        return keyJsonObject.getAsJsonObject("crypto");
     }
 
     @Override

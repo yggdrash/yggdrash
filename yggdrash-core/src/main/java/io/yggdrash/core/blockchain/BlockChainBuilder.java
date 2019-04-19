@@ -19,13 +19,16 @@ package io.yggdrash.core.blockchain;
 import io.yggdrash.common.contract.Contract;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.store.StateStore;
+import io.yggdrash.contract.core.store.OutputStore;
+import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractContainer;
 import io.yggdrash.core.blockchain.osgi.ContractContainerBuilder;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
-import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.BranchStore;
+import io.yggdrash.core.store.ConsensusBlockStore;
 import io.yggdrash.core.store.StoreBuilder;
+import io.yggdrash.core.store.StoreContainer;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 
@@ -39,34 +42,21 @@ public class BlockChainBuilder {
     private Branch branch;
     private TransactionStore transactionStore;
     private BranchStore branchStore;
-    private BlockStore blockStore;
+    private ConsensusBlockStore blockStore;
     private StateStore stateStore;
     private TransactionReceiptStore transactionReceiptStore;
+    private Map<OutputType, OutputStore> outputStores;
+    private Factory factory;
 
     private ContractPolicyLoader policyLoader;
 
-    public BlockChainBuilder addGenesis(GenesisBlock genesis) {
+    public BlockChainBuilder setGenesis(GenesisBlock genesis) {
         this.genesis = genesis;
         return this;
     }
 
     public BlockChainBuilder setStoreBuilder(StoreBuilder storeBuilder) {
         this.storeBuilder = storeBuilder;
-        return this;
-    }
-
-    public BlockChainBuilder setTransactionStore(TransactionStore transactionStore) {
-        this.transactionStore = transactionStore;
-        return this;
-    }
-
-    public BlockChainBuilder setBranchStore(BranchStore branchStore) {
-        this.branchStore = branchStore;
-        return this;
-    }
-
-    public BlockChainBuilder setBlockStore(BlockStore blockStore) {
-        this.blockStore = blockStore;
         return this;
     }
 
@@ -80,28 +70,34 @@ public class BlockChainBuilder {
         return this;
     }
 
+    public BlockChainBuilder setFactory(Factory factory) {
+        this.factory = factory;
+        return this;
+    }
+
     public BlockChain build() {
-        BlockHusk genesisBlock = genesis.getBlock();
         if (branch == null) {
             branch = genesis.getBranch();
         }
-        BranchId branchId = branch.getBranchId();
+        storeBuilder.setBranchId(branch.getBranchId());
         if (blockStore == null) {
-            blockStore = storeBuilder.buildBlockStore(branchId);
+            blockStore = storeBuilder.buildBlockStore();
         }
         if (transactionStore == null) {
-            transactionStore = storeBuilder.buildTxStore(branchId);
+            transactionStore = storeBuilder.buildTxStore();
         }
         if (branchStore == null) {
-            branchStore = storeBuilder.buildMetaStore(branchId);
+            branchStore = storeBuilder.buildBranchStore();
         }
         if (stateStore == null) {
-            stateStore = storeBuilder.buildStateStore(branchId);
+            stateStore = storeBuilder.buildStateStore();
         }
         if (transactionReceiptStore == null) {
-            transactionReceiptStore = storeBuilder.buildTransactionReceiptStore(
-                    branchId);
+            transactionReceiptStore = storeBuilder.buildTransactionReceiptStore();
         }
+
+        StoreContainer storeContainer = new StoreContainer(branch, branchStore, stateStore, blockStore,
+                transactionStore, transactionReceiptStore);
 
         ContractContainer contractContainer = null;
 
@@ -110,14 +106,14 @@ public class BlockChainBuilder {
                     .withFrameworkFactory(policyLoader.getFrameworkFactory())
                     .withContainerConfig(policyLoader.getContainerConfig())
                     .withBranchId(branch.getBranchId().toString())
-                    .withStateStore(stateStore)
-                    .withTransactionReceiptStore(transactionReceiptStore)
+                    .withStoreContainer(storeContainer)
                     .withConfig(storeBuilder.getConfig())
                     .build();
         }
 
-        return new BlockChain(branch, genesisBlock, blockStore,
-                transactionStore, branchStore, stateStore, transactionReceiptStore, contractContainer);
+        // TODO used storeContainer
+        return factory.create(branch, genesis.getBlock(), blockStore,
+                transactionStore, branchStore, stateStore, transactionReceiptStore, contractContainer, outputStores);
     }
 
     private Map<ContractVersion, Contract> defaultContract() {
@@ -127,12 +123,22 @@ public class BlockChainBuilder {
         // TODO Default Contract has Config
         Map<ContractVersion, Contract> defaultContract = new HashMap<>();
 
-
         return defaultContract;
 
     }
 
-    public static BlockChainBuilder Builder() {
+    public static BlockChainBuilder newBuilder() {
         return new BlockChainBuilder();
+    }
+
+    public interface Factory {
+        BlockChain create(Branch branch, Block genesisBlock,
+                          ConsensusBlockStore blockStore,
+                          TransactionStore transactionStore,
+                          BranchStore branchStore,
+                          StateStore stateStore,
+                          TransactionReceiptStore transactionReceiptStore,
+                          ContractContainer contractContainer,
+                          Map<OutputType, OutputStore> outputStores);
     }
 }

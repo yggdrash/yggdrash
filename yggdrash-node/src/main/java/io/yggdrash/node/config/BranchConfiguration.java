@@ -23,10 +23,12 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
+import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.gateway.controller.BlockChainCollector;
 import io.yggdrash.gateway.store.es.EsClient;
 import io.yggdrash.node.ChainTask;
+import io.yggdrash.node.service.ValidatorService;
 import org.elasticsearch.common.util.set.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,9 +61,8 @@ public class BranchConfiguration {
     private String[] eventStore;
 
     @Autowired
-    BranchConfiguration(StoreBuilder storeBuilder) {
-        log.info("Branch Path : {}", storeBuilder.getConfig().getBranchPath());
-        this.storeBuilder = storeBuilder;
+    BranchConfiguration(DefaultConfig defaultConfig) {
+        this.storeBuilder = StoreBuilder.newBuilder().setConfig(defaultConfig);
     }
 
     // TODO Remove Default Branch Load
@@ -107,12 +108,25 @@ public class BranchConfiguration {
     private BlockChain createBranch(GenesisBlock genesis, ContractPolicyLoader policyLoader) {
         log.info("createBranch {} {}", genesis.getBranch().getBranchId(), genesis.getBranch().getName());
 
-        BlockChain blockChain = BlockChainBuilder.Builder()
-                .addGenesis(genesis)
-                .setStoreBuilder(storeBuilder)
-                .setPolicyLoader(policyLoader)
-                .build();
-        return blockChain;
+        try {
+            Consensus consensus = new Consensus(genesis.getBranch().getConsensus());
+            storeBuilder.setConsensusAlgorithm(consensus.getAlgorithm())
+                    .setBlockStoreFactory(ValidatorService.blockStoreFactory());
+
+            BlockChain bc = BlockChainBuilder.newBuilder()
+                    .setGenesis(genesis)
+                    .setStoreBuilder(storeBuilder)
+                    .setPolicyLoader(policyLoader)
+                    .setFactory(ValidatorService.factory())
+                    .build();
+
+            log.info("Branch is Ready {}", bc.getBranchId());
+
+            return bc;
+        } catch (Exception e) {
+            log.warn(e.getMessage(), e);
+            return null;
+        }
     }
 
     @Bean

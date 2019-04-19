@@ -21,15 +21,15 @@ public class PbftClientStub {
     private static final Logger log = LoggerFactory.getLogger(PbftClientStub.class);
 
     private boolean myclient;
-    private String addr;
-    private String host;
-    private int port;
-    private String id;
+    private final String addr;
+    private final String host;
+    private final int port;
+    private final String id;
     private boolean isRunning;
     private PbftStatus pbftStatus;
 
-    private ManagedChannel channel;
-    private PbftServiceGrpc.PbftServiceBlockingStub blockingStub;
+    private final ManagedChannel channel;
+    private final PbftServiceGrpc.PbftServiceBlockingStub blockingStub;
 
     public PbftClientStub(String addr, String host, int port) {
         this.addr = addr;
@@ -47,6 +47,11 @@ public class PbftClientStub {
     public void multicastPbftMessage(PbftProto.PbftMessage pbftMessage) {
         blockingStub.withDeadlineAfter(3, TimeUnit.SECONDS)
                 .multicastPbftMessage(pbftMessage);
+    }
+
+    public void broadcastPbftBlock(PbftProto.PbftBlock pbftBlock) {
+        blockingStub.withDeadlineAfter(3, TimeUnit.SECONDS)
+                .broadcastPbftBlock(pbftBlock);
     }
 
     public List<PbftBlock> getBlockList(long index) {

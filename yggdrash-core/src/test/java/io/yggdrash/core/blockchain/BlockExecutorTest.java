@@ -17,43 +17,46 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
-import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.runtime.Runtime;
-import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.BranchStore;
+import io.yggdrash.core.store.ConsensusBlockStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class BlockExecutorTest {
 
     private static final BranchId BRANCH_ID = BranchId.NULL;
+    private static final StemContract.StemService stemContract = new StemContract.StemService();
 
     @Test
     public void executorTest() {
 
         StemContract contract = new StemContract();
-        Runtime runtime =
-                new Runtime<>(
-                        new StateStore<>(new HashMapDbSource()),
+        Runtime runtime = new Runtime(
+                        new StateStore(new HashMapDbSource()),
                         new TransactionReceiptStore(new HashMapDbSource())
                 );
-        runtime.addContract(ContractVersion.of("c10e873655becf550c4aece75a091f4553d6202d"), contract);
+        runtime.addContract(ContractVersion.of("c10e873655becf550c4aece75a091f4553d6202d"), stemContract);
 
         // Block Store
         // Blockchain Runtime
-        StoreBuilder builder = new StoreBuilder(new DefaultConfig(false));
-        BlockStore store = builder.buildBlockStore(BRANCH_ID);
-        BranchStore meta = builder.buildMetaStore(BRANCH_ID);
 
-        BlockExecutor ex = new BlockExecutor(store, meta, runtime);
+        StoreBuilder builder = StoreBuilder.newBuilder().setConfig(new DefaultConfig()).setBranchId(BRANCH_ID);
+
+        ConsensusBlockStore store = builder.buildBlockStore();
+        BranchStore branchStore = builder.buildBranchStore();
+
+        BlockExecutor ex = new BlockExecutor(store, branchStore, runtime);
 
         // BlockStore add genesis block and other
 
         ex.runExecuteBlocks();
-
+        Assert.assertFalse(ex.isRunExecute());
     }
 }

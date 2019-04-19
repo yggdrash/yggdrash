@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.contract.core.store.OutputStore;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.gateway.dto.BlockDto;
 import io.yggdrash.gateway.dto.TransactionDto;
 import org.slf4j.Logger;
@@ -30,7 +30,7 @@ public class BlockChainCollector {
         this.mapper = new ObjectMapper();
     }
 
-    public void block(BlockHusk block) {
+    public void block(Block block) {
         String json;
         JsonObject jsonObject = null;
 
@@ -64,19 +64,5 @@ public class BlockChainCollector {
         }
     }
 
-    public void transaction(TransactionHusk tx) {
-        String json;
-        JsonObject jsonObject = null;
-        String txHash;
-        Map<String, JsonObject> transactionMap = new HashMap<>();
-        try {
-            txHash = tx.getHash().toString();
-            json = mapper.writeValueAsString(TransactionDto.createBy(tx));
-            jsonObject = new JsonParser().parse(json).getAsJsonObject();
-            transactionMap.put(txHash, jsonObject);
-        } catch (JsonProcessingException e) {
-            log.warn(e.getMessage());
-        }
-//        outputStores.put(block.getHash().toString(), transactionMap);
-    }
+    public void transaction(TransactionHusk tx) { }
 }

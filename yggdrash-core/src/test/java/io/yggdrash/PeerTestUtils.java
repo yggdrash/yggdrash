@@ -30,9 +30,9 @@ import java.util.Collections;
 
 public class PeerTestUtils {
     public static final int SEED_PORT = 32918;
-    private static final int OWNER_PORT = 32920;
+    public static final int OWNER_PORT = 32920;
     private static final String NODE_URI_PREFIX = "ynode://75bff16c@127.0.0.1:";
-    private static final StoreBuilder storeBuilder = new StoreBuilder(new DefaultConfig());
+    private static final StoreBuilder storeBuilder = StoreBuilder.newBuilder().setConfig(new DefaultConfig());
 
     private PeerTestUtils() {}
 
@@ -42,7 +42,7 @@ public class PeerTestUtils {
 
     public static PeerTableGroup createTableGroup(int port, PeerDialer peerDialer) {
         Peer owner = Peer.valueOf(NODE_URI_PREFIX + port);
-        return PeerTableGroupBuilder.Builder()
+        return PeerTableGroupBuilder.newBuilder()
                 .setOwner(owner)
                 .setStoreBuilder(storeBuilder)
                 .setPeerDialer(peerDialer)
@@ -52,6 +52,7 @@ public class PeerTestUtils {
 
     public static KademliaPeerTable createTable() {
         Peer owner = Peer.valueOf(NODE_URI_PREFIX + OWNER_PORT);
-        return new KademliaPeerTable(owner, storeBuilder.buildPeerStore(TestConstants.yggdrash()));
+        storeBuilder.setBranchId(TestConstants.yggdrash());
+        return new KademliaPeerTable(owner, storeBuilder.buildPeerStore());
     }
 }

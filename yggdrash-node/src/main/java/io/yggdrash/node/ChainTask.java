@@ -16,8 +16,12 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.common.config.Constants;
+import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
-import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.wallet.Wallet;
 import org.slf4j.Logger;
@@ -25,9 +29,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import java.util.List;
+
 public class ChainTask {
     private static final Logger log = LoggerFactory.getLogger(ChainTask.class);
-    private static final String cronValue = "*/10 * * * * *";
 
     @Autowired
     private NodeStatus nodeStatus;
@@ -38,15 +43,18 @@ public class ChainTask {
     @Autowired
     private Wallet wallet;
 
-    @Scheduled(cron = cronValue)
+    @Scheduled(cron = "*/10 * * * * *")
     public void generateBlock() {
         if (!nodeStatus.isUpStatus()) {
             log.debug("Waiting for up status...");
             return;
         }
 
-        for (BranchId branchId : branchGroup.getAllBranchId()) {
-            branchGroup.generateBlock(wallet, branchId);
+        for (BlockChain branch : branchGroup.getAllBranch()) {
+            List<TransactionHusk> txs =
+                    branch.getTransactionStore().getUnconfirmedTxsWithLimit(Constants.LIMIT.BLOCK_SYNC_SIZE);
+            Block block = BlockHusk.nextBlock(wallet, txs, branch.getLastConfirmedBlock());
+            branch.addBlock(block);
         }
     }
 }

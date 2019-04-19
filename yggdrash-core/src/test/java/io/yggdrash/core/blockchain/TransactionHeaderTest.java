@@ -18,6 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.ByteUtil;
 import org.junit.Before;
@@ -34,9 +35,9 @@ public class TransactionHeaderTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionHeaderTest.class);
 
-    private final byte[] chain = new byte[20];
-    private final byte[] version = new byte[8];
-    private final byte[] type = new byte[8];
+    private final byte[] chain = Constants.EMPTY_BRANCH;
+    private final byte[] version = Constants.EMPTY_BYTE8;
+    private final byte[] type = Constants.EMPTY_BYTE8;
     private long timestamp;
     private byte[] bodyHash;
     private long bodyLength;
@@ -117,26 +118,5 @@ public class TransactionHeaderTest {
         log.debug("txHeader4=" + txHeader4.toJsonObject());
 
         assertEquals(txHeader1.toJsonObject(), txHeader4.toJsonObject());
-    }
-
-    @Test
-    public void testTransactionHeaderClone() {
-        TransactionHeader txHeader1
-                = new TransactionHeader(chain, version, type, timestamp, bodyHash, bodyLength);
-
-        TransactionHeader txHeader2 = txHeader1.clone();
-        log.debug("txHeader1=" + txHeader1.toJsonObject());
-        log.debug("txHeader2=" + txHeader2.toJsonObject());
-        assertEquals(txHeader1.toJsonObject(), txHeader2.toJsonObject());
-
-        JsonObject jsonObject3 = txHeader1.toJsonObject();
-        jsonObject3.addProperty("timestamp",
-                Hex.toHexString(ByteUtil.longToBytes(TimeUtils.time() + 1)));
-        log.debug("jsonObject3=" + jsonObject3.toString());
-
-        TransactionHeader txHeader3 = new TransactionHeader(jsonObject3);
-        log.debug("txHeader1=" + txHeader1.toJsonObject());
-        log.debug("txHeader3=" + txHeader3.toJsonObject());
-        assertNotEquals(txHeader1.toJsonObject(), txHeader3.toJsonObject());
     }
 }
