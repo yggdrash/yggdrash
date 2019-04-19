@@ -85,7 +85,8 @@ public class PbftBlockStoreTest {
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
-        wallet = new Wallet();
+        wallet = new Wallet(null, "/tmp/",
+                "test1" + TimeUtils.time(), "Password1234!");
         wallet2 = new Wallet(null, "/tmp/",
                 "test2" + TimeUtils.time(), "Password1234!");
         wallet3 = new Wallet(null, "/tmp/",

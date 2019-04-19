@@ -59,13 +59,14 @@ public class PbftBlockChainTest {
     public void setUp() throws IOException, InvalidCipherTextException {
         defaultConfig = new DefaultConfig();
 
-        wallet0 = new Wallet(defaultConfig);
+        wallet0 = new Wallet(null, "/tmp/",
+                "test0" + TimeUtils.time(), "Password1234!");
         wallet1 = new Wallet(null, "/tmp/",
-                "test2" + TimeUtils.time(), "Password1234!");
+                "test1" + TimeUtils.time(), "Password1234!");
         wallet2 = new Wallet(null, "/tmp/",
-                "test3" + TimeUtils.time(), "Password1234!");
+                "test2" + TimeUtils.time(), "Password1234!");
         wallet3 = new Wallet(null, "/tmp/",
-                "test4" + TimeUtils.time(), "Password1234!");
+                "test3" + TimeUtils.time(), "Password1234!");
 
         block0 = this.genesisBlock();
         block1 = new TestUtils(wallet1).sampleBlock(block0.getIndex() + 1, block0.getHash());

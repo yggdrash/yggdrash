@@ -52,7 +52,8 @@ public class PbftBlockKeyStoreMultiThreadTest {
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
-        wallet0 = new Wallet();
+        wallet0 = new Wallet(null, "/tmp/",
+                "test1" + TimeUtils.time(), "Password1234!");
         wallet1 = new Wallet(null, "/tmp/",
                 "test2" + TimeUtils.time(), "Password1234!");
         wallet2 = new Wallet(null, "/tmp/",

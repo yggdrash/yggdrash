@@ -66,7 +66,7 @@ public class TransactionSpeedTest extends PerformanceTest {
 
         txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
 
-        wallet = new Wallet();
+        wallet = new Wallet("/tmp/nodePri.key", "Password1234!");
 
         txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
         tx1 = new Transaction(txHeader, txSig.getSignature(), txBody);
