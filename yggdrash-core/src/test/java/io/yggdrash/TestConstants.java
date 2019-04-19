@@ -101,6 +101,7 @@ public class TestConstants {
         }
     }
 
+    // for getting password with console
     public static class ConsoleTest {
         @BeforeClass
         public static void apply() {
