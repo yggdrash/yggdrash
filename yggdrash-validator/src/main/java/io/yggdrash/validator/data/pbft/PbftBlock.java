@@ -28,21 +28,17 @@ public class PbftBlock extends AbstractBlock<PbftProto.PbftBlock> {
 
     private transient PbftMessageSet pbftMessageSet;
 
-    private PbftBlock(Proto.Block protoBlock, PbftMessageSet pbftMessageSet) {
-        super(protoBlock);
-        this.pbftMessageSet = pbftMessageSet;
-    }
-
-    public PbftBlock(PbftProto.PbftBlock block) {
-        this(block.getBlock(), new PbftMessageSet(block.getPbftMessageSet()));
-    }
-
     public PbftBlock(byte[] bytes) {
         this(toProto(bytes));
     }
 
+    public PbftBlock(PbftProto.PbftBlock block) {
+        this(new Block(block.getBlock()), new PbftMessageSet(block.getPbftMessageSet()));
+    }
+
     public PbftBlock(Block block, PbftMessageSet pbftMessageSet) {
-        this(Block.toProtoBlock(block), pbftMessageSet);
+        super(block);
+        this.pbftMessageSet = pbftMessageSet;
     }
 
     public PbftBlock(JsonObject jsonObject) {
@@ -57,13 +53,14 @@ public class PbftBlock extends AbstractBlock<PbftProto.PbftBlock> {
 
     @Override
     public PbftProto.PbftBlock getInstance() {
+        Proto.Block protoBlock = getBlock().getInstance();
         return PbftProto.PbftBlock.newBuilder()
-                .setBlock(getProtoBlock())
+                .setBlock(protoBlock)
                 .setPbftMessageSet(PbftMessageSet.toProto(pbftMessageSet)).build();
     }
 
     @Override
-    public byte[] getData() {
+    public byte[] toBinary() {
         return getInstance().toByteArray();
     }
 

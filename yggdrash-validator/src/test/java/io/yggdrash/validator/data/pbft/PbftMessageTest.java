@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
-import io.yggdrash.validator.util.TestUtils;
+import io.yggdrash.validator.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -142,7 +143,7 @@ public class PbftMessageTest {
         PbftProto.PbftMessage prepare = PbftMessage.toProto(this.prepare);
         PbftMessage newPrepare = new PbftMessage(prepare);
         log.debug(newPrepare.toJsonObject().toString());
-        assertTrue(newPrepare.equals(this.prepare));
+        assertEquals(newPrepare, this.prepare);
 
         PbftProto.PbftMessage commit = PbftMessage.toProto(this.commit);
         PbftMessage newCommit = new PbftMessage(commit);

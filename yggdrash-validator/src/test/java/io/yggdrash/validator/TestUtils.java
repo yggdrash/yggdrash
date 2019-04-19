@@ -1,4 +1,4 @@
-package io.yggdrash.validator.util;
+package io.yggdrash.validator;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -136,7 +136,7 @@ public class TestUtils {
                     prevBlockHash,
                     index,
                     timestamp,
-                    blockBody.getMerkleRoot(), blockBody.length());
+                    blockBody.getMerkleRoot(), blockBody.getLength());
 
             byte[] blockSig = wallet.sign(blockHeader.getHashForSigning(), true);
 

@@ -49,7 +49,7 @@ public class GenesisBlock {
         contractTransaction(builder);
         // Save Validator Transaction
         //validatorTransaction(builder);
-        Transaction tx = builder.buildTransaction();
+        Transaction tx = builder.build();
 
         // Make Genesis Block
         return generatorGenesisBlock(tx);
@@ -79,8 +79,7 @@ public class GenesisBlock {
                 Constants.EMPTY_HASH,
                 0L,
                 branch.getTimestamp(),
-                blockBody.getMerkleRoot(),
-                blockBody.length());
+                blockBody);
         return new Block(blockHeader, Constants.EMPTY_SIGNATURE, blockBody);
     }
 

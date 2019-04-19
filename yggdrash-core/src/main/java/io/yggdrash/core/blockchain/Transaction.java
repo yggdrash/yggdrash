@@ -18,13 +18,17 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.util.Timestamps;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.util.JsonFormat;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.wallet.Address;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
@@ -36,35 +40,34 @@ import java.io.IOException;
 import java.security.SignatureException;
 import java.util.Arrays;
 
-import static io.yggdrash.common.config.Constants.EMPTY_HASH;
 import static io.yggdrash.common.config.Constants.KEY.BODY;
 import static io.yggdrash.common.config.Constants.KEY.HEADER;
 import static io.yggdrash.common.config.Constants.KEY.SIGNATURE;
 import static io.yggdrash.common.config.Constants.TIMESTAMP_2018;
-import static io.yggdrash.common.config.Constants.TX_BODY_MAX_LENGTH;
 
-public class Transaction {
-
+public class Transaction implements ProtoObject<Proto.Transaction>, Comparable<Transaction> {
     private static final Logger log = LoggerFactory.getLogger(Transaction.class);
 
-    // Transaction Data Format v0.0.3
-    private final TransactionHeader header;
-    private final byte[] signature;
-    private final TransactionBody body;
+    private final Proto.Transaction protoTransaction;
 
-    private byte[] binary;
+    private final transient TransactionHeader header;
+    private final transient TransactionBody body;
+    private transient Sha3Hash hash;
+    private transient Address address;
 
     /**
      * Transaction Constructor.
      *
-     * @param header transaction header
-     * @param signature transaction signature
-     * @param body   transaction body
+     * @param bytes binary transaction
      */
-    public Transaction(TransactionHeader header, byte[] signature, TransactionBody body) {
-        this.header = header;
-        this.signature = signature;
-        this.body = body;
+    public Transaction(byte[] bytes) {
+        this(toProto(bytes));
+    }
+
+    public Transaction(Proto.Transaction protoTransaction) {
+        this.protoTransaction = protoTransaction;
+        this.header = new TransactionHeader(protoTransaction.getHeader());
+        this.body = new TransactionBody(protoTransaction.getBody());
     }
 
     /**
@@ -81,45 +84,29 @@ public class Transaction {
     /**
      * Transaction Constructor.
      *
+     * @param header transaction header
+     * @param signature transaction signature
+     * @param body   transaction body
+     */
+    public Transaction(TransactionHeader header, byte[] signature, TransactionBody body) {
+        this.header = header;
+        this.body = body;
+        this.protoTransaction = Proto.Transaction.newBuilder()
+                .setHeader(header.getInstance())
+                .setSignature(ByteString.copyFrom(signature))
+                .setBody(body.toString())
+                .build();
+    }
+
+    /**
+     * Transaction Constructor.
+     *
      * @param jsonObject jsonObject transaction.
      */
     public Transaction(JsonObject jsonObject) {
         this(new TransactionHeader(jsonObject.getAsJsonObject(HEADER)),
                 Hex.decode(jsonObject.get(SIGNATURE).getAsString()),
                 new TransactionBody(jsonObject.getAsJsonArray(BODY)));
-    }
-
-    /**
-     * Transaction Constructor.
-     *
-     * @param txBytes binary transaction.
-     */
-    public Transaction(byte[] txBytes) {
-        int position = 0;
-
-        byte[] headerBytes = new byte[TransactionHeader.LENGTH];
-        System.arraycopy(txBytes, 0, headerBytes, 0, headerBytes.length);
-        this.header = new TransactionHeader(headerBytes);
-        position += headerBytes.length;
-
-        byte[] sigBytes = new byte[Constants.SIGNATURE_LENGTH];
-        System.arraycopy(txBytes, position, sigBytes, 0, sigBytes.length);
-        position += sigBytes.length;
-        this.signature = sigBytes;
-
-        long bodyLength = this.header.getBodyLength();
-        if (bodyLength > TX_BODY_MAX_LENGTH) {
-            throw new NotValidateException();
-        }
-
-        byte[] bodyBytes = new byte[(int)bodyLength];
-        System.arraycopy(txBytes, position, bodyBytes, 0, bodyBytes.length);
-        position += bodyBytes.length;
-        this.body = new TransactionBody(bodyBytes);
-
-        if (position != txBytes.length) {
-            throw new NotValidateException();
-        }
     }
 
     /**
@@ -132,6 +119,15 @@ public class Transaction {
     }
 
     /**
+     * Get Transaction signature.
+     *
+     * @return transaction signature
+     */
+    public byte[] getSignature() {
+        return protoTransaction.getSignature().toByteArray();
+    }
+
+    /**
      * Get TransactionBody.
      *
      * @return transaction body class
@@ -140,13 +136,8 @@ public class Transaction {
         return this.body;
     }
 
-    /**
-     * Get Transaction signature.
-     *
-     * @return transaction signature
-     */
-    public byte[] getSignature() {
-        return signature;
+    public BranchId getBranchId() {
+        return BranchId.of(header.getChain());
     }
 
     /**
@@ -154,25 +145,23 @@ public class Transaction {
      *
      * @return transaction hash
      */
-    public byte[] getHash() {
-        ByteArrayOutputStream bao = new ByteArrayOutputStream();
-        try {
-            bao.write(this.header.toBinary());
-            bao.write(this.signature);
-        } catch (IOException e) {
-            log.warn(e.getMessage());
-            return EMPTY_HASH;
+    public Sha3Hash getHash() {
+        if (hash == null) {
+            setHash();
         }
-        return HashUtil.sha3(bao.toByteArray());
+        return hash;
     }
 
-    /**
-     * Get transaction hash(HexString).
-     *
-     * @return transaction hash(HexString)
-     */
-    String getHashString() {
-        return Hex.toHexString(this.getHash());
+    private void setHash() {
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+
+        try {
+            bao.write(header.toBinary());
+            bao.write(getSignature());
+        } catch (IOException e) {
+            throw new NotValidateException();
+        }
+        this.hash = new Sha3Hash(bao.toByteArray());
     }
 
     /**
@@ -180,41 +169,30 @@ public class Transaction {
      *
      * @return public key
      */
-    byte[] getPubKey() throws SignatureException {
-        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
-        ECKey ecKeyPub = ECKey.signatureToKey(this.header.getHashForSigning(), ecdsaSignature);
-
-        return ecKeyPub.getPubKey();
+    public byte[] getPubKey() {
+        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(getSignature());
+        try {
+            ECKey ecKeyPub = ECKey.signatureToKey(this.header.getHashForSigning(), ecdsaSignature);
+            return ecKeyPub.getPubKey();
+        } catch (SignatureException e) {
+            throw new InvalidSignatureException(e);
+        }
     }
 
     /**
-     * Get the public key as HexString.
-     *
-     * @return the public key as HexString
-     */
-    String getPubKeyHexString() throws SignatureException {
-        return Hex.toHexString(this.getPubKey());
-    }
-
-    /**
-     * Get the address as binary.
+     * Get the address.
      *
      * @return address
      */
-    public byte[] getAddress() throws SignatureException {
-
-        byte[] pubKey = this.getPubKey();
-        return HashUtil.sha3omit12(
-                Arrays.copyOfRange(pubKey, 1, pubKey.length));
+    public Address getAddress() {
+        if (address == null) {
+            setAddress();
+        }
+        return address;
     }
 
-    /**
-     * Get the address as HexString.
-     *
-     * @return address as HexString
-     */
-    String getAddressToString() throws SignatureException {
-        return Hex.toHexString(this.getAddress());
+    private void setAddress() {
+        this.address = new Address(getPubKey());
     }
 
     /**
@@ -222,8 +200,23 @@ public class Transaction {
      *
      * @return tx length
      */
-    public long length() {
-        return TransactionHeader.LENGTH + Constants.SIGNATURE_LENGTH + this.body.length();
+    public long getLength() {
+        return TransactionHeader.LENGTH + Constants.SIGNATURE_LENGTH + body.getLength();
+    }
+
+    /**
+     * Get the binary transaction data.
+     *
+     * @return the binary data
+     */
+    @Override
+    public byte[] toBinary() {
+        return protoTransaction.toByteArray();
+    }
+
+    @Override
+    public Proto.Transaction getInstance() {
+        return protoTransaction;
     }
 
     /**
@@ -237,13 +230,12 @@ public class Transaction {
             return false;
         }
 
-        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
+        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(getSignature());
         byte[] hashedHeader = this.header.getHashForSigning();
         ECKey ecKeyPub;
 
         try {
             ecKeyPub = ECKey.signatureToKey(hashedHeader, ecdsaSignature);
-
         } catch (SignatureException e) {
             throw new InvalidSignatureException(e);
         }
@@ -269,21 +261,22 @@ public class Transaction {
      * @return true(success), false(fail)
      */
     private boolean verifyData() {
-        // todo: error code
+        // TODO CheckByValidate By Code
         boolean check = true;
 
         check &= verifyCheckLengthNotNull(
-                this.header.getChain(), TransactionHeader.CHAIN_LENGTH, "chain");
+                this.header.getChain(), Constants.BRANCH_LENGTH, "chain");
         check &= verifyCheckLengthNotNull(
                 this.header.getVersion(), TransactionHeader.VERSION_LENGTH, "version");
         check &= verifyCheckLengthNotNull(
                 this.header.getType(), TransactionHeader.TYPE_LENGTH, "type");
+        check &= TransactionHeader.LENGTH >= this.header.getLength();
         check &= this.header.getTimestamp() > TIMESTAMP_2018;
         check &= verifyCheckLengthNotNull(
-                this.header.getBodyHash(), TransactionHeader.BODYHASH_LENGTH, "bodyHash");
+                this.header.getBodyHash(), Constants.HASH_LENGTH, "bodyHash");
         check &= !(this.header.getBodyLength() <= 0
-                || this.header.getBodyLength() != this.getBody().length());
-        check &= verifyCheckLengthNotNull(this.signature, Constants.SIGNATURE_LENGTH, SIGNATURE);
+                || this.header.getBodyLength() != this.getBody().getLength());
+        check &= verifyCheckLengthNotNull(getSignature(), Constants.SIGNATURE_LENGTH, SIGNATURE);
 
         // check bodyHash
         if (!Arrays.equals(this.header.getBodyHash(), HashUtil.sha3(body.toBinary()))) {
@@ -301,20 +294,26 @@ public class Transaction {
      * @return transaction as JsonObject
      */
     public JsonObject toJsonObject() {
-
         JsonObject jsonObject = new JsonObject();
+
         jsonObject.add(HEADER, this.header.toJsonObject());
-        jsonObject.addProperty(SIGNATURE, Hex.toHexString(this.signature));
+        jsonObject.addProperty(SIGNATURE, Hex.toHexString(getSignature()));
         jsonObject.add(BODY, this.body.getBody());
 
         return jsonObject;
     }
 
-    /**
-     * Print transaction.
-     */
-    public String toString() {
-        return this.toJsonObject().toString();
+    JsonObject toJsonObjectFromProto() {
+        try {
+            String print = JsonFormat.printer()
+                    .includingDefaultValueFields().print(this.protoTransaction);
+            JsonObject asJsonObject = new JsonParser().parse(print).getAsJsonObject();
+            asJsonObject.addProperty("txId", getHash().toString());
+            return asJsonObject;
+        } catch (InvalidProtocolBufferException e) {
+            log.warn(e.getMessage());
+        }
+        return null;
     }
 
     /**
@@ -324,66 +323,39 @@ public class Transaction {
         return new GsonBuilder().setPrettyPrinting().create().toJson(this.toJsonObject());
     }
 
-    /**
-     * Get a binary transaction data.
-     *
-     * @return a binary transaction data.
-     */
-    public byte[] toBinary() {
-        if (binary != null) {
-            return binary;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
         }
-        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Transaction other = (Transaction) o;
+        return Arrays.equals(toBinary(), other.toBinary());
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(toBinary());
+    }
+
+    @Override
+    public String toString() {
+        return toJsonObject().toString();
+    }
+
+    @Override
+    public int compareTo(Transaction o) {
+        return Long.compare(getHeader().getTimestamp(), o.getHeader().getTimestamp());
+    }
+
+    private static Proto.Transaction toProto(byte[] bytes) {
         try {
-            bao.write(this.header.toBinary());
-            bao.write(this.signature);
-            bao.write(this.body.toBinary());
-
-            binary = bao.toByteArray();
-            return binary;
-        } catch (IOException e) {
-            log.warn("Transaction toBinary() IOException");
-            throw new NotValidateException();
+            return Proto.Transaction.parseFrom(bytes);
+        } catch (InvalidProtocolBufferException e) {
+            throw new NotValidateException(e);
         }
-    }
-
-    public static Proto.Transaction toProtoTransaction(Transaction tx) {
-        // todo: move at TransactionHusk
-
-        Proto.Transaction.Header protoHeader;
-        protoHeader = Proto.Transaction.Header.newBuilder()
-            .setChain(ByteString.copyFrom(tx.getHeader().getChain()))
-            .setVersion(ByteString.copyFrom(tx.getHeader().getVersion()))
-            .setType(ByteString.copyFrom(tx.getHeader().getType()))
-            .setTimestamp(Timestamps.fromMillis(tx.getHeader().getTimestamp()))
-            .setBodyHash(ByteString.copyFrom(tx.getHeader().getBodyHash()))
-            .setBodyLength(tx.getHeader().getBodyLength())
-            .build();
-
-        return Proto.Transaction.newBuilder()
-                .setHeader(protoHeader)
-                .setSignature(ByteString.copyFrom(tx.getSignature()))
-                .setBody(ByteString.copyFrom(tx.getBody().toBinary()))
-                .build();
-    }
-
-    static Transaction toTransaction(Proto.Transaction protoTransaction) {
-        // todo: move at TransactionHusk
-
-        TransactionHeader txHeader = new TransactionHeader(
-                protoTransaction.getHeader().getChain().toByteArray(),
-                protoTransaction.getHeader().getVersion().toByteArray(),
-                protoTransaction.getHeader().getType().toByteArray(),
-                Timestamps.toMillis(protoTransaction.getHeader().getTimestamp()),
-                protoTransaction.getHeader().getBodyHash().toByteArray(),
-                protoTransaction.getHeader().getBodyLength()
-                );
-
-        TransactionBody txBody = new TransactionBody(
-                protoTransaction.getBody().toStringUtf8()
-        );
-
-        return new Transaction(txHeader, protoTransaction.getSignature().toByteArray(), txBody);
-
     }
 }

@@ -74,35 +74,35 @@ public class BlockBodyTest {
         Transaction tx1 = new Transaction(txHeader, txSig.getSignature(), txBody);
         Transaction tx2 = new Transaction(tx1.toBinary());
 
-        log.debug("tx1=" + tx1.toString());
-        log.debug("tx2=" + tx2.toString());
+        log.debug("tx1={}", tx1);
+        log.debug("tx2={}", tx2);
 
         List<Transaction> txs1 = new ArrayList<>();
         txs1.add(tx1);
         txs1.add(tx2);
 
-        log.debug("txs=" + txs1.toString());
+        log.debug("txs={}", txs1);
 
         BlockBody bb1 = new BlockBody(txs1);
         BlockBody bb2 = new BlockBody(bb1.toBinary());
 
-        log.debug("bb1=" + bb1.toString());
-        log.debug("bb2=" + bb2.toString());
+        log.debug("bb1={}", bb1);
+        log.debug("bb2={}", bb2);
 
-        assertEquals(bb1.toString(), bb2.toString());
+        assertEquals(2, bb1.getCount());
+        assertEquals(bb1, bb2);
 
-        log.debug("bb1.length=" + bb1.length());
-        log.debug("bb2.length=" + bb2.length());
+        log.debug("bb1.length={}", bb1.getLength());
+        log.debug("bb2.length={}", bb2.getLength());
 
-        assertEquals(bb1.length(), bb2.length());
+        assertEquals(bb1.getLength(), bb2.getLength());
 
-        log.debug("bb1.getBodyCount=" + bb1.getBodyCount());
-        log.debug("bb2.getBodyCount=" + bb2.getBodyCount());
-        assertEquals(2, bb1.getBodyCount());
-        assertEquals(bb1.getBodyCount(), bb2.getBodyCount());
+        log.debug("bb1.getBodyCount={}", bb1.getCount());
+        log.debug("bb2.getBodyCount={}", bb2.getCount());
+        assertEquals(bb1.getCount(), bb2.getCount());
 
-        log.debug("bb1.merkleRoot=" + Hex.toHexString(bb1.getMerkleRoot()));
-        log.debug("bb2.merkleRoot=" + Hex.toHexString(bb2.getMerkleRoot()));
+        log.debug("bb1.merkleRoot={}", Hex.toHexString(bb1.getMerkleRoot()));
+        log.debug("bb2.merkleRoot={}", Hex.toHexString(bb2.getMerkleRoot()));
 
         assertArrayEquals(bb1.getMerkleRoot(), bb2.getMerkleRoot());
         assertEquals(32, bb1.getMerkleRoot().length);

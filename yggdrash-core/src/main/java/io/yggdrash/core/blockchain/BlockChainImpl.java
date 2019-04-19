@@ -117,7 +117,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     }
 
     private void initGenesis() {
-        for (TransactionHusk tx : genesisBlock.getBody()) {
+        for (Transaction tx : genesisBlock.getTransactionList()) {
             if (!transactionStore.contains(tx.getHash())) {
                 transactionStore.put(tx.getHash(), tx);
             }
@@ -148,7 +148,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                 log.warn("reset branchStore bestBlock: {} -> {}", bestBlock, prevIdx);
                 break;
             }
-            transactionStore.updateCache(block.getBody());
+            transactionStore.updateCache(block.getTransactionList());
             // set Last Best Block
             if (i == bestBlock) {
                 this.lastConfirmedBlock = block;
@@ -228,7 +228,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             //Store event
             if (outputStores != null && outputStores.size() > 0) {
                 Map<String, JsonObject> transactionMap = new HashMap<>();
-                List<TransactionHusk> txList = nextBlock.getBody();
+                List<Transaction> txList = nextBlock.getTransactionList();
                 txList.forEach(tx -> {
                     String txHash = tx.getHash().toString();
                     transactionMap.put(txHash, tx.toJsonObjectFromProto());
@@ -276,12 +276,12 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     }
 
     private void batchTxs(Block<T> block) {
-        if (block == null || block.getBody() == null) {
+        if (block == null || block.getTransactionList() == null) {
             return;
         }
         Set<Sha3Hash> keys = new HashSet<>();
 
-        for (TransactionHusk tx : block.getBody()) {
+        for (Transaction tx : block.getTransactionList()) {
             keys.add(tx.getHash());
         }
         transactionStore.batch(keys);
@@ -314,11 +314,11 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     }
 
     @Override
-    public TransactionHusk addTransaction(TransactionHusk tx) {
+    public Transaction addTransaction(Transaction tx) {
         return addTransaction(tx, true);
     }
 
-    public TransactionHusk addTransaction(TransactionHusk tx, boolean broadcast) {
+    public Transaction addTransaction(Transaction tx, boolean broadcast) {
         if (transactionStore.contains(tx.getHash())) {
             return null;
         } else if (!tx.verify()) {
@@ -347,12 +347,12 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     }
 
     @Override
-    public Collection<TransactionHusk> getRecentTxs() {
+    public Collection<Transaction> getRecentTxs() {
         return transactionStore.getRecentTxs();
     }
 
     @Override
-    public List<TransactionHusk> getUnconfirmedTxs() {
+    public List<Transaction> getUnconfirmedTxs() {
         return new ArrayList<>(transactionStore.getUnconfirmedTxs());
     }
 
@@ -363,7 +363,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
      * @return the transaction by hash
      */
     @Override
-    public TransactionHusk getTxByHash(Sha3Hash hash) {
+    public Transaction getTxByHash(Sha3Hash hash) {
         return transactionStore.get(hash);
     }
 

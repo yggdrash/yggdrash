@@ -38,7 +38,7 @@ public class ValidatorConfiguration {
             File genesisFile = new File(validatorDir, "genesis.json");
             String genesisString = FileUtil.readFileToString(genesisFile, FileUtil.DEFAULT_CHARSET);
             Block genesisBlock = new Block(JsonUtil.parseJsonObject(genesisString));
-            log.debug(genesisBlock.getChainHex());
+            log.debug("{}", genesisBlock.getBranchId());
 
             validatorServiceList.add(new ValidatorService(validatorConfig, genesisBlock));
         }

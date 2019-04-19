@@ -23,7 +23,7 @@ import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerHandler;
@@ -182,20 +182,20 @@ public class GRpcPeerHandler implements PeerHandler {
     }
 
     @Override
-    public Future<List<TransactionHusk>> syncTx(BranchId branchId) {
+    public Future<List<Transaction>> syncTx(BranchId branchId) {
         SyncLimit syncLimit = SyncLimit.newBuilder()
                 .setBranch(ByteString.copyFrom(branchId.getBytes())).build();
 
         log.debug("Requesting sync tx: branchId={}", branchId);
 
-        CompletableFuture<List<TransactionHusk>> husksCompletableFuture = new CompletableFuture<>();
+        CompletableFuture<List<Transaction>> husksCompletableFuture = new CompletableFuture<>();
 
         blockChainAsyncStub.syncTx(syncLimit,
                 new StreamObserver<Proto.TransactionList>() {
                     @Override
                     public void onNext(Proto.TransactionList txList) {
-                        List<TransactionHusk> txHusks = txList.getTransactionsList().stream()
-                                .map(TransactionHusk::new).collect(Collectors.toList());
+                        List<Transaction> txHusks = txList.getTransactionsList().stream()
+                                .map(Transaction::new).collect(Collectors.toList());
                         log.debug("[PeerHandler] TransactionList(size={}) Received", txHusks.size());
 
                         husksCompletableFuture.complete(txHusks);
@@ -226,15 +226,14 @@ public class GRpcPeerHandler implements PeerHandler {
 
         if (!alive) {
             alive = true;
-            this.broadcastBlockRequestObserver =
-                    blockChainAsyncStub.broadcastBlock(emptyResponseStreamObserver);
+            this.broadcastBlockRequestObserver = blockChainAsyncStub.broadcastBlock(emptyResponseStreamObserver);
         }
 
-        broadcastBlockRequestObserver.onNext(block.getProtoBlock());
+        broadcastBlockRequestObserver.onNext(block.getBlock().getInstance());
     }
 
     @Override
-    public void broadcastTx(TransactionHusk txHusk) {
+    public void broadcastTx(Transaction tx) {
         log.debug("Broadcasting txs -> {}", peer.getYnodeUri());
 
         if (!alive) {
@@ -242,6 +241,6 @@ public class GRpcPeerHandler implements PeerHandler {
             this.broadcastTxRequestObserver = blockChainAsyncStub.broadcastTx(emptyResponseStreamObserver);
         }
 
-        broadcastTxRequestObserver.onNext(txHusk.getInstance());
+        broadcastTxRequestObserver.onNext(tx.getInstance());
     }
 }

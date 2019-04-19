@@ -106,7 +106,7 @@ public class ValidatorService {
         String dbPath = defaultConfig.getDatabasePath();
         String host = this.host;
         int port = this.port;
-        String chain = genesisBlock.getChainHex();
+        String chain = genesisBlock.getBranchId().toString();
 
         String keyStorePath = host + "_" + port + File.separator + chain + File.separator + algorithm + "Key";
         String blockStorePath = host + "_" + port + File.separator + chain + File.separator + algorithm + "Block";

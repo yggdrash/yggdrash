@@ -26,8 +26,8 @@ import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BlockMockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;
-import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.consensus.Block;
@@ -74,23 +74,23 @@ public class BlockChainTestUtils {
         return createNextBlock(Collections.emptyList(), prevBlock);
     }
 
-    public static Block createNextBlock(List<TransactionHusk> blockBody, Block prevBlock) {
-        return BlockHusk.nextBlock(TestConstants.wallet(), blockBody, prevBlock);
+    public static Block createNextBlock(List<Transaction> blockBody, Block prevBlock) {
+        return new BlockHusk(io.yggdrash.core.blockchain.Block.nextBlock(TestConstants.wallet(), blockBody, prevBlock));
     }
 
-    public static TransactionHusk createBranchTxHusk() {
+    public static Transaction createBranchTxHusk() {
         JsonObject json = ContractTestUtils.createSampleBranchJson();
 
         return createBranchTxHusk(json);
     }
 
-    public static TransactionHusk createBranchTxHusk(String description) {
+    public static Transaction createBranchTxHusk(String description) {
         JsonObject json = ContractTestUtils.createSampleBranchJson(description);
 
         return createBranchTxHusk(json);
     }
 
-    private static TransactionHusk createBranchTxHusk(JsonObject json) {
+    private static Transaction createBranchTxHusk(JsonObject json) {
         TransactionBuilder builder = new TransactionBuilder();
         return builder.addTxBody(Constants.STEM_CONTRACT_VERSION, "create", json, false)
                 .setWallet(TestConstants.wallet())
@@ -98,7 +98,7 @@ public class BlockChainTestUtils {
                 .build();
     }
 
-    public static TransactionHusk createBranchTxHusk(BranchId branchId, String method,
+    public static Transaction createBranchTxHusk(BranchId branchId, String method,
                                                      JsonObject branch) {
         TransactionBuilder builder = new TransactionBuilder();
 
@@ -108,7 +108,7 @@ public class BlockChainTestUtils {
                 .build();
     }
 
-    public static TransactionHusk createTxHusk(BranchId branchId, JsonArray txBody) {
+    public static Transaction createTxHusk(BranchId branchId, JsonArray txBody) {
         TransactionBuilder builder = new TransactionBuilder();
         return builder.addTransactionBody(txBody)
                 .setWallet(TestConstants.wallet())
@@ -141,7 +141,7 @@ public class BlockChainTestUtils {
 
     public static void generateBlock(BranchGroup branchGroup, BranchId branchId) {
         BlockChain branch = branchGroup.getBranch(branchId);
-        List<TransactionHusk> txs =
+        List<Transaction> txs =
                 branch.getTransactionStore().getUnconfirmedTxsWithLimit(Constants.LIMIT.BLOCK_SYNC_SIZE);
         branch.addBlock(createNextBlock(txs, branch.getLastConfirmedBlock()));
     }
@@ -159,7 +159,7 @@ public class BlockChainTestUtils {
 
     public static List<Block> createBlockListFilledWithTx(int height, int txSize) {
         List<Block> blockList = new ArrayList<>();
-        List<TransactionHusk> blockBody = new ArrayList<>();
+        List<Transaction> blockBody = new ArrayList<>();
 
         for (int i = 0; i < txSize; i++) {
             blockBody.add(createTransferTxHusk());
@@ -170,7 +170,7 @@ public class BlockChainTestUtils {
 
     private static List<Block> createBlockList(List<Block> blockList,
                                                Block prevBlock,
-                                               List<TransactionHusk> blockBody,
+                                               List<Transaction> blockBody,
                                                int height) {
         while (blockList.size() < height) {
             blockList.add(prevBlock);
@@ -183,11 +183,11 @@ public class BlockChainTestUtils {
         return blockList.size() > 0 ? blockList : Collections.emptyList();
     }
 
-    public static TransactionHusk createTransferTxHusk() {
+    public static Transaction createTransferTxHusk() {
         return createTransferTx(TestConstants.TRANSFER_TO, 100);
     }
 
-    private static TransactionHusk createTransferTx(String to, int amount) {
+    private static Transaction createTransferTx(String to, int amount) {
         JsonArray txBody = ContractTestUtils.transferTxBodyJson(to, amount);
         TransactionBuilder builder = new TransactionBuilder();
         return builder.addTransactionBody(txBody)

@@ -33,13 +33,13 @@ public interface BlockChain<T, V> extends ConsensusBlockChain<T, V> {
 
     Block<T> addBlock(Block<T> block, boolean broadcast);
 
-    TransactionHusk addTransaction(TransactionHusk tx);
+    Transaction addTransaction(Transaction tx);
 
     long getLastIndex();
 
-    Collection<TransactionHusk> getRecentTxs();
+    Collection<Transaction> getRecentTxs();
 
-    TransactionHusk getTxByHash(Sha3Hash hash);
+    Transaction getTxByHash(Sha3Hash hash);
 
     Block<T> getBlockByIndex(long index);
 
@@ -51,7 +51,7 @@ public interface BlockChain<T, V> extends ConsensusBlockChain<T, V> {
 
     TransactionReceipt getTransactionReceipt(String transactionId);
 
-    List<TransactionHusk> getUnconfirmedTxs();
+    List<Transaction> getUnconfirmedTxs();
 
     ContractContainer getContractContainer();
 

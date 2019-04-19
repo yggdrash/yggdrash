@@ -93,11 +93,11 @@ public class BlockChainTest extends CiTest {
     public void shouldBeStoredGenesisTxs() {
         BlockChain blockChain = generateTestBlockChain(true);
         Block genesis = blockChain.getGenesisBlock();
-        List<TransactionHusk> txList = genesis.getBody();
-        for (TransactionHusk tx : txList) {
+        List<Transaction> txList = genesis.getTransactionList();
+        for (Transaction tx : txList) {
             assertThat(blockChain.getTxByHash(tx.getHash())).isNotNull();
         }
-        assertThat(blockChain.countOfTxs()).isEqualTo(genesis.getBody().size());
+        assertThat(blockChain.countOfTxs()).isEqualTo(genesis.getBodyCount());
         blockChain.close();
     }
 
@@ -125,7 +125,7 @@ public class BlockChainTest extends CiTest {
             }
 
             @Override
-            public void receivedTransaction(TransactionHusk tx) {
+            public void receivedTransaction(Transaction tx) {
                 assertThat(tx).isNotNull();
             }
         });
@@ -157,7 +157,7 @@ public class BlockChainTest extends CiTest {
     private static Block getBlockFixture(Long index, byte[] prevHash) {
 
         try {
-            io.yggdrash.core.blockchain.Block tmpBlock = new io.yggdrash.core.blockchain.Block(BlockChainTestUtils.genesisBlock().toJsonObject());
+            io.yggdrash.core.blockchain.Block tmpBlock = BlockChainTestUtils.genesisBlock().getBlock();
             BlockHeader tmpBlockHeader = tmpBlock.getHeader();
             BlockBody tmpBlockBody = tmpBlock.getBody();
 
@@ -170,7 +170,8 @@ public class BlockChainTest extends CiTest {
                     TimeUtils.time(),
                     tmpBlockBody);
 
-            io.yggdrash.core.blockchain.Block block = new io.yggdrash.core.blockchain.Block(newBlockHeader, TestConstants.wallet(), tmpBlockBody);
+            io.yggdrash.core.blockchain.Block block =
+                    new io.yggdrash.core.blockchain.Block(newBlockHeader, TestConstants.wallet(), tmpBlockBody);
             return new BlockHusk(block);
         } catch (Exception e) {
             throw new NotValidateException(e);

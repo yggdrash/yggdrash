@@ -20,7 +20,7 @@ import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchEventListener;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.Block;
 import io.yggdrash.gateway.dto.BlockDto;
 import io.yggdrash.gateway.dto.TransactionDto;
@@ -52,7 +52,7 @@ public class WebsocketSender implements BranchEventListener {
     }
 
     @Override
-    public void receivedTransaction(TransactionHusk tx) {
+    public void receivedTransaction(Transaction tx) {
         BranchId branchId = tx.getBranchId();
         template.convertAndSend("/topic/txs", TransactionDto.createBy(tx));
         template.convertAndSend("/topic/branches/" + branchId + "/txs",

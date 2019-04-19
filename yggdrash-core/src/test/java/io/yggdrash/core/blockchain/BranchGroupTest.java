@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class BranchGroupTest {
 
     private BranchGroup branchGroup;
-    private TransactionHusk tx;
+    private Transaction tx;
     private Block block;
     protected static final Logger log = LoggerFactory.getLogger(BranchGroupTest.class);
 
@@ -63,12 +63,10 @@ public class BranchGroupTest {
         assertThat(branchGroup.countOfTxs(tx.getBranchId())).isEqualTo(1);
 
         branchGroup.addTransaction(tx);
-        TransactionHusk foundTxBySha3 = branchGroup.getTxByHash(
-                tx.getBranchId(), tx.getHash());
+        Transaction foundTxBySha3 = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
         assertThat(foundTxBySha3.getHash()).isEqualTo(tx.getHash());
 
-        TransactionHusk foundTxByString = branchGroup.getTxByHash(
-                tx.getBranchId(), tx.getHash().toString());
+        Transaction foundTxByString = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash().toString());
         assertThat(foundTxByString.getHash()).isEqualTo(tx.getHash());
 
         assertThat(branchGroup.getUnconfirmedTxs(tx.getBranchId()).size()).isEqualTo(1);
@@ -81,7 +79,7 @@ public class BranchGroupTest {
         long latest = branchGroup.getLastIndex(tx.getBranchId());
         Block chainedBlock = branchGroup.getBlockByIndex(tx.getBranchId(), latest);
         assertThat(latest).isEqualTo(1);
-        assertThat(chainedBlock.getBody().size()).isEqualTo(1);
+        assertThat(chainedBlock.getBodyCount()).isEqualTo(1);
         assertThat(branchGroup.getTxByHash(tx.getBranchId(), tx.getHash()).getHash())
                 .isEqualTo(tx.getHash());
     }
@@ -94,7 +92,7 @@ public class BranchGroupTest {
         PerformanceTest.apply();
         BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
         for (int i = 0; i < 100; i++) {
-            TransactionHusk tx = createTx(i);
+            Transaction tx = createTx(i);
             blockChain.addTransaction(tx);
         }
 
@@ -112,7 +110,7 @@ public class BranchGroupTest {
         assertThat(branchGroup.getLastIndex(newBlock.getBranchId())).isEqualTo(2);
         assertThat(branchGroup.getBlockByIndex(newBlock.getBranchId(), 2).getHash())
                 .isEqualTo(newBlock.getHash());
-        TransactionHusk foundTx = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
+        Transaction foundTx = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
         assertThat(foundTx.getHash()).isEqualTo(tx.getHash());
     }
 
@@ -143,7 +141,7 @@ public class BranchGroupTest {
         assertThat(branchGroup.getTransactionReceiptStore(tx.getBranchId())).isNotNull();
     }
 
-    private TransactionHusk createTx(int amount) {
+    private Transaction createTx(int amount) {
         JsonArray txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, amount);
         return BlockChainTestUtils.createTxHusk(yggdrash(), txBody);
     }

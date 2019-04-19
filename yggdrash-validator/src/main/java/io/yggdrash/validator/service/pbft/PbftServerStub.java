@@ -90,7 +90,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
                                    StreamObserver<NetProto.Empty> responseObserver) {
         PbftBlock newPbftBlock = new PbftBlock(request);
         try {
-            log.debug("Received BroadcastPbftBlock [{}] {} ", newPbftBlock.getIndex(), newPbftBlock.getHashHex());
+            log.debug("Received BroadcastPbftBlock [{}] {} ", newPbftBlock.getIndex(), newPbftBlock.getHash());
             if (!PbftBlock.verify(newPbftBlock)) {
                 log.warn("Verify Fail");
                 responseObserver.onNext(EMPTY);

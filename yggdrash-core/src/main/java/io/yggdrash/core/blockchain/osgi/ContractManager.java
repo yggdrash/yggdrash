@@ -4,7 +4,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.store.StateStore;
-import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
@@ -15,12 +14,11 @@ import io.yggdrash.contract.core.annotation.InjectOutputStore;
 import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.SystemProperties;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.store.StoreContainer;
 import io.yggdrash.core.store.TransactionReceiptStore;
-import io.yggdrash.core.wallet.Address;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
@@ -363,15 +361,15 @@ public class ContractManager {
         BlockRuntimeResult result = new BlockRuntimeResult(nextBlock);
         // TODO tempStateStore
         // TempStateStore blockState = new TempStateStore(stateStore);
-        List<TransactionHusk> txList = nextBlock.getBody();
-        for (TransactionHusk tx : txList) {
+        List<Transaction> txList = nextBlock.getTransactionList();
+        for (Transaction tx : txList) {
             TransactionReceipt txReceipt = createTransactionReceipt(tx);
             // set Block ID
             txReceipt.setBlockId(nextBlock.getHash().toString());
             txReceipt.setBlockHeight(nextBlock.getIndex());
             txReceipt.setBranchId(nextBlock.getBranchId().toString());
 
-            for (JsonElement transactionElement : JsonUtil.parseJsonArray(tx.getBody())) {
+            for (JsonElement transactionElement : tx.getBody().getBody()) {
                 JsonObject txBody = transactionElement.getAsJsonObject();
                 String contractVersion = txBody.get("contractVersion").getAsString();
                 Object contractResult = invoke(
@@ -429,13 +427,14 @@ public class ContractManager {
         return result;
     }
 
-    public static TransactionReceipt createTransactionReceipt(TransactionHusk tx) {
+    public static TransactionReceipt createTransactionReceipt(Transaction tx) {
         String txId = tx.getHash().toString();
-        long txSize = tx.getBody().length();
-        Address address = tx.getAddress();
+        long txSize = tx.getBody().getLength();
         String issuer = null;
-        if (address != null) {
-            issuer = address.toString();
+        try {
+            issuer = tx.getAddress().toString();
+        } catch (Exception e) {
+            log.warn(e.getMessage());
         }
         return new TransactionReceiptImpl(txId, txSize, issuer);
     }

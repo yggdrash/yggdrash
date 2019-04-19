@@ -3,16 +3,12 @@ package io.yggdrash.core.consensus;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.ProtoHusk;
-import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.wallet.Address;
-import io.yggdrash.proto.Proto;
+import io.yggdrash.core.blockchain.ProtoObject;
+import io.yggdrash.core.blockchain.Transaction;
 
 import java.util.List;
 
-public interface Block<T> extends ProtoHusk<T> {
-
-    Proto.Block getProtoBlock();
+public interface Block<T> extends ProtoObject<T> {
 
     io.yggdrash.core.blockchain.Block getBlock();
 
@@ -24,8 +20,6 @@ public interface Block<T> extends ProtoHusk<T> {
 
     Sha3Hash getHash();
 
-    String getHashHex();
-
     Sha3Hash getPrevBlockHash();
 
     boolean verify();
@@ -36,13 +30,11 @@ public interface Block<T> extends ProtoHusk<T> {
 
     int getBodyCount();
 
-    List<TransactionHusk> getBody();
+    List<Transaction> getTransactionList();
 
     long getBodyLength();
 
     byte[] getSignature();
-
-    Address getAddress();
 
     JsonObject toJsonObjectByProto();
 

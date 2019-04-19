@@ -41,7 +41,7 @@ public class BlockHuskTest {
 
     @Test
     public void blockCloneTest() {
-        BlockHusk cloned = new BlockHusk(genesisBlock.getData());
+        BlockHusk cloned = new BlockHusk(genesisBlock.toBinary());
         assertThat(cloned.hashCode()).isEqualTo(genesisBlock.hashCode());
         assertThat(cloned).isEqualTo(genesisBlock);
     }

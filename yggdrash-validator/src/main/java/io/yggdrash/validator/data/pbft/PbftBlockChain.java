@@ -18,12 +18,12 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 @Deprecated
 public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, PbftMessage> {
@@ -63,7 +63,7 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
 
         if (this.blockKeyStore.size() == 0) {
             this.blockKeyStore.put(0L, this.genesisBlock.getHash().getBytes());
-            this.blockStore.put(Sha3Hash.createByHashed(genesisBlock.getHash()), this.genesisBlock);
+            this.blockStore.put(genesisBlock.getHash(), this.genesisBlock);
 
         } else {
             if (!Arrays.equals(this.blockKeyStore.get(0L), this.genesisBlock.getHash().getBytes())) {
@@ -165,7 +165,7 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
                     + "["
                     + block.getIndex()
                     + "]"
-                    + block.getHashHex()
+                    + block.getHash()
                     + " ("
                     + block.getConsensusMessages().getPrepareMap().size()
                     + ")"
@@ -176,7 +176,7 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
                     + block.getConsensusMessages().getViewChangeMap().size()
                     + ")"
                     + " ("
-                    + block.getBlock().getAddressHex()
+                    + block.getBlock().getAddress()
                     + ")");
         } catch (Exception e) {
             log.debug(e.getMessage());
@@ -212,14 +212,12 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
     private void batchTxs(Block block) {
         if (block == null
                 || block.getBlock() == null
-                || block.getBlock().getBody().length() == 0) {
+                || block.getBlock().getBody().getLength() == 0) {
             return;
         }
-        Set<Sha3Hash> keys = new HashSet<>();
+        Set<Sha3Hash> keys = block.getBlock().getBody().getTransactionList().stream()
+                .map(Transaction::getHash).collect(Collectors.toSet());
 
-        for (Transaction tx : block.getBlock().getBody().getBody()) {
-            keys.add(new Sha3Hash(tx.getHash(), true));
-        }
         transactionStore.batch(keys);
     }
 }

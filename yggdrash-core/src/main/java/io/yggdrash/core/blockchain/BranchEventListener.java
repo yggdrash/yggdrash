@@ -21,5 +21,5 @@ import io.yggdrash.core.consensus.Block;
 public interface BranchEventListener {
     void chainedBlock(Block block);
 
-    void receivedTransaction(TransactionHusk tx);
+    void receivedTransaction(Transaction tx);
 }

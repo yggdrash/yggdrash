@@ -101,7 +101,7 @@ public class ValidatorService {
                             contractContainer, outputStores);
                 case "ebft":
                     EbftBlock ebftBlock = new EbftBlock(genesisBlock);
-                    return new BlockChainImpl<EbftProto.EbftBlock, PbftMessageSet>(branch, ebftBlock,
+                    return new BlockChainImpl<EbftProto.EbftBlock, EbftBlock>(branch, ebftBlock,
                             blockStore, transactionStore, branchStore, stateStore, transactionReceiptStore,
                             contractContainer, outputStores);
                 default:

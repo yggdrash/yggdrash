@@ -6,60 +6,37 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.core.wallet.Address;
-import io.yggdrash.proto.Proto;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public abstract class AbstractBlock<T> implements Block<T> {
-    private final Proto.Block protoBlock;
     private final transient io.yggdrash.core.blockchain.Block block;
-    private transient List<TransactionHusk> body;
 
-    protected AbstractBlock(Proto.Block protoBlock) {
-        this.protoBlock = protoBlock;
-        this.block = io.yggdrash.core.blockchain.Block.toBlock(getProtoBlock());
-    }
-
-    @Override
-    public Proto.Block getProtoBlock() {
-        return protoBlock;
+    protected AbstractBlock(io.yggdrash.core.blockchain.Block block) {
+        this.block = block;
     }
 
     @Override
     public int getBodyCount() {
-        return protoBlock.getBody().getTransactionsCount();
+        return block.getBody().getCount();
     }
 
     @Override
-    public List<TransactionHusk> getBody() {
-        if (body != null) {
-            return body;
-        }
-        this.body = new ArrayList<>();
-        for (Proto.Transaction tx : getProtoBlock().getBody().getTransactionsList()) {
-            body.add(new TransactionHusk(tx));
-        }
-        return body;
+    public List<Transaction> getTransactionList() {
+        return block.getBody().getTransactionList();
     }
 
     @Override
     public long getBodyLength() {
-        return protoBlock.getBody().getTransactionsCount();
+        return block.getHeader().getBodyLength();
     }
 
     @Override
     public byte[] getSignature() {
-        return protoBlock.getSignature().toByteArray();
-    }
-
-    @Override
-    public Address getAddress() {
-        return new Address(block.getAddress());
+        return block.getSignature();
     }
 
     @Override
@@ -69,27 +46,22 @@ public abstract class AbstractBlock<T> implements Block<T> {
 
     @Override
     public BranchId getBranchId() {
-        return BranchId.of(protoBlock.getHeader().getChain().toByteArray());
+        return block.getBranchId();
     }
 
     @Override
     public long getIndex() {
-        return this.protoBlock.getHeader().getIndex();
+        return this.block.getHeader().getIndex();
     }
 
     @Override
     public Sha3Hash getHash() {
-        return Sha3Hash.createByHashed(block.getHash());
-    }
-
-    @Override
-    public String getHashHex() {
-        return this.block.getHashHex();
+        return block.getHash();
     }
 
     @Override
     public Sha3Hash getPrevBlockHash() {
-        return Sha3Hash.createByHashed(protoBlock.getHeader().getPrevBlockHash().toByteArray());
+        return Sha3Hash.createByHashed(block.getHeader().getPrevBlockHash());
     }
 
     @Override
@@ -100,13 +72,13 @@ public abstract class AbstractBlock<T> implements Block<T> {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Block<T> that = (Block<T>) o;
-        return Arrays.equals(getData(), that.getData());
+        Block<T> other = (Block<T>) o;
+        return Arrays.equals(toBinary(), other.toBinary());
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(getData());
+        return Arrays.hashCode(toBinary());
     }
 
     @Override
@@ -122,8 +94,7 @@ public abstract class AbstractBlock<T> implements Block<T> {
     @Override
     public JsonObject toJsonObjectByProto() {
         try {
-            String print = JsonFormat.printer()
-                    .includingDefaultValueFields().print(protoBlock);
+            String print = JsonFormat.printer().includingDefaultValueFields().print(block.getInstance());
             JsonObject jsonObject = new JsonParser().parse(print).getAsJsonObject();
             jsonObject.addProperty("blockId", getHash().toString());
             return jsonObject;

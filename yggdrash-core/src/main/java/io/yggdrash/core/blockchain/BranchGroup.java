@@ -30,7 +30,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BranchGroup {
@@ -55,15 +54,11 @@ public class BranchGroup {
         return branches.containsKey(branchId);
     }
 
-    public Set<BranchId> getAllBranchId() {
-        return branches.keySet();
-    }
-
     public Collection<BlockChain> getAllBranch() {
         return branches.values();
     }
 
-    public TransactionHusk addTransaction(TransactionHusk tx) {
+    public Transaction addTransaction(Transaction tx) {
         if (branches.containsKey(tx.getBranchId())) {
             return branches.get(tx.getBranchId()).addTransaction(tx);
         }
@@ -77,15 +72,15 @@ public class BranchGroup {
         return 0L;
     }
 
-    public Collection<TransactionHusk> getRecentTxs(BranchId branchId) {
+    public Collection<Transaction> getRecentTxs(BranchId branchId) {
         return branches.get(branchId).getRecentTxs();
     }
 
-    public TransactionHusk getTxByHash(BranchId branchId, String id) {
+    public Transaction getTxByHash(BranchId branchId, String id) {
         return getTxByHash(branchId, new Sha3Hash(id));
     }
 
-    TransactionHusk getTxByHash(BranchId branchId, Sha3Hash hash) {
+    Transaction getTxByHash(BranchId branchId, Sha3Hash hash) {
         return branches.get(branchId).getTxByHash(hash);
     }
 
@@ -124,7 +119,7 @@ public class BranchGroup {
         return branches.get(branchId).getTransactionReceipt(transactionId);
     }
 
-    public List<TransactionHusk> getUnconfirmedTxs(BranchId branchId) {
+    public List<Transaction> getUnconfirmedTxs(BranchId branchId) {
         if (branches.containsKey(branchId)) {
             return branches.get(branchId).getUnconfirmedTxs();
         } else {

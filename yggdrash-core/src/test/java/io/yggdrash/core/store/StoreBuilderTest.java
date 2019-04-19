@@ -19,7 +19,7 @@ package io.yggdrash.core.store;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.p2p.Peer;
 import org.junit.Before;
@@ -57,7 +57,7 @@ public class StoreBuilderTest {
 
     @Test
     public void buildTxStore() {
-        TransactionHusk tx = BlockChainTestUtils.createTransferTxHusk();
+        Transaction tx = BlockChainTestUtils.createTransferTxHusk();
         TransactionStore store = builder.buildTxStore();
         store.put(tx.getHash(), tx);
         assertThat(store.contains(tx.getHash())).isTrue();

@@ -43,7 +43,6 @@ public class TransactionSpeedTest extends PerformanceTest {
     private TransactionBody txBody;
     private TransactionHeader txHeader;
     private Wallet wallet;
-    private TransactionSignature txSig;
     private Transaction tx1;
     private byte[] txBytes1;
 
@@ -68,8 +67,7 @@ public class TransactionSpeedTest extends PerformanceTest {
 
         wallet = new Wallet();
 
-        txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
-        tx1 = new Transaction(txHeader, txSig.getSignature(), txBody);
+        tx1 = new Transaction(txHeader, wallet, txBody);
         assertTrue(tx1.verify());
 
         txBytes1 = tx1.toBinary();
@@ -86,7 +84,7 @@ public class TransactionSpeedTest extends PerformanceTest {
             startTime = System.nanoTime();
 
             // Test method
-            new Transaction(txHeader, txSig.getSignature(), txBody);
+            new Transaction(txHeader, wallet, txBody);
 
             endTime = System.nanoTime();
             Arrays.fill(timeList,endTime - startTime);

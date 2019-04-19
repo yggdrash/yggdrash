@@ -12,7 +12,7 @@ import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.validator.util.TestUtils;
+import io.yggdrash.validator.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -78,24 +78,24 @@ public class EbftBlockChainMultiThreadTest {
         this.ebftBlock0 = new EbftBlock(this.block0);
 
         List<String> consensusList1 = new ArrayList<>();
-        consensusList1.add(wallet0.signHex(block1.getHash(), true));
-        consensusList1.add(wallet1.signHex(block1.getHash(), true));
-        consensusList1.add(wallet2.signHex(block1.getHash(), true));
-        consensusList1.add(wallet3.signHex(block1.getHash(), true));
+        consensusList1.add(wallet0.signHex(block1.getHash().getBytes(), true));
+        consensusList1.add(wallet1.signHex(block1.getHash().getBytes(), true));
+        consensusList1.add(wallet2.signHex(block1.getHash().getBytes(), true));
+        consensusList1.add(wallet3.signHex(block1.getHash().getBytes(), true));
         this.ebftBlock1 = new EbftBlock(this.block1, consensusList1);
 
         List<String> consensusList2 = new ArrayList<>();
-        consensusList2.add(wallet0.signHex(block2.getHash(), true));
-        consensusList2.add(wallet1.signHex(block2.getHash(), true));
-        consensusList2.add(wallet2.signHex(block2.getHash(), true));
-        consensusList2.add(wallet3.signHex(block2.getHash(), true));
+        consensusList2.add(wallet0.signHex(block2.getHash().getBytes(), true));
+        consensusList2.add(wallet1.signHex(block2.getHash().getBytes(), true));
+        consensusList2.add(wallet2.signHex(block2.getHash().getBytes(), true));
+        consensusList2.add(wallet3.signHex(block2.getHash().getBytes(), true));
         this.ebftBlock2 = new EbftBlock(this.block2, consensusList2);
 
         List<String> consensusList3 = new ArrayList<>();
-        consensusList3.add(wallet0.signHex(block3.getHash(), true));
-        consensusList3.add(wallet1.signHex(block3.getHash(), true));
-        consensusList3.add(wallet2.signHex(block3.getHash(), true));
-        consensusList3.add(wallet3.signHex(block3.getHash(), true));
+        consensusList3.add(wallet0.signHex(block3.getHash().getBytes(), true));
+        consensusList3.add(wallet1.signHex(block3.getHash().getBytes(), true));
+        consensusList3.add(wallet2.signHex(block3.getHash().getBytes(), true));
+        consensusList3.add(wallet3.signHex(block3.getHash().getBytes(), true));
         this.ebftBlock3 = new EbftBlock(this.block3, consensusList3);
 
     }
@@ -120,10 +120,10 @@ public class EbftBlockChainMultiThreadTest {
 
     private List<String> makeConsensusList(Block block) {
         List<String> consensusList = new ArrayList<>();
-        consensusList.add(wallet0.signHex(block.getHash(), true));
-        consensusList.add(wallet1.signHex(block.getHash(), true));
-        consensusList.add(wallet2.signHex(block.getHash(), true));
-        consensusList.add(wallet3.signHex(block.getHash(), true));
+        consensusList.add(wallet0.signHex(block.getHash().getBytes(), true));
+        consensusList.add(wallet1.signHex(block.getHash().getBytes(), true));
+        consensusList.add(wallet2.signHex(block.getHash().getBytes(), true));
+        consensusList.add(wallet3.signHex(block.getHash().getBytes(), true));
         return consensusList;
     }
 

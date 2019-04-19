@@ -4,7 +4,7 @@ import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.net.BlockChainConsumer;
 import io.yggdrash.node.springboot.grpc.GrpcService;
@@ -63,10 +63,10 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
                                 StreamObserver<Proto.TransactionList> responseObserver) {
         log.debug("Received syncTransaction request");
         BranchId branchId = BranchId.of(syncLimit.getBranch().toByteArray());
-        List<TransactionHusk> txList = blockChainConsumer.syncTx(branchId);
+        List<Transaction> txList = blockChainConsumer.syncTx(branchId);
         Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
-        for (TransactionHusk husk : txList) {
-            builder.addTransactions(husk.getInstance());
+        for (Transaction tx : txList) {
+            builder.addTransactions(tx.getInstance());
         }
         responseObserver.onNext(builder.build());
         responseObserver.onCompleted();
@@ -107,7 +107,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
         return new StreamObserver<Proto.Transaction>() {
             @Override
             public void onNext(Proto.Transaction tx) {
-                TransactionHusk txHusk = new TransactionHusk(tx);
+                Transaction txHusk = new Transaction(tx);
                 log.debug("Received transaction: hash={}, {}", txHusk.getHash(), this);
 
                 blockChainConsumer.broadcastTx(txHusk);

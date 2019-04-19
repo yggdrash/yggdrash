@@ -24,7 +24,6 @@ import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.consensus.AbstractBlock;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.EbftProto;
-import io.yggdrash.proto.Proto;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,17 +33,12 @@ public class EbftBlock extends AbstractBlock<EbftProto.EbftBlock> {
 
     private final transient List<String> consensusList;
 
-    private EbftBlock(Proto.Block protoBlock, List<String> consensusList) {
-        super(protoBlock);
-        this.consensusList = new ArrayList<>(consensusList);
+    public EbftBlock(byte[] bytes) {
+        this(toProto(bytes));
     }
 
     public EbftBlock(EbftProto.EbftBlock block) {
-        this(block.getBlock(), block.getConsensusList().getConsensusList());
-    }
-
-    public EbftBlock(byte[] bytes) {
-        this(toProto(bytes));
+        this(new Block(block.getBlock()), block.getConsensusList().getConsensusList());
     }
 
     public EbftBlock(Block block) {
@@ -52,7 +46,8 @@ public class EbftBlock extends AbstractBlock<EbftProto.EbftBlock> {
     }
 
     public EbftBlock(Block block, List<String> consensusList) {
-        this(Block.toProtoBlock(block), consensusList);
+        super(block);
+        this.consensusList = new ArrayList<>(consensusList);
     }
 
     public EbftBlock(JsonObject jsonObject) {
@@ -67,11 +62,11 @@ public class EbftBlock extends AbstractBlock<EbftProto.EbftBlock> {
     @Override
     public EbftProto.EbftBlock getInstance() {
         EbftProto.ConsensusList list = EbftProto.ConsensusList.newBuilder().addAllConsensus(consensusList).build();
-        return EbftProto.EbftBlock.newBuilder().setBlock(getProtoBlock()).setConsensusList(list).build();
+        return EbftProto.EbftBlock.newBuilder().setBlock(getBlock().getInstance()).setConsensusList(list).build();
     }
 
     @Override
-    public byte[] getData() {
+    public byte[] toBinary() {
         return getInstance().toByteArray();
     }
 

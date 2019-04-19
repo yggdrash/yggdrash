@@ -16,6 +16,7 @@
 
 package io.yggdrash.core.wallet;
 
+import io.yggdrash.common.crypto.HashUtil;
 import org.spongycastle.util.encoders.Hex;
 
 import java.util.Arrays;
@@ -24,7 +25,15 @@ public class Address {
     private final byte[] data;
 
     public Address(byte[] data) {
-        this.data = data;
+        this(data, false);
+    }
+
+    private Address(byte[] data, boolean hashed) {
+        if (hashed) {
+            this.data = data;
+        } else {
+            this.data = HashUtil.sha3omit12(Arrays.copyOfRange(data, 1, data.length));
+        }
     }
 
     public byte[] getBytes() {
@@ -54,6 +63,6 @@ public class Address {
     }
 
     public static Address of(String addr) {
-        return new Address(Hex.decode(addr));
+        return new Address(Hex.decode(addr), true);
     }
 }

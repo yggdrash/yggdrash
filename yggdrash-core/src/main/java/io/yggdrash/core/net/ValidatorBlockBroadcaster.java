@@ -17,7 +17,7 @@
 package io.yggdrash.core.net;
 
 import io.yggdrash.core.blockchain.BranchEventListener;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
@@ -49,7 +49,7 @@ public class ValidatorBlockBroadcaster implements BranchEventListener {
     }
 
     @Override
-    public void receivedTransaction(TransactionHusk tx) {
+    public void receivedTransaction(Transaction tx) {
         // ignore handle tx
     }
 }

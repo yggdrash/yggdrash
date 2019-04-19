@@ -143,13 +143,13 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
 
     @Override
     public void syncTransaction(PeerHandler peerHandler, BlockChain blockChain) {
-        Future<List<TransactionHusk>> futureHusks = peerHandler.syncTx(blockChain.getBranchId());
+        Future<List<Transaction>> futureTxList = peerHandler.syncTx(blockChain.getBranchId());
 
         try {
-            List<TransactionHusk> txHusks = futureHusks.get();
+            List<Transaction> txList = futureTxList.get();
             log.info("[SyncManager] Synchronize Tx receivedSize={}, from={}",
-                    txHusks.size(), peerHandler.getPeer().getYnodeUri());
-            addTransaction(blockChain, txHusks);
+                    txList.size(), peerHandler.getPeer().getYnodeUri());
+            addTransaction(blockChain, txList);
 
         } catch (InterruptedException | ExecutionException e) {
             log.debug("[SyncManager] Sync Tx ERR occurred: {}", e.getMessage(), e);
@@ -157,10 +157,10 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
         }
     }
 
-    private void addTransaction(BlockChain blockChain, List<TransactionHusk> txHusks) {
-        for (TransactionHusk txHusk : txHusks) {
+    private void addTransaction(BlockChain blockChain, List<Transaction> txList) {
+        for (Transaction tx : txList) {
             try {
-                blockChain.addTransaction(txHusk);
+                blockChain.addTransaction(tx);
             } catch (Exception e) {
                 log.warn("[SyncManager] Add Tx ERR occurred: {}", e.getMessage());
             }

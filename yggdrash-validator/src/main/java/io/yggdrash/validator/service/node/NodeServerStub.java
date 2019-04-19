@@ -1,7 +1,7 @@
 package io.yggdrash.validator.service.node;
 
 import io.grpc.stub.StreamObserver;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.proto.BlockChainGrpc;
@@ -10,7 +10,6 @@ import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -40,7 +39,7 @@ public class NodeServerStub extends BlockChainGrpc.BlockChainImplBase {
             for (Object object : blockList) {
                 Block consensusBlock = (Block) object;
                 if (consensusBlock.getBlock() != null) {
-                    builder.addBlocks(io.yggdrash.core.blockchain.Block.toProtoBlock(consensusBlock.getBlock()));
+                    builder.addBlocks(consensusBlock.getBlock().getInstance());
                 }
             }
         }
@@ -60,9 +59,8 @@ public class NodeServerStub extends BlockChainGrpc.BlockChainImplBase {
         Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
         if (Arrays.equals(syncLimit.getBranch().toByteArray(), blockChain.getBranchId().getBytes())) {
             //todo: check memory leak
-            for (TransactionHusk husk :
-                    new ArrayList<>(blockChain.getTransactionStore().getUnconfirmedTxs())) {
-                builder.addTransactions(husk.getInstance());
+            for (Transaction tx : blockChain.getTransactionStore().getUnconfirmedTxs()) {
+                builder.addTransactions(tx.getInstance());
             }
         }
 
@@ -100,7 +98,7 @@ public class NodeServerStub extends BlockChainGrpc.BlockChainImplBase {
             public void onNext(Proto.Transaction value) {
                 log.debug("NodeService broadcastTransaction");
                 log.debug("Received transaction: {}", value);
-                TransactionHusk tx = new TransactionHusk(value);
+                Transaction tx = new Transaction(value);
                 if (tx.getBranchId().equals(blockChain.getBranchId())) {
                     blockChain.getTransactionStore().put(tx.getHash(), tx);
                 }

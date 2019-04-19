@@ -65,16 +65,16 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
 
     @Override
     public void put(Sha3Hash key, Block<T> value) {
-        if (key == null || value == null || value.getData().length > Constants.MAX_MEMORY) {
-            log.debug("Key or value are not valild.");
+        byte[] bytes = value.toBinary();
+        if (bytes.length > Constants.MAX_MEMORY) {
+            log.debug("block binary {} > {}", bytes.length, Constants.MAX_MEMORY);
             return;
         }
-
         lock.lock();
         try {
             if (!contains(key)) {
-                log.trace("put (key: {})(blockHash {})", key, value.getHashHex());
-                db.put(key.getBytes(), value.getData());
+                log.trace("put (key: {})(blockHash {})", key, value.getHash());
+                db.put(key.getBytes(), bytes);
                 blockSize++;
             }
         } catch (Exception e) {
@@ -82,8 +82,6 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
         } finally {
             lock.unlock();
         }
-
-        db.put(key.getBytes(), value.getData());
     }
 
     @Override
@@ -120,7 +118,7 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
         lock.lock();
         db.put(indexKey, block.getHash().getBytes());
         // store block data
-        db.put(block.getHash().getBytes(), block.getData());
+        put(block.getHash(), block);
         // add block Transaction size
         transactionSize += block.getBodyCount();
         db.put("TRANSACTION_SIZE".getBytes(), ByteUtil.longToBytes(transactionSize));

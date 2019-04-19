@@ -27,6 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -74,16 +75,15 @@ public class BlockTest {
 
         long timestamp = TimeUtils.time();
         TransactionHeader txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
-        TransactionSignature txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
 
-        Transaction tx1 = new Transaction(txHeader, txSig.getSignature(), txBody);
+        Transaction tx1 = new Transaction(txHeader, wallet, txBody);
         Transaction tx2 = new Transaction(tx1.toBinary());
 
         List<Transaction> txs1 = new ArrayList<>();
         txs1.add(tx1);
         txs1.add(tx2);
 
-        log.debug("txs=" + txs1.toString());
+        log.debug("txs={}", txs1.toString());
 
         BlockBody blockBody1 = new BlockBody(txs1);
 
@@ -91,7 +91,7 @@ public class BlockTest {
         long index = 0;
         BlockHeader blockHeader = new BlockHeader(
                 chain, version, type, prevBlockHash, index, timestamp,
-                blockBody1.getMerkleRoot(), blockBody1.length());
+                blockBody1.getMerkleRoot(), blockBody1.getLength());
 
         log.debug(blockHeader.toString());
 
@@ -104,7 +104,7 @@ public class BlockTest {
         BlockBody blockBody = new BlockBody(Collections.emptyList());
         BlockHeader blockHeader = new BlockHeader(
                 chain, version, type, prevBlockHash, 0, TimeUtils.time(),
-                blockBody.getMerkleRoot(), blockBody.length());
+                blockBody.getMerkleRoot(), blockBody.getLength());
         BlockSignature blockSig = new BlockSignature(wallet, blockHeader.getHashForSigning());
         Block emptyBlock = new Block(blockHeader, blockSig.getSignature(), blockBody);
         assertThat(emptyBlock.verify()).isTrue();
@@ -147,9 +147,9 @@ public class BlockTest {
     @Test
     public void testBlockClone() {
         Block block2 = new Block(block1.toBinary());
-        log.debug("block2=" + block2.toJsonObject());
+        log.debug("block2={}", block2.toJsonObject());
 
-        assertThat(block1.getHashHex()).isEqualTo(block2.getHashHex());
+        assertThat(block1.getHash()).isEqualTo(block2.getHash());
         assertThat(block1.toJsonObject().toString()).isEqualTo(block2.toJsonObject().toString());
         assertThat(block1.getSignature()).isEqualTo(block2.getSignature());
     }
@@ -157,17 +157,16 @@ public class BlockTest {
     @Test
     public void testBlockKey() {
         Block block2 = new Block(block1.toBinary());
-        log.debug("block2 pubKey=" + block2.getPubKeyHex());
+        log.debug("block2 pubKey={}", Hex.toHexString(block2.getPubKey()));
 
-        assertThat(block1.getPubKeyHex()).isEqualTo(block2.getPubKeyHex());
         assertThat(block1.getPubKey()).isEqualTo(block2.getPubKey());
         assertThat(block1.getPubKey()).isEqualTo(wallet.getPubicKey());
 
-        log.debug("block1 author address=" + block1.getAddressHex());
-        log.debug("block2 author address=" + block2.getAddressHex());
-        log.debug("wallet address=" + wallet.getHexAddress());
-        assertThat(block1.getAddressHex()).isEqualTo(block2.getAddressHex());
-        assertThat(block1.getAddressHex()).isEqualTo(wallet.getHexAddress());
+        log.debug("block1 author address={}", block1.getAddress());
+        log.debug("block2 author address={}", block2.getAddress());
+        log.debug("wallet address={}", wallet.getHexAddress());
+        assertThat(block1.getAddress()).isEqualTo(block2.getAddress());
+        assertThat(block1.getAddress().toString()).isEqualTo(wallet.getHexAddress());
         assertThat(block1.verify()).isTrue();
         assertThat(block2.verify()).isTrue();
     }

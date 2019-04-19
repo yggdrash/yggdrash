@@ -17,31 +17,21 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
-import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.exception.FailedOperationException;
-import io.yggdrash.common.trie.Trie;
-import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.consensus.AbstractBlock;
-import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.Proto;
 
-import java.util.List;
-
-import static com.google.protobuf.util.Timestamps.fromMillis;
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
-
 @Deprecated
-public class BlockHusk extends AbstractBlock<Proto.Block> implements Comparable<BlockHusk> {
+public class BlockHusk extends AbstractBlock<Proto.Block> {
 
     public BlockHusk(byte[] bytes) {
-        super(toProto(bytes));
+        this(toProto(bytes));
     }
 
     public BlockHusk(io.yggdrash.core.blockchain.Block block) {
-        super(io.yggdrash.core.blockchain.Block.toProtoBlock(block));
+        super(block);
     }
 
     @Override
@@ -51,11 +41,11 @@ public class BlockHusk extends AbstractBlock<Proto.Block> implements Comparable<
 
     @Override
     public Proto.Block getInstance() {
-        return getProtoBlock();
+        return getBlock().getInstance();
     }
 
     @Override
-    public byte[] getData() {
+    public byte[] toBinary() {
         return getInstance().toByteArray();
     }
 
@@ -69,74 +59,11 @@ public class BlockHusk extends AbstractBlock<Proto.Block> implements Comparable<
         throw new FailedOperationException("Not implemented");
     }
 
-    @Override
-    public int compareTo(BlockHusk o) {
-        return Long.compare(getIndex(), o.getIndex());
-    }
-
-    private static Proto.Block toProto(byte[] bytes) {
+    private static io.yggdrash.core.blockchain.Block toProto(byte[] bytes) {
         try {
-            return Proto.Block.parseFrom(bytes);
+            return new Block(Proto.Block.parseFrom(bytes));
         } catch (InvalidProtocolBufferException e) {
             throw new NotValidateException(e);
         }
     }
-
-    public static BlockHusk nextBlock(Wallet wallet, List<TransactionHusk> body, Block prevBlock) {
-        if (body == null || prevBlock == null) {
-            throw new NotValidateException();
-        }
-
-        byte[] merkleRoot = Trie.getMerkleRootHusk(body);
-
-        long length = 0;
-
-        Proto.TransactionList.Builder txBuilder = Proto.TransactionList.newBuilder();
-        for (TransactionHusk txHusk: body) {
-            length += txHusk.getCoreTransaction().length();
-            txBuilder.addTransactions(txHusk.getProtoTransaction());
-        }
-
-        Proto.Block.Header blockHeader = BlockHusk.getHeader(
-                prevBlock.getBranchId().getBytes(),
-                EMPTY_BYTE8,
-                EMPTY_BYTE8,
-                prevBlock.getHash().getBytes(),
-                prevBlock.getIndex() + 1,
-                TimeUtils.time(),
-                merkleRoot,
-                length);
-
-        byte[] hashDataForSign = BlockHeader.toBlockHeader(blockHeader).getHashForSigning();
-
-        Proto.Block protoBlock = Proto.Block.newBuilder()
-                .setHeader(blockHeader)
-                .setSignature(ByteString.copyFrom(wallet.sign(hashDataForSign, true)))
-                .setBody(txBuilder.build())
-                .build();
-        return new BlockHusk(protoBlock.toByteArray());
-    }
-
-    public static Proto.Block.Header getHeader(
-            byte[] chain,
-            byte[] version,
-            byte[] type,
-            byte[] prevBlockHash,
-            long index,
-            long timestamp,
-            byte[] merkleRoot,
-            long bodyLength) {
-
-        return Proto.Block.Header.newBuilder()
-                .setChain(ByteString.copyFrom(chain))
-                .setVersion(ByteString.copyFrom(version))
-                .setType(ByteString.copyFrom(type))
-                .setPrevBlockHash(ByteString.copyFrom(prevBlockHash))
-                .setIndex(index)
-                .setTimestamp(fromMillis(timestamp))
-                .setMerkleRoot(ByteString.copyFrom(merkleRoot))
-                .setBodyLength(bodyLength)
-                .build();
-    }
-
 }

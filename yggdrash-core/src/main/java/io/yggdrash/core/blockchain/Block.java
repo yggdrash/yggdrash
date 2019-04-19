@@ -16,16 +16,18 @@
 
 package io.yggdrash.core.blockchain;
 
-import com.google.gson.GsonBuilder;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.util.Timestamps;
+import com.google.protobuf.InvalidProtocolBufferException;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.ECKey;
-import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.trie.Trie;
+import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.wallet.Address;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
@@ -35,36 +37,67 @@ import org.spongycastle.util.encoders.Hex;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.SignatureException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
-import static com.google.protobuf.util.Timestamps.fromMillis;
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
 import static io.yggdrash.common.config.Constants.KEY.BODY;
 import static io.yggdrash.common.config.Constants.KEY.HEADER;
 import static io.yggdrash.common.config.Constants.KEY.SIGNATURE;
 import static io.yggdrash.common.config.Constants.SIGNATURE_LENGTH;
 import static io.yggdrash.common.config.Constants.TIMESTAMP_2018;
 
-public class Block {
-
+public class Block implements ProtoObject<Proto.Block>, Comparable<Block> {
     private static final Logger log = LoggerFactory.getLogger(Block.class);
 
-    private BlockHeader header;
-    private byte[] signature;
-    private BlockBody body;
+    private final Proto.Block protoBlock;
 
-    private byte[] binary;
+    private final transient BlockHeader header;
+    private final transient BlockBody body;
+    private transient Sha3Hash hash;
+    private transient Address address;
 
-    public Block(BlockHeader header, byte[] signature, BlockBody body) {
-        this.header = header;
-        this.signature = signature;
-        this.body = body;
+    /**
+     * Block Constructor.
+     *
+     * @param bytes binary block
+     */
+    public Block(byte[] bytes) {
+        this(toProto(bytes));
     }
 
+    public Block(Proto.Block protoBlock) {
+        this.protoBlock = protoBlock;
+        this.header = new BlockHeader(protoBlock.getHeader());
+        this.body = new BlockBody(protoBlock.getBody());
+    }
+
+    /**
+     * Block Constructor.
+     *
+     * @param header block header
+     * @param wallet wallet for signing
+     * @param body   block body
+     */
     public Block(BlockHeader header, Wallet wallet, BlockBody body) {
         this(header, wallet.sign(header.getHashForSigning(), true), body);
+    }
+
+    /**
+     * Block Constructor.
+     *
+     * @param header block header
+     * @param signature block signature
+     * @param body   block body
+     */
+    public Block(BlockHeader header, byte[] signature, BlockBody body) {
+        this.header = header;
+        this.body = body;
+        this.protoBlock = Proto.Block.newBuilder()
+                .setHeader(header.getInstance())
+                .setSignature(ByteString.copyFrom(signature))
+                .setBody(body.getInstance())
+                .build();
     }
 
     public Block(JsonObject jsonObject) {
@@ -73,113 +106,116 @@ public class Block {
                 new BlockBody(jsonObject.getAsJsonArray(BODY)));
     }
 
-    public Block(byte[] blockBytes) {
-        int position = 0;
-
-        byte[] headerBytes = new byte[BlockHeader.LENGTH];
-        System.arraycopy(blockBytes, 0, headerBytes, 0, headerBytes.length);
-        this.header = new BlockHeader(headerBytes);
-        position += headerBytes.length;
-
-        byte[] sigBytes = new byte[SIGNATURE_LENGTH];
-        System.arraycopy(blockBytes, position, sigBytes, 0, sigBytes.length);
-        position += sigBytes.length;
-        this.signature = sigBytes;
-
-        long bodyLength = this.header.getBodyLength();
-        if (bodyLength < 0 || bodyLength > Constants.MAX_MEMORY) {
-            log.debug("Block body length is not valid");
-            throw new NotValidateException();
-        }
-        byte[] bodyBytes = new byte[(int)bodyLength];
-        System.arraycopy(blockBytes, position, bodyBytes, 0, bodyBytes.length);
-        position += bodyBytes.length;
-        this.body = new BlockBody(bodyBytes);
-
-        if (position != blockBytes.length) {
-            throw new NotValidateException();
-        }
-    }
-
     public BlockHeader getHeader() {
         return header;
     }
 
     public byte[] getSignature() {
-        return signature;
+        return protoBlock.getSignature().toByteArray();
     }
 
     public BlockBody getBody() {
         return body;
     }
 
-    public long getIndex() {
-        return this.header.getIndex();
-    }
-
-    public byte[] getChain() {
-        return this.header.getChain();
-    }
-
-    public String getChainHex() {
-        return Hex.toHexString(this.header.getChain());
-    }
-
-    public byte[] getHash() {
-        ByteArrayOutputStream bao = new ByteArrayOutputStream();
-
-        try {
-            bao.write(this.header.toBinary());
-            bao.write(this.signature);
-        } catch (IOException e) {
-            log.warn("getHash() ioException");
-            throw new NotValidateException();
-        }
-
-        return HashUtil.sha3(bao.toByteArray());
-    }
-
-    public String getHashHex() {
-        return org.spongycastle.util.encoders.Hex.toHexString(this.getHash());
+    public BranchId getBranchId() {
+        return BranchId.of(header.getChain());
     }
 
     public byte[] getPrevBlockHash() {
-        return this.header.getPrevBlockHash();
+        return header.getPrevBlockHash();
     }
 
-    public byte[] getPubKey() {
-        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
-        ECKey ecKeyPub;
-        try {
-            ecKeyPub = ECKey.signatureToKey(this.header.getHashForSigning(), ecdsaSignature);
-        } catch (SignatureException e) {
-            log.warn(e.getMessage());
-            throw new InvalidSignatureException();
+    public long getIndex() {
+        return header.getIndex();
+    }
+
+    /**
+     * Get block hash. SHA3(header | signature)
+     *
+     * @return block hash
+     */
+    public Sha3Hash getHash() {
+        if (hash == null) {
+            setHash();
         }
-
-        return ecKeyPub.getPubKey();
+        return hash;
     }
 
-    String getPubKeyHex() {
-        return Hex.toHexString(this.getPubKey());
+    private void setHash() {
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+
+        try {
+            bao.write(header.toBinary());
+            bao.write(getSignature());
+        } catch (IOException e) {
+            throw new NotValidateException();
+        }
+        this.hash = new Sha3Hash(bao.toByteArray());
     }
 
-    public byte[] getAddress() {
-        byte[] pubBytes = this.getPubKey();
-        return HashUtil.sha3omit12(
-                Arrays.copyOfRange(pubBytes, 1, pubBytes.length));
+    /**
+     * Get the public key.
+     *
+     * @return public key
+     */
+    public byte[] getPubKey() {
+        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(getSignature());
+        try {
+            ECKey ecKeyPub = ECKey.signatureToKey(this.header.getHashForSigning(), ecdsaSignature);
+            return ecKeyPub.getPubKey();
+        } catch (SignatureException e) {
+            throw new InvalidSignatureException(e);
+        }
     }
 
-    public String getAddressHex() {
-        return Hex.toHexString(getAddress());
+    /**
+     * Get the address.
+     *
+     * @return address
+     */
+    public Address getAddress() {
+        if (address == null) {
+            setAddress();
+        }
+        return address;
     }
 
-    public long length() {
-        return this.header.length() + this.signature.length + this.body.length();
+    private void setAddress() {
+        this.address = new Address(getPubKey());
     }
 
+    /**
+     * Get the Block length (Header + Signature + Body).
+     *
+     * @return block length
+     */
+    public long getLength() {
+        return BlockHeader.LENGTH + Constants.SIGNATURE_LENGTH + this.body.getLength();
+    }
+
+    /**
+     * Get the binary block data.
+     *
+     * @return the binary data
+     */
+    @Override
+    public byte[] toBinary() {
+        return protoBlock.toByteArray();
+    }
+
+    @Override
+    public Proto.Block getInstance() {
+        return protoBlock;
+    }
+
+    /**
+     * Verify a block.(data format & signing)
+     *
+     * @return true(success), false(fail)
+     */
     public boolean verify() {
-        // Block DAta Verify
+
         if (!this.verifyData()) {
             return false;
         }
@@ -189,9 +225,10 @@ public class Block {
             return true;
         }
 
-        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
+        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(getSignature());
         byte[] hashedHeader = this.header.getHashForSigning();
         ECKey ecKeyPub;
+
         try {
             ecKeyPub = ECKey.signatureToKey(hashedHeader, ecdsaSignature);
         } catch (SignatureException e) {
@@ -199,6 +236,7 @@ public class Block {
         }
 
         return ecKeyPub.verify(hashedHeader, ecdsaSignature);
+
     }
 
     private boolean verifyCheckLengthNotNull(byte[] data, int length, String msg) {
@@ -220,66 +258,38 @@ public class Block {
     private boolean verifyData() {
         // TODO CheckByValidate By Code
         boolean check = true;
+
         check &= verifyCheckLengthNotNull(
-                this.header.getChain(), BlockHeader.CHAIN_LENGTH, "chain");
+                this.header.getChain(), Constants.BRANCH_LENGTH, "chain");
         check &= verifyCheckLengthNotNull(
                 this.header.getVersion(), BlockHeader.VERSION_LENGTH, "version");
         check &= verifyCheckLengthNotNull(header.getType(), BlockHeader.TYPE_LENGTH, "type");
         check &= verifyCheckLengthNotNull(
-                this.header.getPrevBlockHash(), BlockHeader.PREVBLOCKHASH_LENGTH, "prevBlockHash");
+                this.header.getPrevBlockHash(), Constants.HASH_LENGTH, "prevBlockHash");
         check &= verifyCheckLengthNotNull(
-                this.header.getMerkleRoot(), BlockHeader.MERKLEROOT_LENGTH, "merkleRootLength");
+                this.header.getMerkleRoot(), Constants.HASH_LENGTH, "merkleRootLength");
+        check &= BlockHeader.LENGTH >= this.header.getLength();
         if (header.getIndex() != 0) {
             // Genesis Block is not check signature
-            check &= verifyCheckLengthNotNull(this.signature, SIGNATURE_LENGTH, SIGNATURE);
+            check &= verifyCheckLengthNotNull(getSignature(), SIGNATURE_LENGTH, SIGNATURE);
         }
         check &= this.header.getIndex() >= 0;
         check &= this.header.getTimestamp() > TIMESTAMP_2018;
         check &= !(this.header.getBodyLength() < 0
-                || this.header.getBodyLength() != this.getBody().length());
-        check &= Arrays.equals(this.header.getMerkleRoot(), Trie.getMerkleRoot(this.body.getBody()));
+                || this.header.getBodyLength() != this.getBody().getLength());
+        check &= Arrays.equals(this.header.getMerkleRoot(), Trie.getMerkleRoot(getBody().getTransactionList()));
 
         return check;
     }
 
     public JsonObject toJsonObject() {
-        if (this.header == null || this.signature == null || this.body == null) {
-            return null;
-        }
-
         JsonObject jsonObject = new JsonObject();
+
         jsonObject.add(HEADER, this.header.toJsonObject());
-        jsonObject.addProperty(SIGNATURE, Hex.toHexString(this.signature));
+        jsonObject.addProperty(SIGNATURE, Hex.toHexString(getSignature()));
         jsonObject.add(BODY, this.body.toJsonArray());
+
         return jsonObject;
-    }
-
-    public String toString() {
-        return this.toJsonObject().toString();
-    }
-
-    public String toStringPretty() {
-        return new GsonBuilder().setPrettyPrinting().create().toJson(this.toJsonObject());
-    }
-
-    public byte[] toBinary() {
-        if (binary != null) {
-            return binary;
-        }
-
-        ByteArrayOutputStream bao = new ByteArrayOutputStream();
-
-        try {
-            bao.write(this.header.toBinary());
-            bao.write(this.signature);
-            bao.write(this.body.toBinary());
-
-            binary = bao.toByteArray();
-            return binary;
-        } catch (IOException e) {
-            log.warn("Block toBinary() IOException");
-            throw new NotValidateException();
-        }
     }
 
     @Override
@@ -292,92 +302,52 @@ public class Block {
         }
 
         Block other = (Block) o;
-        return this.getHeader().equals(other.getHeader())
-                && Arrays.equals(this.signature, other.getSignature())
-                && this.getBody().equals(other.getBody());
+        return Arrays.equals(toBinary(), other.toBinary());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(toBinary());
+        return Arrays.hashCode(toBinary());
     }
 
-    public static Proto.Block toProtoBlock(Block block) {
-        if (block == null || block.getHeader() == null) {
-            return null;
-        }
-
-        Proto.Block.Header protoHeader;
-        protoHeader = Proto.Block.Header.newBuilder()
-                .setChain(ByteString.copyFrom(block.getHeader().getChain()))
-                .setVersion(ByteString.copyFrom(block.getHeader().getVersion()))
-                .setType(ByteString.copyFrom(block.getHeader().getType()))
-                .setPrevBlockHash(ByteString.copyFrom(block.getHeader().getPrevBlockHash()))
-                .setIndex(block.getHeader().getIndex())
-                .setTimestamp(fromMillis(block.getHeader().getTimestamp()))
-                .setMerkleRoot(ByteString.copyFrom(block.getHeader().getMerkleRoot()))
-                .setBodyLength(block.getHeader().getBodyLength())
-                .build();
-
-        Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
-        for (Transaction tx : block.getBody().getBody()) {
-            builder.addTransactions(Transaction.toProtoTransaction(tx));
-        }
-
-        return Proto.Block.newBuilder()
-                .setHeader(protoHeader)
-                .setSignature(ByteString.copyFrom(block.getSignature()))
-                .setBody(builder.build())
-                .build();
+    @Override
+    public String toString() {
+        return toJsonObject().toString();
     }
 
-    public static Block toBlock(Proto.Block protoBlock) {
-        if (protoBlock == null || protoBlock.getSerializedSize() == 0) {
-            return null;
-        }
-
-        BlockHeader blockHeader = new BlockHeader(
-                protoBlock.getHeader().getChain().toByteArray(),
-                protoBlock.getHeader().getVersion().toByteArray(),
-                protoBlock.getHeader().getType().toByteArray(),
-                protoBlock.getHeader().getPrevBlockHash().toByteArray(),
-                protoBlock.getHeader().getIndex(),
-                Timestamps.toMillis(protoBlock.getHeader().getTimestamp()),
-                protoBlock.getHeader().getMerkleRoot().toByteArray(),
-                protoBlock.getHeader().getBodyLength()
-        );
-
-        List<Transaction> txList = new ArrayList<>();
-
-        for (Proto.Transaction tx : protoBlock.getBody().getTransactionsList()) {
-            txList.add(Transaction.toTransaction(tx));
-        }
-
-        BlockBody txBody = new BlockBody(txList);
-
-        return new Block(blockHeader, protoBlock.getSignature().toByteArray(), txBody);
-    }
-
-    public static long getBlockLengthInBytes(byte[] bytes) {
-        if (bytes == null || bytes.length <= BlockHeader.LENGTH + SIGNATURE_LENGTH) {
-            log.debug("Input bytes is not valid");
-            return 0L;
-        }
-
-        byte[] headerBytes = new byte[BlockHeader.LENGTH];
-        System.arraycopy(bytes, 0, headerBytes, 0, headerBytes.length);
-        BlockHeader header = new BlockHeader(headerBytes);
-        long bodyLength = header.getBodyLength();
-
-        return (long) BlockHeader.LENGTH + (long) SIGNATURE_LENGTH + bodyLength;
+    @Override
+    public int compareTo(Block o) {
+        return Long.compare(getIndex(), o.getIndex());
     }
 
     public void clear() {
-        this.header = null;
-        if (this.body != null) {
-            this.body.clear();
+        body.getTransactionList().clear();
+    }
+
+    private static Proto.Block toProto(byte[] bytes) {
+        try {
+            return Proto.Block.parseFrom(bytes);
+        } catch (InvalidProtocolBufferException e) {
+            throw new NotValidateException(e);
         }
-        this.body = null;
-        this.signature = null;
+    }
+
+    @VisibleForTesting
+    public static Block nextBlock(Wallet wallet, List<Transaction> body,
+                                  io.yggdrash.core.consensus.Block prevBlock) {
+        if (body == null || prevBlock == null) {
+            throw new NotValidateException();
+        }
+
+        BlockBody blockBody = new BlockBody(body);
+        BlockHeader blockHeader = new BlockHeader(
+                prevBlock.getBranchId().getBytes(),
+                EMPTY_BYTE8,
+                EMPTY_BYTE8,
+                prevBlock.getHash().getBytes(),
+                prevBlock.getIndex() + 1,
+                TimeUtils.time(),
+                blockBody);
+        return new Block(blockHeader, wallet, blockBody);
     }
 }

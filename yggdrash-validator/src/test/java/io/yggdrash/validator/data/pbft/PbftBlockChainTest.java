@@ -9,7 +9,7 @@ import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.validator.util.TestUtils;
+import io.yggdrash.validator.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;

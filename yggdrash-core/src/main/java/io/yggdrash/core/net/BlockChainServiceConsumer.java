@@ -20,7 +20,7 @@ import io.yggdrash.common.config.Constants.LIMIT;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.Block;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +61,7 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
     }
 
     @Override
-    public List<TransactionHusk> syncTx(BranchId branchId) {
+    public List<Transaction> syncTx(BranchId branchId) {
         return branchGroup.getUnconfirmedTxs(branchId);
     }
 
@@ -86,7 +86,7 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
     }
 
     @Override
-    public void broadcastTx(TransactionHusk tx) {
+    public void broadcastTx(Transaction tx) {
         try {
             branchGroup.addTransaction(tx);
         } catch (Exception e) {
