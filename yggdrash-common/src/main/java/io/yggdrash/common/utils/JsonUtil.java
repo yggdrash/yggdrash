@@ -106,4 +106,12 @@ public class JsonUtil {
         return object;
     }
 
+    public static String parseString(JsonObject object, String member, String defaultValue) {
+        if (!object.has(member) || object.get(member).isJsonNull()) {
+            return defaultValue;
+        } else {
+            return object.get(member).getAsString();
+        }
+    }
+
 }

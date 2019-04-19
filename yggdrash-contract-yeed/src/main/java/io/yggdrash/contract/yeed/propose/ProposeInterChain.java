@@ -5,6 +5,7 @@ import com.google.common.primitives.Longs;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
+import io.yggdrash.common.utils.JsonUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -14,6 +15,7 @@ public class ProposeInterChain {
     String transactionId;
     String proposeId;
 
+    String tokenAddress;
     String receiveAddress;
     BigInteger receiveAsset;
 
@@ -40,6 +42,10 @@ public class ProposeInterChain {
 
     public String getProposeId() {
         return proposeId;
+    }
+
+    public String getTokenAddress() {
+        return tokenAddress;
     }
 
     public String getReceiveAddress() {
@@ -88,6 +94,7 @@ public class ProposeInterChain {
 
     public ProposeInterChain(JsonObject object) {
         this.transactionId = object.get("transactionId").getAsString();
+        this.tokenAddress = JsonUtil.parseString(object, "tokenAddress", "");
         this.receiveAddress = object.get("receiveAddress").getAsString();
         this.receiveAsset = object.get("receiveAsset").getAsBigInteger();
         this.receiveChainId = object.get("receiveChainId").getAsInt();
@@ -103,11 +110,12 @@ public class ProposeInterChain {
     }
 
 
-    public ProposeInterChain(String transactionId, String receiveAddress, BigInteger receiveAsset,
+    public ProposeInterChain(String transactionId, String tokenAddress, String receiveAddress, BigInteger receiveAsset,
                              int receiveChainId, long networkBlockHeight, ProposeType proposeType, String senderAddress,
                              String inputData, BigInteger stakeYeed, long blockHeight,
                              BigInteger fee, String issuer) {
         this.transactionId = transactionId;
+        this.tokenAddress = tokenAddress;
         this.receiveAddress = receiveAddress;
         this.receiveAsset = receiveAsset;
         this.receiveChainId = receiveChainId;
@@ -132,6 +140,7 @@ public class ProposeInterChain {
             baos.write(Ints.toByteArray(proposeType.toValue()));
 
             baos.write(issuer.getBytes());
+            baos.write(tokenAddress.getBytes());
             baos.write(receiveAddress.getBytes());
             baos.write(receiveAsset.toByteArray());
             baos.write(Longs.toByteArray(networkBlockHeight));

@@ -328,7 +328,7 @@ public class YeedTest {
     public void issuePropose() {
         String transactionId = "0x00";
         String receiveAddress = "c3cf7a283a4415ce3c41f5374934612389334780";
-        BigInteger receiveEth = new BigInteger("10000000");
+        BigInteger receiveAsset = new BigInteger("10000000");
         int receiveChainId = 1;
         long networkBlockHeight = 10;
         ProposeType proposeType = ProposeType.YEED_TO_ETHER;
@@ -344,7 +344,7 @@ public class YeedTest {
         JsonObject proposal = new JsonObject();
         //proposal.addProperty("transactionId", transactionId);
         proposal.addProperty("receiveAddress", receiveAddress);
-        proposal.addProperty("receiveEth", receiveEth);
+        proposal.addProperty("receiveAsset", receiveAsset);
         proposal.addProperty("receiveChainId", receiveChainId);
         proposal.addProperty("networkBlockHeight", networkBlockHeight);
 
@@ -479,7 +479,7 @@ public class YeedTest {
         // Type 1 - Issuer validate transaction
         String transactionId = "0x02";
         String receiveAddress = "c3cf7a283a4415ce3c41f5374934612389334780";
-        BigInteger receiveEth = new BigInteger("1000000000000000000");
+        BigInteger receiveAsset = new BigInteger("1000000000000000000");
         int receiveChainId = 1;
         long networkBlockHeight = 10;
         ProposeType proposeType = ProposeType.YEED_TO_ETHER;
@@ -494,7 +494,7 @@ public class YeedTest {
 
         JsonObject proposal = new JsonObject();
         proposal.addProperty("receiveAddress", receiveAddress);
-        proposal.addProperty("receiveEth", receiveEth);
+        proposal.addProperty("receiveAsset", receiveAsset);
         proposal.addProperty("receiveChainId", receiveChainId);
         proposal.addProperty("networkBlockHeight", networkBlockHeight);
         proposal.addProperty("proposeType", proposeType.toValue());
@@ -576,7 +576,7 @@ public class YeedTest {
     public void processingInvalid() {
         String transactionId = "0x02";
         String receiveAddress = "ad8992d6f78d9cc597438efbccd8940d7c02bc6d";
-        BigInteger receiveEth = new BigInteger("11000000000000000000");
+        BigInteger receiveAsset = new BigInteger("11000000000000000000");
         int receiveChainId = 1;
         long networkBlockHeight = 10;
         ProposeType proposeType = ProposeType.YEED_TO_ETHER;
@@ -591,7 +591,7 @@ public class YeedTest {
 
         JsonObject proposal = new JsonObject();
         proposal.addProperty("receiveAddress", receiveAddress);
-        proposal.addProperty("receiveEth", receiveEth);
+        proposal.addProperty("receiveAsset", receiveAsset);
         proposal.addProperty("receiveChainId", receiveChainId);
         proposal.addProperty("networkBlockHeight", networkBlockHeight);
         proposal.addProperty("proposeType", proposeType.toValue());
@@ -657,7 +657,7 @@ public class YeedTest {
         // Type 1 - Issuer validate transaction
         String transactionId = "0x02";
         String receiveAddress = "c3cf7a283a4415ce3c41f5374934612389334780";
-        BigInteger receiveEth = new BigInteger("1000000000000000000");
+        BigInteger receiveAsset = new BigInteger("1000000000000000000");
         int receiveChainId = 1;
         long networkBlockHeight = 10;
         ProposeType proposeType = ProposeType.YEED_TO_ETHER;
@@ -672,7 +672,7 @@ public class YeedTest {
 
         JsonObject proposal = new JsonObject();
         proposal.addProperty("receiveAddress", receiveAddress);
-        proposal.addProperty("receiveEth", receiveEth);
+        proposal.addProperty("receiveAsset", receiveAsset);
         proposal.addProperty("receiveChainId", receiveChainId);
         proposal.addProperty("networkBlockHeight", networkBlockHeight);
         proposal.addProperty("proposeType", proposeType.toValue());

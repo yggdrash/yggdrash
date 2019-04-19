@@ -17,6 +17,7 @@ public class ProposeInterChainTest {
     @Test
     public void proposeInterChainGenerateIdTest() {
         String transactionId = "0x00";
+        String tokenAddress = "";
         String receiveAddress = "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e";
         BigInteger receiveEth = new BigInteger("10000000");
         int receiveChainId = 1;
@@ -31,7 +32,7 @@ public class ProposeInterChainTest {
         String issuer = "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e";
         long networkBlockHeight = 10;
 
-        ProposeInterChain testPropose = new ProposeInterChain(transactionId, receiveAddress,
+        ProposeInterChain testPropose = new ProposeInterChain(transactionId, tokenAddress, receiveAddress,
                 receiveEth, receiveChainId, networkBlockHeight, proposeType, senderAddress, inputData,
                 stakeYeed, targetBlockHeight, fee, issuer);
 
@@ -39,7 +40,7 @@ public class ProposeInterChainTest {
         assertNotNull(testPropose.getProposeId());
 
         targetBlockHeight = 10000000L;
-        ProposeInterChain testPropose2 = new ProposeInterChain(transactionId, receiveAddress,
+        ProposeInterChain testPropose2 = new ProposeInterChain(transactionId, tokenAddress, receiveAddress,
                 receiveEth, receiveChainId, networkBlockHeight, proposeType, senderAddress, inputData,
                 stakeYeed, targetBlockHeight, fee, issuer);
 
@@ -57,7 +58,7 @@ public class ProposeInterChainTest {
         byte[] etheSendEncode = HexUtil.hexStringToBytes(ethRawTransaction);
 
         EthTransaction ethTransaction = new EthTransaction(etheSendEncode);
-
+        String tokenAddress = "";
         String transactionId = "0x00";
         String receiveAddress = HexUtil.toHexString(ethTransaction.getReceiveAddress());
         BigInteger receiveEth = ethTransaction.getValue();
@@ -73,7 +74,7 @@ public class ProposeInterChainTest {
 
         String issuer = "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e";
 
-        ProposeInterChain ethPropose = new ProposeInterChain(transactionId, receiveAddress,
+        ProposeInterChain ethPropose = new ProposeInterChain(transactionId, tokenAddress, receiveAddress,
                 receiveEth, receiveChainId, networkBlockHeight, proposeType, senderAddress, inputData, stakeYeed,
                 targetBlockHeight, fee, issuer);
 

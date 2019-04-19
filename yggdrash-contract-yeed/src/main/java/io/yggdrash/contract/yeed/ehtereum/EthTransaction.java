@@ -166,8 +166,7 @@ public class EthTransaction {
 
         // Since EIP-155 use chainId for v
         if (chainId == null) {
-            rlpRaw = RLP.encodeList(nonce, gasPrice, gasLimit, receiveAddress,
-                    value, data);
+            rlpRaw = RLP.encodeList(nonce, gasPrice, gasLimit, receiveAddress, value, data);
         } else {
             byte[] v, r, s;
             v = RLP.encodeInt(chainId);

@@ -27,6 +27,7 @@ import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.utils.ByteUtil;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
@@ -431,8 +432,11 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
 
             String txId = this.txReceipt.getTxId();
+
+            // TokenAddress is YEED TO TOKEN
+            String tokenAddress = JsonUtil.parseString(params, "tokenAddress", "");
             String receiveAddress = params.get("receiveAddress").getAsString();
-            BigInteger receiveEth = params.get("receiveEth").getAsBigInteger();
+            BigInteger receiveAsset = params.get("receiveAsset").getAsBigInteger();
             Integer receiveChainId = params.get("receiveChainId").getAsInt();
             long networkBlockHeight = params.get("networkBlockHeight").getAsLong();
             ProposeType proposeType = ProposeType.fromValue(params.get("proposeType").getAsInt());
@@ -448,8 +452,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
             long target = params.get("blockHeight").getAsLong();
 
             // Issue Propose
-            ProposeInterChain propose = new ProposeInterChain(txId, receiveAddress,
-                    receiveEth, receiveChainId, networkBlockHeight, proposeType, senderAddress, inputData,
+            ProposeInterChain propose = new ProposeInterChain(txId, tokenAddress, receiveAddress,
+                    receiveAsset, receiveChainId, networkBlockHeight, proposeType, senderAddress, inputData,
                     stakeYeed, target, fee, issuer);
 
             String proposeIdKey = String.format("%s%s", PrefixKeyEnum.PROPOSE_INTER_CHAIN.toValue(),
