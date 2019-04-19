@@ -22,8 +22,8 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.consensus.Block;
-import io.yggdrash.gateway.controller.BlockChainCollector;
 import io.yggdrash.gateway.dto.BlockDto;
+import io.yggdrash.gateway.dto.TransactionDto;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -32,18 +32,16 @@ import org.springframework.stereotype.Component;
 @Component
 @DependsOn("yggdrash")
 @ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
+//TODO
+// @ConditionalOnProperty("es.host")
 public class WebsocketSender implements BranchEventListener {
-
-    private final BlockChainCollector blockChainCollector;
     private final SimpMessagingTemplate template;
 
-    public WebsocketSender(SimpMessagingTemplate template, BranchGroup branchGroup,
-                           BlockChainCollector blockChainCollector) {
+    public WebsocketSender(SimpMessagingTemplate template, BranchGroup branchGroup) {
         this.template = template;
         for (BlockChain bc : branchGroup.getAllBranch()) {
             bc.addListener(this);
         }
-        this.blockChainCollector =blockChainCollector;
     }
 
     @Override
@@ -52,10 +50,13 @@ public class WebsocketSender implements BranchEventListener {
         template.convertAndSend("/topic/blocks", BlockDto.createBy(block));
         template.convertAndSend("/topic/branches/" + branchId + "/blocks",
                 BlockDto.createBy(block));
-
-        blockChainCollector.block(block);
     }
 
     @Override
-    public void receivedTransaction(TransactionHusk tx) {}
+    public void receivedTransaction(TransactionHusk tx) {
+        BranchId branchId = tx.getBranchId();
+        template.convertAndSend("/topic/txs", TransactionDto.createBy(tx));
+        template.convertAndSend("/topic/branches/" + branchId + "/txs",
+                TransactionDto.createBy(tx));
+    }
 }

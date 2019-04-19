@@ -25,11 +25,8 @@ import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.store.StoreBuilder;
-import io.yggdrash.gateway.controller.BlockChainCollector;
-import io.yggdrash.gateway.store.es.EsClient;
 import io.yggdrash.node.ChainTask;
 import io.yggdrash.node.service.ValidatorService;
-import org.elasticsearch.common.util.set.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,13 +49,6 @@ public class BranchConfiguration {
 
     @Value("classpath:/branch-yggdrash.json")
     Resource yggdrashResource;
-
-    @Value("${es.host:#{null}}")
-    private String esHost;
-    @Value("${es.transport:#{null}}")
-    private String esTransport;
-    @Value("${event.store:#{null}}")
-    private String[] eventStore;
 
     @Autowired
     BranchConfiguration(DefaultConfig defaultConfig) {
@@ -127,13 +117,6 @@ public class BranchConfiguration {
             log.warn(e.getMessage(), e);
             return null;
         }
-    }
-
-    @Bean
-    @ConditionalOnProperty("es.host")
-    public BlockChainCollector EsClient() {
-        return new BlockChainCollector(
-                EsClient.newInstance(esHost, Integer.parseInt(esTransport), Sets.newHashSet()));
     }
 
     /**

@@ -1,16 +1,25 @@
-package io.yggdrash.gateway.controller;
+package io.yggdrash.gateway;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.contract.core.store.OutputStore;
+import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.blockchain.BranchEventListener;
+import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.consensus.Block;
 import io.yggdrash.gateway.dto.BlockDto;
 import io.yggdrash.gateway.dto.TransactionDto;
+import io.yggdrash.gateway.store.es.EsClient;
+import org.elasticsearch.common.util.set.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,18 +28,32 @@ import java.util.Map;
 /**
  * 블록체인에서 발생되는 정보들을 외부 저장소에 수집합니다.
  */
-public class BlockChainCollector {
+@Component
+@DependsOn("yggdrash")
+@ConditionalOnProperty("es.host")
+public class BlockChainCollector implements BranchEventListener {
     private static final Logger log = LoggerFactory.getLogger(BlockChainCollector.class);
+
+    @Value("${es.host:#{null}}")
+    private String esHost;
+    @Value("${es.transport:#{null}}")
+    private String esTransport;
+    @Value("${event.store:#{null}}")
+    private String[] eventStore;
 
     private final OutputStore outputStores;
     private final ObjectMapper mapper;
 
-    public BlockChainCollector(OutputStore outputStore) {
-        this.outputStores = outputStore;
+    public BlockChainCollector(BranchGroup branchGroup) {
+        this.outputStores = EsClient.newInstance("localhost", 9300, Sets.newHashSet());
+        for (BlockChain bc : branchGroup.getAllBranch()) {
+            bc.addListener(this);
+        }
         this.mapper = new ObjectMapper();
     }
 
-    public void block(Block block) {
+    @Override
+    public void chainedBlock(Block block) {
         String json;
         JsonObject jsonObject = null;
 
@@ -64,5 +87,6 @@ public class BlockChainCollector {
         }
     }
 
-    public void transaction(TransactionHusk tx) { }
+    @Override
+    public void receivedTransaction(TransactionHusk tx) { }
 }
