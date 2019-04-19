@@ -502,6 +502,14 @@ public class YeedContract implements BundleActivator, ServiceListener {
             return new TxConfirm(txConfirm);
         }
 
+        public boolean isExistTxConfirm(String txConfirmId) {
+            String txConfirmKey = String.format("%s%s",PrefixKeyEnum.TRANSACTION_CONFIRM.toValue(),
+                    txConfirmId
+            );
+            return this.store.contains(txConfirmKey);
+        }
+
+
         private void setTxConfirm(TxConfirm txConfirm) {
 
             String txConfirmKey = String.format("%s%s",PrefixKeyEnum.TRANSACTION_CONFIRM.toValue(),
@@ -622,6 +630,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                     // 1. propose issuer and this transaction issuer are same
                     // 2. Propose set Sender Address
                     // 3. Propose Send Address send transaction to receive Address
+                    // TODO check logic bug
                     transfer(propose.getProposeId(), senderAddress, transferYeed, fee);
                     stakeBalance = stakeBalance.subtract(transferYeed);
                     // All stake YEED is transfer to sendAddress
@@ -630,15 +639,20 @@ public class YeedContract implements BundleActivator, ServiceListener {
                     // Save Transaction confirm
                     // Transaction ID , propose ID, SendAddress, transfer YEED
                     String confirmTxId = HexUtil.toHexString(ethTransaction.getTxHash());
+                    // check exist confirm TxId
+                    if (isExistTxConfirm(confirmTxId)) { // confirmTx is Exist
+                        this.txReceipt.setStatus(ExecuteStatus.FALSE);
+                        this.txReceipt.addLog(String.format("Propose %s transaction %s exist", propose.getProposeId(), confirmTxId));
+                    } else {
+                        TxConfirm confirm = new TxConfirm(propose.getProposeId(), confirmTxId, senderAddress, transferYeed);
+                        // Save TxConfirm
+                        setTxConfirm(confirm);
 
-                    TxConfirm confirm = new TxConfirm(propose.getProposeId(), confirmTxId, senderAddress, transferYeed);
-                    // Save TxConfirm
-                    setTxConfirm(confirm);
-
-                    this.txReceipt.addLog(String.format("propose %s check %s network %s transaction %s confirm ID %s",
-                            propose.getProposeId(), propose.getProposeType(), ethTransaction.getChainId(),
-                            confirmTxId, confirm.getTxConfirmId()
-                    ));
+                        this.txReceipt.addLog(String.format("propose %s check %s network %s transaction %s confirm ID %s",
+                                propose.getProposeId(), propose.getProposeType(), ethTransaction.getChainId(),
+                                confirmTxId, confirm.getTxConfirmId()
+                        ));
+                    }
                 }
 
                 if (stakeBalance.compareTo(BigInteger.ZERO) <= 0) {
