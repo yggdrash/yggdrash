@@ -19,6 +19,7 @@ package io.yggdrash.core.wallet;
 import com.google.common.base.Strings;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.typesafe.config.ConfigFactory;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.crypto.ECKey;
@@ -52,7 +53,7 @@ import static io.yggdrash.common.utils.ByteUtil.EMPTY_BYTE_ARRAY;
  *
  */
 public class Wallet {
-    private static final Logger logger = LoggerFactory.getLogger(Wallet.class);
+    private static final Logger log = LoggerFactory.getLogger(Wallet.class);
 
     private static final String WALLET_PBKDF2_NAME = "pbkdf2";
     private static final int WALLET_PBKDF2_ITERATION = 262144;
@@ -81,7 +82,7 @@ public class Wallet {
     public Wallet(ECKey key, String keyPath, String keyName, String password)
             throws IOException, InvalidCipherTextException {
         if (!Password.passwordValid(password)) {
-            logger.error("Invalid Password");
+            log.error("Invalid Password");
             throw new IOException("Invalid Password");
         }
         encryptKeyFileInit(key, keyPath, keyName, password);
@@ -97,7 +98,7 @@ public class Wallet {
             throws IOException, InvalidCipherTextException {
         String password = getPasswordByConsole();
         if (!Password.passwordValid(password)) {
-            logger.error("Invalid Password: {}", password);
+            log.error("Invalid Password.");
             throw new IOException("Invalid Password");
         }
 
@@ -167,12 +168,12 @@ public class Wallet {
         }
 
         if (Strings.isNullOrEmpty(keyFilePathName) || Strings.isNullOrEmpty(keyPassword)) {
-            logger.error("Invalid keyPath or keyPassword");
+            log.error("Invalid keyPath or keyPassword");
             throw new IOException("Invalid keyPath or keyPassword");
         } else {
             // check password validation
             if (!Password.passwordValid(keyPassword)) {
-                logger.error("Invalid keyPassword format"
+                log.error("Invalid keyPassword format"
                         + "(length:12-32, 1 more lower/upper/digit/special");
                 throw new IOException("Invalid keyPassword format");
             }
@@ -184,20 +185,25 @@ public class Wallet {
             try {
                 decryptKeyFileInit(keyPathStr, keyNameStr, keyPassword);
             } catch (Exception e) {
-                logger.debug("Key file is not exist. Create New key file.");
+                log.debug("Key file is not exist. Create New key file.");
 
                 try {
                     encryptKeyFileInit(key, keyPathStr, keyNameStr, keyPassword);
                 } catch (IOException ioe) {
-                    logger.error("Cannot generate the Key file at {}", keyPathStr + keyNameStr);
+                    log.error("Cannot generate the Key file at {}", keyPathStr + keyNameStr);
                     throw new IOException("Cannot generate the Key file");
                 } catch (InvalidCipherTextException ice) {
-                    logger.error("Error InvalidCipherTextException: {}", keyPathStr + keyNameStr);
+                    log.error("Error InvalidCipherTextException: {}", keyPathStr + keyNameStr);
                     throw new InvalidCipherTextException("Error InvalidCipherTextException");
                 }
             }
         }
+    }
 
+    public Wallet(DefaultConfig config, String password) throws IOException, InvalidCipherTextException {
+        this(new DefaultConfig(
+                ConfigFactory.parseString(Constants.PROPERTY_KEKPASS + " = \"" + password + "\"")
+                        .withFallback(config.getConfig()).resolve()));
     }
 
     private String getPasswordByConsole() {
@@ -345,13 +351,13 @@ public class Wallet {
         try {
             ecKeyPub = ECKey.signatureToKey(hashedData, ecdsaSignature);
         } catch (SignatureException e) {
-            logger.debug("Invalid signature");
+            log.debug("Invalid signature");
             return false;
         }
 
         //todo: check pubkey
         if (pubKey != null && !Arrays.equals(ecKeyPub.getPubKey(), pubKey)) {
-            logger.debug("Invalid signature");
+            log.debug("Invalid signature");
             return false;
         }
 
@@ -365,7 +371,7 @@ public class Wallet {
         try {
             ecKeyPub = ECKey.signatureToKey(hashedData, ecdsaSignature);
         } catch (SignatureException e) {
-            logger.debug("Invalid signature", e.getMessage());
+            log.debug("Invalid signature", e.getMessage());
             return EMPTY_BYTE_ARRAY;
         }
 
