@@ -17,6 +17,7 @@
 package io.yggdrash.core.wallet;
 
 import com.google.common.base.Strings;
+import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
@@ -41,7 +42,6 @@ import static org.junit.Assert.assertNotNull;
 public class WalletTest {
     private static final Logger log = LoggerFactory.getLogger(WalletTest.class);
 
-
     @Test
     public void testKeySave() throws IOException, InvalidCipherTextException {
         // generate key & save a file
@@ -61,6 +61,8 @@ public class WalletTest {
 
     @Test
     public void testKeyGenerationWithConsole() throws IOException, InvalidCipherTextException {
+        TestConstants.ConsoleTest.apply();
+
         // generate key & save a file
         Wallet wallet = new Wallet((ECKey) null, "/tmp/nodePri.key");
 
@@ -82,17 +84,12 @@ public class WalletTest {
     public void testWalletGeneration() {
         DefaultConfig defaultConfig = new DefaultConfig();
         String keyFilePath = defaultConfig.getString("key.path");
-        String password = defaultConfig.getString("key.password");
 
         assertFalse("Check yggdrash.conf(key.path & key.password)",
-                Strings.isNullOrEmpty(keyFilePath) || Strings.isNullOrEmpty(password));
+                Strings.isNullOrEmpty(keyFilePath));
         log.debug("Private key: " + keyFilePath);
-        log.debug("Password : " + password); // for debug
 
-        // check password validation
-        boolean validPassword = Password.passwordValid(password);
-        assertTrue("Password is not valid", validPassword);
-        log.debug("Password is valid");
+        String password = "Password1234!";
 
         // check whether the key file exists
         Path path = Paths.get(keyFilePath);
@@ -123,18 +120,12 @@ public class WalletTest {
     public void testWalletGenerationWithFilePath() {
         DefaultConfig defaultConfig = new DefaultConfig();
         String keyFilePath = defaultConfig.getString("key.path");
-        String password = defaultConfig.getString("key.password");
 
         assertFalse("Check yggdrash.conf(key.path & key.password)",
-                Strings.isNullOrEmpty(keyFilePath) || Strings.isNullOrEmpty(password));
+                Strings.isNullOrEmpty(keyFilePath));
         log.debug("Private key: " + keyFilePath);
-        log.debug("Password : " + password); // for debug
 
-        // check password validation
-        boolean validPassword = Password.passwordValid(password);
-        assertTrue("Password is not valid", validPassword);
-
-        log.debug("Password is valid");
+        String password = "Password1234!";
 
         // check whether the key file exists
         Path path = Paths.get(keyFilePath);
@@ -202,6 +193,24 @@ public class WalletTest {
     public void testWalletConstructor() throws IOException, InvalidCipherTextException {
         DefaultConfig config = new DefaultConfig();
 
+        Wallet wallet = new Wallet(config, "Password1234!");
+
+        log.debug(wallet.toString());
+        assertNotNull(wallet);
+
+        byte[] data = "sign data".getBytes();
+        byte[] signature = wallet.sign(data);
+        boolean verifyResult = wallet.verify(data, signature);
+
+        assertTrue(verifyResult);
+    }
+
+    @Test
+    public void testWalletConstructorWithConsole() throws IOException, InvalidCipherTextException {
+        TestConstants.ConsoleTest.apply();
+
+        DefaultConfig config = new DefaultConfig();
+
         Wallet wallet = new Wallet(config);
 
         log.debug(wallet.toString());
@@ -218,7 +227,7 @@ public class WalletTest {
     public void testWalletAndConfig() throws IOException, InvalidCipherTextException {
         DefaultConfig config = new DefaultConfig();
 
-        Wallet wallet = new Wallet(config);
+        Wallet wallet = new Wallet(config, "Password1234!");
 
         Path path = Paths.get(config.getKeyPath());
         String keyPath = path.getParent().toString();
