@@ -19,7 +19,7 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.JsonArray;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.DuplicatedException;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +37,7 @@ public class BranchGroupTest {
 
     private BranchGroup branchGroup;
     private Transaction tx;
-    private Block block;
+    private ConsensusBlock block;
     protected static final Logger log = LoggerFactory.getLogger(BranchGroupTest.class);
 
     @Before
@@ -77,9 +77,9 @@ public class BranchGroupTest {
         branchGroup.addTransaction(tx);
         BlockChainTestUtils.generateBlock(branchGroup, tx.getBranchId());
         long latest = branchGroup.getLastIndex(tx.getBranchId());
-        Block chainedBlock = branchGroup.getBlockByIndex(tx.getBranchId(), latest);
+        ConsensusBlock chainedBlock = branchGroup.getBlockByIndex(tx.getBranchId(), latest);
         assertThat(latest).isEqualTo(1);
-        assertThat(chainedBlock.getBodyCount()).isEqualTo(1);
+        assertThat(chainedBlock.getBody().getCount()).isEqualTo(1);
         assertThat(branchGroup.getTxByHash(tx.getBranchId(), tx.getHash()).getHash())
                 .isEqualTo(tx.getHash());
     }
@@ -104,7 +104,7 @@ public class BranchGroupTest {
     public void addBlock() {
         branchGroup.addTransaction(tx);
         branchGroup.addBlock(block);
-        Block newBlock = BlockChainTestUtils.createNextBlock(Collections.singletonList(tx), block);
+        ConsensusBlock newBlock = BlockChainTestUtils.createNextBlock(Collections.singletonList(tx), block);
         branchGroup.addBlock(newBlock);
 
         assertThat(branchGroup.getLastIndex(newBlock.getBranchId())).isEqualTo(2);
@@ -121,12 +121,12 @@ public class BranchGroupTest {
         assertThat(blockChain.getLastIndex()).isEqualTo(10);
     }
 
-    private void addMultipleBlock(Block block) {
+    private void addMultipleBlock(ConsensusBlock block) {
         BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
         while (blockChain.getLastIndex() < 10) {
             log.debug("Last Index : {}", blockChain.getLastIndex());
             branchGroup.addBlock(block);
-            Block nextBlockHusk = BlockChainTestUtils.createNextBlock(Collections.emptyList(), block);
+            ConsensusBlock nextBlockHusk = BlockChainTestUtils.createNextBlock(Collections.emptyList(), block);
             addMultipleBlock(nextBlockHusk);
         }
     }

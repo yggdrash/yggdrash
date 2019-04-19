@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.proto.Proto;
 import org.spongycastle.util.encoders.Hex;
 
@@ -53,20 +54,18 @@ public class TransactionDto {
                 .setSignature(ByteString.copyFrom(Hex.decode(dto.signature)))
                 .setBody(JsonUtil.convertObjToString(dto.body))
                 .build();
-        return new Transaction(tx);
+        return new TransactionImpl(tx);
     }
 
     public static TransactionDto createBy(Transaction tx) {
         TransactionDto transactionDto = new TransactionDto();
-        Proto.Transaction.Header header = tx.getInstance().getHeader();
-
-        transactionDto.branchId = Hex.toHexString(header.getChain().toByteArray());
-        transactionDto.version = Hex.toHexString(header.getVersion().toByteArray());
-        transactionDto.type = Hex.toHexString(header.getType().toByteArray());
-        transactionDto.timestamp = header.getTimestamp();
-        transactionDto.bodyHash = Hex.toHexString(header.getBodyHash().toByteArray());
-        transactionDto.bodyLength = header.getBodyLength();
-        transactionDto.signature = Hex.toHexString(tx.getInstance().getSignature().toByteArray());
+        transactionDto.branchId = tx.getBranchId().toString();
+        transactionDto.version = Hex.toHexString(tx.getHeader().getVersion());
+        transactionDto.type = Hex.toHexString(tx.getHeader().getType());
+        transactionDto.timestamp = tx.getHeader().getTimestamp();
+        transactionDto.bodyHash = Hex.toHexString(tx.getBody().getHash());
+        transactionDto.bodyLength = tx.getBody().getLength();
+        transactionDto.signature = Hex.toHexString(tx.getSignature());
         try {
             transactionDto.body = new ObjectMapper().readValue(tx.getBody().toString(), List.class);
             transactionDto.author = tx.getAddress().toString();

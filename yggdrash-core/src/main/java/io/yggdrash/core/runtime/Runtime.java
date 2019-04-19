@@ -26,7 +26,7 @@ import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.TempStateStore;
@@ -73,7 +73,7 @@ public class Runtime {
     }
 
 
-    public BlockRuntimeResult invokeBlock(Block block) {
+    public BlockRuntimeResult invokeBlock(ConsensusBlock block) {
         // Block Data
         // - Hash
         // - BranchId
@@ -87,7 +87,7 @@ public class Runtime {
 
         BlockRuntimeResult result = new BlockRuntimeResult(block);
         TempStateStore blockState = new TempStateStore(stateStore);
-        List<Transaction> txList = block.getTransactionList();
+        List<Transaction> txList = block.getBody().getTransactionList();
         for (Transaction tx: txList) {
             TransactionReceipt txReceipt = ContractManager.createTransactionReceipt(tx);
             // set Block ID

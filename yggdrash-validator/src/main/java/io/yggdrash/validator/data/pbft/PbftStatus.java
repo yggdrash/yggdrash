@@ -193,11 +193,22 @@ public class PbftStatus {
         return SerializationUtil.serializeJson(toJsonObject());
     }
 
-    public boolean equals(PbftStatus newPbftStatus) {
-        if (newPbftStatus == null) {
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        return Arrays.equals(this.toBinary(), newPbftStatus.toBinary());
+
+        PbftStatus other = (PbftStatus) o;
+        return Arrays.equals(toBinary(), other.toBinary());
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(toBinary());
     }
 
     public void clear() {

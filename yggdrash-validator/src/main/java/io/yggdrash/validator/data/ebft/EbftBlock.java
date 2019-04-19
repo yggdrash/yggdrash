@@ -21,7 +21,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.core.blockchain.Block;
-import io.yggdrash.core.consensus.AbstractBlock;
+import io.yggdrash.core.blockchain.BlockImpl;
+import io.yggdrash.core.consensus.AbstractConsensusBlock;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.EbftProto;
 
@@ -29,7 +30,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class EbftBlock extends AbstractBlock<EbftProto.EbftBlock> {
+public class EbftBlock extends AbstractConsensusBlock<EbftProto.EbftBlock> {
 
     private final transient List<String> consensusList;
 
@@ -38,7 +39,7 @@ public class EbftBlock extends AbstractBlock<EbftProto.EbftBlock> {
     }
 
     public EbftBlock(EbftProto.EbftBlock block) {
-        this(new Block(block.getBlock()), block.getConsensusList().getConsensusList());
+        this(new BlockImpl(block.getBlock()), block.getConsensusList().getConsensusList());
     }
 
     public EbftBlock(Block block) {
@@ -51,7 +52,8 @@ public class EbftBlock extends AbstractBlock<EbftProto.EbftBlock> {
     }
 
     public EbftBlock(JsonObject jsonObject) {
-        this(new Block(jsonObject.get("block").getAsJsonObject()), toConsensusList(jsonObject.get("consensusList")));
+        this(new BlockImpl(jsonObject.get("block").getAsJsonObject()),
+                toConsensusList(jsonObject.get("consensusList")));
     }
 
     @Override
@@ -62,7 +64,7 @@ public class EbftBlock extends AbstractBlock<EbftProto.EbftBlock> {
     @Override
     public EbftProto.EbftBlock getInstance() {
         EbftProto.ConsensusList list = EbftProto.ConsensusList.newBuilder().addAllConsensus(consensusList).build();
-        return EbftProto.EbftBlock.newBuilder().setBlock(getBlock().getInstance()).setConsensusList(list).build();
+        return EbftProto.EbftBlock.newBuilder().setBlock(getProtoBlock()).setConsensusList(list).build();
     }
 
     @Override

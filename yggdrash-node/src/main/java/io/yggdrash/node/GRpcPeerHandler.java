@@ -21,10 +21,11 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.SimpleBlock;
 import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.blockchain.TransactionImpl;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerHandler;
 import io.yggdrash.proto.BlockChainGrpc;
@@ -141,7 +142,7 @@ public class GRpcPeerHandler implements PeerHandler {
     }
 
     @Override
-    public Future<List<Block>> syncBlock(BranchId branchId, long offset) {
+    public Future<List<ConsensusBlock>> syncBlock(BranchId branchId, long offset) {
         log.debug("Requesting sync block: branchId={}, offset={}", branchId, offset);
 
         SyncLimit syncLimit = SyncLimit.newBuilder()
@@ -150,15 +151,15 @@ public class GRpcPeerHandler implements PeerHandler {
                 .setBranch(ByteString.copyFrom(branchId.getBytes()))
                 .setFrom(peer.getYnodeUri()).build();
 
-        CompletableFuture<List<Block>> husksCompletableFuture = new CompletableFuture<>();
+        CompletableFuture<List<ConsensusBlock>> husksCompletableFuture = new CompletableFuture<>();
 
         blockChainAsyncStub.syncBlock(syncLimit,
                 new StreamObserver<Proto.BlockList>() {
                     @Override
                     public void onNext(Proto.BlockList protoBlockList) {
-                        List<Block> blockList = new ArrayList<>();
+                        List<ConsensusBlock> blockList = new ArrayList<>();
                         for (Proto.Block block : protoBlockList.getBlocksList()) {
-                            blockList.add(new BlockHusk(block.toByteArray()));
+                            blockList.add(new SimpleBlock(block.toByteArray()));
                         }
                         log.debug("[PeerHandler] BlockList(size={}) Received", blockList.size());
                         husksCompletableFuture.complete(blockList);
@@ -195,7 +196,7 @@ public class GRpcPeerHandler implements PeerHandler {
                     @Override
                     public void onNext(Proto.TransactionList txList) {
                         List<Transaction> txHusks = txList.getTransactionsList().stream()
-                                .map(Transaction::new).collect(Collectors.toList());
+                                .map(TransactionImpl::new).collect(Collectors.toList());
                         log.debug("[PeerHandler] TransactionList(size={}) Received", txHusks.size());
 
                         husksCompletableFuture.complete(txHusks);
@@ -221,7 +222,7 @@ public class GRpcPeerHandler implements PeerHandler {
     // When we send a (single) block to the server and get back a (single) empty.
     // Use the asynchronous stub for this method.
     @Override
-    public void broadcastBlock(Block block) {
+    public void broadcastBlock(ConsensusBlock block) {
         log.debug("Broadcasting blocks -> {}", peer.getYnodeUri());
 
         if (!alive) {
@@ -229,7 +230,7 @@ public class GRpcPeerHandler implements PeerHandler {
             this.broadcastBlockRequestObserver = blockChainAsyncStub.broadcastBlock(emptyResponseStreamObserver);
         }
 
-        broadcastBlockRequestObserver.onNext(block.getBlock().getInstance());
+        broadcastBlockRequestObserver.onNext(block.getProtoBlock());
     }
 
     @Override

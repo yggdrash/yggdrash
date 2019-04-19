@@ -16,6 +16,7 @@
 
 package io.yggdrash.core.blockchain;
 
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
@@ -82,18 +83,18 @@ public class TransactionTest extends SlowTest {
 
         log.debug("wallet.pubKey={}", Hex.toHexString(wallet.getPubicKey()));
 
-        tx1 = new Transaction(txHeader, wallet, txBody);
+        tx1 = new TransactionImpl(txHeader, wallet, txBody);
         assertTrue(tx1.verify());
     }
 
     @Test
     public void testTransactionConstructor() {
-        Transaction tx2 = new Transaction(tx1.toJsonObject());
+        Transaction tx2 = new TransactionImpl(tx1.toJsonObject());
         assertTrue(tx2.verify());
         log.debug("tx2={}", tx2);
         assertEquals(tx1.toJsonObject(), tx2.toJsonObject());
 
-        Transaction tx3 = new Transaction(tx1.toBinary());
+        Transaction tx3 = new TransactionImpl(tx1.toBinary());
         assertTrue(tx3.verify());
 
         log.debug("tx3={}", tx3);
@@ -104,40 +105,40 @@ public class TransactionTest extends SlowTest {
         jsonObject.getAsJsonObject("header").addProperty("timestamp",
                 Hex.toHexString(ByteUtil.longToBytes(TimeUtils.time() + 1)));
 
-        Transaction tx4 = new Transaction(jsonObject);
+        Transaction tx4 = new TransactionImpl(jsonObject);
         assertTrue(tx4.verify());
 
         log.debug("tx1={}", tx1);
         log.debug("tx4={}", tx4);
         assertNotEquals(tx1.toJsonObject().toString(), tx4.toJsonObject().toString());
 
-        Transaction tx5 = new Transaction(tx1.getHeader(), tx1.getSignature(), tx1.getBody());
+        Transaction tx5 = new TransactionImpl(tx1.getHeader(), tx1.getSignature(), tx1.getBody());
         assertTrue(tx5.verify());
 
         log.debug("tx1={}", tx1);
         log.debug("tx5={}", tx5);
         assertEquals(tx1.toJsonObject(), tx5.toJsonObject());
 
-        Transaction tx6 = new Transaction(tx1.getHeader(), wallet, tx1.getBody());
+        Transaction tx6 = new TransactionImpl(tx1.getHeader(), wallet, tx1.getBody());
         assertTrue(tx6.verify());
 
         log.debug("tx1={}", tx1);
         log.debug("tx6={}", tx6);
         assertEquals(tx1.toJsonObject(), tx6.toJsonObject());
 
-        Transaction tx7 = new Transaction(tx1.getInstance());
+        Transaction tx7 = new TransactionImpl(tx1.getInstance());
         assertTrue(tx7.verify());
 
         log.debug("tx1={}", tx1);
         log.debug("tx7={}", tx7);
         assertEquals(tx1, tx7);
 
-        log.debug("tx7(pretty)={}", tx7.toStringPretty());
+        log.debug("tx7(pretty)={}", new GsonBuilder().setPrettyPrinting().create().toJson(tx7.toJsonObject()));
     }
 
     @Test
     public void testTransactionField() {
-        Transaction tx2 = new Transaction(tx1.toBinary());
+        Transaction tx2 = new TransactionImpl(tx1.toBinary());
         log.debug("tx2=" + tx2.toJsonObject());
 
         assertEquals(txHeader.toJsonObject().toString(),
@@ -147,7 +148,7 @@ public class TransactionTest extends SlowTest {
 
     @Test
     public void testTransactionGetHash() {
-        Transaction tx2 = new Transaction(tx1.toBinary());
+        Transaction tx2 = new TransactionImpl(tx1.toBinary());
         log.debug("tx2=" + tx2.toJsonObject());
 
         assertEquals(tx1.getHash(), tx2.getHash());
@@ -156,7 +157,7 @@ public class TransactionTest extends SlowTest {
         jsonObject.getAsJsonObject("header").addProperty("timestamp",
                 Hex.toHexString(ByteUtil.longToBytes(TimeUtils.time() + 1)));
 
-        Transaction tx3 = new Transaction(jsonObject);
+        Transaction tx3 = new TransactionImpl(jsonObject);
         log.debug("tx1 hash={}", tx1.getHash());
         log.debug("tx3 hash={}", tx3.getHash());
         assertNotEquals(tx1.getHash(), tx3.getHash());
@@ -164,7 +165,7 @@ public class TransactionTest extends SlowTest {
 
     @Test
     public void testTransactionKey() {
-        Transaction tx2 = new Transaction(tx1.toBinary());
+        Transaction tx2 = new TransactionImpl(tx1.toBinary());
         log.debug("tx2 headerHash={}", Hex.toHexString(tx2.getHeader().getHashForSigning()));
         log.debug("tx2 pubKey={}", Hex.toHexString(tx2.getPubKey()));
 
@@ -183,7 +184,7 @@ public class TransactionTest extends SlowTest {
 
     @Test
     public void testTransactionToProto() {
-        Transaction tx2 = new Transaction(tx1.toBinary());
+        Transaction tx2 = new TransactionImpl(tx1.toBinary());
 
         assertArrayEquals(tx1.getPubKey(), tx2.getPubKey());
         assertArrayEquals(tx1.getPubKey(), wallet.getPubicKey());
@@ -199,7 +200,7 @@ public class TransactionTest extends SlowTest {
 
         assertEquals(tx1, tx2);
 
-        Transaction tx3 = new Transaction(tx1.getInstance());
+        Transaction tx3 = new TransactionImpl(tx1.getInstance());
         log.debug("tx1={}", tx1);
         log.debug("tx3={}", tx3);
 

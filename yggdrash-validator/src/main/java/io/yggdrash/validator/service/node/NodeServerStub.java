@@ -2,7 +2,8 @@ package io.yggdrash.validator.service.node;
 
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.blockchain.TransactionImpl;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
@@ -37,9 +38,9 @@ public class NodeServerStub extends BlockChainGrpc.BlockChainImplBase {
                 && offset <= blockChain.getLastConfirmedBlock().getIndex()) {
             List blockList = blockChain.getBlockList(offset, limit);
             for (Object object : blockList) {
-                Block consensusBlock = (Block) object;
+                ConsensusBlock consensusBlock = (ConsensusBlock) object;
                 if (consensusBlock.getBlock() != null) {
-                    builder.addBlocks(consensusBlock.getBlock().getInstance());
+                    builder.addBlocks(consensusBlock.getProtoBlock());
                 }
             }
         }
@@ -98,7 +99,7 @@ public class NodeServerStub extends BlockChainGrpc.BlockChainImplBase {
             public void onNext(Proto.Transaction value) {
                 log.debug("NodeService broadcastTransaction");
                 log.debug("Received transaction: {}", value);
-                Transaction tx = new Transaction(value);
+                Transaction tx = new TransactionImpl(value);
                 if (tx.getBranchId().equals(blockChain.getBranchId())) {
                     blockChain.getTransactionStore().put(tx.getHash(), tx);
                 }

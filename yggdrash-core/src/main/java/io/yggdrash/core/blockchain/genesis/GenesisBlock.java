@@ -4,6 +4,7 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
+import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.blockchain.Transaction;
@@ -80,7 +81,7 @@ public class GenesisBlock {
                 0L,
                 branch.getTimestamp(),
                 blockBody);
-        return new Block(blockHeader, Constants.EMPTY_SIGNATURE, blockBody);
+        return new BlockImpl(blockHeader, Constants.EMPTY_SIGNATURE, blockBody);
     }
 
     public static GenesisBlock of(InputStream is) throws IOException {

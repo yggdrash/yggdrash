@@ -19,7 +19,7 @@ package io.yggdrash.core.p2p;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,12 +79,12 @@ public class PeerHandlerMock implements PeerHandler {
     }
 
     @Override
-    public Future<List<Block>> syncBlock(BranchId branchId, long offset) {
+    public Future<List<ConsensusBlock>> syncBlock(BranchId branchId, long offset) {
         log.debug("[PeerHandlerMock] SyncBlock branchId={}, offset={}", branchId, offset);
 
-        CompletableFuture<List<Block>> husksCompletableFuture = new CompletableFuture<>();
+        CompletableFuture<List<ConsensusBlock>> husksCompletableFuture = new CompletableFuture<>();
 
-        List<Block> tmp = new ArrayList<>();
+        List<ConsensusBlock> tmp = new ArrayList<>();
         for (int i = (int) offset; i < (int) offset + 33; i++) {
             tmp.add(BlockChainTestUtils.getSampleBlockHuskList().get(i));
         }
@@ -103,7 +103,7 @@ public class PeerHandlerMock implements PeerHandler {
     }
 
     @Override
-    public void broadcastBlock(Block blockHusk) {
+    public void broadcastBlock(ConsensusBlock blockHusk) {
 
     }
 

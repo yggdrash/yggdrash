@@ -24,7 +24,7 @@ import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,7 +53,7 @@ public class BranchStoreTest {
 
     @Test
     public void shouldBeLoaded() {
-        Block block = BlockChainTestUtils.genesisBlock();
+        ConsensusBlock block = BlockChainTestUtils.genesisBlock();
         ms.setBestBlockHash(block.getHash());
 
         Sha3Hash sha3Hash = ms.getBestBlockHash();
@@ -65,7 +65,7 @@ public class BranchStoreTest {
 
     @Test
     public void shouldBePutMeta() {
-        Block block = BlockChainTestUtils.genesisBlock();
+        ConsensusBlock block = BlockChainTestUtils.genesisBlock();
         ms.setBestBlock(block);
         Long bestBlock = ms.getBestBlock();
 
@@ -74,7 +74,7 @@ public class BranchStoreTest {
 
     @Test
     public void getSetGenesisBlock() {
-        Block block = BlockChainTestUtils.genesisBlock();
+        ConsensusBlock block = BlockChainTestUtils.genesisBlock();
         ms.setGenesisBlockHash(block.getHash());
 
         Sha3Hash genesis = ms.getGenesisBlockHash();

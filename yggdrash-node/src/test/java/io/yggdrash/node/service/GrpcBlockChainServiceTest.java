@@ -22,7 +22,7 @@ import io.grpc.testing.GrpcServerRule;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.net.BlockChainConsumer;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
@@ -51,7 +51,7 @@ public class GrpcBlockChainServiceTest {
     private BlockChainConsumer<Proto.Block> blockChainConsumerMock;
 
     private Transaction tx;
-    private Block block;
+    private ConsensusBlock block;
     private BranchId branchId;
 
     @Before

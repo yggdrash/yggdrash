@@ -22,7 +22,7 @@ import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
 import org.apache.commons.codec.binary.Hex;
@@ -49,7 +49,7 @@ public class TransactionMockitoTest {
     @Mock
     private BranchGroup branchGroupMock;
     private Transaction tx;
-    private Block block;
+    private ConsensusBlock block;
 
     private TransactionApiImpl txApiImpl;
     private String txId;
@@ -74,7 +74,7 @@ public class TransactionMockitoTest {
         txReceipt = new TransactionReceiptImpl();
         txReceipt.setTxId(txId);
         txReceiptStore.put(txId, txReceipt);
-        Block genesis = BlockChainTestUtils.genesisBlock();
+        ConsensusBlock genesis = BlockChainTestUtils.genesisBlock();
         block = BlockChainTestUtils.createNextBlock(txList, genesis);
         blockId = block.getHash().toString();
     }

@@ -3,35 +3,39 @@ package io.yggdrash.core.consensus;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.MessageOrBuilder;
 import com.google.protobuf.util.JsonFormat;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.blockchain.BlockBody;
+import io.yggdrash.core.blockchain.BlockHeader;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.wallet.Address;
+import io.yggdrash.proto.Proto;
 
 import java.util.Arrays;
-import java.util.List;
 
-public abstract class AbstractBlock<T> implements Block<T> {
-    private final transient io.yggdrash.core.blockchain.Block block;
+public abstract class AbstractConsensusBlock<T extends MessageOrBuilder> implements ConsensusBlock<T> {
+    private final transient Block block;
 
-    protected AbstractBlock(io.yggdrash.core.blockchain.Block block) {
+    protected AbstractConsensusBlock(Block block) {
         this.block = block;
     }
 
     @Override
-    public int getBodyCount() {
-        return block.getBody().getCount();
+    public Block getBlock() {
+        return block;
     }
 
     @Override
-    public List<Transaction> getTransactionList() {
-        return block.getBody().getTransactionList();
+    public Proto.Block getProtoBlock() {
+        return block.getProtoBlock();
     }
 
     @Override
-    public long getBodyLength() {
-        return block.getHeader().getBodyLength();
+    public BlockHeader getHeader() {
+        return block.getHeader();
     }
 
     @Override
@@ -40,8 +44,8 @@ public abstract class AbstractBlock<T> implements Block<T> {
     }
 
     @Override
-    public io.yggdrash.core.blockchain.Block getBlock() {
-        return block;
+    public BlockBody getBody() {
+        return block.getBody();
     }
 
     @Override
@@ -61,7 +65,22 @@ public abstract class AbstractBlock<T> implements Block<T> {
 
     @Override
     public Sha3Hash getPrevBlockHash() {
-        return Sha3Hash.createByHashed(block.getHeader().getPrevBlockHash());
+        return block.getPrevBlockHash();
+    }
+
+    @Override
+    public byte[] getPubKey() {
+        return block.getPubKey();
+    }
+
+    @Override
+    public Address getAddress() {
+        return block.getAddress();
+    }
+
+    @Override
+    public long getLength() {
+        return block.getLength();
     }
 
     @Override
@@ -72,7 +91,7 @@ public abstract class AbstractBlock<T> implements Block<T> {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Block<T> other = (Block<T>) o;
+        ConsensusBlock<T> other = (ConsensusBlock<T>) o;
         return Arrays.equals(toBinary(), other.toBinary());
     }
 
@@ -94,7 +113,7 @@ public abstract class AbstractBlock<T> implements Block<T> {
     @Override
     public JsonObject toJsonObjectByProto() {
         try {
-            String print = JsonFormat.printer().includingDefaultValueFields().print(block.getInstance());
+            String print = JsonFormat.printer().includingDefaultValueFields().print(getInstance());
             JsonObject jsonObject = new JsonParser().parse(print).getAsJsonObject();
             jsonObject.addProperty("blockId", getHash().toString());
             return jsonObject;
@@ -103,4 +122,8 @@ public abstract class AbstractBlock<T> implements Block<T> {
         }
     }
 
+    @Override
+    public int compareTo(Block o) {
+        return block.compareTo(o);
+    }
 }

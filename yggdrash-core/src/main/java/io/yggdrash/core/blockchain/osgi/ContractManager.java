@@ -15,7 +15,7 @@ import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.store.StoreContainer;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -352,7 +352,7 @@ public class ContractManager {
         return results;
     }
 
-    public BlockRuntimeResult executeTransactions(Block nextBlock) {
+    public BlockRuntimeResult executeTransactions(ConsensusBlock nextBlock) {
         if (nextBlock.getIndex() == 0) {
             // TODO first transaction is genesis
             // TODO init method don't call any more
@@ -361,7 +361,7 @@ public class ContractManager {
         BlockRuntimeResult result = new BlockRuntimeResult(nextBlock);
         // TODO tempStateStore
         // TempStateStore blockState = new TempStateStore(stateStore);
-        List<Transaction> txList = nextBlock.getTransactionList();
+        List<Transaction> txList = nextBlock.getBody().getTransactionList();
         for (Transaction tx : txList) {
             TransactionReceipt txReceipt = createTransactionReceipt(tx);
             // set Block ID

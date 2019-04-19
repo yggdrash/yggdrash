@@ -18,15 +18,15 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class BlockHuskTest {
+public class SimpleBlockTest {
 
-    private Block genesisBlock;
+    private ConsensusBlock genesisBlock;
 
     @Before
     public void setUp() {
@@ -41,7 +41,7 @@ public class BlockHuskTest {
 
     @Test
     public void blockCloneTest() {
-        BlockHusk cloned = new BlockHusk(genesisBlock.toBinary());
+        SimpleBlock cloned = new SimpleBlock(genesisBlock.toBinary());
         assertThat(cloned.hashCode()).isEqualTo(genesisBlock.hashCode());
         assertThat(cloned).isEqualTo(genesisBlock);
     }

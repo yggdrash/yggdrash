@@ -2,10 +2,11 @@ package io.yggdrash.node.service;
 
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.SimpleBlock;
 import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.blockchain.TransactionImpl;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.net.BlockChainConsumer;
 import io.yggdrash.node.springboot.grpc.GrpcService;
 import io.yggdrash.proto.BlockChainGrpc;
@@ -43,9 +44,9 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
         long limit = syncLimit.getLimit();
         log.debug("Received syncBlock request branch={} offset={}, limit={}",
                 branchId, offset, limit);
-        List<Block<Proto.Block>> blockList = blockChainConsumer.syncBlock(branchId, offset, limit);
+        List<ConsensusBlock<Proto.Block>> blockList = blockChainConsumer.syncBlock(branchId, offset, limit);
         Proto.BlockList.Builder builder = Proto.BlockList.newBuilder();
-        for (Block<Proto.Block> block : blockList) {
+        for (ConsensusBlock<Proto.Block> block : blockList) {
             builder.addBlocks(block.getInstance());
         }
         responseObserver.onNext(builder.build());
@@ -79,11 +80,11 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
             @Override
             public void onNext(Proto.Block block) {
                 long id = block.getHeader().getIndex();
-                BlockHusk blockHusk = new BlockHusk(block.toByteArray());
+                SimpleBlock simpleBlock = new SimpleBlock(block.toByteArray());
                 log.debug("[BlockChainService] Received block: id=[{}], hash={}",
-                        id, blockHusk.getHash());
+                        id, simpleBlock.getHash());
 
-                blockChainConsumer.broadcastBlock(blockHusk);
+                blockChainConsumer.broadcastBlock(simpleBlock);
             }
 
             @Override
@@ -107,7 +108,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
         return new StreamObserver<Proto.Transaction>() {
             @Override
             public void onNext(Proto.Transaction tx) {
-                Transaction txHusk = new Transaction(tx);
+                Transaction txHusk = new TransactionImpl(tx);
                 log.debug("Received transaction: hash={}, {}", txHusk.getHash(), this);
 
                 blockChainConsumer.broadcastTx(txHusk);

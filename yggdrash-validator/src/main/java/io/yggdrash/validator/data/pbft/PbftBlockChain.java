@@ -5,8 +5,8 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.consensus.Consensus;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.TransactionStore;
@@ -134,7 +134,7 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
     }
 
     @Override
-    public Block<PbftProto.PbftBlock> addBlock(Block<PbftProto.PbftBlock> block) {
+    public ConsensusBlock<PbftProto.PbftBlock> addBlock(ConsensusBlock<PbftProto.PbftBlock> block) {
         this.lock.lock();
         try {
             if (block == null
@@ -191,8 +191,8 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
      * @return list of Block
      */
     @Override
-    public List<Block<PbftProto.PbftBlock>> getBlockList(long index, long count) {
-        List<Block<PbftProto.PbftBlock>> blockList = new ArrayList<>();
+    public List<ConsensusBlock<PbftProto.PbftBlock>> getBlockList(long index, long count) {
+        List<ConsensusBlock<PbftProto.PbftBlock>> blockList = new ArrayList<>();
         if (index < 0L || count < 1L || count > 100L) {
             log.debug("index or count is not valid");
             return blockList;
@@ -209,7 +209,7 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
         return blockList;
     }
 
-    private void batchTxs(Block block) {
+    private void batchTxs(ConsensusBlock block) {
         if (block == null
                 || block.getBlock() == null
                 || block.getBlock().getBody().getLength() == 0) {

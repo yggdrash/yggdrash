@@ -116,7 +116,7 @@ public class TransactionBuilder {
                 sign = wallet.sign(txHeader.getHashForSigning(), true);
             }
 
-            return new Transaction(txHeader, sign, transactionBody);
+            return new TransactionImpl(txHeader, sign, transactionBody);
         } catch (Exception e) {
             return null;
         }

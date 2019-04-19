@@ -2,7 +2,7 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.PeerTestUtils;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
 import io.yggdrash.core.p2p.PeerHandlerMock;
@@ -14,7 +14,7 @@ import org.junit.Test;
 
 public class PeerNetworkTest {
     private KademliaPeerNetwork peerNetwork;
-    private final Block genesis = BlockChainTestUtils.genesisBlock();
+    private final ConsensusBlock genesis = BlockChainTestUtils.genesisBlock();
 
     @Before
     public void setUp() {

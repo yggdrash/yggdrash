@@ -71,8 +71,8 @@ public class BlockBodyTest {
         TransactionSignature txSig =
                 new TransactionSignature(TestConstants.wallet(), txHeader.getHashForSigning());
 
-        Transaction tx1 = new Transaction(txHeader, txSig.getSignature(), txBody);
-        Transaction tx2 = new Transaction(tx1.toBinary());
+        Transaction tx1 = new TransactionImpl(txHeader, txSig.getSignature(), txBody);
+        Transaction tx2 = new TransactionImpl(tx1.toBinary());
 
         log.debug("tx1={}", tx1);
         log.debug("tx2={}", tx2);

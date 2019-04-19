@@ -17,7 +17,7 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.p2p.Peer;
 import org.junit.Assert;
 import org.junit.Test;
@@ -32,7 +32,7 @@ public class RpcTest extends TcpNodeTesting {
     private static final Logger log = LoggerFactory.getLogger(RpcTest.class);
     private static final int NODE_CNT = 2;
 
-    private List<Block> blockList;
+    private List<ConsensusBlock> blockList;
     private List<Transaction> txList;
     private GRpcPeerHandler handler;
 
@@ -61,7 +61,7 @@ public class RpcTest extends TcpNodeTesting {
         createBlockList(BlockChainTestUtils.createNextBlock());
     }
 
-    private void createBlockList(Block blockHusk) {
+    private void createBlockList(ConsensusBlock blockHusk) {
         while (blockList.size() < 10) {
             blockList.add(blockHusk);
             createBlockList(BlockChainTestUtils.createNextBlock(blockHusk));
@@ -108,17 +108,17 @@ public class RpcTest extends TcpNodeTesting {
         BlockChain branch = nodeList.get(1).getDefaultBranch();
         setSpecificBlockHeightOfBlockChain(branch);
 
-        Future<List<Block>> futureBlockList = handler.syncBlock(branch.getBranchId(), 5);
+        Future<List<ConsensusBlock>> futureBlockList = handler.syncBlock(branch.getBranchId(), 5);
 
-        List<Block> blockList = futureBlockList.get();
-        for (Block blockHusk : blockList) {
+        List<ConsensusBlock> blockList = futureBlockList.get();
+        for (ConsensusBlock blockHusk : blockList) {
             Assert.assertEquals(branch.getBlockByIndex(blockHusk.getIndex()), blockHusk);
         }
     }
 
     @Test
     public void broadcastBlockTest() {
-        for (Block block : blockList) {
+        for (ConsensusBlock block : blockList) {
             handler.broadcastBlock(block);
         }
         handler.stop();

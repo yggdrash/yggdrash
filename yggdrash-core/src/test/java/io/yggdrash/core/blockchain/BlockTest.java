@@ -76,8 +76,8 @@ public class BlockTest {
         long timestamp = TimeUtils.time();
         TransactionHeader txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
 
-        Transaction tx1 = new Transaction(txHeader, wallet, txBody);
-        Transaction tx2 = new Transaction(tx1.toBinary());
+        Transaction tx1 = new TransactionImpl(txHeader, wallet, txBody);
+        Transaction tx2 = new TransactionImpl(tx1.toBinary());
 
         List<Transaction> txs1 = new ArrayList<>();
         txs1.add(tx1);
@@ -96,7 +96,7 @@ public class BlockTest {
         log.debug(blockHeader.toString());
 
         BlockSignature blockSig = new BlockSignature(wallet, blockHeader.getHashForSigning());
-        block1 = new Block(blockHeader, blockSig.getSignature(), blockBody1);
+        block1 = new BlockImpl(blockHeader, blockSig.getSignature(), blockBody1);
     }
 
     @Test
@@ -106,7 +106,7 @@ public class BlockTest {
                 chain, version, type, prevBlockHash, 0, TimeUtils.time(),
                 blockBody.getMerkleRoot(), blockBody.getLength());
         BlockSignature blockSig = new BlockSignature(wallet, blockHeader.getHashForSigning());
-        Block emptyBlock = new Block(blockHeader, blockSig.getSignature(), blockBody);
+        Block emptyBlock = new BlockImpl(blockHeader, blockSig.getSignature(), blockBody);
         assertThat(emptyBlock.verify()).isTrue();
     }
 
@@ -125,28 +125,28 @@ public class BlockTest {
         BlockHeader blockHeader2 = new BlockHeader(block1.getHeader().toBinary());
         BlockBody blockBody2 = new BlockBody(block1.getBody().toBinary());
         BlockSignature blockSig2 = new BlockSignature(wallet, blockHeader2.getHashForSigning());
-        Block block2 = new Block(blockHeader2, blockSig2.getSignature(), blockBody2);
+        Block block2 = new BlockImpl(blockHeader2, blockSig2.getSignature(), blockBody2);
 
         assertThat(block2.verify()).isTrue();
         assertThat(block1.toJsonObject()).isEqualTo(block2.toJsonObject());
 
-        Block block3 = new Block(blockHeader2, wallet, block2.getBody());
+        Block block3 = new BlockImpl(blockHeader2, wallet, block2.getBody());
 
         assertThat(block3.verify()).isTrue();
         assertThat(block1.toJsonObject()).isEqualTo(block3.toJsonObject());
 
-        Block block4 = new Block(block1.toJsonObject());
+        Block block4 = new BlockImpl(block1.toJsonObject());
         assertThat(block4.verify()).isTrue();
         assertThat(block1.toJsonObject().toString()).isEqualTo(block4.toJsonObject().toString());
 
-        Block block5 = new Block(block1.toBinary());
+        Block block5 = new BlockImpl(block1.getProtoBlock().toByteArray());
         assertThat(block5.verify()).isTrue();
         assertThat(block1.toJsonObject().toString()).isEqualTo(block5.toJsonObject().toString());
     }
 
     @Test
     public void testBlockClone() {
-        Block block2 = new Block(block1.toBinary());
+        Block block2 = new BlockImpl(block1.getProtoBlock().toByteArray());
         log.debug("block2={}", block2.toJsonObject());
 
         assertThat(block1.getHash()).isEqualTo(block2.getHash());
@@ -156,7 +156,7 @@ public class BlockTest {
 
     @Test
     public void testBlockKey() {
-        Block block2 = new Block(block1.toBinary());
+        Block block2 = new BlockImpl(block1.getProtoBlock().toByteArray());
         log.debug("block2 pubKey={}", Hex.toHexString(block2.getPubKey()));
 
         assertThat(block1.getPubKey()).isEqualTo(block2.getPubKey());

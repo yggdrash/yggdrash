@@ -17,7 +17,7 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.exception.FailedOperationException;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BranchStore;
 import io.yggdrash.core.store.ConsensusBlockStore;
@@ -59,7 +59,7 @@ class BlockExecutor {
             runExecute = true;
             while (lastExecuteBlock < bestBlock) {
                 lastExecuteBlock++;
-                Block block = store.getBlockByIndex(lastExecuteBlock);
+                ConsensusBlock block = store.getBlockByIndex(lastExecuteBlock);
                 if (block == null) {
                     throw new FailedOperationException("Blockchain is not wired");
                 }

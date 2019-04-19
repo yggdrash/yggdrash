@@ -21,7 +21,7 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -84,22 +84,22 @@ public class BranchGroup {
         return branches.get(branchId).getTxByHash(hash);
     }
 
-    Block addBlock(Block block) {
+    ConsensusBlock addBlock(ConsensusBlock block) {
         return addBlock(block, true);
     }
 
-    public Block addBlock(Block block, boolean broadcast) {
+    public ConsensusBlock addBlock(ConsensusBlock block, boolean broadcast) {
         if (branches.containsKey(block.getBranchId())) {
             return branches.get(block.getBranchId()).addBlock(block, broadcast);
         }
         return block;
     }
 
-    public Block getBlockByIndex(BranchId branchId, long index) {
+    public ConsensusBlock getBlockByIndex(BranchId branchId, long index) {
         return branches.get(branchId).getBlockByIndex(index);
     }
 
-    public Block getBlockByHash(BranchId branchId, String hash) {
+    public ConsensusBlock getBlockByHash(BranchId branchId, String hash) {
         return branches.get(branchId).getBlockByHash(new Sha3Hash(hash));
     }
 

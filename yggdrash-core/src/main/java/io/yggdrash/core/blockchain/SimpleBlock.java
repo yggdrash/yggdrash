@@ -19,18 +19,17 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.JsonObject;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.exception.FailedOperationException;
-import io.yggdrash.core.consensus.AbstractBlock;
+import io.yggdrash.core.consensus.AbstractConsensusBlock;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.Proto;
 
-@Deprecated
-public class BlockHusk extends AbstractBlock<Proto.Block> {
+public class SimpleBlock extends AbstractConsensusBlock<Proto.Block> {
 
-    public BlockHusk(byte[] bytes) {
+    public SimpleBlock(byte[] bytes) {
         this(toProto(bytes));
     }
 
-    public BlockHusk(io.yggdrash.core.blockchain.Block block) {
+    public SimpleBlock(io.yggdrash.core.blockchain.Block block) {
         super(block);
     }
 
@@ -41,7 +40,7 @@ public class BlockHusk extends AbstractBlock<Proto.Block> {
 
     @Override
     public Proto.Block getInstance() {
-        return getBlock().getInstance();
+        return getProtoBlock();
     }
 
     @Override
@@ -61,7 +60,7 @@ public class BlockHusk extends AbstractBlock<Proto.Block> {
 
     private static io.yggdrash.core.blockchain.Block toProto(byte[] bytes) {
         try {
-            return new Block(Proto.Block.parseFrom(bytes));
+            return new BlockImpl(Proto.Block.parseFrom(bytes));
         } catch (InvalidProtocolBufferException e) {
             throw new NotValidateException(e);
         }

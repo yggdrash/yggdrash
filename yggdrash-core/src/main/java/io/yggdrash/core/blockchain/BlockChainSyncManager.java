@@ -12,7 +12,7 @@
 
 package io.yggdrash.core.blockchain;
 
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.net.CatchUpSyncEventListener;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerNetwork;
@@ -71,7 +71,7 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
 
     // When broadcastBlock is called (BlockChainServiceConsumer)
     @Override
-    public void catchUpRequest(Block block) {
+    public void catchUpRequest(ConsensusBlock block) {
         BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
         if (blockChain == null) {
             return;
@@ -120,17 +120,17 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
         long offset = blockChain.getLastIndex() + 1;
 
         BranchId branchId = blockChain.getBranchId();
-        Future<List<Block>> futureBlockList = peerHandler.syncBlock(branchId, offset);
+        Future<List<ConsensusBlock>> futureBlockList = peerHandler.syncBlock(branchId, offset);
 
         try {
-            List<Block> blockList = futureBlockList.get();
+            List<ConsensusBlock> blockList = futureBlockList.get();
             if (blockList.isEmpty()) {
                 return true;
             }
             log.info("[SyncManager] Synchronize block offset={} receivedSize={}, from={}",
                     offset, blockList.size(), peerHandler.getPeer().getYnodeUri());
 
-            for (Block block : blockList) {
+            for (ConsensusBlock block : blockList) {
                 blockChain.addBlock(block, false);
             }
         } catch (InterruptedException | ExecutionException e) {

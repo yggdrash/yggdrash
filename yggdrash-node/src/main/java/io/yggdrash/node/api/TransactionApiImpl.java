@@ -5,7 +5,8 @@ import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.blockchain.TransactionImpl;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
@@ -28,14 +29,14 @@ public class TransactionApiImpl implements TransactionApi {
     /* get */
     @Override
     public int getTransactionCountByBlockHash(String branchId, String blockId) {
-        Block block = branchGroup.getBlockByHash(BranchId.of(branchId), blockId);
-        return block.getBodyCount();
+        ConsensusBlock block = branchGroup.getBlockByHash(BranchId.of(branchId), blockId);
+        return block.getBody().getCount();
     }
 
     @Override
     public int getTransactionCountByBlockNumber(String branchId, long blockNumber) {
-        Block block = branchGroup.getBlockByIndex(BranchId.of(branchId), blockNumber);
-        return block.getBodyCount();
+        ConsensusBlock block = branchGroup.getBlockByIndex(BranchId.of(branchId), blockNumber);
+        return block.getBody().getCount();
     }
 
     @Override
@@ -59,16 +60,16 @@ public class TransactionApiImpl implements TransactionApi {
     @Override
     public TransactionDto getTransactionByBlockHash(String branchId, String blockId,
                                                      int txIndexPosition) {
-        Block block = branchGroup.getBlockByHash(BranchId.of(branchId), blockId);
-        List<Transaction> txList = block.getTransactionList();
+        ConsensusBlock block = branchGroup.getBlockByHash(BranchId.of(branchId), blockId);
+        List<Transaction> txList = block.getBody().getTransactionList();
         return TransactionDto.createBy(txList.get(txIndexPosition));
     }
 
     @Override
     public TransactionDto getTransactionByBlockNumber(String branchId, long blockNumber,
                                                        int txIndexPosition) {
-        Block block = branchGroup.getBlockByIndex(BranchId.of(branchId), blockNumber);
-        List<Transaction> txList = block.getTransactionList();
+        ConsensusBlock block = branchGroup.getBlockByIndex(BranchId.of(branchId), blockNumber);
+        List<Transaction> txList = block.getBody().getTransactionList();
         return TransactionDto.createBy(txList.get(txIndexPosition));
     }
 
@@ -97,7 +98,7 @@ public class TransactionApiImpl implements TransactionApi {
 
     @Override
     public byte[] sendRawTransaction(byte[] bytes) {
-        Transaction transaction = new Transaction(bytes);
+        Transaction transaction = new TransactionImpl(bytes);
         if (branchGroup.getBranch(transaction.getBranchId()) != null) {
             // TODO Transaction Validate
             Transaction addedTx = branchGroup.addTransaction(transaction);

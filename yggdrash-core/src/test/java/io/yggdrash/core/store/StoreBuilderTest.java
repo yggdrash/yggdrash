@@ -20,7 +20,7 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.p2p.Peer;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,7 +39,7 @@ public class StoreBuilderTest {
 
     @Test
     public void shouldBeBuiltMetaStore() {
-        Block block = BlockChainTestUtils.genesisBlock();
+        ConsensusBlock block = BlockChainTestUtils.genesisBlock();
         BranchStore store = builder.buildBranchStore();
         store.setBestBlock(block);
 
@@ -48,7 +48,7 @@ public class StoreBuilderTest {
 
     @Test
     public void buildBlockStore() {
-        Block block = BlockChainTestUtils.genesisBlock();
+        ConsensusBlock block = BlockChainTestUtils.genesisBlock();
         ConsensusBlockStore store = builder.buildBlockStore();
         store.put(block.getHash(), block);
         assertThat(store.contains(block.getHash())).isTrue();

@@ -18,7 +18,7 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerHandler;
 import io.yggdrash.core.p2p.PeerHandlerMock;
@@ -50,6 +50,6 @@ public class PeerNetworkMock implements PeerNetwork {
     }
 
     @Override
-    public void chainedBlock(Block block) {
+    public void chainedBlock(ConsensusBlock block) {
     }
 }

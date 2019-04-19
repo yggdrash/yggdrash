@@ -57,7 +57,7 @@ public class BlockBody implements ProtoObject<Proto.TransactionList> {
     private void setTransactionList() {
         this.body = new ArrayList<>();
         for (Proto.Transaction protoTransaction : transactionList.getTransactionsList()) {
-            body.add(new Transaction(protoTransaction));
+            body.add(new TransactionImpl(protoTransaction));
         }
     }
 
@@ -152,7 +152,7 @@ public class BlockBody implements ProtoObject<Proto.TransactionList> {
     private static List<Transaction> toTransactionList(JsonArray jsonArray) {
         List<Transaction> body = new ArrayList<>();
         for (int i = 0;  i < jsonArray.size(); i++) {
-            body.add(new Transaction(jsonArray.get(i).getAsJsonObject()));
+            body.add(new TransactionImpl(jsonArray.get(i).getAsJsonObject()));
         }
         return body;
     }

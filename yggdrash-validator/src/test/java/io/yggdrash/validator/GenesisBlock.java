@@ -12,9 +12,11 @@ import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
+import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBody;
 import io.yggdrash.core.blockchain.TransactionHeader;
+import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
 import org.spongycastle.crypto.InvalidCipherTextException;
@@ -69,7 +71,7 @@ class GenesisBlock {
 
         DefaultConfig defaultConfig = new DefaultConfig();
         Wallet wallet = new Wallet(defaultConfig);
-        Transaction tx = new Transaction(txHeader, wallet, txBody);
+        Transaction tx = new TransactionImpl(txHeader, wallet, txBody);
         List<Transaction> txList = new ArrayList<>();
         txList.add(tx);
 
@@ -86,7 +88,7 @@ class GenesisBlock {
                 blockBody.getMerkleRoot(),
                 blockBody.getLength());
 
-        genesisBlock = new Block(blockHeader, wallet, blockBody);
+        genesisBlock = new BlockImpl(blockHeader, wallet, blockBody);
 
     }
 

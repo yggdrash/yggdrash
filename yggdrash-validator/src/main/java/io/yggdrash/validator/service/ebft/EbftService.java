@@ -7,6 +7,7 @@ import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
+import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.core.consensus.ConsensusService;
@@ -307,7 +308,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
                 index,
                 TimeUtils.time(),
                 newBlockBody);
-        return new Block(newBlockHeader, wallet, newBlockBody);
+        return new BlockImpl(newBlockHeader, wallet, newBlockBody);
     }
 
     private EbftBlock makeConsensus() {

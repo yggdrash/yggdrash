@@ -22,15 +22,16 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
-import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.blockchain.BlockMockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.SimpleBlock;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.proto.Proto;
@@ -55,27 +56,27 @@ public class BlockChainTestUtils {
         }
     }
 
-    private static List<Block> sampleBlockHuskList = createBlockList(
+    private static List<ConsensusBlock> sampleBlockHuskList = createBlockList(
             new ArrayList<>(), genesisBlock(), null, 100);
 
-    public static List<Block> getSampleBlockHuskList() {
+    public static List<ConsensusBlock> getSampleBlockHuskList() {
         return sampleBlockHuskList;
     }
 
-    public static Block<Proto.Block> genesisBlock() {
-        return new BlockHusk(genesis.getBlock());
+    public static ConsensusBlock<Proto.Block> genesisBlock() {
+        return new SimpleBlock(genesis.getBlock());
     }
 
-    public static Block createNextBlock() {
-        return createNextBlock(new BlockHusk(genesis.getBlock()));
+    public static ConsensusBlock createNextBlock() {
+        return createNextBlock(new SimpleBlock(genesis.getBlock()));
     }
 
-    public static Block createNextBlock(Block prevBlock) {
+    public static ConsensusBlock createNextBlock(ConsensusBlock prevBlock) {
         return createNextBlock(Collections.emptyList(), prevBlock);
     }
 
-    public static Block createNextBlock(List<Transaction> blockBody, Block prevBlock) {
-        return new BlockHusk(io.yggdrash.core.blockchain.Block.nextBlock(TestConstants.wallet(), blockBody, prevBlock));
+    public static ConsensusBlock createNextBlock(List<Transaction> blockBody, ConsensusBlock prevBlock) {
+        return new SimpleBlock(BlockImpl.nextBlock(TestConstants.wallet(), blockBody, prevBlock));
     }
 
     public static Transaction createBranchTxHusk() {
@@ -147,18 +148,18 @@ public class BlockChainTestUtils {
     }
 
     public static void setBlockHeightOfBlockChain(BlockChain blockChain, int height) {
-        List<Block> blockList = new ArrayList<>();
-        Block curBlock = blockChain.getBlockByIndex(blockChain.getLastIndex());
-        Block nextBlock = createNextBlock(curBlock);
+        List<ConsensusBlock> blockList = new ArrayList<>();
+        ConsensusBlock curBlock = blockChain.getBlockByIndex(blockChain.getLastIndex());
+        ConsensusBlock nextBlock = createNextBlock(curBlock);
         blockList = createBlockList(blockList, nextBlock, null, height);
 
-        for (Block block : blockList) {
+        for (ConsensusBlock block : blockList) {
             blockChain.addBlock(block, false);
         }
     }
 
-    public static List<Block> createBlockListFilledWithTx(int height, int txSize) {
-        List<Block> blockList = new ArrayList<>();
+    public static List<ConsensusBlock> createBlockListFilledWithTx(int height, int txSize) {
+        List<ConsensusBlock> blockList = new ArrayList<>();
         List<Transaction> blockBody = new ArrayList<>();
 
         for (int i = 0; i < txSize; i++) {
@@ -168,10 +169,10 @@ public class BlockChainTestUtils {
         return createBlockList(blockList, createNextBlock(blockBody, genesisBlock()), blockBody, height);
     }
 
-    private static List<Block> createBlockList(List<Block> blockList,
-                                               Block prevBlock,
-                                               List<Transaction> blockBody,
-                                               int height) {
+    private static List<ConsensusBlock> createBlockList(List<ConsensusBlock> blockList,
+                                                        ConsensusBlock prevBlock,
+                                                        List<Transaction> blockBody,
+                                                        int height) {
         while (blockList.size() < height) {
             blockList.add(prevBlock);
             if (blockBody != null) {
