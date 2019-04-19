@@ -638,22 +638,17 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 }
 
                 if (stakeBalance.compareTo(BigInteger.ZERO) <= 0) {
-                    setProposeStatus(propose.getProposeId(), ProposeStatus.DONE);
-                    this.txReceipt.addLog(String.format("propose %s %s", propose.getProposeId(),
-                            ProposeStatus.DONE));
-                    BigInteger proposeFee = propose.getFee();
-                    // send network fee to branch
                     // 1. propose issuer and process issuer are same
                     // 2. receive Asset Value is more than propose receiveAsset or equal
                     // 3. Propose set Sender Address
                     if(isProposerAreIssuer && receiveValue.compareTo(propose.getReceiveAsset())
                             >= 0 && proposeSender) {
+                        BigInteger proposeFee = propose.getFee();
                         BigInteger returnFee = proposeFee.divide(BigInteger.valueOf(2L));
-                        proposeFee = proposeFee.subtract(returnFee);
-                        transfer(propose.getProposeId(), propose.getIssuer(), returnFee, proposeFee);
+                        proposeProcessDone(propose, returnFee);
                     } else {
                         // Done propose so send Fee to branch
-                        transferFee(propose.getProposeId(), proposeFee);
+                        proposeProcessDone(propose, BigInteger.ZERO);
                     }
                 } else {
                     setProposeStatus(propose.getProposeId(), ProposeStatus.PROCESSING);
@@ -749,13 +744,24 @@ public class YeedContract implements BundleActivator, ServiceListener {
             }
         }
 
+        private void proposeProcessDone(ProposeInterChain propose, BigInteger refundFee) {
+            BigInteger stakeBalnace = getBalance(propose.getProposeId());
+            BigInteger proposeFee = propose.getFee();
 
+            if (stakeBalnace.compareTo(proposeFee) <= 0) {
+                setProposeStatus(propose.getProposeId(), ProposeStatus.DONE);
+                this.txReceipt.addLog(String.format("propose %s %s", propose.getProposeId(),
+                        ProposeStatus.DONE));
+                proposeFee = stakeBalnace.subtract(refundFee);
+                transfer(propose.getProposeId(), propose.getIssuer(), refundFee, proposeFee);
+            }
+        }
 
         @InvokeTransaction
         public void transactionConfirm(JsonObject param) {
             // validator can validate other network transaction
             // TODO check validate
-
+            // TODO validator or truth node can validate propose
             // Get Transaction Confirm
             String txConfirmId = param.get("txConfirmId").getAsString();
             // Transaction Status
@@ -832,6 +838,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
                                 txConfirm.setStatus(TxConfirmStatus.DONE);
                                 // Save TxConfirm
                                 setTxConfirm(txConfirm);
+                                // check propose is done
+                                proposeProcessDone(pi, BigInteger.ZERO);
                             } else {
                                 this.txReceipt.addLog(String.format("%s is DONE",txConfirm.getTxConfirmId()));
                             }
@@ -849,7 +857,6 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 this.txReceipt.setStatus(ExecuteStatus.FALSE);
             }
         }
-
 
         // propose close
         @InvokeTransaction
@@ -879,10 +886,5 @@ public class YeedContract implements BundleActivator, ServiceListener {
             txReceipt.setStatus(ExecuteStatus.SUCCESS);
             txReceipt.addLog(String.format("propose %s closed", propose.getProposeId()));
         }
-
-        // TODO interTransfer TOKEN to YEED
-
-        // TODO validator or truth node can validate propose
-
     }
 }
