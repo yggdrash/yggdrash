@@ -26,7 +26,7 @@ public class EbftBlockStoreTest {
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
-        wallet = new Wallet("/tmp/nodePri.key", "Password1234!");
+        wallet = new Wallet("tmp/nodePri.key", "Password1234!");
     }
 
     @Test
