@@ -11,14 +11,14 @@ import org.spongycastle.crypto.params.ParametersWithIV;
 import java.security.SecureRandom;
 
 /**
- * AESEncrypt Class
+ * AesEncrypt Class
  * AES CBC PKCS7Padding.
  */
-public class AESEncrypt {
+public class AesEncrypt {
 
     private static final int AES_KEY_LENGTH = 128;
 
-    private AESEncrypt() {
+    private AesEncrypt() {
         throw new IllegalStateException("Utility class");
     }
 
