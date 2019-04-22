@@ -14,9 +14,9 @@ import io.yggdrash.contract.core.annotation.InjectEvent;
 import io.yggdrash.contract.core.annotation.InjectOutputStore;
 import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.contract.core.store.OutputType;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.store.StoreContainer;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -354,7 +354,7 @@ public class ContractManager {
         return results;
     }
 
-    public BlockRuntimeResult executeTransactions(BlockHusk nextBlock) {
+    public BlockRuntimeResult executeTransactions(Block nextBlock) {
         if (nextBlock.getIndex() == 0) {
             // TODO first transaction is genesis
             // TODO init method don't call any more
@@ -363,7 +363,8 @@ public class ContractManager {
         BlockRuntimeResult result = new BlockRuntimeResult(nextBlock);
         // TODO tempStateStore
         // TempStateStore blockState = new TempStateStore(stateStore);
-        for (TransactionHusk tx : nextBlock.getBody()) {
+        List<TransactionHusk> txList = nextBlock.getBody();
+        for (TransactionHusk tx : txList) {
             TransactionReceipt txReceipt = createTransactionReceipt(tx);
             // set Block ID
             txReceipt.setBlockId(nextBlock.getHash().toString());

@@ -59,7 +59,7 @@ public class EbftBlockKeyStoreMultiThreadTest {
 
         this.ebftBlock = makeEbftBlock(0L, Constants.EMPTY_HASH);
 
-        this.blockKeyStore.put(this.ebftBlock.getIndex(), this.ebftBlock.getHash());
+        this.blockKeyStore.put(this.ebftBlock.getIndex(), this.ebftBlock.getHash().getBytes());
     }
 
     private Block makeBlock(long index, byte[] prevHash) {

@@ -5,10 +5,11 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.consensus.Consensus;
+import io.yggdrash.core.consensus.ConsensusBlockChain;
+import io.yggdrash.core.consensus.ConsensusService;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.validator.config.Consensus;
-import io.yggdrash.validator.data.ConsensusBlockChain;
 import io.yggdrash.validator.data.ebft.EbftBlockChain;
 import io.yggdrash.validator.data.pbft.PbftBlockChain;
 import io.yggdrash.validator.service.ebft.EbftServerStub;
@@ -24,6 +25,7 @@ import org.springframework.scheduling.support.CronTrigger;
 import java.io.File;
 import java.io.IOException;
 
+@Deprecated
 public class ValidatorService {
 
     private final DefaultConfig defaultConfig;
@@ -55,11 +57,11 @@ public class ValidatorService {
 
         switch (consensus.getAlgorithm()) {
             case "pbft":
-                consensusService = new PbftService(wallet, blockChain, defaultConfig, host, port);
+                this.consensusService = new PbftService(wallet, blockChain, defaultConfig, host, port);
                 taskScheduler.schedule(consensusService, new CronTrigger(consensus.getPeriod()));
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
-                            .addService(new PbftServerStub(blockChain, consensusService))
+                            .addService(new PbftServerStub((PbftService) consensusService))
                             .addService(new NodeServerStub(blockChain))
                             .build()
                             .start();
@@ -68,11 +70,11 @@ public class ValidatorService {
                 }
                 break;
             case "ebft":
-                consensusService = new EbftService(wallet, blockChain, defaultConfig, host, port);
+                this.consensusService = new EbftService(wallet, blockChain, defaultConfig, host, port);
                 taskScheduler.schedule(consensusService, new CronTrigger(consensus.getPeriod()));
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
-                            .addService(new EbftServerStub(blockChain, consensusService))
+                            .addService(new EbftServerStub((EbftService) consensusService))
                             .addService(new NodeServerStub(blockChain))
                             .build()
                             .start();

@@ -18,10 +18,10 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.common.config.Constants.LIMIT;
 import io.yggdrash.core.blockchain.BlockChain;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.consensus.Block;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,9 +43,9 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
     }
 
     @Override
-    public List<BlockHusk> syncBlock(BranchId branchId, long offset, long limit) {
+    public List<Block> syncBlock(BranchId branchId, long offset, long limit) {
         long curBestBlock = branchGroup.getLastIndex(branchId);
-        List<BlockHusk> blockHuskList = new ArrayList<>();
+        List<Block> blockHuskList = new ArrayList<>();
         if (curBestBlock == 0) {
             return blockHuskList;
         }
@@ -66,7 +66,7 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
     }
 
     @Override
-    public void broadcastBlock(BlockHusk block) {
+    public void broadcastBlock(Block block) {
         try {
             long nextIndex = branchGroup.getLastIndex(block.getBranchId()) + 1;
             long receivedIndex = block.getIndex();
@@ -105,7 +105,7 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
         return false;
     }
 
-    private void updateBlockList(BranchId branchId, long offset, long limit, List<BlockHusk> blockHuskList) {
+    private void updateBlockList(BranchId branchId, long offset, long limit, List<Block> blockList) {
         BlockChain blockChain = branchGroup.getBranch(branchId);
 
         if (blockChain == null) {
@@ -119,7 +119,7 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
         long bodyLengthSum = 0;
 
         for (int i = 0; i < limit; i++) {
-            BlockHusk block = branchGroup.getBlockByIndex(branchId, offset++);
+            Block block = branchGroup.getBlockByIndex(branchId, offset++);
             if (block == null) {
                 return;
             }
@@ -127,7 +127,7 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
             if (bodyLengthSum > LIMIT.BLOCK_SYNC_SIZE) {
                 return;
             }
-            blockHuskList.add(block);
+            blockList.add(block);
         }
     }
 

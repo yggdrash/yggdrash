@@ -20,16 +20,16 @@ import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.blockchain.Branch;
 
 public class StoreContainer {
-    Branch branch;
+    private Branch branch;
 
-    BranchStore branchStore;
-    StateStore stateStore;
-    BlockStore blockStore;
+    private BranchStore branchStore;
+    private StateStore stateStore;
+    private ConsensusBlockStore blockStore;
 
-    TransactionStore transactionStore;
-    TransactionReceiptStore transactionReceiptStore;
+    private TransactionStore transactionStore;
+    private TransactionReceiptStore transactionReceiptStore;
 
-    public StoreContainer(Branch branch, BranchStore branchStore, StateStore stateStore, BlockStore blockStore,
+    public StoreContainer(Branch branch, BranchStore branchStore, StateStore stateStore, ConsensusBlockStore blockStore,
                           TransactionStore transactionStore, TransactionReceiptStore transactionReceiptStore) {
         this.branch = branch;
         this.branchStore = branchStore;
@@ -52,7 +52,7 @@ public class StoreContainer {
         return this.stateStore;
     }
 
-    public BlockStore getBlockStore() {
+    public ConsensusBlockStore getBlockStore() {
         return this.blockStore;
     }
 

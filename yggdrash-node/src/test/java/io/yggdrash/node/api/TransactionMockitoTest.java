@@ -17,14 +17,13 @@
 package io.yggdrash.node.api;
 
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.TestConstants;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.store.TransactionReceiptStore;
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
 import org.apache.commons.codec.binary.Hex;
@@ -40,6 +39,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static io.yggdrash.TestConstants.wallet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -50,10 +50,8 @@ public class TransactionMockitoTest {
 
     @Mock
     private BranchGroup branchGroupMock;
-    @Mock
-    private TransactionReceiptStore txReceiptStoreMock;
     private TransactionHusk tx;
-    private BlockHusk block;
+    private Block block;
 
     private TransactionApiImpl txApiImpl;
     private String txId;
@@ -78,8 +76,8 @@ public class TransactionMockitoTest {
         txReceipt = new TransactionReceiptImpl();
         txReceipt.setTxId(txId);
         txReceiptStore.put(txId, txReceipt);
-        BlockHusk genesis = BlockChainTestUtils.genesisBlock();
-        block = new BlockHusk(TestConstants.wallet(), txList, genesis);
+        Block genesis = BlockChainTestUtils.genesisBlock();
+        block = BlockHusk.nextBlock(wallet(), txList, genesis);
         blockId = block.getHash().toString();
     }
 

@@ -2,16 +2,18 @@ package io.yggdrash.node.api;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @AutoJsonRpcServiceImpl
@@ -27,14 +29,14 @@ public class TransactionApiImpl implements TransactionApi {
     /* get */
     @Override
     public int getTransactionCountByBlockHash(String branchId, String blockId) {
-        BlockHusk block = branchGroup.getBlockByHash(BranchId.of(branchId), blockId);
-        return block.getBody().size();
+        Block block = branchGroup.getBlockByHash(BranchId.of(branchId), blockId);
+        return block.getBodyCount();
     }
 
     @Override
     public int getTransactionCountByBlockNumber(String branchId, long blockNumber) {
-        BlockHusk block = branchGroup.getBlockByIndex(BranchId.of(branchId), blockNumber);
-        return block.getBody().size();
+        Block block = branchGroup.getBlockByIndex(BranchId.of(branchId), blockNumber);
+        return block.getBodyCount();
     }
 
     @Override
@@ -58,15 +60,17 @@ public class TransactionApiImpl implements TransactionApi {
     @Override
     public TransactionDto getTransactionByBlockHash(String branchId, String blockId,
                                                      int txIndexPosition) {
-        BlockHusk block = branchGroup.getBlockByHash(BranchId.of(branchId), blockId);
-        return TransactionDto.createBy(block.getBody().get(txIndexPosition));
+        Block block = branchGroup.getBlockByHash(BranchId.of(branchId), blockId);
+        List<TransactionHusk> txList = block.getBody();
+        return TransactionDto.createBy(txList.get(txIndexPosition));
     }
 
     @Override
     public TransactionDto getTransactionByBlockNumber(String branchId, long blockNumber,
                                                        int txIndexPosition) {
-        BlockHusk block = branchGroup.getBlockByIndex(BranchId.of(branchId), blockNumber);
-        return TransactionDto.createBy(block.getBody().get(txIndexPosition));
+        Block block = branchGroup.getBlockByIndex(BranchId.of(branchId), blockNumber);
+        List<TransactionHusk> txList = block.getBody();
+        return TransactionDto.createBy(txList.get(txIndexPosition));
     }
 
     @Override

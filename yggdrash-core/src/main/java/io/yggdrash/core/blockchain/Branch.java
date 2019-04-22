@@ -71,7 +71,7 @@ public class Branch {
         this.description = json.get("description").getAsString();
         this.validators = JsonUtil.convertJsonArrayToSet(
                 json.get("validator").getAsJsonArray());
-        consensus = json.get("consensus").getAsJsonObject();
+        this.consensus = json.get("consensus").getAsJsonObject();
         this.branchId = BranchId.of(toJsonObject());
     }
 

@@ -4,7 +4,6 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.blockchain.Transaction;
@@ -16,7 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class GenesisBlock {
-    private final BlockHusk block;
+    private final Block block;
     private final Branch branch;
 
     /**
@@ -29,13 +28,12 @@ public class GenesisBlock {
         this.block = toBlock();
     }
 
-    private GenesisBlock(Branch branch, BlockHusk block) {
+    private GenesisBlock(Branch branch, Block block) {
         this.branch = branch;
         this.block = block;
     }
 
-
-    public BlockHusk getBlock() {
+    public Block getBlock() {
         return block;
     }
 
@@ -43,7 +41,7 @@ public class GenesisBlock {
         return branch;
     }
 
-    private BlockHusk toBlock() {
+    private Block toBlock() {
         // Divided Branch Transaction
         // TODO Save Branch Genesis Transaction
         TransactionBuilder builder = new TransactionBuilder();
@@ -54,9 +52,7 @@ public class GenesisBlock {
         Transaction tx = builder.buildTransaction();
 
         // Make Genesis Block
-        Block coreBlock = generatorGenesisBlock(tx);
-
-        return new BlockHusk(Block.toProtoBlock(coreBlock));
+        return generatorGenesisBlock(tx);
     }
 
     // Contract initial value
@@ -93,7 +89,7 @@ public class GenesisBlock {
         return new GenesisBlock(branch);
     }
 
-    public static GenesisBlock of(Branch branch, BlockHusk block) {
+    public static GenesisBlock of(Branch branch, Block block) {
         return new GenesisBlock(branch, block);
     }
 
