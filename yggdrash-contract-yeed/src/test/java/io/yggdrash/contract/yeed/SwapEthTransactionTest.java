@@ -16,14 +16,25 @@
 
 package io.yggdrash.contract.yeed;
 
+import com.google.gson.JsonObject;
+import com.sun.deploy.model.Resource;
 import io.yggdrash.common.crypto.HexUtil;
+import io.yggdrash.common.rlp.RLP;
+import io.yggdrash.common.utils.FileUtil;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.yeed.ehtereum.EthTransaction;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.math.BigInteger;
+import java.net.URL;
+import java.util.Arrays;
 
 public class SwapEthTransactionTest {
     private static final Logger log = LoggerFactory.getLogger(SwapEthTransactionTest.class);
@@ -252,6 +263,38 @@ public class SwapEthTransactionTest {
         Assert.assertEquals("Receiver", "7eca82d239c3b1513d6368e2ff21763e469f1298",
                 HexUtil.toHexString(ethTransaction.getReceiveAddress()));
         Assert.assertEquals("Send Value", "100000000000000000", ethTransaction.getValue().toString());
+
+    }
+
+    @Test
+    public void rawTransactionFromApiCallResult() throws IOException {
+        InputStream file = getClass().getResourceAsStream("/mainnet-hash.json");
+        Reader json = new InputStreamReader(file, FileUtil.DEFAULT_CHARSET);
+        JsonObject obj = JsonUtil.parseJsonObject(json);
+
+        log.debug(obj.toString());
+
+        byte[] nonce = RLP.encodeElement(HexUtil.hexStringToBytes(obj.get("nonce").getAsString()));
+        byte[] gasPrice = RLP.encodeElement(HexUtil.hexStringToBytes(obj.get("gasPrice").getAsString()));
+        byte[] gasLimit = RLP.encodeElement(HexUtil.hexStringToBytes(obj.get("gas").getAsString()));
+        byte[] receiveAddress = RLP.encodeElement(HexUtil.hexStringToBytes(obj.get("to").getAsString()));
+        byte[] value = RLP.encodeElement(HexUtil.hexStringToBytes(obj.get("value").getAsString()));
+        byte[] data = RLP.encodeElement(HexUtil.hexStringToBytes(obj.get("input").getAsString()));
+        byte[] v = RLP.encodeElement(HexUtil.hexStringToBytes(obj.get("v").getAsString()));
+        byte[] r = RLP.encodeElement(HexUtil.hexStringToBytes(obj.get("r").getAsString()));
+        byte[] s = RLP.encodeElement(HexUtil.hexStringToBytes(obj.get("s").getAsString()));
+
+        byte[] rawTransaction = RLP.encodeList(nonce, gasPrice, gasLimit, receiveAddress,
+                value, data, v, r, s);
+
+        String ethHexString = "f86f830414ac850df847580082afc894c3cf7a283a4415ce3c41f5374934612389"
+                + "334780880de0b6b3a76400008026a0c9938e35c6281a2003531ef19c0368fb0ec680d1bc073ee2881"
+                + "3602616ce172ca03885e6218dbd7a09fc250ce4eb982114cc25c0974f4adfbd08c4e834f9c74dc3";
+        byte[] ethHex = HexUtil.hexStringToBytes(ethHexString);
+
+        Assert.assertTrue("Json rpc Api to rawTransaction", Arrays.equals(ethHex, rawTransaction));
+
+
 
     }
 
