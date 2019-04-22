@@ -135,6 +135,7 @@ project(':yggdrash-validator') {
         testCompile "com.vmlens:concurrent-junit:1.0.2"
         testCompile "org.springframework.boot:spring-boot-starter-test"
         testCompile "io.grpc:grpc-testing:${grpcVersion}"
+        testCompile group: 'org.mongodb', name: 'bson', version: '3.10.1'
     }
 
     configurations {
