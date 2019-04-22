@@ -50,7 +50,7 @@ public class TestConstants {
 
     static {
         try {
-            wallet = new Wallet("/tmp/nodePri.key", "Password1234!");
+            wallet = new Wallet(".yggdrash/keystore/nodePri.key", "Password1234!");
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
         }
