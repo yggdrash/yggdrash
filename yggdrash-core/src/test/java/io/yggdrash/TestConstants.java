@@ -16,6 +16,7 @@
 
 package io.yggdrash;
 
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
@@ -50,7 +51,7 @@ public class TestConstants {
 
     static {
         try {
-            wallet = new Wallet(".yggdrash/keystore/nodePri.key", "Password1234!");
+            wallet = new Wallet(new DefaultConfig(), "Password1234!");
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
         }

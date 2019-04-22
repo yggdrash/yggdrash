@@ -76,7 +76,7 @@ public class TransactionTest extends SlowTest {
 
         txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
 
-        wallet = new Wallet("/tmp/nodePri.key", "Password1234!");
+        wallet = new Wallet("tmp/nodePri.key", "Password1234!");
         log.debug("wallet.pubKey=" + Hex.toHexString(wallet.getPubicKey()));
 
         txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());

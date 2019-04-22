@@ -45,7 +45,7 @@ public class WalletTest {
     @Test
     public void testKeySave() throws IOException, InvalidCipherTextException {
         // generate key & save a file
-        Wallet wallet = new Wallet(null, "/tmp/", "nodePri.key", "Password1234!");
+        Wallet wallet = new Wallet(null, "tmp/", "nodePri.key", "Password1234!");
 
         byte[] encData = FileUtil.readFile(wallet.getKeyPath(), wallet.getKeyName());
         log.debug("path:" + wallet.getKeyPath() + wallet.getKeyName());
@@ -53,7 +53,7 @@ public class WalletTest {
         log.debug("pubKey:" + Hex.toHexString(wallet.getPubicKey()));
 
         // load key
-        Wallet wallet1 = new Wallet("/tmp/", wallet.getKeyName(), "Password1234!");
+        Wallet wallet1 = new Wallet("tmp/", wallet.getKeyName(), "Password1234!");
         log.debug("pubKey2:" + Hex.toHexString(wallet1.getPubicKey()));
 
         assertArrayEquals(wallet.getPubicKey(), wallet1.getPubicKey());
@@ -64,7 +64,7 @@ public class WalletTest {
         TestConstants.ConsoleTest.apply();
 
         // generate key & save a file
-        Wallet wallet = new Wallet((ECKey) null, "/tmp/nodePri.key");
+        Wallet wallet = new Wallet((ECKey) null, "tmp/nodePri.key");
 
         byte[] encData = FileUtil.readFile(wallet.getKeyPath(), wallet.getKeyName());
         log.debug("path:" + wallet.getKeyPath() + wallet.getKeyName());
