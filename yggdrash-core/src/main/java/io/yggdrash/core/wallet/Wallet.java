@@ -416,7 +416,7 @@ public class Wallet {
                 WALLET_PBKDF2_ITERATION,
                 WALLET_PBKDF2_DKLEN,
                 WALLET_PBKDF2_ALGORITHM);
-        byte[] encData = AESEncrypt.encrypt(
+        byte[] encData = AesEncrypt.encrypt(
                 key.getPrivKeyBytes(),
                 ByteUtil.parseBytes(kdfPass, 0, 16),
                 iv);
@@ -510,7 +510,7 @@ public class Wallet {
                 .get("iv")
                 .getAsString());
 
-        byte[] priKey = AESEncrypt.decrypt(
+        byte[] priKey = AesEncrypt.decrypt(
                 encData, ByteUtil.parseBytes(kdfPass, 0, 16), iv);
         this.key = ECKey.fromPrivate(priKey);
         this.keyPath = keyPath;
