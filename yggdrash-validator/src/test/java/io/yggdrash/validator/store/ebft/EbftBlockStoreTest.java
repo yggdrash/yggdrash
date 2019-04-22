@@ -1,6 +1,7 @@
 package io.yggdrash.validator.store.ebft;
 
 import io.yggdrash.StoreTestUtils;
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
@@ -26,7 +27,7 @@ public class EbftBlockStoreTest {
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
-        wallet = new Wallet("tmp/nodePri.key", "Password1234!");
+        wallet = new Wallet(new DefaultConfig(), "Password1234!");
     }
 
     @Test
