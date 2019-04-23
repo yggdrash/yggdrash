@@ -55,7 +55,7 @@ public class TransactionTest extends SlowTest {
     private Transaction tx1;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
 
         JsonObject jsonParam1 = new JsonObject();
         jsonParam1.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
