@@ -81,7 +81,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
     @Override
     public List<PeerHandler> getHandlerList(BranchId branchId) {
         List<Peer> peerList = peerTableGroup.getBroadcastPeerList(branchId);
-        return peerDialer.getHandlerList(peerList);
+        return peerDialer.getHandlerList(branchId, peerList);
     }
 
     @Override
@@ -102,8 +102,9 @@ public class KademliaPeerNetwork implements PeerNetwork {
         }
     }
 
-    public void addNetwork(BranchId branchId) {
+    public void addNetwork(BranchId branchId, String consensus) {
         peerTableGroup.createTable(branchId);
+        peerDialer.addConsensus(branchId, consensus);
     }
 
     public void setValidator(BranchId branchId, List<Peer> validatorList) {
@@ -127,7 +128,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
         private void broadcastTx(Transaction tx) {
             if (validatorMap.containsKey(tx.getBranchId())) {
                 List<Peer> validatorPeerList = validatorMap.get(tx.getBranchId());
-                for (PeerHandler peerHandler : peerDialer.getHandlerList(validatorPeerList)) {
+                for (PeerHandler peerHandler : peerDialer.getHandlerList(tx.getBranchId(), validatorPeerList)) {
                     peerHandler.broadcastTx(tx);
                 }
             }

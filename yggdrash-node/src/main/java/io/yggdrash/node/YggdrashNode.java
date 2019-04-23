@@ -16,10 +16,8 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.core.blockchain.BlockChainSyncManager;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.SyncManager;
-import io.yggdrash.core.net.BlockChainConsumer;
 import io.yggdrash.core.net.BootStrapNode;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerNetwork;
@@ -60,11 +58,6 @@ public class YggdrashNode extends BootStrapNode {
     @Override
     public void setBranchGroup(BranchGroup branchGroup) {
         super.setBranchGroup(branchGroup);
-    }
-
-    @Autowired
-    public void setListener(BlockChainConsumer blockChainConsumer) {
-        blockChainConsumer.setListener((BlockChainSyncManager) syncManager);
     }
 
     @Autowired

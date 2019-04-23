@@ -49,7 +49,7 @@ public class StoreBuilderTest {
     @Test
     public void buildBlockStore() {
         ConsensusBlock block = BlockChainTestUtils.genesisBlock();
-        ConsensusBlockStore store = builder.buildBlockStore();
+        ConsensusBlockStore store = builder.setBlockStoreFactory(PbftBlockStoreMock::new).buildBlockStore();
         store.put(block.getHash(), block);
         assertThat(store.contains(block.getHash())).isTrue();
         assertThat(store.get(block.getHash())).isEqualTo(block);

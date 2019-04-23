@@ -17,20 +17,16 @@
 package io.yggdrash.node.config;
 
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.blockchain.BranchGroup;
-import io.yggdrash.core.net.BlockChainConsumer;
-import io.yggdrash.core.net.BlockChainServiceConsumer;
 import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.net.DiscoveryServiceConsumer;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
-import io.yggdrash.core.p2p.PeerHandlerFactory;
 import io.yggdrash.core.p2p.PeerTableGroup;
 import io.yggdrash.core.p2p.PeerTableGroupBuilder;
 import io.yggdrash.core.p2p.SimplePeerDialer;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.node.GRpcPeerHandlerFactory;
+import io.yggdrash.node.service.ConsensusHandlerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +46,7 @@ public class P2PConfiguration {
     private final NodeProperties nodeProperties;
 
     @Autowired
-    P2PConfiguration(NodeProperties nodeProperties, DefaultConfig defaultConfig, Environment env) {
+    P2PConfiguration(NodeProperties nodeProperties, Environment env) {
         this.nodeProperties = nodeProperties;
         boolean isLocal = Arrays.asList(env.getActiveProfiles()).contains("local");
         if (!isLocal && "localhost".equals(nodeProperties.getGrpc().getHost())) {
@@ -63,13 +59,8 @@ public class P2PConfiguration {
     }
 
     @Bean
-    PeerHandlerFactory peerHandlerFactory() {
-        return new GRpcPeerHandlerFactory();
-    }
-
-    @Bean
-    PeerDialer peerDialer(PeerHandlerFactory peerHandlerFactory) {
-        return new SimplePeerDialer(peerHandlerFactory);
+    PeerDialer peerDialer() {
+        return new SimplePeerDialer(ConsensusHandlerFactory.factory());
     }
 
     @Bean
@@ -92,10 +83,5 @@ public class P2PConfiguration {
     @Bean
     DiscoveryConsumer discoveryConsumer(PeerTableGroup peerTableGroup) {
         return new DiscoveryServiceConsumer(peerTableGroup);
-    }
-
-    @Bean
-    BlockChainConsumer blockChainConsumer(BranchGroup branchGroup) {
-        return new BlockChainServiceConsumer(branchGroup);
     }
 }

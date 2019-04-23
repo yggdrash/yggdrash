@@ -9,7 +9,7 @@ import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
-import io.yggdrash.core.blockchain.SimpleBlock;
+import io.yggdrash.core.blockchain.PbftBlockMock;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.proto.Proto;
 import org.bson.BsonBinary;
@@ -70,17 +70,17 @@ public class BlockSerializePerformanceTest extends TestConstants.PerformanceTest
     @Test
     public void testBlockSize() throws IOException {
         Block block = this.genesisBlock.getGenesisBlock();
-        SimpleBlock blockHusk = new SimpleBlock(genesisBlock.getGenesisBlock());
-        Proto.Block blockProto = blockHusk.getProtoBlock();
+        PbftBlockMock consensusBlock = new PbftBlockMock(genesisBlock.getGenesisBlock());
+        Proto.Block blockProto = consensusBlock.getProtoBlock();
         JsonObject jsonObject = block.toJsonObject();
         byte[] bsonBytes = convertBlockToBson(block);
 
         log.info("Block size: {} ", block.getHeader().getBodyLength());
-        log.info("BlockHusk serialize size: {}", blockHusk.getBody().getLength());
+        log.info("ConsensusBlock serialize size: {}", consensusBlock.getBody().getLength());
         log.info("Proto.Block serialize size: {}", blockProto.toByteArray().length);
         log.info("Json serialize size: {}", jsonObject.toString().length());
         log.info("Bson serialize size: {}", bsonBytes.length);
-        Assert.assertEquals(block.getHeader().getBodyLength(), blockHusk.getBody().getLength());
+        Assert.assertEquals(block.getHeader().getBodyLength(), consensusBlock.getBody().getLength());
     }
 
     @Test
@@ -88,7 +88,7 @@ public class BlockSerializePerformanceTest extends TestConstants.PerformanceTest
         long startTime;
         long endTime;
 
-        SimpleBlock blockHusk = new SimpleBlock(genesisBlock.getGenesisBlock());
+        PbftBlockMock blockHusk = new PbftBlockMock(genesisBlock.getGenesisBlock());
 
         startTime = System.nanoTime();
         for (long l = 0; l < MAX; l++) {

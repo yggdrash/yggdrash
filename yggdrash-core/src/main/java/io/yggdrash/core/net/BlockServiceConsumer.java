@@ -20,7 +20,6 @@ import io.yggdrash.common.config.Constants.LIMIT;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,12 +27,12 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BlockChainServiceConsumer implements BlockChainConsumer {
-    private static final Logger log = LoggerFactory.getLogger(BlockChainServiceConsumer.class);
+public class BlockServiceConsumer<T> implements BlockConsumer<T> {
+    private static final Logger log = LoggerFactory.getLogger(BlockServiceConsumer.class);
     private final BranchGroup branchGroup;
     private CatchUpSyncEventListener listener;
 
-    public BlockChainServiceConsumer(BranchGroup branchGroup) {
+    public BlockServiceConsumer(BranchGroup branchGroup) {
         this.branchGroup = branchGroup;
     }
 
@@ -43,11 +42,11 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
     }
 
     @Override
-    public List<ConsensusBlock> syncBlock(BranchId branchId, long offset, long limit) {
+    public List<ConsensusBlock<T>> syncBlock(BranchId branchId, long offset, long limit) {
         long curBestBlock = branchGroup.getLastIndex(branchId);
-        List<ConsensusBlock> blockHuskList = new ArrayList<>();
+        List<ConsensusBlock<T>> blockList = new ArrayList<>();
         if (curBestBlock == 0) {
-            return blockHuskList;
+            return blockList;
         }
         if (isNeedBlockSync(curBestBlock, offset)) {
             // Catchup Event!
@@ -55,18 +54,13 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
                 listener.catchUpRequest(branchId, offset);
             }
         } else {
-            updateBlockList(branchId, offset, limit, blockHuskList);
+            updateBlockList(branchId, offset, limit, blockList);
         }
-        return blockHuskList;
+        return blockList;
     }
 
     @Override
-    public List<Transaction> syncTx(BranchId branchId) {
-        return branchGroup.getUnconfirmedTxs(branchId);
-    }
-
-    @Override
-    public void broadcastBlock(ConsensusBlock block) {
+    public void broadcastBlock(ConsensusBlock<T> block) {
         try {
             long nextIndex = branchGroup.getLastIndex(block.getBranchId()) + 1;
             long receivedIndex = block.getIndex();
@@ -81,16 +75,7 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
                 branchGroup.addBlock(block, true);
             }
         } catch (Exception e) {
-            log.warn("[BlockChainServiceConsumer] BroadcastBlock ERR={}", e.getMessage());
-        }
-    }
-
-    @Override
-    public void broadcastTx(Transaction tx) {
-        try {
-            branchGroup.addTransaction(tx);
-        } catch (Exception e) {
-            log.warn(e.getMessage());
+            log.warn("BroadcastBlock ERR={}", e.getMessage());
         }
     }
 
@@ -105,7 +90,7 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
         return false;
     }
 
-    private void updateBlockList(BranchId branchId, long offset, long limit, List<ConsensusBlock> blockList) {
+    private void updateBlockList(BranchId branchId, long offset, long limit, List<ConsensusBlock<T>> blockList) {
         BlockChain blockChain = branchGroup.getBranch(branchId);
 
         if (blockChain == null) {

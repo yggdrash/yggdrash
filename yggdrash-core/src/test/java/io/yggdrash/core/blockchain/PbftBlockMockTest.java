@@ -24,7 +24,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SimpleBlockTest {
+public class PbftBlockMockTest {
 
     private ConsensusBlock genesisBlock;
 
@@ -41,7 +41,7 @@ public class SimpleBlockTest {
 
     @Test
     public void blockCloneTest() {
-        SimpleBlock cloned = new SimpleBlock(genesisBlock.toBinary());
+        PbftBlockMock cloned = new PbftBlockMock(genesisBlock.toBinary());
         assertThat(cloned.hashCode()).isEqualTo(genesisBlock.hashCode());
         assertThat(cloned).isEqualTo(genesisBlock);
     }
@@ -51,7 +51,8 @@ public class SimpleBlockTest {
         JsonObject jsonObject = genesisBlock.toJsonObjectByProto();
         String jsonString = jsonObject.toString();
         assertThat(jsonObject).isNotNull();
-        assertThat(jsonObject.getAsJsonObject("header").get("index").getAsString()).isEqualTo("0");
+        JsonObject jsonObjectBlock = jsonObject.getAsJsonObject("block").getAsJsonObject();
+        assertThat(jsonObjectBlock.getAsJsonObject("header").get("index").getAsString()).isEqualTo("0");
         assertThat(jsonString).contains(genesisBlock.getHash().toString());
     }
 }

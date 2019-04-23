@@ -23,18 +23,19 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
 import io.yggdrash.core.blockchain.BlockImpl;
-import io.yggdrash.core.blockchain.BlockMockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.SimpleBlock;
+import io.yggdrash.core.blockchain.PbftBlockChainMock;
+import io.yggdrash.core.blockchain.PbftBlockMock;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.InvalidSignatureException;
+import io.yggdrash.core.store.PbftBlockStoreMock;
 import io.yggdrash.core.store.StoreBuilder;
-import io.yggdrash.proto.Proto;
+import io.yggdrash.proto.PbftProto;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -63,12 +64,12 @@ public class BlockChainTestUtils {
         return sampleBlockHuskList;
     }
 
-    public static ConsensusBlock<Proto.Block> genesisBlock() {
-        return new SimpleBlock(genesis.getBlock());
+    public static ConsensusBlock<PbftProto.PbftBlock> genesisBlock() {
+        return new PbftBlockMock(genesis.getBlock());
     }
 
     public static ConsensusBlock createNextBlock() {
-        return createNextBlock(new SimpleBlock(genesis.getBlock()));
+        return createNextBlock(new PbftBlockMock(genesis.getBlock()));
     }
 
     public static ConsensusBlock createNextBlock(ConsensusBlock prevBlock) {
@@ -76,7 +77,7 @@ public class BlockChainTestUtils {
     }
 
     public static ConsensusBlock createNextBlock(List<Transaction> blockBody, ConsensusBlock prevBlock) {
-        return new SimpleBlock(BlockImpl.nextBlock(TestConstants.wallet(), blockBody, prevBlock));
+        return new PbftBlockMock(BlockImpl.nextBlock(TestConstants.wallet(), blockBody, prevBlock));
     }
 
     public static Transaction createBranchTxHusk() {
@@ -124,12 +125,14 @@ public class BlockChainTestUtils {
         } else {
             storeBuilder = StoreBuilder.newBuilder().setConfig(new DefaultConfig());
         }
+        storeBuilder.setBranchId(genesis.getBranch().getBranchId())
+                .setBlockStoreFactory(PbftBlockStoreMock::new);
 
         return BlockChainBuilder.newBuilder()
                 .setGenesis(genesis)
                 .setStoreBuilder(storeBuilder)
                 .setPolicyLoader(new ContractPolicyLoader())
-                .setFactory(BlockMockChain::new)
+                .setFactory(PbftBlockChainMock::new)
                 .build();
     }
 

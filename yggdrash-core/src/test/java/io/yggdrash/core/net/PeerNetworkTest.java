@@ -21,7 +21,7 @@ public class PeerNetworkTest {
         PeerDialer peerDialer = new SimplePeerDialer(PeerHandlerMock.factory);
         PeerTableGroup peerTableGroup = PeerTestUtils.createTableGroup();
         peerNetwork = new KademliaPeerNetwork(peerTableGroup, peerDialer);
-        peerNetwork.addNetwork(genesis.getBranchId());
+        peerNetwork.addNetwork(genesis.getBranchId(), "pbft");
         peerTableGroup.addPeer(genesis.getBranchId(), Peer.valueOf("ynode://75bff16c@127.0.0.1:32919"));
         peerNetwork.init();
     }
