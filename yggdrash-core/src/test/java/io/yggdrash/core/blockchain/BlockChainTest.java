@@ -85,7 +85,6 @@ public class BlockChainTest extends CiTest {
         long nextIndex = blockChain2.getLastIndex() + 1;
         assertThat(nextIndex).isEqualTo(2);
         assertThat(testBlock).isEqualTo(foundBlock);
-
     }
 
     @Test
@@ -156,7 +155,7 @@ public class BlockChainTest extends CiTest {
     private static ConsensusBlock getBlockFixture(Long index, byte[] prevHash) {
 
         try {
-            io.yggdrash.core.blockchain.Block tmpBlock = BlockChainTestUtils.genesisBlock().getBlock();
+            Block tmpBlock = BlockChainTestUtils.genesisBlock().getBlock();
             BlockHeader tmpBlockHeader = tmpBlock.getHeader();
             BlockBody tmpBlockBody = tmpBlock.getBody();
 
@@ -169,9 +168,8 @@ public class BlockChainTest extends CiTest {
                     TimeUtils.time(),
                     tmpBlockBody);
 
-            io.yggdrash.core.blockchain.Block block =
-                    new BlockImpl(newBlockHeader, TestConstants.wallet(), tmpBlockBody);
-            return new SimpleBlock(block);
+            Block block = new BlockImpl(newBlockHeader, TestConstants.wallet(), tmpBlockBody);
+            return new PbftBlockMock(block);
         } catch (Exception e) {
             throw new NotValidateException(e);
         }

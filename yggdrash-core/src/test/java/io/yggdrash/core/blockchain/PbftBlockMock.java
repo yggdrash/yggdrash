@@ -21,15 +21,15 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.core.consensus.AbstractConsensusBlock;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.proto.Proto;
+import io.yggdrash.proto.PbftProto;
 
-public class SimpleBlock extends AbstractConsensusBlock<Proto.Block> {
+public class PbftBlockMock extends AbstractConsensusBlock<PbftProto.PbftBlock> {
 
-    public SimpleBlock(byte[] bytes) {
+    public PbftBlockMock(byte[] bytes) {
         this(toProto(bytes));
     }
 
-    public SimpleBlock(io.yggdrash.core.blockchain.Block block) {
+    public PbftBlockMock(Block block) {
         super(block);
     }
 
@@ -39,8 +39,8 @@ public class SimpleBlock extends AbstractConsensusBlock<Proto.Block> {
     }
 
     @Override
-    public Proto.Block getInstance() {
-        return getProtoBlock();
+    public PbftProto.PbftBlock getInstance() {
+        return PbftProto.PbftBlock.newBuilder().setBlock(getProtoBlock()).build();
     }
 
     @Override
@@ -58,9 +58,9 @@ public class SimpleBlock extends AbstractConsensusBlock<Proto.Block> {
         throw new FailedOperationException("Not implemented");
     }
 
-    private static io.yggdrash.core.blockchain.Block toProto(byte[] bytes) {
+    private static Block toProto(byte[] bytes) {
         try {
-            return new BlockImpl(Proto.Block.parseFrom(bytes));
+            return new BlockImpl(PbftProto.PbftBlock.parseFrom(bytes).getBlock());
         } catch (InvalidProtocolBufferException e) {
             throw new NotValidateException(e);
         }
