@@ -16,6 +16,7 @@
 
 package io.yggdrash;
 
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
@@ -24,6 +25,7 @@ import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.wallet.Wallet;
 import org.junit.Assume;
 import org.junit.BeforeClass;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -35,12 +37,12 @@ public class TestConstants {
     public static ContractVersion YEED_CONTRACT;
     public static Branch TEST_BRANCH;
 
-
     public static final String TRANSFER_TO = "e1980adeafbb9ac6c9be60955484ab1547ab0b76";
 
     private static final String CI_TEST = "ci";
     private static final String SLOW_TEST = "slow";
     private static final String PERFORMANCE_TEST = "performance";
+    private static final String CONSOLE_TEST = "console";
     private static final String PROFILE = System.getProperty("spring.profiles.active");
 
     private static final Wallet wallet;
@@ -49,7 +51,7 @@ public class TestConstants {
 
     static {
         try {
-            wallet = new Wallet();
+            wallet = new Wallet(new DefaultConfig(), "Password1234!");
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
         }
@@ -97,6 +99,14 @@ public class TestConstants {
         @BeforeClass
         public static void apply() {
             Assume.assumeTrue(contains(PERFORMANCE_TEST));
+        }
+    }
+
+    // for getting password with console
+    public static class ConsoleTest {
+        @BeforeClass
+        public static void apply() {
+            Assume.assumeTrue(contains(CONSOLE_TEST));
         }
     }
 
