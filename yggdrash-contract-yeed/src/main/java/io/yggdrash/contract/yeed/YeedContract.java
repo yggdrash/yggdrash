@@ -419,14 +419,21 @@ public class YeedContract implements BundleActivator, ServiceListener {
             BigInteger stakeYeed = params.get("stakeYeed").getAsBigInteger();
             BigInteger fee = params.get(FEE).getAsBigInteger();
             String issuer = this.txReceipt.getIssuer();
-            // TODO Check Issuer FEE and network FEE
+            // Check Issuer FEE and network FEE
+
+            if (stakeYeed.compareTo(BigInteger.ZERO) <= 0 || fee.compareTo(BigInteger.ZERO) <= 0) {
+                this.txReceipt.setStatus(ExecuteStatus.FALSE);
+                this.txReceipt.addLog("stakeYeed and fee is positive number");
+                return;
+            }
 
             // check Issuer has YEED
             BigInteger stakeFee = stakeYeed.add(fee);
             BigInteger balance = getBalance(issuer);
             if (balance.compareTo(stakeFee) < 0) {
-                this.txReceipt.setStatus(ExecuteStatus.ERROR);
-                throw new RuntimeException(String.format("%s has not enough balance", issuer));
+                this.txReceipt.setStatus(ExecuteStatus.FALSE);
+                this.txReceipt.addLog(String.format("%s has not enough balance", issuer));
+                return;
             }
 
 
@@ -458,18 +465,22 @@ public class YeedContract implements BundleActivator, ServiceListener {
             String proposeIdKey = String.format("%s%s", PrefixKeyEnum.PROPOSE_INTER_CHAIN.toValue(),
                     propose.getProposeId());
 
-            // Fee is send to Later
-            transfer(issuer, propose.getProposeId(), stakeFee, BigInteger.ZERO);
-            this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
+            // Fee is send Later (Issue close or done)
+            boolean transfer = transfer(issuer, propose.getProposeId(), stakeFee, BigInteger.ZERO);
+            if (transfer) {
+                this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
 
-            log.debug(propose.toJsonObject().toString());
-            // Save propose
-            this.store.put(proposeIdKey, propose.toJsonObject());
-            //String proposeStatusKey =
-            // Save propose Status
-            setProposeStatus(propose.getProposeId(), ProposeStatus.ISSUED);
+                // Save propose
+                this.store.put(proposeIdKey, propose.toJsonObject());
+                //String proposeStatusKey =
+                // Save propose Status
+                setProposeStatus(propose.getProposeId(), ProposeStatus.ISSUED);
 
-            this.txReceipt.addLog(String.format("Propose %s ISSUED", propose.getProposeId()));
+                this.txReceipt.addLog(String.format("Propose %s ISSUED", propose.getProposeId()));
+            } else {
+                this.txReceipt.setStatus(ExecuteStatus.FALSE);
+                this.txReceipt.addLog(String.format("Propose %s ISSUE Fail", propose.getProposeId()));
+            }
         }
 
         private ProposeStatus getProposeStatus(String proposeId) {
@@ -596,66 +607,15 @@ public class YeedContract implements BundleActivator, ServiceListener {
             pt.setReceiveAddress(receiveAddress);
             pt.setChainId(ethTransaction.getChainId());
             pt.setAsset(ethTransaction.getValue());
+            pt.setTransactionHash(HexUtil.toHexString(ethTransaction.getTxHash()));
 
             // Ethereum Transaction and Propose verification
             // check propose
             int checkPropose = propose.verificationProposeProcess(pt);
-            boolean proposeSender = propose.proposeSender(senderAddress);
 
             log.debug("check Propose : {}", checkPropose);
             if (checkPropose == 0) {
-                BigInteger receiveValue = pt.getAsset();
-                // calculate ratio
-                BigInteger ratio = propose.getReceiveAsset().divide(propose.getStakeYeed());
-
-                BigInteger transferYeed = ratio.multiply(receiveValue);
-                BigInteger stakeBalance = getBalance(propose.getProposeId());
-                stakeBalance = stakeBalance.subtract(propose.getFee());
-                // balance check if transferYeed over stakeBalance, set stakeBalance
-                if (stakeBalance.compareTo(transferYeed) < 0) {
-                    transferYeed = stakeBalance;
-                }
-
-                // issuer
-                boolean isProposerAreIssuer = propose.getIssuer().equals(this.txReceipt.getIssuer());
-
-                if (isProposerAreIssuer && proposeSender) {
-                    // 1. propose issuer and this transaction issuer are same
-                    // 2. Propose set Sender Address
-                    // 3. Propose Send Address send transaction to receive Address
-                    // TODO check logic bug
-                    transfer(propose.getProposeId(), senderAddress, transferYeed, fee);
-                    stakeBalance = stakeBalance.subtract(transferYeed);
-                    // All stake YEED is transfer to sendAddress
-                } else {
-                    // check validator
-                    // Save Transaction confirm
-                    // Transaction ID , propose ID, SendAddress, transfer YEED
-                    String confirmTxId = HexUtil.toHexString(ethTransaction.getTxHash());
-                    TxConfirm confirm = new TxConfirm(propose.getProposeId(), confirmTxId, senderAddress, transferYeed);
-                    // check exist confirm TxId
-                    processConfirmTx(propose, confirm);
-                }
-
-                if (stakeBalance.compareTo(BigInteger.ZERO) <= 0) {
-                    // 1. propose issuer and process issuer are same
-                    // 2. receive Asset Value is more than propose receiveAsset or equal
-                    // 3. Propose set Sender Address
-                    if(isProposerAreIssuer && receiveValue.compareTo(propose.getReceiveAsset())
-                            >= 0 && proposeSender) {
-                        BigInteger proposeFee = propose.getFee();
-                        BigInteger returnFee = proposeFee.divide(BigInteger.valueOf(2L));
-                        proposeProcessDone(propose, ProposeStatus.DONE, returnFee);
-                    } else {
-                        // Done propose so send Fee to branch
-                        proposeProcessDone(propose, ProposeStatus.DONE, BigInteger.ZERO);
-                    }
-                } else {
-                    setProposeStatus(propose.getProposeId(), ProposeStatus.PROCESSING);
-                    this.txReceipt.addLog(String.format("propose %s %s",propose.getProposeId(),
-                            ProposeStatus.PROCESSING));
-
-                }
+                processProposeTransaction(propose, pt);
                 // send fee
                 transferFee(this.txReceipt.getIssuer(), fee);
                 this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
@@ -691,29 +651,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
             // TODO Do process
             if (checkPropose == 0) {
-                BigInteger receiveValue = pt.getAsset();
-                // calculate ratio
-                BigInteger ratio = propose.getReceiveAsset().divide(propose.getStakeYeed());
 
-                BigInteger transferYeed = ratio.multiply(receiveValue);
-                BigInteger stakeBalance = getBalance(propose.getProposeId());
-                stakeBalance = stakeBalance.subtract(propose.getFee());
-                // balance check if transferYeed over stakeBalance, set stakeBalance
-                if (stakeBalance.compareTo(transferYeed) < 0) {
-                    transferYeed = stakeBalance;
-                }
-
-                // check validator
-                // Save Transaction confirm
-                // Transaction ID , propose ID, SendAddress, transfer YEED
-                String confirmTxId = HexUtil.toHexString(tokenTransaction.getTxHash());
-                TxConfirm confirm = new TxConfirm(propose.getProposeId(), confirmTxId, senderAddress, transferYeed);
-                // check exist confirm TxId
-                processConfirmTx(propose, confirm);
-
-                // propose Balance Check
-                // TODO stakeBalance Check
-
+                processProposeTransaction(propose, pt);
                 // send fee
                 transferFee(this.txReceipt.getIssuer(), fee);
                 this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
@@ -728,15 +667,70 @@ public class YeedContract implements BundleActivator, ServiceListener {
             }
         }
 
+        private void processProposeTransaction(ProposeInterChain propose, ProcessTransaction pt) {
+            boolean proposeSender = propose.proposeSender(pt.getSendAddress());
+
+            BigInteger receiveValue = pt.getAsset();
+            // calculate ratio
+            BigInteger ratio = propose.getReceiveAsset().divide(propose.getStakeYeed());
+
+            BigInteger transferYeed = ratio.multiply(receiveValue);
+            BigInteger stakeBalance = getBalance(propose.getProposeId());
+            stakeBalance = stakeBalance.subtract(propose.getFee());
+            // balance check if transferYeed over stakeBalance, set stakeBalance
+            if (stakeBalance.compareTo(transferYeed) < 0) {
+                transferYeed = stakeBalance;
+            }
+
+            // issuer
+            boolean isProposerAreIssuer = propose.getIssuer().equals(this.txReceipt.getIssuer());
+
+            if (isProposerAreIssuer && proposeSender) {
+                // 1. propose issuer and this transaction issuer are same
+                // 2. Propose set Sender Address
+                // 3. Propose Send Address send transaction to receive Address
+                transfer(propose.getProposeId(), pt.getSendAddress(), transferYeed, BigInteger.ZERO);
+                stakeBalance = stakeBalance.subtract(transferYeed);
+                // All stake YEED is transfer to sendAddress
+                if (stakeBalance.compareTo(BigInteger.ZERO) <= 0) {
+                    // 1. propose issuer and process issuer are same
+                    // 2. receive Asset Value is more than propose receiveAsset or equal
+                    // 3. Propose set Sender Address
+                    if (receiveValue.compareTo(propose.getReceiveAsset()) >= 0) {
+                        BigInteger proposeFee = propose.getFee();
+                        BigInteger returnFee = proposeFee.divide(BigInteger.valueOf(2L));
+                        proposeProcessDone(propose, ProposeStatus.DONE, returnFee);
+                    } else {
+                        // Done propose so send Fee to branch
+                        proposeProcessDone(propose, ProposeStatus.DONE, BigInteger.ZERO);
+                    }
+                }
+            } else {
+                // Save Transaction confirm
+                // Transaction ID , propose ID, SendAddress, transfer YEED
+                TxConfirm confirm = new TxConfirm(propose.getProposeId(), pt.getTransactionHash(),
+                        pt.getSendAddress(), transferYeed);
+                // check exist confirm TxId
+                processConfirmTx(propose, confirm);
+                if (this.txReceipt.getStatus() == ExecuteStatus.SUCCESS) {
+                    setProposeStatus(propose.getProposeId(), ProposeStatus.PROCESSING);
+                    this.txReceipt.addLog(String.format("propose %s %s", propose.getProposeId(),
+                            ProposeStatus.PROCESSING));
+                }
+            }
+        }
+
+
         private void processConfirmTx(ProposeInterChain propose, TxConfirm confirm) {
             // check exist confirm TxId
             if (isExistTxConfirm(confirm.getTxConfirmId())) { // confirmTx is Exist
                 this.txReceipt.setStatus(ExecuteStatus.FALSE);
-                this.txReceipt.addLog(String.format("Propose %s transaction %s exist", propose.getProposeId(), confirm.getTxConfirmId()));
+                this.txReceipt.addLog(String.format("Propose %s transaction %s exist",
+                        propose.getProposeId(), confirm.getTxConfirmId()));
             } else {
                 // Save TxConfirm
                 setTxConfirm(confirm);
-
+                this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
                 this.txReceipt.addLog(String.format("propose %s check %s network %s transaction %s confirm ID %s",
                         propose.getProposeId(), propose.getProposeType(), propose.getReceiveChainId(),
                         confirm.getTxId(), confirm.getTxConfirmId()
@@ -782,8 +776,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
             log.debug("status {}",txConfirm.getStatus());
 
             // Get confirm
-            if (txConfirm.getStatus() == TxConfirmStatus.VALIDATE_REQUIRE ||
-                    txConfirm.getStatus() == TxConfirmStatus.NOT_EXIST) {
+            if (txConfirm.getStatus() == TxConfirmStatus.VALIDATE_REQUIRE
+                    || txConfirm.getStatus() == TxConfirmStatus.NOT_EXIST) {
 
                 txConfirm.setBlockHeight(blockHeight);
                 txConfirm.setIndex(index);
@@ -808,7 +802,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                         boolean checkBlockHeight = false;
                         if (pi.getNetworkBlockHeight() <= txConfirm.getBlockHeight()) {
                             checkBlockHeight = true;
-                        } else if(pi.getNetworkBlockHeight() >= txConfirm.getLastBlockHeight()) {
+                        } else if (pi.getNetworkBlockHeight() >= txConfirm.getLastBlockHeight()) {
                             checkBlockHeight = true;
                         }
 
@@ -827,7 +821,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
                             log.debug("TransferYeed YEED {}", txConfirm.getTransferYeed());
                             log.debug("PI Fee {}", fee);
                             // Send transaction confirm
-                            boolean transfer = transfer(pi.getProposeId(), txConfirm.getSendAddress(), transferYeed, BigInteger.ZERO);
+                            boolean transfer = transfer(pi.getProposeId(), txConfirm.getSendAddress(),
+                                    transferYeed, BigInteger.ZERO);
                             if (transfer) {
                                 this.txReceipt.addLog(String.format("%s is DONE",txConfirm.getTxConfirmId()));
                                 // check propose
@@ -840,7 +835,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                                 // Save TxConfirm
                                 setTxConfirm(txConfirm);
                                 // propose is done
-                                if(stakeYeed.compareTo(transferYeed) == 0) {
+                                if (stakeYeed.compareTo(transferYeed) == 0) {
                                     proposeProcessDone(pi, ProposeStatus.DONE, BigInteger.ZERO);
                                 }
                             } else {
@@ -857,7 +852,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 }
             } else {
                 // Transaction Confirm Is Done
-                this.txReceipt.addLog(String.format("%s is %s",txConfirm.getTxConfirmId(), txConfirm.getStatus().toString()));
+                this.txReceipt.addLog(String.format("%s is %s",txConfirm.getTxConfirmId(),
+                        txConfirm.getStatus().toString()));
                 this.txReceipt.setStatus(ExecuteStatus.FALSE);
             }
         }

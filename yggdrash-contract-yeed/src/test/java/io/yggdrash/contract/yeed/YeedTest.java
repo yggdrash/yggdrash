@@ -205,6 +205,27 @@ public class YeedTest {
     }
 
     @Test
+    public void failTransfer() {
+        JsonObject paramObj = new JsonObject();
+        paramObj.addProperty("to", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");
+        paramObj.addProperty("amount", -1000000);
+        paramObj.addProperty("fee", -1000);
+
+        TransactionReceipt result = new TransactionReceiptImpl();
+        result.setIssuer(ADDRESS_1);
+        result.setBranchId(BRANCH_ID);
+        try {
+            txReceiptField.set(yeedContract, result);
+            result = yeedContract.transfer(paramObj);
+        } catch (IllegalAccessException e) {
+            log.warn(e.getMessage());
+        }
+
+        assertFalse(result.isSuccess());
+    }
+
+
+    @Test
     public void transferFrom() {
         String owner = ADDRESS_1;
         String spender = ADDRESS_2;
@@ -651,6 +672,63 @@ public class YeedTest {
         receipt.getTxLog().stream().forEach(l -> log.debug(l));
 
     }
+
+    @Test
+    public void proposeIssueFail() {
+        String transactionId = "0x02";
+        String receiveAddress = "ad8992d6f78d9cc597438efbccd8940d7c02bc6d";
+        BigInteger receiveAsset = new BigInteger("11000000000000000000");
+        int receiveChainId = 1;
+        long networkBlockHeight = 10;
+        ProposeType proposeType = ProposeType.YEED_TO_ETHER;
+
+        String senderAddress = "dcf94a3153398b9e78a3202ffb7d0c606348f616";
+
+        String inputData = null;
+        BigInteger stakeYeed = new BigInteger("-1000000000000000000");
+        long targetBlockHeight = 1000000L;
+        BigInteger fee = new BigInteger("10000000000000000");
+        String issuer = "c3cf7a283a4415ce3c41f5374934612389334780";
+
+        JsonObject proposal = new JsonObject();
+        proposal.addProperty("receiveAddress", receiveAddress);
+        proposal.addProperty("receiveAsset", receiveAsset);
+        proposal.addProperty("receiveChainId", receiveChainId);
+        proposal.addProperty("networkBlockHeight", networkBlockHeight);
+        proposal.addProperty("proposeType", proposeType.toValue());
+        proposal.addProperty("senderAddress", senderAddress);
+        proposal.addProperty("inputData", inputData);
+        proposal.addProperty("stakeYeed", stakeYeed);
+        proposal.addProperty("blockHeight", targetBlockHeight);
+        proposal.addProperty("fee", fee);
+
+        BigInteger issuerOriginBalance = getBalance(issuer);
+        log.debug("issuerOriginBalance {} ", issuerOriginBalance);
+        TransactionReceipt receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 1);
+
+        // issue propose
+        yeedContract.issuePropose(proposal);
+        assert receipt.getStatus() == ExecuteStatus.FALSE;
+
+        stakeYeed = new BigInteger("1000000000000000000");
+        fee = new BigInteger("-10000000000000000");
+        proposal.addProperty("stakeYeed", stakeYeed);
+        proposal.addProperty("fee", fee);
+        // issue propose
+        yeedContract.issuePropose(proposal);
+        assert receipt.getStatus() == ExecuteStatus.FALSE;
+
+        stakeYeed = new BigInteger("1000000000000000000");
+        fee = new BigInteger("10000000000000000");
+        proposal.addProperty("stakeYeed", stakeYeed);
+        proposal.addProperty("fee", fee);
+        // issue propose
+        yeedContract.issuePropose(proposal);
+
+        assert receipt.getStatus() == ExecuteStatus.SUCCESS;
+        receipt.getTxLog().stream().forEach(l -> log.debug(l));
+    }
+
 
     @Test
     public void processingProposeConfirm() {

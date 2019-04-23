@@ -8,6 +8,7 @@ public class ProcessTransaction {
     int chainId;
     String targetAddress;
     BigInteger asset;
+    String transactionHash;
 
     public String getSendAddress() {
         return sendAddress;
@@ -47,5 +48,13 @@ public class ProcessTransaction {
 
     public void setAsset(BigInteger asset) {
         this.asset = asset;
+    }
+
+    public String getTransactionHash() {
+        return transactionHash;
+    }
+
+    public void setTransactionHash(String transactionHash) {
+        this.transactionHash = transactionHash;
     }
 }
