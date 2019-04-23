@@ -68,8 +68,8 @@ public class PasswordTest {
 
         String sample = "Aa123456789";
 
-        for(int i=0x21 ; i <= 0x7e ; i++) {
-            if(i == 0x30) {
+        for (int i = 0x21; i <= 0x7e; i++) {
+            if (i == 0x30) {
                 i = 0x3a;
             } else if (i == 0x41) {
                 i = 0x5b;
@@ -77,7 +77,7 @@ public class PasswordTest {
                 i = 0x7b;
             }
 
-            assertTrue(Password.passwordValid(sample+(char)i));
+            assertTrue(Password.passwordValid(sample + (char) i));
             log.debug("password test ok: " + sample + (char)i);
         }
 

@@ -22,7 +22,6 @@ public class HashUtilTest extends SlowTest {
         //todo: change test vectors to NISTs.
     }
 
-
     @Test
     public void SHA1StaticTest() {
         String input1 = "0000000000000000000000000000000000000000000000000000000000000000";
@@ -198,7 +197,8 @@ public class HashUtilTest extends SlowTest {
 
         byte[] pbkdf2Password = HashUtil.pbkdf2(password.getBytes(), salt, iterations, len, "SHA-256");
         log.info(Hex.toHexString(pbkdf2Password));
-        assertArrayEquals(Hex.decode("f06d69cdc7da0faffb1008270bca38f5e31891a3a773950e6d0fea48a7188551"), pbkdf2Password);
+        assertArrayEquals(Hex.decode("f06d69cdc7da0faffb1008270bca38f5e31891a3a773950e6d0fea48a7188551"),
+                pbkdf2Password);
     }
 
     @Test
@@ -210,7 +210,8 @@ public class HashUtilTest extends SlowTest {
 
         byte[] pbkdf2Password = HashUtil.pbkdf2(password.getBytes(), salt, iterations, len, "SHA-512");
         log.info(Hex.toHexString(pbkdf2Password));
-        assertArrayEquals(Hex.decode("5e005b008b20c7ab157725ed2f72faa4357a51eddac85837ca7d925e8daa0d41"), pbkdf2Password);
+        assertArrayEquals(Hex.decode("5e005b008b20c7ab157725ed2f72faa4357a51eddac85837ca7d925e8daa0d41"),
+                pbkdf2Password);
     }
 
     @Test
@@ -222,7 +223,8 @@ public class HashUtilTest extends SlowTest {
 
         byte[] pbkdf2Password = HashUtil.pbkdf2(password.getBytes(), salt, iterations, len, "SHA-1");
         log.info(Hex.toHexString(pbkdf2Password));
-        assertArrayEquals(Hex.decode("279af536192ea4f5dac04f96471d94ea174c38d4b9a9a908f03217a215fc01f8"), pbkdf2Password);
+        assertArrayEquals(Hex.decode("279af536192ea4f5dac04f96471d94ea174c38d4b9a9a908f03217a215fc01f8"),
+                pbkdf2Password);
     }
 
     @Test
@@ -234,7 +236,8 @@ public class HashUtilTest extends SlowTest {
 
         byte[] pbkdf2Password = HashUtil.pbkdf2(password.getBytes(), salt, iterations, len, "KECCAK-256");
         log.info(Hex.toHexString(pbkdf2Password));
-        assertArrayEquals(Hex.decode("c5a5e1ea4b87eff0119d4cedf89401c4777d0f1b374c654bb65026eb570183b7"), pbkdf2Password);
+        assertArrayEquals(Hex.decode("c5a5e1ea4b87eff0119d4cedf89401c4777d0f1b374c654bb65026eb570183b7"),
+                pbkdf2Password);
     }
 
     @Test
@@ -246,7 +249,8 @@ public class HashUtilTest extends SlowTest {
 
         byte[] pbkdf2Password = HashUtil.pbkdf2(password.getBytes(), salt, iterations, len, "SHA3-256");
         log.info(Hex.toHexString(pbkdf2Password));
-        assertArrayEquals(Hex.decode("2761ad467ba3d88c8c331e93829ec5ce912048037c50c8d5faeb4af87bbeb102"), pbkdf2Password);
+        assertArrayEquals(Hex.decode("2761ad467ba3d88c8c331e93829ec5ce912048037c50c8d5faeb4af87bbeb102"),
+                pbkdf2Password);
     }
 
     @Test
@@ -258,7 +262,8 @@ public class HashUtilTest extends SlowTest {
 
         byte[] pbkdf2Password = HashUtil.pbkdf2(password.getBytes(), salt, iterations, len, "SHA3-512");
         log.info(Hex.toHexString(pbkdf2Password));
-        assertArrayEquals(Hex.decode("2cf80c8e19136485eb79eba7349c8f334582f3b7f22e48e07124c4b5a85631c7"), pbkdf2Password);
+        assertArrayEquals(Hex.decode("2cf80c8e19136485eb79eba7349c8f334582f3b7f22e48e07124c4b5a85631c7"),
+                pbkdf2Password);
     }
 
     @Test

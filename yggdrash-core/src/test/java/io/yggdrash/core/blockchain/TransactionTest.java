@@ -83,6 +83,9 @@ public class TransactionTest extends SlowTest {
 
         log.debug("wallet.pubKey={}", Hex.toHexString(wallet.getPubicKey()));
 
+        wallet = new Wallet("tmp/nodePri.key", "Password1234!");
+        log.debug("wallet.pubKey=" + Hex.toHexString(wallet.getPubicKey()));
+
         tx1 = new TransactionImpl(txHeader, wallet, txBody);
         assertTrue(tx1.verify());
     }

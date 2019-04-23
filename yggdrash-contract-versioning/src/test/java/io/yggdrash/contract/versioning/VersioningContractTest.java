@@ -190,9 +190,12 @@ public class VersioningContractTest {
         JsonObject params = new JsonObject();
         JsonArray arr = new JsonArray();
 
-        params.addProperty("d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95", "d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95");
-        params.addProperty("a2b0f5fce600eb6c595b28d6253bed92be0568ed", "a2b0f5fce600eb6c595b28d6253bed92be0568edd2a5721e80dc439385f3abc5aab0ac4ed2b1cd95");
-        params.addProperty("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94", "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95");
+        params.addProperty("d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95",
+                "d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95");
+        params.addProperty("a2b0f5fce600eb6c595b28d6253bed92be0568ed",
+                "a2b0f5fce600eb6c595b28d6253bed92be0568edd2a5721e80dc439385f3abc5aab0ac4ed2b1cd95");
+        params.addProperty("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
+                "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95");
 
         return params;
     }

@@ -56,13 +56,14 @@ public class EbftBlockChainMultiThreadTest {
     public void setUp() throws IOException, InvalidCipherTextException {
         defaultConfig = new DefaultConfig();
 
-        wallet0 = new Wallet(defaultConfig);
-        wallet1 = new Wallet(null, "/tmp/",
+        wallet0 = new Wallet(null, "tmp/",
+                "test0" + TimeUtils.time(), "Password1234!");
+        wallet1 = new Wallet(null, "tmp/",
+                "test1" + TimeUtils.time(), "Password1234!");
+        wallet2 = new Wallet(null, "tmp/",
                 "test2" + TimeUtils.time(), "Password1234!");
-        wallet2 = new Wallet(null, "/tmp/",
+        wallet3 = new Wallet(null, "tmp/",
                 "test3" + TimeUtils.time(), "Password1234!");
-        wallet3 = new Wallet(null, "/tmp/",
-                "test4" + TimeUtils.time(), "Password1234!");
 
         block0 = this.genesisBlock();
         block1 = new TestUtils(wallet0).sampleBlock(block0.getIndex() + 1, block0.getHash());

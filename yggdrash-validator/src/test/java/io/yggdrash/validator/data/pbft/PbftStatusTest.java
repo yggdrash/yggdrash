@@ -63,12 +63,13 @@ public class PbftStatusTest {
 
     @Before
     public void setup() throws IOException, InvalidCipherTextException {
-        wallet = new Wallet();
-        wallet2 = new Wallet(null, "/tmp/",
+        wallet = new Wallet(null, "tmp/",
+                "test1" + TimeUtils.time(), "Password1234!");
+        wallet2 = new Wallet(null, "tmp/",
                 "test2" + TimeUtils.time(), "Password1234!");
-        wallet3 = new Wallet(null, "/tmp/",
+        wallet3 = new Wallet(null, "tmp/",
                 "test3" + TimeUtils.time(), "Password1234!");
-        wallet4 = new Wallet(null, "/tmp/",
+        wallet4 = new Wallet(null, "tmp/",
                 "test4" + TimeUtils.time(), "Password1234!");
 
         block = new TestUtils(wallet).sampleBlock(1);

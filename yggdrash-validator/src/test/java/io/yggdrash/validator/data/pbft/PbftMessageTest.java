@@ -1,6 +1,7 @@
 package io.yggdrash.validator.data.pbft;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
@@ -39,7 +40,7 @@ public class PbftMessageTest {
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
-        wallet = new Wallet();
+        wallet = new Wallet(new DefaultConfig(), "Password1234!");
         block = new TestUtils(wallet).sampleBlock();
 
         prePrepare = new PbftMessage(PREPREPARE,
