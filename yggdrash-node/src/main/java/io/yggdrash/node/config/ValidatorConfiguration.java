@@ -8,11 +8,6 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.net.ValidatorBlockBroadcaster;
-import io.yggdrash.core.p2p.Peer;
-import io.yggdrash.core.p2p.PeerDialer;
-import io.yggdrash.core.p2p.PeerHandlerFactory;
-import io.yggdrash.core.p2p.SimplePeerDialer;
 import io.yggdrash.node.service.ValidatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,29 +21,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Profile("validator")
 @Configuration
 public class ValidatorConfiguration {
 
     private static final Logger log = LoggerFactory.getLogger(ValidatorConfiguration.class);
-
-    private final NodeProperties nodeProperties;
-
-    public ValidatorConfiguration(NodeProperties nodeProperties) {
-        this.nodeProperties = nodeProperties;
-    }
-
-    @Bean
-    ValidatorBlockBroadcaster validatorBlockBroadcaster(BlockChain yggdrash, PeerHandlerFactory peerHandlerFactory) {
-        PeerDialer peerDialer = new SimplePeerDialer(peerHandlerFactory);
-        List<Peer> broadcastPeerList = nodeProperties.getBroadcastPeerList().stream().map(Peer::valueOf)
-                .collect(Collectors.toList());
-        ValidatorBlockBroadcaster broadcaster = new ValidatorBlockBroadcaster(peerDialer, broadcastPeerList);
-        yggdrash.addListener(broadcaster);
-        return broadcaster;
-    }
 
     @Bean
     public Map<BranchId, List<ValidatorService>> validatorServiceMap(
