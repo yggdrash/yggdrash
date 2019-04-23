@@ -17,8 +17,8 @@
 package io.yggdrash.core.net;
 
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.p2p.KademliaOptions;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
@@ -38,10 +38,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class KademliaPeerNetwork implements PeerNetwork {
     private static final Logger log = LoggerFactory.getLogger(KademliaPeerNetwork.class);
 
-    private final BlockingQueue<TransactionHusk> txQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Transaction> txQueue = new LinkedBlockingQueue<>();
     private final ExecutorService txExecutor = Executors.newSingleThreadExecutor();
 
-    private final BlockingQueue<Block> blockQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<ConsensusBlock> blockQueue = new LinkedBlockingQueue<>();
     private final ExecutorService blockExecutor = Executors.newSingleThreadExecutor();
 
     private final PeerTableGroup peerTableGroup;
@@ -85,7 +85,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
     }
 
     @Override
-    public void receivedTransaction(TransactionHusk tx) {
+    public void receivedTransaction(Transaction tx) {
         try {
             txQueue.put(tx);
         } catch (Exception e) {
@@ -94,7 +94,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
     }
 
     @Override
-    public void chainedBlock(Block block) { //TODO AddBlock BP
+    public void chainedBlock(ConsensusBlock block) { //TODO AddBlock BP
         try {
             blockQueue.put(block);
         } catch (Exception e) {
@@ -115,7 +115,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
         public void run() {
             try {
                 while (!txExecutor.isTerminated()) {
-                    TransactionHusk tx = txQueue.take();
+                    Transaction tx = txQueue.take();
                     broadcastTx(tx);
                 }
             } catch (InterruptedException e) {
@@ -124,7 +124,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
             }
         }
 
-        private void broadcastTx(TransactionHusk tx) {
+        private void broadcastTx(Transaction tx) {
             if (validatorMap.containsKey(tx.getBranchId())) {
                 List<Peer> validatorPeerList = validatorMap.get(tx.getBranchId());
                 for (PeerHandler peerHandler : peerDialer.getHandlerList(validatorPeerList)) {
@@ -151,7 +151,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
         public void run() {
             try {
                 while (!blockExecutor.isTerminated()) {
-                    Block block = blockQueue.take();
+                    ConsensusBlock block = blockQueue.take();
                     broadcastBlock(block);
                 }
             } catch (InterruptedException e) {
@@ -160,7 +160,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
             }
         }
 
-        private void broadcastBlock(Block block) {
+        private void broadcastBlock(ConsensusBlock block) {
             List<PeerHandler> handlerList = getHandlerList(block.getBranchId());
             for (PeerHandler peerHandler : handlerList) {
                 try {

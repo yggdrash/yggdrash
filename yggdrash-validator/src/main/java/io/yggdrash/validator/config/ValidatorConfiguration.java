@@ -5,6 +5,7 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.validator.service.ValidatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +38,8 @@ public class ValidatorConfiguration {
 
             File genesisFile = new File(validatorDir, "genesis.json");
             String genesisString = FileUtil.readFileToString(genesisFile, FileUtil.DEFAULT_CHARSET);
-            Block genesisBlock = new Block(JsonUtil.parseJsonObject(genesisString));
-            log.debug(genesisBlock.getChainHex());
+            Block genesisBlock = new BlockImpl(JsonUtil.parseJsonObject(genesisString));
+            log.debug("{}", genesisBlock.getBranchId());
 
             validatorServiceList.add(new ValidatorService(validatorConfig, genesisBlock));
         }

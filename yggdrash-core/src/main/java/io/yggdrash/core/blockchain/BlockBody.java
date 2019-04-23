@@ -17,22 +17,28 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonArray;
-import io.yggdrash.common.config.Constants;
+import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.trie.Trie;
-import io.yggdrash.core.exception.InternalErrorException;
+import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.proto.Proto;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
-public class BlockBody {
+public class BlockBody implements ProtoObject<Proto.TransactionList> {
 
-    private final List<Transaction> body = new ArrayList<>();
+    private final Proto.TransactionList transactionList;
 
-    private byte[] binary;
+    private transient List<Transaction> body;
+
+    public BlockBody(byte[] bytes) {
+        this(toProto(bytes));
+    }
+
+    public BlockBody(Proto.TransactionList transactionList) {
+        this.transactionList = transactionList;
+    }
 
     /**
      * Constructor for BlockBody class.
@@ -40,53 +46,30 @@ public class BlockBody {
      * @param transactionList the transaction list
      */
     public BlockBody(List<Transaction> transactionList) {
-        this.body.addAll(transactionList);
+        this.body = transactionList;
+        this.transactionList = toProtoTransactionList(transactionList);
     }
 
     public BlockBody(JsonArray jsonArray) {
-        for (int i = 0;  i < jsonArray.size(); i++) {
-            this.body.add(new Transaction(jsonArray.get(i).getAsJsonObject()));
+        this(toTransactionList(jsonArray));
+    }
+
+    private void setTransactionList() {
+        this.body = new ArrayList<>();
+        for (Proto.Transaction protoTransaction : transactionList.getTransactionsList()) {
+            body.add(new TransactionImpl(protoTransaction));
         }
     }
 
-    public BlockBody(byte[] bodyBytes) {
-        if (bodyBytes.length <= TransactionHeader.LENGTH + Constants.SIGNATURE_LENGTH) {
-            return;
+    public List<Transaction> getTransactionList() {
+        if (body == null) {
+            setTransactionList();
         }
-
-        int pos = 0;
-        byte[] txHeaderBytes = new byte[TransactionHeader.LENGTH];
-        byte[] txSigBytes = new byte[Constants.SIGNATURE_LENGTH];
-        byte[] txBodyBytes;
-
-        TransactionHeader txHeader;
-        TransactionBody txBody;
-
-        do {
-            System.arraycopy(bodyBytes, pos, txHeaderBytes, 0, txHeaderBytes.length);
-            pos += txHeaderBytes.length;
-            txHeader = new TransactionHeader(txHeaderBytes);
-
-            System.arraycopy(bodyBytes, pos, txSigBytes, 0, txSigBytes.length);
-            pos += txSigBytes.length;
-
-            //todo: change from int to long for body size.
-            txBodyBytes = new byte[(int) txHeader.getBodyLength()];
-            System.arraycopy(bodyBytes, pos, txBodyBytes, 0, txBodyBytes.length);
-            pos += txBodyBytes.length;
-
-            txBody = new TransactionBody(txBodyBytes);
-
-            body.add(new Transaction(txHeader, txSigBytes, txBody));
-        } while (pos < bodyBytes.length);
-    }
-
-    public List<Transaction> getBody() {
         return this.body;
     }
 
-    long getBodyCount() {
-        return this.body.size();
+    public int getCount() {
+        return transactionList.getTransactionsCount();
     }
 
     /**
@@ -94,19 +77,29 @@ public class BlockBody {
      *
      * @return the BlockBody length.
      */
-    public long length() {
+    public long getLength() {
 
         long length = 0;
 
-        for (Transaction tx : this.body) {
-            length += tx.length();
+        for (Transaction tx : getTransactionList()) {
+            length += tx.getLength();
         }
 
         return length;
     }
 
     public byte[] getMerkleRoot() {
-        return Trie.getMerkleRoot(this.body);
+        return Trie.getMerkleRoot(getTransactionList());
+    }
+
+    @Override
+    public byte[] toBinary() {
+        return transactionList.toByteArray();
+    }
+
+    @Override
+    public Proto.TransactionList getInstance() {
+        return transactionList;
     }
 
     /**
@@ -117,31 +110,11 @@ public class BlockBody {
     JsonArray toJsonArray() {
         JsonArray jsonArray = new JsonArray();
 
-        for (Transaction tx : this.body) {
+        for (Transaction tx : getTransactionList()) {
             jsonArray.add(tx.toJsonObject());
         }
 
         return jsonArray;
-    }
-
-    public String toString() {
-        return this.toJsonArray().toString();
-    }
-
-    public byte[] toBinary() {
-        if (binary != null) {
-            return binary;
-        }
-        ByteArrayOutputStream bao = new ByteArrayOutputStream();
-        try {
-            for (Transaction tx : this.body) {
-                bao.write(tx.toBinary());
-            }
-            binary = bao.toByteArray();
-            return binary;
-        } catch (IOException e) {
-            throw new InternalErrorException("toBinary error");
-        }
     }
 
     @Override
@@ -154,30 +127,41 @@ public class BlockBody {
         }
 
         BlockBody other = (BlockBody) o;
-        if (this.body.size() != other.getBody().size()) {
-            return false;
-        }
-
-        for (int i = 0; i < other.getBody().size(); i++) {
-            if (!Arrays.equals(this.getBody().get(i).getHash(),
-                    other.getBody().get(i).getHash())) {
-                return false;
-            }
-        }
-
-        return true;
+        return Arrays.equals(toBinary(), other.toBinary());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(toBinary());
+        return Arrays.hashCode(toBinary());
     }
 
-    public void clear() {
-        this.body.clear();
+    @Override
+    public String toString() {
+        return toJsonArray().toString();
+    }
+
+
+    private Proto.TransactionList toProtoTransactionList(List<Transaction> transactionList) {
+        Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
+        for (Transaction transaction : transactionList) {
+            builder.addTransactions(transaction.getInstance());
+        }
+        return builder.build();
+    }
+
+    private static List<Transaction> toTransactionList(JsonArray jsonArray) {
+        List<Transaction> body = new ArrayList<>();
+        for (int i = 0;  i < jsonArray.size(); i++) {
+            body.add(new TransactionImpl(jsonArray.get(i).getAsJsonObject()));
+        }
+        return body;
+    }
+
+    private static Proto.TransactionList toProto(byte[] bytes) {
+        try {
+            return Proto.TransactionList.parseFrom(bytes);
+        } catch (InvalidProtocolBufferException e) {
+            throw new NotValidateException(e);
+        }
     }
 }
-
-
-
-

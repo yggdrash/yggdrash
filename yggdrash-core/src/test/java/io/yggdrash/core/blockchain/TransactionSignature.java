@@ -24,27 +24,19 @@ public class TransactionSignature {
 
     private final byte[] signature;
 
-    TransactionSignature(byte[] signature) {
-        this.signature = signature;
-    }
-
-    TransactionSignature(JsonObject jsonObject) {
-        this.signature = Hex.decode(jsonObject.get("signature").getAsString());
-    }
-
-    public TransactionSignature(Wallet wallet, byte[] headerHash) {
+    TransactionSignature(Wallet wallet, byte[] headerHash) {
         this(wallet.sign(headerHash, true));
+    }
+
+    private TransactionSignature(byte[] signature) {
+        this.signature = signature;
     }
 
     public byte[] getSignature() {
         return this.signature;
     }
 
-    String getSignatureHexString() {
-        return Hex.toHexString(this.signature);
-    }
-
-    JsonObject toJsonObject() {
+    private JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
 
         jsonObject.addProperty("signature", Hex.toHexString(this.signature));
@@ -52,11 +44,8 @@ public class TransactionSignature {
         return jsonObject;
     }
 
+    @Override
     public String toString() {
         return this.toJsonObject().toString();
-    }
-
-    public TransactionSignature clone() {
-        return new TransactionSignature(this.signature.clone());
     }
 }

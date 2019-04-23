@@ -25,8 +25,8 @@ import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;
-import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -63,7 +63,7 @@ public class RuntimeTest {
         BranchId branchId = TestConstants.yggdrash();
 
         TransactionBuilder builder = new TransactionBuilder();
-        TransactionHusk testTx = builder.setBranchId(branchId)
+        Transaction testTx = builder.setBranchId(branchId)
                 .addTxBody(coinContract, "init", genesisParams, false)
                 .setWallet(TestConstants.wallet())
                 .build();
@@ -92,7 +92,7 @@ public class RuntimeTest {
         BranchId branchId = BranchId.of(branch.get("branch").getAsJsonObject());
 
         TransactionBuilder builder = new TransactionBuilder();
-        TransactionHusk testTx = builder.setBranchId(branchId)
+        Transaction testTx = builder.setBranchId(branchId)
                 .addTxBody(version, "create", branch, false)
                 .setWallet(TestConstants.wallet())
                 .build();

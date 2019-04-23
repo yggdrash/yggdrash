@@ -1,14 +1,15 @@
 package io.yggdrash.validator.service.pbft;
 
 import com.typesafe.config.ConfigException;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
+import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.core.consensus.ConsensusService;
 import io.yggdrash.core.exception.NotValidateException;
@@ -248,7 +249,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
             }
             try {
                 client.broadcastPbftBlock(block.getInstance());
-                log.debug("BroadcastBlock [{}]{} to {}:{}", block.getIndex(), block.getHashHex(),
+                log.debug("BroadcastBlock [{}]{} to {}:{}", block.getIndex(), block.getHash(),
                         client.getHost(), client.getPort());
             } catch (Exception e) {
                 log.debug("BroadcastBlock exception: " + e.getMessage());
@@ -290,9 +291,9 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
                 + "["
                 + newBlock.getIndex()
                 + "] "
-                + newBlock.getHashHex()
+                + newBlock.getHash()
                 + " ("
-                + newBlock.getAddressHex()
+                + newBlock.getAddress()
                 + ")");
 
         return prePrepare;
@@ -342,17 +343,9 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
-        List<Transaction> txs = new ArrayList<>();
-        List<TransactionHusk> txHusks = new ArrayList<>(blockChain.getTransactionStore()
-                .getUnconfirmedTxs());
+        List<Transaction> txList = new ArrayList<>(blockChain.getTransactionStore().getUnconfirmedTxs());
 
-        for (TransactionHusk txHusk : txHusks) {
-            txs.add(txHusk.getCoreTransaction());
-        }
-
-        BlockBody newBlockBody = new BlockBody(txs);
-        txs.clear();
-        txHusks.clear();
+        BlockBody newBlockBody = new BlockBody(txList);
 
         BlockHeader newBlockHeader = new BlockHeader(
                 blockChain.getBranchId().getBytes(),
@@ -362,7 +355,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
                 index,
                 TimeUtils.time(),
                 newBlockBody);
-        return new Block(newBlockHeader, wallet, newBlockBody);
+        return new BlockImpl(newBlockHeader, wallet, newBlockBody);
     }
 
     private PbftMessage makePrepareMsg() {
@@ -382,7 +375,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
                 "PREPAREM",
                 viewNumber,
                 seqNumber,
-                prePrepareMsg.getHash(),
+                Sha3Hash.createByHashed(prePrepareMsg.getHash()),
                 null,
                 wallet,
                 null);
@@ -420,9 +413,9 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
             prepareMsgMap.clear();
             return null;
         }
-
+        byte[] hash = ((PbftMessage) prepareMsgMap.values().toArray()[0]).getHash();
         PbftMessage commitMsg = new PbftMessage("COMMITMS", viewNumber, seqNumber,
-                ((PbftMessage) prepareMsgMap.values().toArray()[0]).getHash(), null, wallet, null);
+                Sha3Hash.createByHashed(hash), null, wallet, null);
         if (commitMsg.getSignature() == null) {
             prepareMsgMap.clear();
             commitMsg.clear();

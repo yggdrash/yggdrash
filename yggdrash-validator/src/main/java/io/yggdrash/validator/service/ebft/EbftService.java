@@ -7,8 +7,8 @@ import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
+import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.core.consensus.ConsensusService;
 import io.yggdrash.core.exception.NotValidateException;
@@ -84,7 +84,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
         mainScheduler();
     }
 
-    public void mainScheduler() {
+    private void mainScheduler() {
         if (!isValidator) {
             log.debug("Node is not validator.");
             return;
@@ -281,30 +281,25 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
 
         // add in unconfirmed blockMap & unconfirmed block
         this.blockChain.getUnConfirmedData()
-                .putIfAbsent(newEbftBlock.getHashHex(), newEbftBlock);
+                .putIfAbsent(newEbftBlock.getHash().toString(), newEbftBlock);
         this.isProposed = true;
 
         log.debug("make Proposed Block"
                 + "["
                 + newEbftBlock.getIndex()
                 + "]"
-                + newEbftBlock.getHashHex()
+                + newEbftBlock.getHash()
                 + " ("
-                + newEbftBlock.getBlock().getAddressHex()
+                + newEbftBlock.getBlock().getAddress()
                 + ")");
 
         return newEbftBlock;
     }
 
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
-        List<Transaction> txs = new ArrayList<>();
-        List<TransactionHusk> txHusks = new ArrayList<>(
-                blockChain.getTransactionStore().getUnconfirmedTxs());
-        for (TransactionHusk txHusk : txHusks) {
-            txs.add(txHusk.getCoreTransaction());
-        }
+        List<Transaction> txList = new ArrayList<>(blockChain.getTransactionStore().getUnconfirmedTxs());
 
-        BlockBody newBlockBody = new BlockBody(txs);
+        BlockBody newBlockBody = new BlockBody(txList);
         BlockHeader newBlockHeader = new BlockHeader(
                 blockChain.getBranchId().getBytes(),
                 Constants.EMPTY_BYTE8,
@@ -313,7 +308,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
                 index,
                 TimeUtils.time(),
                 newBlockBody);
-        return new Block(newBlockHeader, wallet, newBlockBody);
+        return new BlockImpl(newBlockHeader, wallet, newBlockBody);
     }
 
     private EbftBlock makeConsensus() {
@@ -369,7 +364,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
                 + "["
                 + ebftBlock.getIndex()
                 + "] "
-                + ebftBlock.getHashHex()
+                + ebftBlock.getHash()
                 + " ("
                 + consensus
                 + ")");
@@ -383,7 +378,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
         List<String> proposedAddr = new ArrayList<>();
         for (EbftBlock proposedEbftBlock : this.blockChain.getUnConfirmedData().values()) {
             if (proposedEbftBlock.getIndex() == index) {
-                proposedAddr.add(proposedEbftBlock.getBlock().getAddressHex());
+                proposedAddr.add(proposedEbftBlock.getBlock().getAddress().toString());
             }
         }
 
@@ -467,15 +462,15 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
                     log.debug("proposed ["
                             + ebftBlock.getIndex()
                             + "]"
-                            + ebftBlock.getHashHex()
+                            + ebftBlock.getHash()
                             + " ("
-                            + ebftBlock.getBlock().getAddressHex()
+                            + ebftBlock.getBlock().getAddress()
                             + ")");
                     for (int i = 0; i < ebftBlock.getConsensusMessages().size(); i++) {
                         if (ebftBlock.getConsensusMessages().get(i) != null) {
                             log.debug(ebftBlock.getConsensusMessages().get(i)
                                     + " ("
-                                    + ebftBlock.getBlock().getAddressHex()
+                                    + ebftBlock.getBlock().getAddress()
                                     + ")");
                         }
                     }
@@ -500,7 +495,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
                 } catch (Exception e) {
                     log.debug("multicast exception: {}", e.getMessage());
                     log.debug("client: {}", client.getId());
-                    log.debug("block: {}", block.getHashHex());
+                    log.debug("block: {}", block.getHash());
                 }
             }
         }
@@ -514,28 +509,28 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
             }
             try {
                 client.broadcastEbftBlock(block.getInstance());
-                log.debug("BroadcastBlock [{}]{} to {}:{}", block.getIndex(), block.getHashHex(),
+                log.debug("BroadcastBlock [{}]{} to {}:{}", block.getIndex(), block.getHash(),
                         client.getHost(), client.getPort());
             } catch (Exception e) {
-                log.debug("BroadcastBlock exception: " + e.getMessage());
-                log.debug("client: " + client.getId());
-                log.debug("block: " + block.getHashHex());
+                log.debug("BroadcastBlock exception: {}", e.getMessage());
+                log.debug("client: {}", client.getId());
+                log.debug("block: {}", block.getHash());
             }
         }
     }
 
-    public void updateUnconfirmedBlock(EbftBlock ebftBlock) {
+    void updateUnconfirmedBlock(EbftBlock ebftBlock) {
         if (ebftBlock == null) {
             return;
         }
 
-        String addr = ebftBlock.getBlock().getAddressHex();
+        String addr = ebftBlock.getBlock().getAddress().toString();
         EbftBlock unConfirmedBlock =
-                this.blockChain.getUnConfirmedData().get(ebftBlock.getHashHex());
+                this.blockChain.getUnConfirmedData().get(ebftBlock.getHash().toString());
 
         if (unConfirmedBlock != null) {
             // if exist, update consensus
-            if (ebftBlock.getConsensusMessages().size() > 0) {
+            if (!ebftBlock.getConsensusMessages().isEmpty()) {
                 for (String consensus : ebftBlock.getConsensusMessages()) {
                     if (!unConfirmedBlock.getConsensusMessages().contains(consensus)
                             && this.totalValidatorMap.containsKey(addr)) {
@@ -545,11 +540,11 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
             }
         } else {
             // if not exist, add ebftBlock
-            this.blockChain.getUnConfirmedData().put(ebftBlock.getHashHex(), ebftBlock);
+            this.blockChain.getUnConfirmedData().put(ebftBlock.getHash().toString(), ebftBlock);
         }
     }
 
-    public EbftStatus getMyNodeStatus() {
+    EbftStatus getMyNodeStatus() {
         long index = this.blockChain.getLastConfirmedBlock().getIndex();
         List<EbftBlock> unConfirmedBlockList = new ArrayList<>();
         for (EbftBlock ebftBlock : this.blockChain.getUnConfirmedData().values()) {
@@ -659,7 +654,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
         return count;
     }
 
-    public boolean consensusVerify(EbftBlock ebftBlock) {
+    boolean consensusVerify(EbftBlock ebftBlock) {
         if (ebftBlock.getConsensusMessages().size() <= 0) {
             return true;
         }

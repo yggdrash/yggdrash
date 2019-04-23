@@ -18,7 +18,7 @@ package io.yggdrash.gateway.controller;
 
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.gateway.dto.BlockDto;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +48,7 @@ class BlockController {
     @GetMapping("/{id}")
     public ResponseEntity get(@PathVariable(name = BRANCH_ID) String branchId,
                               @PathVariable(name = "id") String id) {
-        Block foundBlock;
+        ConsensusBlock foundBlock;
         if (StringUtils.isNumeric(id)) {
             foundBlock = branchGroup.getBlockByIndex(BranchId.of(branchId), Long.valueOf(id));
         } else {
@@ -75,7 +75,7 @@ class BlockController {
         }
 
         for (int i = 0; i < limit && offset >= 0; i++) {
-            Block block = branchGroup.getBlockByIndex(id, offset--);
+            ConsensusBlock block = branchGroup.getBlockByIndex(id, offset--);
             if (block == null) {
                 break;
             }

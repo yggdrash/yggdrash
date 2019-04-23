@@ -24,7 +24,7 @@ public class Consensus {
 
     @Deprecated
     public Consensus(Block genesisBlock) {
-        this(((JsonObject) ((Transaction) genesisBlock.getBody().getBody().toArray()[0])
+        this(((JsonObject) ((Transaction) genesisBlock.getBody().getTransactionList().toArray()[0])
                 .getBody().getBody().get(0)).getAsJsonObject("consensus"));
     }
 

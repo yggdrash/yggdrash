@@ -22,7 +22,7 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.TestConstants.CiTest;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.util.TimeUtils;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NotValidateException;
 import org.junit.After;
 import org.junit.Test;
@@ -41,21 +41,20 @@ public class BlockChainTest extends CiTest {
     @Test
     public void shouldBeGetBlockByHash() {
         BlockChain blockChain = generateTestBlockChain(false);
-        Block block = blockChain.getLastConfirmedBlock(); // goto Genesis
+        ConsensusBlock block = blockChain.getLastConfirmedBlock(); // goto Genesis
         long nextIndex = blockChain.getLastIndex() + 1;
-        Block testBlock = getBlockFixture(nextIndex, block.getHash());
+        ConsensusBlock testBlock = getBlockFixture(nextIndex, block.getHash());
         blockChain.addBlock(testBlock, false);
 
-        assertThat(blockChain.getBlockByHash(testBlock.getHash()))
-                .isEqualTo(testBlock);
+        assertThat(blockChain.getBlockByHash(testBlock.getHash())).isEqualTo(testBlock);
     }
 
     @Test
     public void shouldBeGetBlockByIndex() {
         BlockChain blockChain = generateTestBlockChain();
-        Block block = blockChain.getLastConfirmedBlock(); // goto Genesis
+        ConsensusBlock block = blockChain.getLastConfirmedBlock(); // goto Genesis
         long nextIndex = blockChain.getLastIndex() + 1;
-        Block testBlock = getBlockFixture(nextIndex, block.getHash());
+        ConsensusBlock testBlock = getBlockFixture(nextIndex, block.getHash());
         blockChain.addBlock(testBlock, false);
 
         assertThat(blockChain.getBlockByIndex(nextIndex)).isEqualTo(testBlock);
@@ -65,23 +64,23 @@ public class BlockChainTest extends CiTest {
     public void shouldBeExceptedNotValidateException() {
         BlockChain blockChain = generateTestBlockChain(false);
         Sha3Hash prevHash = new Sha3Hash("9358");
-        Block block1 = getBlockFixture(1L, prevHash);
+        ConsensusBlock block1 = getBlockFixture(1L, prevHash);
         blockChain.addBlock(block1, false);
-        Block block2 =  getBlockFixture(2L, prevHash);
+        ConsensusBlock block2 =  getBlockFixture(2L, prevHash);
         blockChain.addBlock(block2, false);
     }
 
     @Test
     public void shouldBeLoadedStoredBlocks() {
         BlockChain blockChain1 = generateTestBlockChain(true);
-        Block genesisBlock = blockChain1.getGenesisBlock();
+        ConsensusBlock genesisBlock = blockChain1.getGenesisBlock();
 
-        Block testBlock = getBlockFixture(1L, genesisBlock.getHash());
+        ConsensusBlock testBlock = getBlockFixture(1L, genesisBlock.getHash());
         blockChain1.addBlock(testBlock, false);
         blockChain1.close();
 
         BlockChain blockChain2 = generateTestBlockChain(true);
-        Block foundBlock = blockChain2.getBlockByHash(testBlock.getHash());
+        ConsensusBlock foundBlock = blockChain2.getBlockByHash(testBlock.getHash());
         blockChain2.close();
         long nextIndex = blockChain2.getLastIndex() + 1;
         assertThat(nextIndex).isEqualTo(2);
@@ -92,21 +91,21 @@ public class BlockChainTest extends CiTest {
     @Test
     public void shouldBeStoredGenesisTxs() {
         BlockChain blockChain = generateTestBlockChain(true);
-        Block genesis = blockChain.getGenesisBlock();
-        List<TransactionHusk> txList = genesis.getBody();
-        for (TransactionHusk tx : txList) {
+        ConsensusBlock genesis = blockChain.getGenesisBlock();
+        List<Transaction> txList = genesis.getBody().getTransactionList();
+        for (Transaction tx : txList) {
             assertThat(blockChain.getTxByHash(tx.getHash())).isNotNull();
         }
-        assertThat(blockChain.countOfTxs()).isEqualTo(genesis.getBody().size());
+        assertThat(blockChain.countOfTxs()).isEqualTo(genesis.getBody().getCount());
         blockChain.close();
     }
 
     @Test
     public void shouldBeGeneratedAfterLoadedStoredBlocks() {
         BlockChain newDbBlockChain = generateTestBlockChain(true);
-        Block genesisBlock = newDbBlockChain.getGenesisBlock();
+        ConsensusBlock genesisBlock = newDbBlockChain.getGenesisBlock();
 
-        Block testBlock = getBlockFixture(1L, genesisBlock.getHash());
+        ConsensusBlock testBlock = getBlockFixture(1L, genesisBlock.getHash());
         newDbBlockChain.addBlock(testBlock, false);
         assertThat(newDbBlockChain.getLastIndex()).isEqualTo(1);
         newDbBlockChain.close();
@@ -120,18 +119,18 @@ public class BlockChainTest extends CiTest {
         BlockChain blockChain = generateTestBlockChain(false);
         blockChain.addListener(new BranchEventListener() {
             @Override
-            public void chainedBlock(Block block) {
+            public void chainedBlock(ConsensusBlock block) {
                 assertThat(block).isNotNull();
             }
 
             @Override
-            public void receivedTransaction(TransactionHusk tx) {
+            public void receivedTransaction(Transaction tx) {
                 assertThat(tx).isNotNull();
             }
         });
-        Block block = blockChain.getLastConfirmedBlock(); // goto Genesis
+        ConsensusBlock block = blockChain.getLastConfirmedBlock(); // goto Genesis
         long nextIndex = blockChain.getLastIndex() + 1;
-        Block testBlock = getBlockFixture(nextIndex, block.getHash());
+        ConsensusBlock testBlock = getBlockFixture(nextIndex, block.getHash());
         blockChain.addBlock(testBlock, false);
         blockChain.addTransaction(BlockChainTestUtils.createTransferTxHusk());
     }
@@ -142,23 +141,22 @@ public class BlockChainTest extends CiTest {
 
     private BlockChain generateTestBlockChain() {
         BlockChain blockChain = generateTestBlockChain(false);
-        Block genesisBlock = blockChain.getGenesisBlock();
-        Block block1 = getBlockFixture(1L, genesisBlock.getHash());
+        ConsensusBlock genesisBlock = blockChain.getGenesisBlock();
+        ConsensusBlock block1 = getBlockFixture(1L, genesisBlock.getHash());
         blockChain.addBlock(block1, false);
-        Block block2 = getBlockFixture(2L, block1.getHash());
+        ConsensusBlock block2 = getBlockFixture(2L, block1.getHash());
         blockChain.addBlock(block2, false);
         return blockChain;
     }
 
-    private static Block getBlockFixture(Long index, Sha3Hash prevHash) {
+    private static ConsensusBlock getBlockFixture(Long index, Sha3Hash prevHash) {
         return getBlockFixture(index, prevHash.getBytes());
     }
 
-    private static Block getBlockFixture(Long index, byte[] prevHash) {
+    private static ConsensusBlock getBlockFixture(Long index, byte[] prevHash) {
 
         try {
-            io.yggdrash.core.blockchain.Block tmpBlock
-                    = new io.yggdrash.core.blockchain.Block(BlockChainTestUtils.genesisBlock().toJsonObject());
+            io.yggdrash.core.blockchain.Block tmpBlock = BlockChainTestUtils.genesisBlock().getBlock();
             BlockHeader tmpBlockHeader = tmpBlock.getHeader();
             BlockBody tmpBlockBody = tmpBlock.getBody();
 
@@ -171,9 +169,9 @@ public class BlockChainTest extends CiTest {
                     TimeUtils.time(),
                     tmpBlockBody);
 
-            io.yggdrash.core.blockchain.Block block
-                    = new io.yggdrash.core.blockchain.Block(newBlockHeader, TestConstants.wallet(), tmpBlockBody);
-            return new BlockHusk(block);
+            io.yggdrash.core.blockchain.Block block =
+                    new BlockImpl(newBlockHeader, TestConstants.wallet(), tmpBlockBody);
+            return new SimpleBlock(block);
         } catch (Exception e) {
             throw new NotValidateException(e);
         }

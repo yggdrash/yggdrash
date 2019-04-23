@@ -19,7 +19,7 @@ package io.yggdrash.node.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.gateway.dto.TransactionDto;
 import org.junit.Assert;
 import org.junit.Before;
@@ -123,14 +123,14 @@ public class TransactionApiImplTest {
 
     @Test
     public void checkTransactionJsonFormat() throws IOException {
-        TransactionHusk tx = createTx();
+        Transaction tx = createTx();
         String txString = new ObjectMapper().writeValueAsString(TransactionDto.createBy(tx));
         Assert.assertTrue(txString.contains(tx.getBranchId().toString()));
     }
 
     @Test
     public void sendTransactionTest() {
-        TransactionHusk tx = createTx();
+        Transaction tx = createTx();
 
         // Request Transaction with jsonStr
         try {
@@ -165,7 +165,7 @@ public class TransactionApiImplTest {
     @Test
     public void txSigValidateTest() throws IOException {
         // Create Transaction
-        TransactionHusk tx = createTx();
+        Transaction tx = createTx();
 
         ObjectMapper mapper = new ObjectMapper();
         String jsonStr = mapper.writeValueAsString(TransactionDto.createBy(tx));
@@ -177,7 +177,7 @@ public class TransactionApiImplTest {
         assertTrue(TransactionDto.of(resDto).verify());
     }
 
-    private TransactionHusk createTx() {
+    private Transaction createTx() {
         return BlockChainTestUtils.createTransferTxHusk();
     }
 }

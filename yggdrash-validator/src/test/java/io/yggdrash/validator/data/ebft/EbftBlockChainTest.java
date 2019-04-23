@@ -7,9 +7,10 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.validator.util.TestUtils;
+import io.yggdrash.validator.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -75,24 +76,24 @@ public class EbftBlockChainTest {
         this.ebftBlock0 = new EbftBlock(this.block0);
 
         List<String> consensusList1 = new ArrayList<>();
-        consensusList1.add(wallet0.signHex(block1.getHash(), true));
-        consensusList1.add(wallet1.signHex(block1.getHash(), true));
-        consensusList1.add(wallet2.signHex(block1.getHash(), true));
-        consensusList1.add(wallet3.signHex(block1.getHash(), true));
+        consensusList1.add(wallet0.signHex(block1.getHash().getBytes(), true));
+        consensusList1.add(wallet1.signHex(block1.getHash().getBytes(), true));
+        consensusList1.add(wallet2.signHex(block1.getHash().getBytes(), true));
+        consensusList1.add(wallet3.signHex(block1.getHash().getBytes(), true));
         this.ebftBlock1 = new EbftBlock(this.block1, consensusList1);
 
         List<String> consensusList2 = new ArrayList<>();
-        consensusList2.add(wallet0.signHex(block2.getHash(), true));
-        consensusList2.add(wallet1.signHex(block2.getHash(), true));
-        consensusList2.add(wallet2.signHex(block2.getHash(), true));
-        consensusList2.add(wallet3.signHex(block2.getHash(), true));
+        consensusList2.add(wallet0.signHex(block2.getHash().getBytes(), true));
+        consensusList2.add(wallet1.signHex(block2.getHash().getBytes(), true));
+        consensusList2.add(wallet2.signHex(block2.getHash().getBytes(), true));
+        consensusList2.add(wallet3.signHex(block2.getHash().getBytes(), true));
         this.ebftBlock2 = new EbftBlock(this.block2, consensusList2);
 
         List<String> consensusList3 = new ArrayList<>();
-        consensusList3.add(wallet0.signHex(block3.getHash(), true));
-        consensusList3.add(wallet1.signHex(block3.getHash(), true));
-        consensusList3.add(wallet2.signHex(block3.getHash(), true));
-        consensusList3.add(wallet3.signHex(block3.getHash(), true));
+        consensusList3.add(wallet0.signHex(block3.getHash().getBytes(), true));
+        consensusList3.add(wallet1.signHex(block3.getHash().getBytes(), true));
+        consensusList3.add(wallet2.signHex(block3.getHash().getBytes(), true));
+        consensusList3.add(wallet3.signHex(block3.getHash().getBytes(), true));
         this.ebftBlock3 = new EbftBlock(this.block3, consensusList3);
 
     }
@@ -108,7 +109,7 @@ public class EbftBlockChainTest {
             throw new NotValidateException("Error genesisFile");
         }
 
-        return new Block(new Gson().fromJson(genesisString, JsonObject.class));
+        return new BlockImpl(new Gson().fromJson(genesisString, JsonObject.class));
     }
 
     @Test

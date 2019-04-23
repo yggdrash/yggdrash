@@ -10,10 +10,10 @@ import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.validator.TestUtils;
 import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftMessage;
 import io.yggdrash.validator.data.pbft.PbftMessageSet;
-import io.yggdrash.validator.util.TestUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,6 +34,7 @@ import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_VIEWCHANGE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class PbftBlockStoreTest {
     private static final Logger log = LoggerFactory.getLogger(PbftBlockStoreTest.class);
@@ -257,7 +258,7 @@ public class PbftBlockStoreTest {
         byte[] newHash = blockKeyStore.get(this.pbftBlock.getIndex());
         PbftBlock newBlock = blockStore.get(Sha3Hash.createByHashed(newHash));
         assertEquals(newBlock, this.pbftBlock);
-        assertEquals(true, blockStore.contains(this.pbftBlock.getHash()));
+        assertTrue(blockStore.contains(this.pbftBlock.getHash()));
         assertFalse(blockStore.contains(Sha3Hash.createByHashed(Constants.EMPTY_HASH)));
     }
 

@@ -18,8 +18,8 @@ package io.yggdrash.core.p2p;
 
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,12 +79,12 @@ public class PeerHandlerMock implements PeerHandler {
     }
 
     @Override
-    public Future<List<Block>> syncBlock(BranchId branchId, long offset) {
+    public Future<List<ConsensusBlock>> syncBlock(BranchId branchId, long offset) {
         log.debug("[PeerHandlerMock] SyncBlock branchId={}, offset={}", branchId, offset);
 
-        CompletableFuture<List<Block>> husksCompletableFuture = new CompletableFuture<>();
+        CompletableFuture<List<ConsensusBlock>> husksCompletableFuture = new CompletableFuture<>();
 
-        List<Block> tmp = new ArrayList<>();
+        List<ConsensusBlock> tmp = new ArrayList<>();
         for (int i = (int) offset; i < (int) offset + 33; i++) {
             tmp.add(BlockChainTestUtils.getSampleBlockHuskList().get(i));
         }
@@ -93,24 +93,22 @@ public class PeerHandlerMock implements PeerHandler {
     }
 
     @Override
-    public Future<List<TransactionHusk>> syncTx(BranchId branchId) {
+    public Future<List<Transaction>> syncTx(BranchId branchId) {
         log.debug("[PeerHandlerMock] SyncTx branchId={}", branchId);
 
-        CompletableFuture<List<TransactionHusk>> husksCompletableFuture = new CompletableFuture<>();
-        husksCompletableFuture.complete(
-                Collections.singletonList(BlockChainTestUtils.createTransferTxHusk()));
+        CompletableFuture<List<Transaction>> husksCompletableFuture = new CompletableFuture<>();
+        husksCompletableFuture.complete(Collections.singletonList(BlockChainTestUtils.createTransferTxHusk()));
 
         return husksCompletableFuture;
     }
 
     @Override
-    public void broadcastBlock(Block blockHusk) {
+    public void broadcastBlock(ConsensusBlock blockHusk) {
 
     }
 
     @Override
-    public void broadcastTx(TransactionHusk txHusk) {
-
+    public void broadcastTx(Transaction tx) {
     }
 
     public static PeerHandler dummy() {

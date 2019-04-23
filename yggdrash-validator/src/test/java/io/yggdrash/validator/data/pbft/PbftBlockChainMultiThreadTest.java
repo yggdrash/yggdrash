@@ -10,9 +10,10 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.validator.util.TestUtils;
+import io.yggdrash.validator.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -140,7 +141,7 @@ public class PbftBlockChainMultiThreadTest {
             throw new NotValidateException("Error genesisFile");
         }
 
-        return new Block(new Gson().fromJson(genesisString, JsonObject.class));
+        return new BlockImpl(new Gson().fromJson(genesisString, JsonObject.class));
     }
 
     private Block makeBlock(long index, byte[] prevHash) {

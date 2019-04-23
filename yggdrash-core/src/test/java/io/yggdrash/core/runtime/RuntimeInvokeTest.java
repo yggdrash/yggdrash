@@ -22,12 +22,11 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
-import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.store.TempStateStore;
@@ -43,8 +42,8 @@ import static org.junit.Assert.assertTrue;
 public class RuntimeInvokeTest {
     private static final StemContract.StemService stemContract = new StemContract.StemService();
 
-    TransactionReceipt txReceipt;
-    BranchId branchId;
+    private TransactionReceipt txReceipt;
+    private BranchId branchId;
 
     @Test
     public void initTest() throws InvocationTargetException, IllegalAccessException {
@@ -55,14 +54,12 @@ public class RuntimeInvokeTest {
         JsonObject json = ContractTestUtils.createSampleBranchJson();
         BranchId branchId = Branch.of(json).getBranchId();
         this.branchId = branchId;
-        TransactionHusk createTx = BlockChainTestUtils.createBranchTxHusk(branchId,
-                "create", json);
+        Transaction createTx = BlockChainTestUtils.createBranchTxHusk(branchId, "create", json);
         TransactionReceipt receipt = ContractManager.createTransactionReceipt(createTx);
 
         this.txReceipt = receipt;
-        for (JsonElement txEl: JsonUtil.parseJsonArray(createTx.getBody())) {
-            TempStateStore store = invoke.invokeTransaction(
-                    txEl.getAsJsonObject(), receipt, tempStore);
+        for (JsonElement txEl: createTx.getBody().getBody()) {
+            TempStateStore store = invoke.invokeTransaction(txEl.getAsJsonObject(), receipt, tempStore);
             assertTrue(receipt.isSuccess());
             assertTrue(store.changeValues().size() > 0);
         }

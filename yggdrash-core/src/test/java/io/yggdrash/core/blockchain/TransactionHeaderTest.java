@@ -30,6 +30,7 @@ import org.spongycastle.util.encoders.Hex;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TransactionHeaderTest {
 
@@ -43,7 +44,6 @@ public class TransactionHeaderTest {
     private long bodyLength;
 
     private TransactionBody txBody;
-
 
     @Before
     public void init() {
@@ -60,12 +60,16 @@ public class TransactionHeaderTest {
 
         timestamp = TimeUtils.time();
         txBody = new TransactionBody(jsonArray);
-        bodyHash = txBody.getBodyHash();
-        bodyLength = txBody.length();
+        bodyHash = txBody.getHash();
+        bodyLength = txBody.getLength();
     }
 
     @Test
     public void testTransactionHeader() {
+
+        TransactionHeader txHeader =
+                new TransactionHeader(chain, version, type, Long.MAX_VALUE, bodyHash, Long.MAX_VALUE);
+        assertTrue(TransactionHeader.LENGTH >= txHeader.getLength());
 
         TransactionHeader txHeader1 =
                 new TransactionHeader(chain, version, type, timestamp, bodyHash, bodyLength);

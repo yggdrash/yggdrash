@@ -4,7 +4,6 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.blockchain.TransactionHusk;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,27 +21,6 @@ public class Trie {
     }
 
     /**
-     * Get merkle root value.
-     *
-     * @param txs Transaction list
-     * @return byte[32] - merkle root value <br>
-     * null - if txs is null or txs.size is smaller than 1
-     */
-    public static byte[] getMerkleRootHusk(List<TransactionHusk> txs) {
-
-        if (txs == null || txs.isEmpty() || txs.contains(null)) {
-            return Constants.EMPTY_HASH;
-        }
-
-        List<byte[]> tree = new ArrayList<>();
-        for (TransactionHusk tx : txs) {
-            tree.add(tx.getHash().getBytes());
-        }
-
-        return getMerkleRoot(tree, HASH_256_ALGORITHM_NAME);
-    }
-
-    /**
      * Get merkleRoot using Transactions.
      *
      * @param txs Transaction list
@@ -57,10 +35,14 @@ public class Trie {
 
         List<byte[]> tree = new ArrayList<>();
         for (Transaction tx : txs) {
-            tree.add(tx.getHash());
+            tree.add(tx.getHash().getBytes());
         }
 
         return getMerkleRoot(tree, HASH_256_ALGORITHM_NAME);
+    }
+
+    public static byte[] getMerkleRoot(List<byte[]> hashTree, String algorithm) {
+        return getMerkleRoot(hashTree, algorithm, false);
     }
 
     /**
@@ -102,9 +84,5 @@ public class Trie {
         }
 
         return hashTree.get(hashTree.size() - 1);
-    }
-
-    public static byte[] getMerkleRoot(List<byte[]> hashTree, String algorithm) {
-        return getMerkleRoot(hashTree, algorithm, false);
     }
 }

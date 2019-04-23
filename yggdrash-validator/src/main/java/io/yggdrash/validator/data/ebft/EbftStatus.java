@@ -138,11 +138,22 @@ public class EbftStatus {
         return SerializationUtil.serializeJson(toJsonObject());
     }
 
-    public boolean equals(EbftStatus newStatus) {
-        if (newStatus == null) {
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        return Arrays.equals(this.toBinary(), newStatus.toBinary());
+
+        EbftStatus other = (EbftStatus) o;
+        return Arrays.equals(toBinary(), other.toBinary());
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(toBinary());
     }
 
     public void clear() {

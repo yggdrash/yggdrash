@@ -1,4 +1,4 @@
-package io.yggdrash.validator.util;
+package io.yggdrash.validator;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -11,9 +11,11 @@ import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
+import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBody;
 import io.yggdrash.core.blockchain.TransactionHeader;
+import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
 import org.apache.commons.codec.binary.Hex;
@@ -79,7 +81,7 @@ public class TestUtils {
 
         try {
             txSig = nodeWallet.sign(txHeader.getHashForSigning(), true);
-            tx = new Transaction(txHeader, txSig, txBody);
+            tx = new TransactionImpl(txHeader, txSig, txBody);
 
             return tx.toJsonObject();
 
@@ -116,7 +118,7 @@ public class TestUtils {
     }
 
     private Transaction sampleTx() {
-        return new Transaction(sampleTxObject(wallet));
+        return new TransactionImpl(sampleTxObject(wallet));
     }
 
     private JsonObject sampleBlockObject(long index, byte[] prevBlockHash) {
@@ -136,11 +138,11 @@ public class TestUtils {
                     prevBlockHash,
                     index,
                     timestamp,
-                    blockBody.getMerkleRoot(), blockBody.length());
+                    blockBody.getMerkleRoot(), blockBody.getLength());
 
             byte[] blockSig = wallet.sign(blockHeader.getHashForSigning(), true);
 
-            Block block = new Block(blockHeader, blockSig, blockBody);
+            Block block = new BlockImpl(blockHeader, blockSig, blockBody);
 
             return block.toJsonObject();
         } catch (Exception e) {
@@ -157,11 +159,11 @@ public class TestUtils {
     }
 
     public Block sampleBlock() {
-        return new Block(sampleBlockObject());
+        return new BlockImpl(sampleBlockObject());
     }
 
     public Block sampleBlock(long index) {
-        return new Block(sampleBlockObject(index));
+        return new BlockImpl(sampleBlockObject(index));
     }
 
     public Block sampleBlock(long index,Sha3Hash prevBlockHash) {
@@ -169,7 +171,7 @@ public class TestUtils {
     }
 
     public Block sampleBlock(long index, byte[] prevBlockHash) {
-        return new Block(sampleBlockObject(index, prevBlockHash));
+        return new BlockImpl(sampleBlockObject(index, prevBlockHash));
     }
 
     public void clearTestDb() {

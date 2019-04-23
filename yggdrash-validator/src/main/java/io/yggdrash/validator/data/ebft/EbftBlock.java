@@ -21,30 +21,25 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.core.blockchain.Block;
-import io.yggdrash.core.consensus.AbstractBlock;
+import io.yggdrash.core.blockchain.BlockImpl;
+import io.yggdrash.core.consensus.AbstractConsensusBlock;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.EbftProto;
-import io.yggdrash.proto.Proto;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class EbftBlock extends AbstractBlock<EbftProto.EbftBlock> {
+public class EbftBlock extends AbstractConsensusBlock<EbftProto.EbftBlock> {
 
     private final transient List<String> consensusList;
 
-    private EbftBlock(Proto.Block protoBlock, List<String> consensusList) {
-        super(protoBlock);
-        this.consensusList = new ArrayList<>(consensusList);
+    public EbftBlock(byte[] bytes) {
+        this(toProto(bytes));
     }
 
     public EbftBlock(EbftProto.EbftBlock block) {
-        this(block.getBlock(), block.getConsensusList().getConsensusList());
-    }
-
-    public EbftBlock(byte[] bytes) {
-        this(toProto(bytes));
+        this(new BlockImpl(block.getBlock()), block.getConsensusList().getConsensusList());
     }
 
     public EbftBlock(Block block) {
@@ -52,11 +47,13 @@ public class EbftBlock extends AbstractBlock<EbftProto.EbftBlock> {
     }
 
     public EbftBlock(Block block, List<String> consensusList) {
-        this(Block.toProtoBlock(block), consensusList);
+        super(block);
+        this.consensusList = new ArrayList<>(consensusList);
     }
 
     public EbftBlock(JsonObject jsonObject) {
-        this(new Block(jsonObject.get("block").getAsJsonObject()), toConsensusList(jsonObject.get("consensusList")));
+        this(new BlockImpl(jsonObject.get("block").getAsJsonObject()),
+                toConsensusList(jsonObject.get("consensusList")));
     }
 
     @Override
@@ -71,7 +68,7 @@ public class EbftBlock extends AbstractBlock<EbftProto.EbftBlock> {
     }
 
     @Override
-    public byte[] getData() {
+    public byte[] toBinary() {
         return getInstance().toByteArray();
     }
 

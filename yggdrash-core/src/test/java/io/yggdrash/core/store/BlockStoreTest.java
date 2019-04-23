@@ -19,7 +19,7 @@ package io.yggdrash.core.store;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Test;
@@ -35,9 +35,9 @@ public class BlockStoreTest {
     public void shouldBeGotBlock() {
         LevelDbDataSource ds = new LevelDbDataSource(StoreTestUtils.getTestPath(), "block-store-test");
         BlockHuskStore blockStore = new BlockHuskStore(ds);
-        Block blockHuskFixture = BlockChainTestUtils.genesisBlock();
+        ConsensusBlock blockHuskFixture = BlockChainTestUtils.genesisBlock();
         blockStore.put(blockHuskFixture.getHash(), blockHuskFixture);
-        Block foundBlockHusk = blockStore.get(blockHuskFixture.getHash());
+        ConsensusBlock foundBlockHusk = blockStore.get(blockHuskFixture.getHash());
         Assertions.assertThat(foundBlockHusk).isEqualTo(blockHuskFixture);
         Assertions.assertThat(blockStore.get(foundBlockHusk.getHash())).isEqualTo(foundBlockHusk);
     }

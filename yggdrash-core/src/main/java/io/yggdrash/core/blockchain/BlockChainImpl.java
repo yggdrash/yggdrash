@@ -9,8 +9,8 @@ import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.osgi.ContractContainer;
-import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.consensus.Consensus;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
@@ -45,17 +45,17 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     private final StateStore stateStore;
     private final TransactionReceiptStore transactionReceiptStore;
 
-    private final Block<T> genesisBlock;
+    private final ConsensusBlock<T> genesisBlock;
     private final Map<String, V> unConfirmedBlockMap = new ConcurrentHashMap<>();
 
-    private Block<T> lastConfirmedBlock;
+    private ConsensusBlock<T> lastConfirmedBlock;
 
     private final ContractContainer contractContainer;
     private final Map<OutputType, OutputStore> outputStores;
 
     private final Consensus consensus;
 
-    public BlockChainImpl(Branch branch, Block<T> genesisBlock,
+    public BlockChainImpl(Branch branch, ConsensusBlock<T> genesisBlock,
                           ConsensusBlockStore<T> blockStore,
                           TransactionStore transactionStore,
                           BranchStore branchStore,
@@ -117,7 +117,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     }
 
     private void initGenesis() {
-        for (TransactionHusk tx : genesisBlock.getBody()) {
+        for (Transaction tx : genesisBlock.getBody().getTransactionList()) {
             if (!transactionStore.contains(tx.getHash())) {
                 transactionStore.put(tx.getHash(), tx);
             }
@@ -139,7 +139,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         long loadStart = bestBlock > 1000 ? bestBlock - 1000 : 0;
         for (long i = loadStart; i <= bestBlock; i++) {
             // recent block load and update Cache
-            Block<T> block = blockStore.getBlockByIndex(i);
+            ConsensusBlock<T> block = blockStore.getBlockByIndex(i);
             // TODO node can be shutdown before blockStore.addBlock()
             // addBlock(): branchStore.setBestBlock() -> executeTransactions() -> blockStore.addBlock()
             if (block == null) {
@@ -148,7 +148,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                 log.warn("reset branchStore bestBlock: {} -> {}", bestBlock, prevIdx);
                 break;
             }
-            transactionStore.updateCache(block.getBody());
+            transactionStore.updateCache(block.getBody().getTransactionList());
             // set Last Best Block
             if (i == bestBlock) {
                 this.lastConfirmedBlock = block;
@@ -187,12 +187,12 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     }
 
     @Override
-    public Block<T> getGenesisBlock() {
+    public ConsensusBlock<T> getGenesisBlock() {
         return genesisBlock;
     }
 
     @Override
-    public Block<T> getLastConfirmedBlock() {
+    public ConsensusBlock<T> getLastConfirmedBlock() {
         return lastConfirmedBlock;
     }
 
@@ -202,7 +202,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     }
 
     @Override
-    public Block<T> addBlock(Block<T> nextBlock, boolean broadcast) {
+    public ConsensusBlock<T> addBlock(ConsensusBlock<T> nextBlock, boolean broadcast) {
         if (blockStore.contains(nextBlock.getHash())) {
             return null;
         }
@@ -228,7 +228,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             //Store event
             if (outputStores != null && outputStores.size() > 0) {
                 Map<String, JsonObject> transactionMap = new HashMap<>();
-                List<TransactionHusk> txList = nextBlock.getBody();
+                List<Transaction> txList = nextBlock.getBody().getTransactionList();
                 txList.forEach(tx -> {
                     String txHash = tx.getHash().toString();
                     transactionMap.put(txHash, tx.toJsonObjectFromProto());
@@ -250,16 +250,16 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
         }
         log.debug("Added idx=[{}], tx={}, branch={}, blockHash={}", nextBlock.getIndex(),
-                nextBlock.getBodyCount(), getBranchId(), nextBlock.getHash());
+                nextBlock.getBody().getCount(), getBranchId(), nextBlock.getHash());
         return nextBlock;
     }
 
     @Override
-    public Block<T> addBlock(Block<T> block) {
+    public ConsensusBlock<T> addBlock(ConsensusBlock<T> block) {
         return addBlock(block, true);
     }
 
-    private boolean isValidNewBlock(Block<T> prevBlock, Block<T> nextBlock) {
+    private boolean isValidNewBlock(ConsensusBlock<T> prevBlock, ConsensusBlock<T> nextBlock) {
         if (prevBlock == null) {
             return true;
         }
@@ -275,13 +275,13 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         return true;
     }
 
-    private void batchTxs(Block<T> block) {
-        if (block == null || block.getBody() == null) {
+    private void batchTxs(ConsensusBlock<T> block) {
+        if (block == null || block.getBody().getTransactionList() == null) {
             return;
         }
         Set<Sha3Hash> keys = new HashSet<>();
 
-        for (TransactionHusk tx : block.getBody()) {
+        for (Transaction tx : block.getBody().getTransactionList()) {
             keys.add(tx.getHash());
         }
         transactionStore.batch(keys);
@@ -295,8 +295,8 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
      * @return list of Block
      */
     @Override
-    public List<Block<T>> getBlockList(long index, long count) {
-        List<Block<T>> blockList = new ArrayList<>();
+    public List<ConsensusBlock<T>> getBlockList(long index, long count) {
+        List<ConsensusBlock<T>> blockList = new ArrayList<>();
         if (index < 0L || count < 1L || count > 100L) {
             log.debug("index or count is not valid");
             return blockList;
@@ -314,11 +314,11 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     }
 
     @Override
-    public TransactionHusk addTransaction(TransactionHusk tx) {
+    public Transaction addTransaction(Transaction tx) {
         return addTransaction(tx, true);
     }
 
-    public TransactionHusk addTransaction(TransactionHusk tx, boolean broadcast) {
+    public Transaction addTransaction(Transaction tx, boolean broadcast) {
         if (transactionStore.contains(tx.getHash())) {
             return null;
         } else if (!tx.verify()) {
@@ -347,12 +347,12 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     }
 
     @Override
-    public Collection<TransactionHusk> getRecentTxs() {
+    public Collection<Transaction> getRecentTxs() {
         return transactionStore.getRecentTxs();
     }
 
     @Override
-    public List<TransactionHusk> getUnconfirmedTxs() {
+    public List<Transaction> getUnconfirmedTxs() {
         return new ArrayList<>(transactionStore.getUnconfirmedTxs());
     }
 
@@ -363,12 +363,12 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
      * @return the transaction by hash
      */
     @Override
-    public TransactionHusk getTxByHash(Sha3Hash hash) {
+    public Transaction getTxByHash(Sha3Hash hash) {
         return transactionStore.get(hash);
     }
 
     @Override
-    public Block<T> getBlockByIndex(long index) {
+    public ConsensusBlock<T> getBlockByIndex(long index) {
         try {
             return blockStore.getBlockByIndex(index);
         } catch (Exception e) {
@@ -383,7 +383,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
      * @return the block by hash
      */
     @Override
-    public Block<T> getBlockByHash(Sha3Hash hash) {
+    public ConsensusBlock<T> getBlockByHash(Sha3Hash hash) {
         return blockStore.get(hash);
     }
 

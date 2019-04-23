@@ -24,10 +24,10 @@ import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -77,9 +77,9 @@ public class BranchConfigurationTest {
     }
 
     private void assertTransaction(BlockChain branch) throws IOException {
-        Block genesis = branch.getBlockByIndex(0);
+        ConsensusBlock genesis = branch.getBlockByIndex(0);
         log.debug(genesis.toJsonObject().toString());
-        TransactionHusk genesisTx = (TransactionHusk) genesis.getBody().get(0);
+        Transaction genesisTx = genesis.getBody().getTransactionList().get(0);
         String txSignature = Hex.toHexString(genesisTx.getSignature());
         JsonObject branchJson = getBranchJson();
         assert txSignature.equals(branchJson.get("signature").getAsString());

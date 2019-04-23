@@ -99,7 +99,6 @@ public class TransactionBuilder {
 
     private Transaction createTx() {
         //Wallet wallet, byte[] version, byte[] type, BranchId txBranchId, JsonArray body
-        Transaction tx;
 
         TransactionBody transactionBody = new TransactionBody(txArray);
 
@@ -109,27 +108,21 @@ public class TransactionBuilder {
             timestamp = TimeUtils.time();
         }
 
-        TransactionHeader txHeader;
-        txHeader = new TransactionHeader(chain, version, type, timestamp, transactionBody);
+        TransactionHeader txHeader = new TransactionHeader(chain, version, type, timestamp, transactionBody);
 
         try {
             byte[] sign = Constants.EMPTY_SIGNATURE;
             if (wallet != null) {
-                TransactionSignature txSig;
-                txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
-                sign = txSig.getSignature();
+                sign = wallet.sign(txHeader.getHashForSigning(), true);
             }
 
-            tx = new Transaction(txHeader, sign, transactionBody);
-
-            return tx;
-
+            return new TransactionImpl(txHeader, sign, transactionBody);
         } catch (Exception e) {
             return null;
         }
     }
 
-    public Transaction buildTransaction() {
+    public Transaction build() {
         if (branchId == null || txBody.isEmpty()) {
             return  null;
         } else {
@@ -138,10 +131,4 @@ public class TransactionBuilder {
         }
         return createTx();
     }
-
-    public TransactionHusk build() {
-        Transaction tx = buildTransaction();
-        return new TransactionHusk(tx);
-    }
-
 }

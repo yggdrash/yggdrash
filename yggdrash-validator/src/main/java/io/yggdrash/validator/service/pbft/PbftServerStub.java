@@ -1,7 +1,7 @@
 package io.yggdrash.validator.service.pbft;
 
 import io.grpc.stub.StreamObserver;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.NetProto;
@@ -90,7 +90,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
                                    StreamObserver<NetProto.Empty> responseObserver) {
         PbftBlock newPbftBlock = new PbftBlock(request);
         try {
-            log.debug("Received BroadcastPbftBlock [{}] {} ", newPbftBlock.getIndex(), newPbftBlock.getHashHex());
+            log.debug("Received BroadcastPbftBlock [{}] {} ", newPbftBlock.getIndex(), newPbftBlock.getHash());
             if (!PbftBlock.verify(newPbftBlock)) {
                 log.warn("Verify Fail");
                 responseObserver.onNext(EMPTY);
@@ -102,7 +102,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
             responseObserver.onCompleted();
 
             pbftService.getLock().lock();
-            Block<PbftProto.PbftBlock> lastPbftBlock = this.blockChain.getLastConfirmedBlock();
+            ConsensusBlock<PbftProto.PbftBlock> lastPbftBlock = this.blockChain.getLastConfirmedBlock();
             if (lastPbftBlock.getIndex() == newPbftBlock.getIndex() - 1
                     && lastPbftBlock.getHash().equals(newPbftBlock.getPrevBlockHash())) {
                 this.blockChain.addBlock(newPbftBlock);
@@ -127,7 +127,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
         if (start < end) {
             for (long l = start; l <= end; l++) {
                 try {
-                    Block<PbftProto.PbftBlock> block = blockChain.getBlockStore().getBlockByIndex(l);
+                    ConsensusBlock<PbftProto.PbftBlock> block = blockChain.getBlockStore().getBlockByIndex(l);
                     builder.addPbftBlock(block.getInstance());
                 } catch (Exception e) {
                     break;

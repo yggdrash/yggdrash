@@ -18,8 +18,19 @@ package io.yggdrash.core.blockchain;
 
 import java.io.Serializable;
 
-public interface ProtoHusk<T> extends Serializable {
-    byte[] getData();
+public interface ProtoObject<T> extends Serializable {
 
+    /**
+     * Get the binary proto data.
+     *
+     * @return the binary data
+     */
+    byte[] toBinary();
+
+    /**
+     * Get the proto instance.
+     *
+     * @return the proto instance
+     */
     T getInstance();
 }

@@ -7,8 +7,8 @@ import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.validator.TestUtils;
 import io.yggdrash.validator.data.ebft.EbftBlock;
-import io.yggdrash.validator.util.TestUtils;
 import junit.framework.TestCase;
 import org.junit.After;
 import org.junit.Before;
@@ -69,10 +69,10 @@ public class EbftBlockKeyStoreTest {
 
     private List<String> makeConsensusList(Block block) {
         List<String> consensusList = new ArrayList<>();
-        consensusList.add(wallet0.signHex(block.getHash(), true));
-        consensusList.add(wallet1.signHex(block.getHash(), true));
-        consensusList.add(wallet2.signHex(block.getHash(), true));
-        consensusList.add(wallet3.signHex(block.getHash(), true));
+        consensusList.add(wallet0.signHex(block.getHash().getBytes(), true));
+        consensusList.add(wallet1.signHex(block.getHash().getBytes(), true));
+        consensusList.add(wallet2.signHex(block.getHash().getBytes(), true));
+        consensusList.add(wallet3.signHex(block.getHash().getBytes(), true));
         return consensusList;
     }
 

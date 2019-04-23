@@ -21,13 +21,12 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.Contract;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.store.StateStore;
-import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.store.ReadWriterStore;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.TempStateStore;
@@ -74,7 +73,7 @@ public class Runtime {
     }
 
 
-    public BlockRuntimeResult invokeBlock(Block block) {
+    public BlockRuntimeResult invokeBlock(ConsensusBlock block) {
         // Block Data
         // - Hash
         // - BranchId
@@ -88,8 +87,8 @@ public class Runtime {
 
         BlockRuntimeResult result = new BlockRuntimeResult(block);
         TempStateStore blockState = new TempStateStore(stateStore);
-        List<TransactionHusk> txList = block.getBody();
-        for (TransactionHusk tx: txList) {
+        List<Transaction> txList = block.getBody().getTransactionList();
+        for (Transaction tx: txList) {
             TransactionReceipt txReceipt = ContractManager.createTransactionReceipt(tx);
             // set Block ID
             txReceipt.setBlockId(block.getHash().toString());
@@ -125,7 +124,7 @@ public class Runtime {
     }
 
     // This invoke is temp run Transaction
-    public TransactionRuntimeResult invoke(TransactionHusk tx) {
+    public TransactionRuntimeResult invoke(Transaction tx) {
         TransactionReceipt txReceipt = ContractManager.createTransactionReceipt(tx);
         TransactionRuntimeResult trr = new TransactionRuntimeResult(tx);
         trr.setTransactionReceipt(txReceipt);
@@ -136,13 +135,13 @@ public class Runtime {
         return trr;
     }
 
-    private TempStateStore invoke(TransactionHusk tx, TransactionReceipt txReceipt, ReadWriterStore origin) {
+    private TempStateStore invoke(Transaction tx, TransactionReceipt txReceipt, ReadWriterStore origin) {
         // Find invoke method and invoke
         // validation method
         TempStateStore txState = new TempStateStore(origin);
         try {
             // transaction is multiple method
-            for (JsonElement transactionElement: JsonUtil.parseJsonArray(tx.getBody())) {
+            for (JsonElement transactionElement: tx.getBody().getBody()) {
                 JsonObject txBody = transactionElement.getAsJsonObject();
                 // check contract Version
                 String contractVersion = txBody.get("contractVersion").getAsString();

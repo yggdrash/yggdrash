@@ -5,7 +5,7 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,7 +33,7 @@ public class BlockChainServiceConsumerTest {
         Assert.assertEquals(1, branch.getLastIndex());
 
         blockChainServiceConsumer.setListener(BlockChainSyncManagerMock.getMockWithBranchGroup(branchGroup));
-        List<Block> blockList = blockChainServiceConsumer.syncBlock(branchId, 1, 10);
+        List<ConsensusBlock> blockList = blockChainServiceConsumer.syncBlock(branchId, 1, 10);
 
         Assert.assertEquals(1, blockList.size());
         Assert.assertEquals(1, branch.getLastIndex());
@@ -44,13 +44,13 @@ public class BlockChainServiceConsumerTest {
         TestConstants.SlowTest.apply();
         // arrange
         int height = 110;
-        List<Block> blockList = BlockChainTestUtils.createBlockListFilledWithTx(height, 100);
+        List<ConsensusBlock> blockList = BlockChainTestUtils.createBlockListFilledWithTx(height, 100);
 
         blockList.forEach(b -> branch.addBlock(b, false));
         Assert.assertEquals(height, branch.getLastIndex());
 
         // act
-        List<Block> received = blockChainServiceConsumer.syncBlock(branchId, 1, height);
+        List<ConsensusBlock> received = blockChainServiceConsumer.syncBlock(branchId, 1, height);
 
         // assert
         Assert.assertEquals(106, received.size());
@@ -60,7 +60,7 @@ public class BlockChainServiceConsumerTest {
     public void syncBLockRequestingCatchUp() {
         BlockChainTestUtils.setBlockHeightOfBlockChain(branch, 10);
 
-        List<Block> blockList = blockChainServiceConsumer.syncBlock(branchId, 3, 10);
+        List<ConsensusBlock> blockList = blockChainServiceConsumer.syncBlock(branchId, 3, 10);
 
         Assert.assertEquals(8, blockList.size());
         Assert.assertEquals(10, branch.getLastIndex());

@@ -18,15 +18,15 @@ package io.yggdrash.core.store;
 
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.contract.core.store.ReadWriterStore;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 
-public interface ConsensusBlockStore<T> extends ReadWriterStore<Sha3Hash, Block<T>> {
+public interface ConsensusBlockStore<T> extends ReadWriterStore<Sha3Hash, ConsensusBlock<T>> {
 
     long size();
 
-    void addBlock(Block<T> block);
+    void addBlock(ConsensusBlock<T> block);
 
-    Block<T> getBlockByIndex(long index);
+    ConsensusBlock<T> getBlockByIndex(long index);
 
     long getBlockchainTransactionSize();
 
