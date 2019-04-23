@@ -97,7 +97,7 @@ public class TransactionHeader implements ProtoObject<Proto.Transaction.Header> 
         return protoTransactionHeader.getTimestamp();
     }
 
-    byte[] getBodyHash() {
+    public byte[] getBodyHash() {
         return protoTransactionHeader.getBodyHash().toByteArray();
     }
 

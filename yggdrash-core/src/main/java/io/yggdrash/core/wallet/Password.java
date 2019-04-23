@@ -1,5 +1,7 @@
 package io.yggdrash.core.wallet;
 
+import io.yggdrash.common.config.Constants;
+
 public class Password {
 
     private Password() {
@@ -17,8 +19,7 @@ public class Password {
         //reference: https://github.com/vt-middleware/passay
 
         // password length check
-        if (password.length() > 32 || password.length() < 12) {
-            //todo: change from static password length to config properties
+        if (password.length() > Constants.PASSWORD_MAX || password.length() < Constants.PASSWORD_MIN) {
             return false;
         }
 

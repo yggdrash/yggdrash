@@ -74,6 +74,7 @@ subprojects {
     test {
         failFast = true
         systemProperty('spring.profiles.active', project.properties.get('springProfiles'))
+        systemProperty('key.password', 'Password1234!')
     }
 }
 
@@ -94,6 +95,7 @@ project(':yggdrash-core') {
         compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
         compile "com.typesafe:config:${typesafeVersion}"
         compile "org.elasticsearch.client:transport:${esVersion}"
+        compile 'org.beryx:text-io:3.3.0'
         compileOnly "javax.annotation:javax.annotation-api:${annotationVersion}"
         testCompile "org.assertj:assertj-core:${assertjVersion}"
     }
@@ -135,6 +137,7 @@ project(':yggdrash-validator') {
         testCompile "com.vmlens:concurrent-junit:1.0.2"
         testCompile "org.springframework.boot:spring-boot-starter-test"
         testCompile "io.grpc:grpc-testing:${grpcVersion}"
+        testCompile group: 'org.mongodb', name: 'bson', version: '3.10.1'
     }
 
     configurations {

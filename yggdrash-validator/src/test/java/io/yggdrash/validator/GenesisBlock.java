@@ -70,7 +70,7 @@ class GenesisBlock {
                 txBody);
 
         DefaultConfig defaultConfig = new DefaultConfig();
-        Wallet wallet = new Wallet(defaultConfig);
+        Wallet wallet = new Wallet(defaultConfig, "Password1234!");
         Transaction tx = new TransactionImpl(txHeader, wallet, txBody);
         List<Transaction> txList = new ArrayList<>();
         txList.add(tx);
@@ -131,4 +131,7 @@ class GenesisBlock {
         }
     }
 
+    public Block getGenesisBlock() {
+        return genesisBlock;
+    }
 }

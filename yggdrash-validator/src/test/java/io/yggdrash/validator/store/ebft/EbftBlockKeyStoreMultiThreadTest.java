@@ -44,13 +44,13 @@ public class EbftBlockKeyStoreMultiThreadTest {
     public void setUp() throws IOException, InvalidCipherTextException {
         StoreTestUtils.clearTestDb();
 
-        wallet0 = new Wallet(null, "/tmp/",
+        wallet0 = new Wallet(null, "tmp/",
                 "test0" + TimeUtils.time(), "Password1234!");
-        wallet1 = new Wallet(null, "/tmp/",
+        wallet1 = new Wallet(null, "tmp/",
                 "test1" + TimeUtils.time(), "Password1234!");
-        wallet2 = new Wallet(null, "/tmp/",
+        wallet2 = new Wallet(null, "tmp/",
                 "test2" + TimeUtils.time(), "Password1234!");
-        wallet3 = new Wallet(null, "/tmp/",
+        wallet3 = new Wallet(null, "tmp/",
                 "test3" + TimeUtils.time(), "Password1234!");
 
         this.ds =

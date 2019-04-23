@@ -102,7 +102,6 @@ public class BranchStoreTest {
 
     @Test
     public void getSetValidators() {
-        ValidatorSet validatorSet = new ValidatorSet();
         Map<String, Validator> validatorMap = new HashMap<>();
         validatorMap.put("TEST1",
                 new Validator("a2b0f5fce600eb6c595b28d6253bed92be0568ed"));
@@ -110,6 +109,7 @@ public class BranchStoreTest {
                 new Validator("a2b0f5fce600eb6c595b28d6253bed92be0568ed"));
         validatorMap.put("TEST3",
                 new Validator("a2b0f5fce600eb6c595b28d6253bed92be0568ed"));
+        ValidatorSet validatorSet = new ValidatorSet();
         validatorSet.setValidatorMap(validatorMap);
 
         ms.setValidators(validatorSet);
