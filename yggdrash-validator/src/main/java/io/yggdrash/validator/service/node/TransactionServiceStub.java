@@ -14,48 +14,42 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.service;
+package io.yggdrash.validator.service.node;
 
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
-import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionImpl;
-import io.yggdrash.node.springboot.grpc.GrpcService;
+import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.proto.TransactionServiceGrpc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
-@GrpcService
-public class TransactionService extends TransactionServiceGrpc.TransactionServiceImplBase {
-    private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
+public class TransactionServiceStub extends TransactionServiceGrpc.TransactionServiceImplBase {
+    private static final Logger log = LoggerFactory.getLogger(TransactionServiceStub.class);
     private static final CommonProto.Empty EMPTY = CommonProto.Empty.getDefaultInstance();
 
-    private final BranchGroup branchGroup;
+    private final ConsensusBlockChain blockChain;
 
-    @Autowired
-    public TransactionService(BranchGroup branchGroup) {
-        this.branchGroup = branchGroup;
+    public TransactionServiceStub(ConsensusBlockChain blockChain) {
+        this.blockChain = blockChain;
     }
 
-    /**
-     * Sync transaction response
-     *
-     * @param syncLimit        the branch id to sync
-     * @param responseObserver the observer response to the transaction list
-     */
     @Override
     public void syncTx(CommonProto.SyncLimit syncLimit, StreamObserver<Proto.TransactionList> responseObserver) {
         BranchId branchId = BranchId.of(syncLimit.getBranch().toByteArray());
         log.debug("Received syncTransaction request branchId={}", branchId);
 
         Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
-        for (Transaction tx : branchGroup.getUnconfirmedTxs(branchId)) {
-            builder.addTransactions(tx.getInstance());
+        if (branchId.equals(blockChain.getBranchId())) {
+            for (Transaction tx : blockChain.getTransactionStore().getUnconfirmedTxs()) {
+                builder.addTransactions(tx.getInstance());
+            }
+        } else {
+            log.warn("Wrong branch request branchId={}, blockChainBranchId={}", branchId, blockChain.getBranchId());
         }
 
         responseObserver.onNext(builder.build());
@@ -69,10 +63,8 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
             public void onNext(Proto.Transaction protoTx) {
                 Transaction tx = new TransactionImpl(protoTx);
                 log.debug("Received transaction: hash={}, {}", tx.getHash(), this);
-                try {
-                    branchGroup.addTransaction(tx);
-                } catch (Exception e) {
-                    log.warn(e.getMessage());
+                if (tx.getBranchId().equals(blockChain.getBranchId())) {
+                    blockChain.getTransactionStore().put(tx.getHash(), tx);
                 }
             }
 

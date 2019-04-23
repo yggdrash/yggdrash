@@ -14,6 +14,7 @@ import io.yggdrash.validator.data.ebft.EbftBlockChain;
 import io.yggdrash.validator.data.pbft.PbftBlockChain;
 import io.yggdrash.validator.service.ebft.EbftServerStub;
 import io.yggdrash.validator.service.ebft.EbftService;
+import io.yggdrash.validator.service.node.TransactionServiceStub;
 import io.yggdrash.validator.service.pbft.PbftServerStub;
 import io.yggdrash.validator.service.pbft.PbftService;
 import org.slf4j.LoggerFactory;
@@ -61,6 +62,7 @@ public class ValidatorService {
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
                             .addService(new PbftServerStub((PbftService) consensusService))
+                            .addService(new TransactionServiceStub(blockChain))
                             .build()
                             .start();
                 } catch (IOException e) {
@@ -73,6 +75,7 @@ public class ValidatorService {
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
                             .addService(new EbftServerStub((EbftService) consensusService))
+                            .addService(new TransactionServiceStub(blockChain))
                             .build()
                             .start();
                 } catch (IOException e) {
