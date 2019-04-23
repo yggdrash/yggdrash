@@ -4,7 +4,6 @@ import io.grpc.stub.StreamObserver;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.proto.CommonProto;
-import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
 import io.yggdrash.validator.data.pbft.PbftBlock;
@@ -15,7 +14,7 @@ import org.slf4j.LoggerFactory;
 public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftServerStub.class);
-    private static final NetProto.Empty EMPTY = NetProto.Empty.getDefaultInstance();
+    private static final CommonProto.Empty EMPTY = CommonProto.Empty.getDefaultInstance();
 
     private final ConsensusBlockChain<PbftProto.PbftBlock, PbftMessage> blockChain;
     private final PbftService pbftService; //todo: check security!
@@ -53,7 +52,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
 
     @Override
     public void multicastPbftMessage(PbftProto.PbftMessage request,
-                                     StreamObserver<NetProto.Empty> responseObserver) {
+                                     StreamObserver<CommonProto.Empty> responseObserver) {
         log.trace("multicastPbftMessage");
         PbftMessage pbftMessage = new PbftMessage(request);
         try {
@@ -87,7 +86,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
 
     @Override
     public void broadcastPbftBlock(PbftProto.PbftBlock request,
-                                   StreamObserver<NetProto.Empty> responseObserver) {
+                                   StreamObserver<CommonProto.Empty> responseObserver) {
         PbftBlock newPbftBlock = new PbftBlock(request);
         try {
             log.debug("Received BroadcastPbftBlock [{}] {} ", newPbftBlock.getIndex(), newPbftBlock.getHash());
@@ -98,7 +97,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
                 return;
             }
 
-            responseObserver.onNext(io.yggdrash.proto.NetProto.Empty.newBuilder().build());
+            responseObserver.onNext(CommonProto.Empty.newBuilder().build());
             responseObserver.onCompleted();
 
             pbftService.getLock().lock();
