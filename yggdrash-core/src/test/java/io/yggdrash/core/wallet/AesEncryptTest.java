@@ -17,9 +17,9 @@ import java.security.SecureRandom;
 
 import static org.junit.Assert.assertArrayEquals;
 
-public class AESEncryptTest extends SlowTest {
+public class AesEncryptTest extends SlowTest {
 
-    private static final Logger log = LoggerFactory.getLogger(AESEncryptTest.class);
+    private static final Logger log = LoggerFactory.getLogger(AesEncryptTest.class);
 
     private static final int WALLET_PBKDF2_ITERATION = 262144;
     private static final int WALLET_PBKDF2_DKLEN = 32;
@@ -45,13 +45,13 @@ public class AESEncryptTest extends SlowTest {
                 WALLET_PBKDF2_ITERATION,
                 WALLET_PBKDF2_DKLEN,
                 WALLET_PBKDF2_ALGORITHM);
-        byte[] encData = AESEncrypt.encrypt(
+        byte[] encData = AesEncrypt.encrypt(
                 plainBytes,
                 ByteUtil.parseBytes(kdfPass, 0, 16),
                 iv);
         log.info("encrypt: {}", Hex.toHexString(encData));
 
-        byte[] plainData = AESEncrypt.decrypt(
+        byte[] plainData = AesEncrypt.decrypt(
                 encData, ByteUtil.parseBytes(kdfPass, 0, 16), iv);
         log.info("decrypt: {}", Hex.toHexString(plainData));
 
@@ -88,13 +88,13 @@ public class AESEncryptTest extends SlowTest {
                 WALLET_PBKDF2_ITERATION,
                 WALLET_PBKDF2_DKLEN,
                 WALLET_PBKDF2_ALGORITHM);
-        byte[] encData = AESEncrypt.encrypt(
+        byte[] encData = AesEncrypt.encrypt(
                 plainBytes,
                 ByteUtil.parseBytes(kdfPass, 0, 16),
                 iv);
         log.info("encrypt: {}", Hex.toHexString(encData));
 
-        byte[] plainData = AESEncrypt.decrypt(
+        byte[] plainData = AesEncrypt.decrypt(
                 encData, ByteUtil.parseBytes(kdfPass, 0, 16), iv);
         log.info("decrypt: {}", Hex.toHexString(plainData));
 
@@ -110,10 +110,10 @@ public class AESEncryptTest extends SlowTest {
         byte[] plainBytes = "01234567890123450123456789012345345".getBytes();
         log.info("plain: {}", Hex.toHexString(plainBytes));
 
-        byte[] encData = AESEncrypt.encrypt(plainBytes, kdf);
+        byte[] encData = AesEncrypt.encrypt(plainBytes, kdf);
         log.info("encrypt: {}", Hex.toHexString(encData));
 
-        byte[] plainData = AESEncrypt.decrypt(encData, kdf);
+        byte[] plainData = AesEncrypt.decrypt(encData, kdf);
         log.info("decrypt: {}", Hex.toHexString(plainData));
 
         assertArrayEquals(plainBytes, plainData);
@@ -187,11 +187,11 @@ public class AESEncryptTest extends SlowTest {
                 WALLET_PBKDF2_DKLEN,
                 WALLET_PBKDF2_ALGORITHM);
 
-        byte[] encData = AESEncrypt.encrypt(
+        byte[] encData = AesEncrypt.encrypt(
                 plainBytes, ByteUtil.parseBytes(kdfPass, 0, 16), iv);
         log.debug("encrypt: {}", Hex.toHexString(encData));
 
-        byte[] plainData = AESEncrypt.decrypt(
+        byte[] plainData = AesEncrypt.decrypt(
                 encData, ByteUtil.parseBytes(kdfPass, 0, 16), iv);
         log.debug("decrypt: {}", Hex.toHexString(plainData));
         assertArrayEquals(plainBytes, plainData);

@@ -12,25 +12,26 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import static io.yggdrash.common.config.Constants.BRANCH_PATH;
+import static io.yggdrash.common.config.Constants.CONTRACT_PATH;
+import static io.yggdrash.common.config.Constants.DATABASE_PATH;
+import static io.yggdrash.common.config.Constants.OSGI_PATH;
+import static io.yggdrash.common.config.Constants.PROPERTY_KEKPASS;
+import static io.yggdrash.common.config.Constants.PROPERTY_KEYPATH;
+import static io.yggdrash.common.config.Constants.PROPERTY_NETWORK_ID;
+import static io.yggdrash.common.config.Constants.PROPERTY_NETWORK_P2P_VER;
+import static io.yggdrash.common.config.Constants.PROPERTY_NODE_NAME;
+import static io.yggdrash.common.config.Constants.PROPERTY_NODE_VER;
+import static io.yggdrash.common.config.Constants.VALIDATOR_PATH;
+import static io.yggdrash.common.config.Constants.YGG_DATA_PATH;
+
 /**
  * Default Configuration Class.
  */
 public class DefaultConfig {
 
     private static final Logger logger = LoggerFactory.getLogger("general");
-    private static final String YGG_DATA_PATH = "YGG_DATA_PATH";
-    private static final String PROPERTY_KEYPATH = "key.path";
-    private static final String PROPERTY_KEKPASS = "key.password"; // todo: change to CLI
-    private static final String PROPERTY_NODE_NAME = "node.name";
-    private static final String PROPERTY_NODE_VER = "node.version";
-    private static final String PROPERTY_NETWORK_ID = "network.id";
-    private static final String PROPERTY_NETWORK_P2P_VER = "network.p2p.version";
 
-    private static final String VALIDATOR_PATH = "validator.path";
-    private static final String CONTRACT_PATH = "contract.path";
-    private static final String OSGI_PATH = "osgi.path";
-    private static final String BRANCH_PATH = "branch.path";
-    private static final String DATABASE_PATH = "database.path";
     protected boolean productionMode;
 
     private Config config;
@@ -123,7 +124,7 @@ public class DefaultConfig {
     }
 
     public String getKeyPassword() {
-        return config.getString(PROPERTY_KEKPASS);
+        return config.hasPath(PROPERTY_KEKPASS) ? config.getString(PROPERTY_KEKPASS) : null;
     }
 
     public String getNodeName() {

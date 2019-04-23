@@ -157,7 +157,8 @@ public class BlockChainTest extends CiTest {
     private static Block getBlockFixture(Long index, byte[] prevHash) {
 
         try {
-            io.yggdrash.core.blockchain.Block tmpBlock = new io.yggdrash.core.blockchain.Block(BlockChainTestUtils.genesisBlock().toJsonObject());
+            io.yggdrash.core.blockchain.Block tmpBlock
+                    = new io.yggdrash.core.blockchain.Block(BlockChainTestUtils.genesisBlock().toJsonObject());
             BlockHeader tmpBlockHeader = tmpBlock.getHeader();
             BlockBody tmpBlockBody = tmpBlock.getBody();
 
@@ -170,7 +171,8 @@ public class BlockChainTest extends CiTest {
                     TimeUtils.time(),
                     tmpBlockBody);
 
-            io.yggdrash.core.blockchain.Block block = new io.yggdrash.core.blockchain.Block(newBlockHeader, TestConstants.wallet(), tmpBlockBody);
+            io.yggdrash.core.blockchain.Block block
+                    = new io.yggdrash.core.blockchain.Block(newBlockHeader, TestConstants.wallet(), tmpBlockBody);
             return new BlockHusk(block);
         } catch (Exception e) {
             throw new NotValidateException(e);
