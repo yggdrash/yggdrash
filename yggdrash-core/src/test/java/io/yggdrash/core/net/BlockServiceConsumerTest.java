@@ -14,9 +14,9 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-public class BlockChainServiceConsumerTest {
+public class BlockServiceConsumerTest {
     private BranchGroup branchGroup;
-    private BlockChainServiceConsumer blockChainServiceConsumer;
+    private BlockServiceConsumer blockServiceConsumer;
     private static final BranchId branchId = TestConstants.yggdrash();
     private BlockChain branch;
 
@@ -24,7 +24,7 @@ public class BlockChainServiceConsumerTest {
     public void setUp() {
         this.branchGroup = BlockChainTestUtils.createBranchGroup();
         this.branch = branchGroup.getBranch(branchId);
-        blockChainServiceConsumer = new BlockChainServiceConsumer(branchGroup);
+        blockServiceConsumer = new BlockServiceConsumer(branchGroup);
     }
 
     @Test
@@ -32,8 +32,8 @@ public class BlockChainServiceConsumerTest {
         BlockChainTestUtils.generateBlock(branchGroup, branchId);
         Assert.assertEquals(1, branch.getLastIndex());
 
-        blockChainServiceConsumer.setListener(BlockChainSyncManagerMock.getMockWithBranchGroup(branchGroup));
-        List<ConsensusBlock> blockList = blockChainServiceConsumer.syncBlock(branchId, 1, 10);
+        blockServiceConsumer.setListener(BlockChainSyncManagerMock.getMockWithBranchGroup(branchGroup));
+        List<ConsensusBlock> blockList = blockServiceConsumer.syncBlock(branchId, 1, 10);
 
         Assert.assertEquals(1, blockList.size());
         Assert.assertEquals(1, branch.getLastIndex());
@@ -50,7 +50,7 @@ public class BlockChainServiceConsumerTest {
         Assert.assertEquals(height, branch.getLastIndex());
 
         // act
-        List<ConsensusBlock> received = blockChainServiceConsumer.syncBlock(branchId, 1, height);
+        List<ConsensusBlock> received = blockServiceConsumer.syncBlock(branchId, 1, height);
 
         // assert
         Assert.assertEquals(106, received.size());
@@ -60,26 +60,17 @@ public class BlockChainServiceConsumerTest {
     public void syncBLockRequestingCatchUp() {
         BlockChainTestUtils.setBlockHeightOfBlockChain(branch, 10);
 
-        List<ConsensusBlock> blockList = blockChainServiceConsumer.syncBlock(branchId, 3, 10);
+        List<ConsensusBlock> blockList = blockServiceConsumer.syncBlock(branchId, 3, 10);
 
         Assert.assertEquals(8, blockList.size());
         Assert.assertEquals(10, branch.getLastIndex());
     }
 
     @Test
-    public void syncTx() {
-        assertEquals(0, blockChainServiceConsumer.syncTx(branchId).size());
-
-        blockChainServiceConsumer.broadcastTx(BlockChainTestUtils.createTransferTxHusk());
-
-        assertEquals(1, blockChainServiceConsumer.syncTx(branchId).size());
-    }
-
-    @Test
     public void broadcastBlock() {
         assertEquals(0, branchGroup.getBranch(branchId).getLastIndex());
 
-        blockChainServiceConsumer.broadcastBlock(BlockChainTestUtils.createNextBlock());
+        blockServiceConsumer.broadcastBlock(BlockChainTestUtils.createNextBlock());
 
         assertEquals(1, branchGroup.getBranch(branchId).getLastIndex());
     }

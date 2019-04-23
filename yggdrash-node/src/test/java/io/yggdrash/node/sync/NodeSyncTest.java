@@ -56,7 +56,6 @@ public class NodeSyncTest extends AbstractNodeTesting {
         // 3) node2: bootstrap
         int node2 = 2;
         bootstrapSyncNode(node2);
-        nodeList.get(node2).blockChainConsumer.setListener(nodeList.get(node2).getSyncManger());
         // 4) assert
         Assert.assertEquals(nodeList.get(node1).getDefaultBranch().getLastIndex(),
                 nodeList.get(node2).getDefaultBranch().getLastIndex());

@@ -20,8 +20,6 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.ServerBuilder;
 import io.yggdrash.core.p2p.Peer;
-import io.yggdrash.node.service.BlockChainService;
-import io.yggdrash.node.service.DiscoveryService;
 import io.yggdrash.node.springboot.grpc.GrpcServerBuilderConfigurer;
 import io.yggdrash.node.springboot.grpc.GrpcServerRunner;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -44,12 +42,7 @@ public class TcpNodeTesting extends AbstractNodeTesting {
 
     @Override
     protected void createAndStartServer(TestNode node) {
-        GrpcServerBuilderConfigurer configurer = builder -> {
-            builder.addService(new DiscoveryService(node.discoveryConsumer));
-            if (node.blockChainConsumer != null) {
-                builder.addService(new BlockChainService(node.blockChainConsumer));
-            }
-        };
+        GrpcServerBuilderConfigurer configurer = builder -> addService(node, builder);
 
         GrpcServerRunner runner = new GrpcServerRunner(configurer, ServerBuilder.forPort(node.port));
         runner.setApplicationContext(context);
