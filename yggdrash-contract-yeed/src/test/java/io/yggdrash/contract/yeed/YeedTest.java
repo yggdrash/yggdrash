@@ -439,7 +439,7 @@ public class YeedTest {
         TransactionReceipt receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 1000001L);
 
         thrown.expect(RuntimeException.class);
-        thrown.expectMessage("propose is not issued");
+        thrown.expectMessage("propose is CLOSED");
 
         yeedContract.closePropose(param);
     }

@@ -645,10 +645,10 @@ public class YeedContract implements BundleActivator, ServiceListener {
                             >= 0 && proposeSender) {
                         BigInteger proposeFee = propose.getFee();
                         BigInteger returnFee = proposeFee.divide(BigInteger.valueOf(2L));
-                        proposeProcessDone(propose, returnFee);
+                        proposeProcessDone(propose, ProposeStatus.DONE, returnFee);
                     } else {
                         // Done propose so send Fee to branch
-                        proposeProcessDone(propose, BigInteger.ZERO);
+                        proposeProcessDone(propose, ProposeStatus.DONE, BigInteger.ZERO);
                     }
                 } else {
                     setProposeStatus(propose.getProposeId(), ProposeStatus.PROCESSING);
@@ -744,24 +744,28 @@ public class YeedContract implements BundleActivator, ServiceListener {
             }
         }
 
-        private void proposeProcessDone(ProposeInterChain propose, BigInteger refundFee) {
-            BigInteger stakeBalnace = getBalance(propose.getProposeId());
+        private void proposeProcessDone(ProposeInterChain propose, ProposeStatus status, BigInteger refundFee) {
+            BigInteger stakeBalanace = getBalance(propose.getProposeId());
             BigInteger proposeFee = propose.getFee();
+            proposeFee = proposeFee.subtract(refundFee);
+            setProposeStatus(propose.getProposeId(), status);
+            BigInteger returnStakeBalance = stakeBalanace.subtract(proposeFee);
+            transfer(propose.getProposeId(), propose.getIssuer(), returnStakeBalance, proposeFee);
+            this.txReceipt.addLog(String.format("propose %s %s", propose.getProposeId(),
+                    status));
+            this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
 
-            if (stakeBalnace.compareTo(proposeFee) <= 0) {
-                setProposeStatus(propose.getProposeId(), ProposeStatus.DONE);
-                this.txReceipt.addLog(String.format("propose %s %s", propose.getProposeId(),
-                        ProposeStatus.DONE));
-                proposeFee = stakeBalnace.subtract(refundFee);
-                transfer(propose.getProposeId(), propose.getIssuer(), refundFee, proposeFee);
-            }
         }
 
         @InvokeTransaction
         public void transactionConfirm(JsonObject param) {
             // validator can validate other network transaction
-            // TODO check validate
-            // TODO validator or truth node can validate propose
+            // check validate
+            // TODO validator or truth node can validate transaction confirm
+            if (!isValidator(this.txReceipt.getIssuer())) {
+                throw new RuntimeException("Transaction Confirm is require Validator");
+            }
+
             // Get Transaction Confirm
             String txConfirmId = param.get("txConfirmId").getAsString();
             // Transaction Status
@@ -810,23 +814,20 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
                         log.debug("checkBlockHeight : {}", checkBlockHeight);
                         if (checkBlockHeight) {
-                            BigInteger fee = BigInteger.ZERO;
+                            BigInteger fee = pi.getFee();
                             BigInteger stakeYeed = getBalance(pi.getProposeId());
+                            stakeYeed = stakeYeed.subtract(fee);
                             // find last
-                            if (stakeYeed.compareTo(pi.getFee().add(txConfirm.getTransferYeed())) >= 0) {
-                                fee = pi.getFee();
+                            BigInteger transferYeed = txConfirm.getTransferYeed();
+                            // If stake Yeed is
+                            if (stakeYeed.compareTo(transferYeed) <= 0) {
+                                transferYeed = stakeYeed;
                             }
                             log.debug("stake YEED {}", stakeYeed);
                             log.debug("TransferYeed YEED {}", txConfirm.getTransferYeed());
                             log.debug("PI Fee {}", fee);
-
-                            BigInteger transferYeed = txConfirm.getTransferYeed();
-                            // Transfer Yeed
-                            if (stakeYeed.compareTo(transferYeed) < 0) {
-                                transferYeed = stakeYeed;
-                            }
-
-                            boolean transfer = transfer(pi.getProposeId(), txConfirm.getSendAddress(), transferYeed, fee);
+                            // Send transaction confirm
+                            boolean transfer = transfer(pi.getProposeId(), txConfirm.getSendAddress(), transferYeed, BigInteger.ZERO);
                             if (transfer) {
                                 this.txReceipt.addLog(String.format("%s is DONE",txConfirm.getTxConfirmId()));
                                 // check propose
@@ -838,10 +839,13 @@ public class YeedContract implements BundleActivator, ServiceListener {
                                 txConfirm.setStatus(TxConfirmStatus.DONE);
                                 // Save TxConfirm
                                 setTxConfirm(txConfirm);
-                                // check propose is done
-                                proposeProcessDone(pi, BigInteger.ZERO);
+                                // propose is done
+                                if(stakeYeed.compareTo(transferYeed) == 0) {
+                                    proposeProcessDone(pi, ProposeStatus.DONE, BigInteger.ZERO);
+                                }
                             } else {
-                                this.txReceipt.addLog(String.format("%s is DONE",txConfirm.getTxConfirmId()));
+                                this.txReceipt.addLog(String.format("%s is FAIL",txConfirm.getTxConfirmId()));
+                                this.txReceipt.setStatus(ExecuteStatus.FALSE);
                             }
 
                         }
@@ -858,6 +862,10 @@ public class YeedContract implements BundleActivator, ServiceListener {
             }
         }
 
+        private boolean isValidator(String address) {
+            return this.branchStateStore.getValidators().getValidatorMap().containsKey(address);
+        }
+
         // propose close
         @InvokeTransaction
         public void closePropose(JsonObject param) {
@@ -870,21 +878,15 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 throw new RuntimeException("propose is not expired");
             }
             // propose status check
-            if (proposeStatus != ProposeStatus.ISSUED) {
-                throw new RuntimeException("propose is not issued");
+            if (proposeStatus == ProposeStatus.CLOSED) {
+                throw new RuntimeException("propose is CLOSED");
             }
-            // issuer check
+            // issuer or validator check
             if (!propose.getIssuer().equals(this.txReceipt.getIssuer())) {
                 throw new RuntimeException("issuer is not propose issuer");
             }
-            // pay fee to branch
-            BigInteger proposeStakeYeed = getBalance(propose.getProposeId()).subtract(propose.getFee());
-            // return issuer
-            transfer(propose.getProposeId(), this.txReceipt.getIssuer(), proposeStakeYeed, propose.getFee());
-            // Save Propose Status
-            setProposeStatus(propose.getProposeId(), ProposeStatus.CLOSED);
+            proposeProcessDone(propose, ProposeStatus.CLOSED, BigInteger.ZERO);
             txReceipt.setStatus(ExecuteStatus.SUCCESS);
-            txReceipt.addLog(String.format("propose %s closed", propose.getProposeId()));
         }
     }
 }
