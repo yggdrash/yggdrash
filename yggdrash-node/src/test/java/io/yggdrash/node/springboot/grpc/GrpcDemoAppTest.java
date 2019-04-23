@@ -25,7 +25,7 @@ import io.grpc.ServerInterceptor;
 import io.yggdrash.TestConstants;
 import io.yggdrash.node.springboot.grpc.context.LocalRunningGrpcPort;
 import io.yggdrash.node.springboot.grpc.demo.GrpcDemoApp;
-import io.yggdrash.proto.PeerGrpc;
+import io.yggdrash.proto.PeerServiceGrpc;
 import io.yggdrash.proto.Proto;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -81,7 +81,7 @@ public class GrpcDemoAppTest extends TestConstants.CiTest {
                 .forAddress("localhost", runningPort)
                 .usePlaintext().build();
 
-        PeerGrpc.newFutureStub(channel)
+        PeerServiceGrpc.newFutureStub(channel)
                 .ping(Proto.Ping.newBuilder().setPing("ping").build()).get().getPong();
 
         Mockito.verify(globalInterceptor, Mockito.times(1))

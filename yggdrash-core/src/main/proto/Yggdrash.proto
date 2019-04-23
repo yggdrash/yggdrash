@@ -3,12 +3,21 @@ syntax = "proto3";
 option java_package = "io.yggdrash.proto";
 option java_outer_classname = "Proto";
 
-import "google/protobuf/timestamp.proto";
+import "Common.proto";
 
-service Peer {
+service PeerService {
     rpc findPeers (TargetPeer) returns (PeerList) {
     }
     rpc ping (Ping) returns (Pong) {
+    }
+}
+
+service TransactionService {
+    // Client to server simple RPC
+    rpc syncTx (SyncLimit) returns (TransactionList) {
+    }
+    // Client to server streaming RPC.
+    rpc broadcastTx (stream Transaction) returns (Empty) {
     }
 }
 
