@@ -156,6 +156,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
 
     public boolean verify() {
         try {
+            // TODO verify tx fee
             return this.coreTransaction.verify();
         } catch (Exception e) {
             log.debug(e.getMessage());

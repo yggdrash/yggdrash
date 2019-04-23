@@ -35,7 +35,7 @@ public class ContractTestUtils {
         return params;
     }
 
-    public static JsonArray transferTxBodyJson(String to, long amount) {
+    public static JsonObject transferTxBodyJson(String to, long amount) {
         JsonObject params = new JsonObject();
         params.addProperty("to", to);
         params.addProperty("amount", amount);
@@ -43,14 +43,11 @@ public class ContractTestUtils {
         return txBodyJson(TestConstants.YEED_CONTRACT,"transfer", params);
     }
 
-    public static JsonArray txBodyJson(ContractVersion contractVersion, String method, JsonObject params) {
-        JsonObject txObj = new JsonObject();
-        txObj.addProperty("contractVersion", contractVersion.toString());
-        txObj.addProperty("method", method);
-        txObj.add("params", params);
-
-        JsonArray txBody = new JsonArray();
-        txBody.add(txObj);
+    public static JsonObject txBodyJson(ContractVersion contractVersion, String method, JsonObject params) {
+        JsonObject txBody = new JsonObject();
+        txBody.addProperty("contractVersion", contractVersion.toString());
+        txBody.addProperty("method", method);
+        txBody.add("params", params);
 
         return txBody;
     }

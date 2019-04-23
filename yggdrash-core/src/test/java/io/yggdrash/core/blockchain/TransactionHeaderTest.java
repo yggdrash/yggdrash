@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.blockchain;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.ByteUtil;
@@ -47,18 +46,11 @@ public class TransactionHeaderTest {
     @Before
     public void init() {
 
-        JsonObject jsonObject1 = new JsonObject();
-        jsonObject1.addProperty("test1", "01");
-
-        JsonObject jsonObject2 = new JsonObject();
-        jsonObject2.addProperty("test2", "02");
-
-        JsonArray jsonArray = new JsonArray();
-        jsonArray.add(jsonObject1);
-        jsonArray.add(jsonObject2);
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("test1", "01");
 
         timestamp = TimeUtils.time();
-        txBody = new TransactionBody(jsonArray);
+        txBody = new TransactionBody(jsonObject);
         bodyHash = txBody.getBodyHash();
         bodyLength = txBody.length();
     }

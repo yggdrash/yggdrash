@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.blockchain;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.util.TimeUtils;
@@ -44,27 +43,16 @@ public class BlockHeaderTest {
     @Test
     public void testBlockHeader() {
 
-        JsonObject jsonParam1 = new JsonObject();
-        jsonParam1.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
-        jsonParam1.addProperty("amount", "10000000");
+        JsonObject jsonParam = new JsonObject();
+        jsonParam.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
+        jsonParam.addProperty("amount", "10000000");
 
-        JsonObject jsonObject1 = new JsonObject();
-        jsonObject1.addProperty("method", "transfer");
-        jsonObject1.add("params", jsonParam1);
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("method", "transfer");
+        jsonObject.add("params", jsonParam);
 
-        JsonObject jsonParam2 = new JsonObject();
-        jsonParam2.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2001");
-        jsonParam2.addProperty("amount", "5000000");
+        TransactionBody txBody = new TransactionBody(jsonObject);
 
-        JsonObject jsonObject2 = new JsonObject();
-        jsonObject2.addProperty("method", "transfer");
-        jsonObject2.add("params", jsonParam2);
-
-        JsonArray jsonArray = new JsonArray();
-        jsonArray.add(jsonObject1);
-        jsonArray.add(jsonObject2);
-
-        TransactionBody txBody = new TransactionBody(jsonArray);
         TransactionHeader txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
 
         TransactionSignature txSig =

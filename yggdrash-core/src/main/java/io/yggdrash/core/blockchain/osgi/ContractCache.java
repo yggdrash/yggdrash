@@ -3,9 +3,6 @@ package io.yggdrash.core.blockchain.osgi;
 import io.yggdrash.contract.core.annotation.ContractEndBlock;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.launch.Framework;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -18,16 +15,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 class ContractCache {
-    //Map<contractName, Map<field, List<Annotation>>>
+    //Map<contractVersion, Map<field, List<Annotation>>>
     private final Map<String, Map<Field, List<Annotation>>> injectingFields = new HashMap<>();
-    //Map<contractName, Map<methodName, method>>
+    //Map<contractVersion, Map<methodName, method>>
     private final Map<String, Map<String, Method>> invokeTransactionMethods = new HashMap<>();
-    //Map<contractName, Map<methodName, method>>
+    //Map<contractVersion, Map<methodName, method>>
     private final Map<String, Map<String, Method>> queryMethods = new HashMap<>();
 
     private final Map<String, Map<String, Method>> endBlockMethods = new HashMap<>();
-
-    private final Map<String, String> fullLocation = new HashMap<>();
 
     Map<String, Map<Field, List<Annotation>>> getInjectingFields() {
         return injectingFields;
@@ -45,59 +40,39 @@ class ContractCache {
         return endBlockMethods;
     }
 
-    String getFullLocation(String contractName) {
-        return fullLocation.get(contractName);
-    }
-
-
-    void cacheContract(Bundle bundle, Framework framework) {
-        if (bundle.getRegisteredServices() == null) {
-            return;
-        }
-        // Store Full contract location
-        String location = bundle.getLocation();
-        if (!fullLocation.containsValue(location)) {
-            String contractName = location.substring(location.lastIndexOf('/') + 1);
-            fullLocation.put(contractName, location);
-        }
-
+    void cacheContract(String contractName, Object service) {
         // Assume one service
-        ServiceReference serviceRef = bundle.getRegisteredServices()[0];
-        Object service = framework.getBundleContext().getService(serviceRef);
-
-        if (injectingFields.get(bundle.getLocation()) == null) {
+        if (injectingFields.get(contractName) == null) {
             Map<Field, List<Annotation>> fields = Arrays.stream(service.getClass().getDeclaredFields())
                     .filter(field ->
-                        field.getDeclaredAnnotations() != null
-                                && field.getDeclaredAnnotations().length > 0
-                    )
-                    .collect(Collectors.toMap(
-                            field -> field, field -> Arrays.asList(field.getDeclaredAnnotations())));
-            injectingFields.put(bundle.getLocation(), fields);
+                            field.getDeclaredAnnotations() != null && field.getDeclaredAnnotations().length > 0)
+                    .collect(Collectors.toMap(field -> field, field -> Arrays.asList(field.getDeclaredAnnotations())));
+            injectingFields.put(contractName, fields);
         }
 
-        if (invokeTransactionMethods.get(bundle.getLocation()) == null) {
+        if (invokeTransactionMethods.get(contractName) == null) {
             Map<String, Method> methods = Arrays.stream(service.getClass().getDeclaredMethods())
                     .filter(method -> method.isAnnotationPresent(InvokeTransaction.class))
                     .filter(method -> Modifier.isPublic(method.getModifiers()))
                     .collect(Collectors.toMap(Method::getName, m -> m));
-            invokeTransactionMethods.put(bundle.getLocation(), methods);
+            invokeTransactionMethods.put(contractName, methods);
         }
 
-        if (queryMethods.get(bundle.getLocation()) == null) {
+        if (queryMethods.get(contractName) == null) {
             Map<String, Method> methods = Arrays.stream(service.getClass().getDeclaredMethods())
                     .filter(method -> method.isAnnotationPresent(ContractQuery.class))
                     .filter(method -> Modifier.isPublic(method.getModifiers()))
                     .collect(Collectors.toMap(Method::getName, m -> m));
-            queryMethods.put(bundle.getLocation(), methods);
+            queryMethods.put(contractName, methods);
         }
 
-        if (endBlockMethods.get(bundle.getLocation()) == null) {
+        if (endBlockMethods.get(contractName) == null) {
             Map<String, Method> methods = Arrays.stream(service.getClass().getDeclaredMethods())
                     .filter(method -> method.isAnnotationPresent(ContractEndBlock.class))
                     .filter(method -> Modifier.isPublic(method.getModifiers()))
                     .collect(Collectors.toMap(Method::getName, m -> m));
-            endBlockMethods.put(bundle.getLocation(), methods);
+            endBlockMethods.put(contractName, methods);
         }
     }
+
 }

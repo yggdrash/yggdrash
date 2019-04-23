@@ -2,11 +2,9 @@ package io.yggdrash.node;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
-import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
@@ -202,7 +200,7 @@ public class NodeContractDemoClient {
         int times = getSendTimes();
         int amount = 1;
         for (int i = 0; i < times; i++) {
-            JsonArray txBody = ContractTestUtils.transferTxBodyJson("", amount);
+            JsonObject txBody = ContractTestUtils.transferTxBodyJson("", amount);
             TransactionHusk tx = createTxHusk(BranchId.of(branchId), txBody);
             sendTransaction(tx);
         }
@@ -288,7 +286,7 @@ public class NodeContractDemoClient {
 
     private static TransactionHusk createTx(String branchId, String method) {
         System.out.println("파라미터 직접 입력하시겠습니가? 예, {key : value, key : value ...} (Y/N)");
-        JsonArray txBody = null;
+        JsonObject txBody = null;
         String from;
         String to;
         BigInteger amount;
@@ -348,7 +346,7 @@ public class NodeContractDemoClient {
     private static void sendYeedTx(String address, long amount) {
         int times = getSendTimes();
         for (int i = 0; i < times; i++) {
-            JsonArray txBody = ContractTestUtils.transferTxBodyJson(address, amount);
+            JsonObject txBody = ContractTestUtils.transferTxBodyJson(address, amount);
             TransactionHusk tx = createTxHusk(yggdrash, txBody);
             sendTransaction(tx);
         }
@@ -521,7 +519,7 @@ public class NodeContractDemoClient {
         System.out.println("created at " + file.getAbsolutePath());
     }
 
-    private static TransactionHusk createTxHusk(BranchId branchId, JsonArray txBody) {
+    private static TransactionHusk createTxHusk(BranchId branchId, JsonObject txBody) {
         TransactionBuilder builder = new TransactionBuilder();
         return builder.addTransactionBody(txBody)
                 .setWallet(wallet)

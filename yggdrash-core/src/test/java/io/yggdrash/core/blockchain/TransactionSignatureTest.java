@@ -17,7 +17,6 @@
 
 package io.yggdrash.core.blockchain;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.util.TimeUtils;
@@ -38,17 +37,10 @@ public class TransactionSignatureTest {
 
     @Before
     public void setUp() {
-        JsonObject jsonObject1 = new JsonObject();
-        jsonObject1.addProperty("test1", "01");
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("test", "00");
 
-        JsonObject jsonObject2 = new JsonObject();
-        jsonObject2.addProperty("test2", "02");
-
-        JsonArray jsonArray = new JsonArray();
-        jsonArray.add(jsonObject1);
-        jsonArray.add(jsonObject2);
-
-        TransactionBody txBody = new TransactionBody(jsonArray);
+        TransactionBody txBody = new TransactionBody(jsonObject);
 
         byte[] chain = new byte[20];
         byte[] version = new byte[8];

@@ -1,8 +1,6 @@
 package io.yggdrash.common.config;
 
 import io.yggdrash.common.contract.ContractVersion;
-import io.yggdrash.common.crypto.HexUtil;
-import org.spongycastle.util.encoders.Hex;
 
 import java.math.BigInteger;
 
@@ -14,9 +12,11 @@ public class Constants {
 
     public static final int BRANCH_HEX_LENGTH = 40;
 
-    private static final String STEM = "STEM";
-    private static final String YEED = "YEED";
-    public static final String VALIDATOR = "VALIDATOR";
+    /*
+    private static final String STEM = "STEM"; //isSystem = false
+    private static final String YEED = "YEED"; //isSystem = true
+    public static final String VALIDATOR = "VALIDATOR"; //isSystem = true
+    */
     public static final String YGGDRASH = "YGGDRASH";
     public static final String BRANCH_ID = "branchId";
     public static final String TX_ID = "txId";
@@ -70,11 +70,21 @@ public class Constants {
     }
 
     // TODO Contract Version fix
+    /*
     private static final byte[] STEM_CONTRACT = Hex.encode(STEM.getBytes());
     public static final ContractVersion STEM_CONTRACT_VERSION = ContractVersion.of(HexUtil.toHexString(STEM_CONTRACT));
     private static final byte[] YEED_CONTRACT = Hex.encode(YEED.getBytes());
     public static final ContractVersion YEED_CONTRACT_VERSION = ContractVersion.of(HexUtil.toHexString(YEED_CONTRACT));
     private static final byte[] VALIDATOR_CONTRACT = Hex.encode(VALIDATOR.getBytes());
     public static final ContractVersion VALIDATOR_CONTRACT_VERSION = ContractVersion.of(HexUtil.toHexString(VALIDATOR_CONTRACT));
+    */
 
+    private static final String STEM_CONTRACT_STR = "74df17611373672371cb3872e8a5d4a2e8733fb1";
+    public static final ContractVersion STEM_CONTRACT_VERSION = ContractVersion.of(STEM_CONTRACT_STR);
+
+    private static final String YEED_CONTRACT_STR = "d79ab8e1d735090d2a7ef4f16d13a910457c0d93";
+    public static final ContractVersion YEED_CONTRACT_VERSION = ContractVersion.ofNonHex(YEED_CONTRACT_STR);
+
+    private static final String VALIDATOR_CONTRACT_STR = "f5f92857982260477387d519f020b6b1fe37b2d5";
+    public static final ContractVersion VALIDATOR_CONTRACT_VERSION = ContractVersion.ofNonHex(VALIDATOR_CONTRACT_STR);
 }

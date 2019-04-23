@@ -22,13 +22,13 @@ import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
-import io.yggdrash.core.blockchain.osgi.ContractContainer;
-import io.yggdrash.core.blockchain.osgi.ContractContainerBuilder;
+import io.yggdrash.core.blockchain.osgi.ContractManager;
+import io.yggdrash.core.blockchain.osgi.ContractManagerBuilder;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.BranchStore;
+import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.StoreBuilder;
-import io.yggdrash.core.store.StoreContainer;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.output.es.EsClient;
@@ -96,6 +96,7 @@ public class BlockChainBuilder {
             branch = genesis.getBranch();
         }
         BranchId branchId = branch.getBranchId();
+
         if (blockStore == null) {
             blockStore = storeBuilder.buildBlockStore(branchId);
         }
@@ -116,10 +117,9 @@ public class BlockChainBuilder {
             outputStores = new HashMap<>();
         }
 
-        StoreContainer storeContainer = new StoreContainer(branch, branchStore, stateStore, blockStore,
-                transactionStore, transactionReceiptStore);
+        ContractStore contractStore = new ContractStore(branchStore, stateStore, transactionReceiptStore);
 
-        ContractContainer contractContainer = null;
+        ContractManager contractManager = null;
         if (systemProperties != null && systemProperties.checkEsClient()) {
             outputStores.put(OutputType.ES, EsClient.newInstance(
                     systemProperties.getEsPrefixHost(),
@@ -129,11 +129,11 @@ public class BlockChainBuilder {
         }
 
         if (policyLoader != null) {
-            contractContainer = ContractContainerBuilder.newInstance()
+            contractManager = ContractManagerBuilder.newInstance()
                     .withFrameworkFactory(policyLoader.getFrameworkFactory())
                     .withContainerConfig(policyLoader.getContainerConfig())
                     .withBranchId(branch.getBranchId().toString())
-                    .withStoreContainer(storeContainer)
+                    .withStoreContainer(contractStore)
                     .withConfig(storeBuilder.getConfig())
                     .withSystemProperties(systemProperties)
                     .withOutputStore(outputStores)
@@ -141,9 +141,10 @@ public class BlockChainBuilder {
         }
 
         BlockHusk genesisBlock = genesis.getBlock();
-        // TODO used storeContainer
+        // TODO interface => BlockChainStore & ContractStore
+        //      i.e. new BlockChain(BlockChainManager, contractManager);
         return new BlockChain(branch, genesisBlock, blockStore,
-                transactionStore, branchStore, stateStore, transactionReceiptStore, contractContainer, outputStores);
+                transactionStore, branchStore, stateStore, transactionReceiptStore, contractManager, outputStores);
     }
 
     private Map<ContractVersion, Contract> defaultContract() {

@@ -16,7 +16,7 @@
 
 package io.yggdrash.core.blockchain;
 
-import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.core.exception.DuplicatedException;
@@ -147,7 +147,7 @@ public class BranchGroupTest {
     }
 
     private TransactionHusk createTx(int amount) {
-        JsonArray txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, amount);
+        JsonObject txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, amount);
         return BlockChainTestUtils.createTxHusk(yggdrash(), txBody);
     }
 

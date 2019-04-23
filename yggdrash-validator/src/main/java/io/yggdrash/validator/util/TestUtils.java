@@ -97,10 +97,8 @@ public class TestUtils {
 
     public BlockHusk createGenesisBlockHusk(Wallet wallet) {
         try {
-            JsonArray jsonArrayTxBody = new JsonArray();
-            jsonArrayTxBody.add(sampleTxObject(null));
-
-            TransactionBody txBody = new TransactionBody(jsonArrayTxBody);
+            JsonObject jsonObjectTxBody = sampleTxObject(null);
+            TransactionBody txBody = new TransactionBody(jsonObjectTxBody);
             TransactionHeader txHeader = new TransactionHeader(
                     new byte[20],
                     new byte[8],
@@ -181,11 +179,8 @@ public class TestUtils {
             nodeWallet = newWallet;
         }
 
-        JsonArray jsonArray = new JsonArray();
-        jsonArray.add(body);
-
         TransactionBody txBody;
-        txBody = new TransactionBody(jsonArray);
+        txBody = new TransactionBody(body);
 
         byte[] version = new byte[8];
         byte[] type = new byte[8];

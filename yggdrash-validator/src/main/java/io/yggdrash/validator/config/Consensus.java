@@ -14,8 +14,9 @@ public class Consensus {
     private List<String> validators = new ArrayList<>();
 
     public Consensus(Block genesisBlock) {
-        JsonObject consensusObject = ((JsonObject) ((Transaction) genesisBlock.getBody().getBody().toArray()[0])
-                .getBody().getBody().get(0)).getAsJsonObject("consensus");
+        JsonObject consensusObject = (((Transaction) genesisBlock.getBody().getBody().toArray()[0]).getBody().getBody())
+                .getAsJsonObject("consensus");
+
         algorithm = consensusObject.get("algorithm").getAsString();
         period = consensusObject.get("period").getAsString();
 

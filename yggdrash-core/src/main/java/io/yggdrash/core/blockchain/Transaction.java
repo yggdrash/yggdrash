@@ -89,7 +89,7 @@ public class Transaction {
     public Transaction(JsonObject jsonObject) {
         this(new TransactionHeader(jsonObject.getAsJsonObject(HEADER)),
                 Hex.decode(jsonObject.get(SIGNATURE).getAsString()),
-                new TransactionBody(jsonObject.getAsJsonArray(BODY)));
+                new TransactionBody(jsonObject.getAsJsonObject(BODY)));
     }
 
     /**

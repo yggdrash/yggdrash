@@ -24,7 +24,7 @@ import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.contract.core.store.OutputType;
-import io.yggdrash.core.blockchain.osgi.ContractContainer;
+import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
@@ -62,13 +62,13 @@ public class BlockChain {
 
     private BlockHusk prevBlock;
 
-    private final ContractContainer contractContainer;
+    private final ContractManager contractManager;
     private final Map<OutputType, OutputStore> outputStores;
 
     public BlockChain(Branch branch, BlockHusk genesisBlock, BlockStore blockStore,
                       TransactionStore transactionStore, BranchStore branchStore,
                       StateStore stateStore, TransactionReceiptStore transactionReceiptStore,
-                      ContractContainer contractContainer, Map<OutputType, OutputStore> outputStores) {
+                      ContractManager contractManager, Map<OutputType, OutputStore> outputStores) {
         this.branch = branch;
         this.genesisBlock = genesisBlock;
         this.blockStore = blockStore;
@@ -76,31 +76,29 @@ public class BlockChain {
         this.branchStore = branchStore;
         this.stateStore = stateStore;
         this.transactionReceiptStore = transactionReceiptStore;
-        this.contractContainer = contractContainer;
+        this.contractManager = contractManager;
         this.outputStores = outputStores;
 
 
         // Check BlockChain is Ready
-        PrepareBlockchain prepareBlockchain = new PrepareBlockchain(contractContainer.getContractPath());
+        PrepareBlockchain prepareBlockchain = new PrepareBlockchain(contractManager.getContractPath());
         // check block chain is ready
         if (prepareBlockchain.checkBlockChainIsReady(this)) {
             // install bundles
-            // bc.getContractContainer()
-            ContractContainer container = getContractContainer();
             for (BranchContract contract : prepareBlockchain.getContractList()) {
                 File branchContractFile = prepareBlockchain.loadContractFile(contract.getContractVersion());
-                container.installContract(contract.getContractVersion(), branchContractFile, contract.isSystem());
+                contractManager.installContract(contract.getContractVersion(), branchContractFile, contract.isSystem());
             }
 
             try {
-                container.reloadInject();
+                contractManager.reloadInject();
             } catch (IllegalAccessException e) {
                 log.error(e.getMessage());
-                // TODO throw Runtiome Exception
+                // TODO throw runtime Exception
             }
         } else {
-            // TODO blockchain ready fails
-            log.error("Blockchain is not Ready");
+            // TODO BlockChain ready fails
+            log.error("BlockChain is not Ready");
         }
 
         // getGenesis Block by Store
@@ -207,8 +205,8 @@ public class BlockChain {
         return this.prevBlock;
     }
 
-    public ContractContainer getContractContainer() {
-        return contractContainer;
+    public ContractManager getContractManager() {
+        return contractManager;
     }
 
     /**
@@ -244,11 +242,10 @@ public class BlockChain {
         // TODO run block execute move to other process (or thread)
         // TODO last execute block will invoke
         if (nextBlock.getIndex() > branchStore.getLastExecuteBlockIndex()) {
-            //BlockRuntimeResult result = runtime.invokeBlock(nextBlock);
-            BlockRuntimeResult result = contractContainer.getContractManager().executeTransactions(nextBlock);
+            BlockRuntimeResult result = contractManager.executeTxs(nextBlock);
             // Save Result
-            contractContainer.getContractManager().commitBlockResult(result);
-            //runtime.commitBlockResult(result);
+            contractManager.getContractExecutor().commitBlockResult(result);
+
             branchStore.setLastExecuteBlock(nextBlock);
 
             //Store event

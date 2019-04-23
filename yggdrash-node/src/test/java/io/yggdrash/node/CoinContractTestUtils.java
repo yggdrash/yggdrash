@@ -16,7 +16,6 @@
 
 package io.yggdrash.node;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
@@ -25,7 +24,7 @@ import java.math.BigInteger;
 
 public class CoinContractTestUtils {
 
-    public static JsonArray createTransferBody(String to, BigInteger amount) {
+    public static JsonObject createTransferBody(String to, BigInteger amount) {
         JsonObject params = new JsonObject();
         params.addProperty("to", to);
         params.addProperty("amount", amount);
@@ -33,7 +32,7 @@ public class CoinContractTestUtils {
         return ContractTestUtils.txBodyJson(TestConstants.YEED_CONTRACT,"transfer", params);
     }
 
-    public static JsonArray createApproveBody(String spender, BigInteger amount) {
+    public static JsonObject createApproveBody(String spender, BigInteger amount) {
         JsonObject params = new JsonObject();
         params.addProperty("spender", spender);
         params.addProperty("amount", amount);
@@ -41,7 +40,7 @@ public class CoinContractTestUtils {
         return ContractTestUtils.txBodyJson(TestConstants.YEED_CONTRACT,"approve", params);
     }
 
-    public static JsonArray createTransferFromBody(String from, String to, BigInteger amount) {
+    public static JsonObject createTransferFromBody(String from, String to, BigInteger amount) {
         JsonObject params = new JsonObject();
         params.addProperty("from", from);
         params.addProperty("to", to);

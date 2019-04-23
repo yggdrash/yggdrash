@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.blockchain;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
@@ -30,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.spongycastle.util.encoders.Hex;
+
 import java.io.IOException;
 import java.security.SignatureException;
 
@@ -160,7 +160,7 @@ public class TransactionHuskTest  extends TestConstants.SlowTest {
     }
 
     private TransactionHusk createTx(Wallet wallet) {
-        JsonArray txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, 100);
+        JsonObject txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, 100);
         TransactionBuilder builder = new TransactionBuilder();
         return builder.setWallet(wallet)
                 .setBranchId(TestConstants.yggdrash())

@@ -16,7 +16,7 @@
 
 package io.yggdrash.core.blockchain;
 
-import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import org.spongycastle.util.encoders.Hex;
@@ -25,21 +25,21 @@ import java.nio.charset.StandardCharsets;
 
 public class TransactionBody {
 
-    private final JsonArray body = new JsonArray();
+    private JsonObject body; //TODO Change modifier to final
 
-    public TransactionBody(JsonArray body) {
-        this.body.addAll(body);
+    public TransactionBody(JsonObject body) {
+        this.body = body;
     }
 
     public TransactionBody(String body) {
-        this.body.addAll(JsonUtil.parseJsonArray(body));
+        this.body = JsonUtil.parseJsonObject(body);
     }
 
     public TransactionBody(byte[] bodyBytes) {
         this(new String(bodyBytes, StandardCharsets.UTF_8));
     }
 
-    public JsonArray getBody() {
+    public JsonObject getBody() {
         return this.body;
     }
 
