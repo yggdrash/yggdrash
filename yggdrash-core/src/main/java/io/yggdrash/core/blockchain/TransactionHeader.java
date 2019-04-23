@@ -17,40 +17,33 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.utils.ByteUtil;
-import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NotValidateException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.yggdrash.proto.Proto;
 import org.spongycastle.util.encoders.Hex;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.util.Arrays;
 
-public class TransactionHeader {
+public class TransactionHeader implements ProtoObject<Proto.Transaction.Header> {
 
-    private static final Logger log = LoggerFactory.getLogger(TransactionHeader.class);
+    static final int LENGTH = 96;
 
-    static final int LENGTH = 84;
-
-    static final int CHAIN_LENGTH = 20;
     static final int VERSION_LENGTH = 8;
     static final int TYPE_LENGTH = 8;
-    static final int TIMESTAMP_LENGTH = 8;
-    static final int BODYHASH_LENGTH = 32;
-    static final int BODYLENGTH_LENGTH = 8;
 
-    // Transaction Format v0.0.3
-    private final byte[] chain;       // 20 Bytes
-    private final byte[] version;     // 8 Bytes
-    private final byte[] type;        // 8 Bytes
-    private final long timestamp;     // 8 Bytes
-    private final byte[] bodyHash;    // 32 Bytes
-    private final long bodyLength;    // 8 Bytes
+    private final Proto.Transaction.Header protoTransactionHeader;
 
-    private byte[] binary;
+    public TransactionHeader(byte[] bytes) {
+        this(toProto(bytes));
+    }
+
+    public TransactionHeader(Proto.Transaction.Header protoTransactionHeader) {
+        this.protoTransactionHeader = protoTransactionHeader;
+    }
 
     public TransactionHeader(
             byte[] chain,
@@ -59,12 +52,15 @@ public class TransactionHeader {
             long timestamp,
             byte[] bodyHash,
             long bodyLength) {
-        this.chain = chain;
-        this.version = version;
-        this.type = type;
-        this.timestamp = timestamp;
-        this.bodyHash = bodyHash;
-        this.bodyLength = bodyLength;
+
+        this.protoTransactionHeader = Proto.Transaction.Header.newBuilder()
+                .setChain(ByteString.copyFrom(chain))
+                .setVersion(ByteString.copyFrom(version))
+                .setType(ByteString.copyFrom(type))
+                .setTimestamp(timestamp)
+                .setBodyHash(ByteString.copyFrom(bodyHash))
+                .setBodyLength(bodyLength)
+                .build();
     }
 
     public TransactionHeader(
@@ -73,76 +69,40 @@ public class TransactionHeader {
             byte[] type,
             long timestamp,
             TransactionBody txBody) {
-        this(chain, version, type, timestamp, txBody.getBodyHash(), txBody.length());
+        this(chain, version, type, timestamp, txBody.getHash(), txBody.getLength());
     }
 
     public TransactionHeader(JsonObject jsonObject) {
-        this.chain = Hex.decode(jsonObject.get("chain").getAsString());
-        this.version = Hex.decode(jsonObject.get("version").getAsString());
-        this.type = Hex.decode(jsonObject.get("type").getAsString());
-        this.timestamp = HexUtil.hexStringToLong(jsonObject.get("timestamp").getAsString());
-        this.bodyHash = Hex.decode(jsonObject.get("bodyHash").getAsString());
-        this.bodyLength = HexUtil.hexStringToLong(jsonObject.get("bodyLength").getAsString());
+        this(Hex.decode(jsonObject.get("chain").getAsString()),
+                Hex.decode(jsonObject.get("version").getAsString()),
+                Hex.decode(jsonObject.get("type").getAsString()),
+                HexUtil.hexStringToLong(jsonObject.get("timestamp").getAsString()),
+                Hex.decode(jsonObject.get("bodyHash").getAsString()),
+                HexUtil.hexStringToLong(jsonObject.get("bodyLength").getAsString()));
     }
-
-    public TransactionHeader(byte[] txHeaderBytes) {
-        int pos = 0;
-
-        this.chain = new byte[CHAIN_LENGTH];
-        System.arraycopy(txHeaderBytes, pos, this.chain, 0, this.chain.length);
-        pos += this.chain.length;
-
-        this.version = new byte[VERSION_LENGTH];
-        System.arraycopy(txHeaderBytes, pos, this.version, 0, this.version.length);
-        pos += this.version.length;
-
-        this.type = new byte[TYPE_LENGTH];
-        System.arraycopy(txHeaderBytes, pos, this.type, 0, this.type.length);
-        pos += this.type.length;
-
-        byte[] timestampBytes = new byte[TIMESTAMP_LENGTH];
-        System.arraycopy(txHeaderBytes, pos, timestampBytes, 0, timestampBytes.length);
-        this.timestamp = ByteUtil.byteArrayToLong(timestampBytes);
-        pos += timestampBytes.length;
-
-        this.bodyHash = new byte[BODYHASH_LENGTH];
-        System.arraycopy(txHeaderBytes, pos, this.bodyHash, 0, this.bodyHash.length);
-        pos += this.bodyHash.length;
-
-        byte[] bodyLengthBytes = new byte[BODYLENGTH_LENGTH];
-        System.arraycopy(txHeaderBytes, pos, bodyLengthBytes, 0, bodyLengthBytes.length);
-        this.bodyLength = ByteUtil.byteArrayToLong(bodyLengthBytes);
-        pos += bodyLengthBytes.length;
-
-        if (pos != txHeaderBytes.length) {
-            log.debug("Transaction Header Length is not valid.");
-            throw new NotValidateException();
-        }
-    }
-
 
     public byte[] getChain() {
-        return this.chain;
+        return protoTransactionHeader.getChain().toByteArray();
     }
 
     public byte[] getVersion() {
-        return this.version;
+        return protoTransactionHeader.getVersion().toByteArray();
     }
 
     public byte[] getType() {
-        return this.type;
+        return protoTransactionHeader.getType().toByteArray();
     }
 
     public long getTimestamp() {
-        return this.timestamp;
+        return protoTransactionHeader.getTimestamp();
     }
 
     public byte[] getBodyHash() {
-        return this.bodyHash;
+        return protoTransactionHeader.getBodyHash().toByteArray();
     }
 
     public long getBodyLength() {
-        return this.bodyLength;
+        return protoTransactionHeader.getBodyLength();
     }
 
     /**
@@ -151,32 +111,26 @@ public class TransactionHeader {
      * @return hash of header
      */
     public byte[] getHashForSigning() {
-        return HashUtil.sha3(this.toBinary());
+        return HashUtil.sha3(toBinary());
+    }
+
+    public long getLength() {
+        return toBinary().length;
     }
 
     /**
      * Get the binary data of TransactionHeader (84Byte)
      *
-     * @return the binary data of TransactionHeader (84 byte)
+     * @return the binary data
      */
+    @Override
     public byte[] toBinary() {
-        if (binary != null) {
-            return binary;
-        }
-        ByteArrayOutputStream bao = new ByteArrayOutputStream();
-        try {
-            bao.write(this.chain);
-            bao.write(this.version);
-            bao.write(this.type);
-            bao.write(ByteUtil.longToBytes(this.timestamp));
-            bao.write(this.bodyHash);
-            bao.write(ByteUtil.longToBytes(this.bodyLength));
+        return protoTransactionHeader.toByteArray();
+    }
 
-            binary = bao.toByteArray();
-            return binary;
-        } catch (IOException e) {
-            throw new InternalErrorException("toBinary error");
-        }
+    @Override
+    public Proto.Transaction.Header getInstance() {
+        return protoTransactionHeader;
     }
 
     /**
@@ -185,30 +139,46 @@ public class TransactionHeader {
      * @return jsonObject of transaction header
      */
     public JsonObject toJsonObject() {
-
         JsonObject jsonObject = new JsonObject();
 
-        jsonObject.addProperty("chain", Hex.toHexString(this.chain));
-        jsonObject.addProperty("version", Hex.toHexString(this.version));
-        jsonObject.addProperty("type", Hex.toHexString(this.type));
-        jsonObject.addProperty("timestamp", Hex.toHexString(ByteUtil.longToBytes(this.timestamp)));
-        jsonObject.addProperty("bodyHash", Hex.toHexString(this.bodyHash));
-        jsonObject.addProperty("bodyLength",
-                Hex.toHexString(ByteUtil.longToBytes(this.bodyLength)));
+        jsonObject.addProperty("chain", Hex.toHexString(getChain()));
+        jsonObject.addProperty("version", Hex.toHexString(getVersion()));
+        jsonObject.addProperty("type", Hex.toHexString(getType()));
+        jsonObject.addProperty("timestamp", Hex.toHexString(ByteUtil.longToBytes(getTimestamp())));
+        jsonObject.addProperty("bodyHash", Hex.toHexString(getBodyHash()));
+        jsonObject.addProperty("bodyLength", Hex.toHexString(ByteUtil.longToBytes(getBodyLength())));
 
         return jsonObject;
     }
 
-    public String toString() {
-        return this.toJsonObject().toString();
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        BlockHeader other = (BlockHeader) o;
+        return Arrays.equals(toBinary(), other.toBinary());
     }
 
-    public TransactionHeader copy() {
-        return new TransactionHeader(this.chain.clone(),
-                this.version.clone(),
-                this.type.clone(),
-                this.timestamp,
-                this.bodyHash.clone(),
-                this.bodyLength);
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(toBinary());
+    }
+
+    @Override
+    public String toString() {
+        return toJsonObject().toString();
+    }
+
+    private static Proto.Transaction.Header toProto(byte[] bytes) {
+        try {
+            return Proto.Transaction.Header.parseFrom(bytes);
+        } catch (InvalidProtocolBufferException e) {
+            throw new NotValidateException(e);
+        }
     }
 }

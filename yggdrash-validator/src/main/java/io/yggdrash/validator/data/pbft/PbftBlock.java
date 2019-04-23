@@ -19,34 +19,30 @@ package io.yggdrash.validator.data.pbft;
 import com.google.gson.JsonObject;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.core.blockchain.Block;
-import io.yggdrash.core.consensus.AbstractBlock;
+import io.yggdrash.core.blockchain.BlockImpl;
+import io.yggdrash.core.consensus.AbstractConsensusBlock;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.PbftProto;
-import io.yggdrash.proto.Proto;
 
-public class PbftBlock extends AbstractBlock<PbftProto.PbftBlock> {
+public class PbftBlock extends AbstractConsensusBlock<PbftProto.PbftBlock> {
 
     private transient PbftMessageSet pbftMessageSet;
-
-    private PbftBlock(Proto.Block protoBlock, PbftMessageSet pbftMessageSet) {
-        super(protoBlock);
-        this.pbftMessageSet = pbftMessageSet;
-    }
-
-    public PbftBlock(PbftProto.PbftBlock block) {
-        this(block.getBlock(), new PbftMessageSet(block.getPbftMessageSet()));
-    }
 
     public PbftBlock(byte[] bytes) {
         this(toProto(bytes));
     }
 
+    public PbftBlock(PbftProto.PbftBlock block) {
+        this(new BlockImpl(block.getBlock()), new PbftMessageSet(block.getPbftMessageSet()));
+    }
+
     public PbftBlock(Block block, PbftMessageSet pbftMessageSet) {
-        this(Block.toProtoBlock(block), pbftMessageSet);
+        super(block);
+        this.pbftMessageSet = pbftMessageSet;
     }
 
     public PbftBlock(JsonObject jsonObject) {
-        this(new Block(jsonObject.get("block").getAsJsonObject()),
+        this(new BlockImpl(jsonObject.get("block").getAsJsonObject()),
                 new PbftMessageSet(jsonObject.get("pbftMessageSet").getAsJsonObject()));
     }
 
@@ -63,7 +59,7 @@ public class PbftBlock extends AbstractBlock<PbftProto.PbftBlock> {
     }
 
     @Override
-    public byte[] getData() {
+    public byte[] toBinary() {
         return getInstance().toByteArray();
     }
 

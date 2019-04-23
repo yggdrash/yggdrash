@@ -14,7 +14,7 @@ import io.yggdrash.validator.data.ebft.EbftBlockChain;
 import io.yggdrash.validator.data.pbft.PbftBlockChain;
 import io.yggdrash.validator.service.ebft.EbftServerStub;
 import io.yggdrash.validator.service.ebft.EbftService;
-import io.yggdrash.validator.service.node.NodeServerStub;
+import io.yggdrash.validator.service.node.TransactionServiceStub;
 import io.yggdrash.validator.service.pbft.PbftServerStub;
 import io.yggdrash.validator.service.pbft.PbftService;
 import org.slf4j.LoggerFactory;
@@ -25,7 +25,6 @@ import org.springframework.scheduling.support.CronTrigger;
 import java.io.File;
 import java.io.IOException;
 
-@Deprecated
 public class ValidatorService {
 
     private final DefaultConfig defaultConfig;
@@ -62,7 +61,7 @@ public class ValidatorService {
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
                             .addService(new PbftServerStub((PbftService) consensusService))
-                            .addService(new NodeServerStub(blockChain))
+                            .addService(new TransactionServiceStub(blockChain))
                             .build()
                             .start();
                 } catch (IOException e) {
@@ -75,7 +74,7 @@ public class ValidatorService {
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
                             .addService(new EbftServerStub((EbftService) consensusService))
-                            .addService(new NodeServerStub(blockChain))
+                            .addService(new TransactionServiceStub(blockChain))
                             .build()
                             .start();
                 } catch (IOException e) {
@@ -106,7 +105,7 @@ public class ValidatorService {
         String dbPath = defaultConfig.getDatabasePath();
         String host = this.host;
         int port = this.port;
-        String chain = genesisBlock.getChainHex();
+        String chain = genesisBlock.getBranchId().toString();
 
         String keyStorePath = host + "_" + port + File.separator + chain + File.separator + algorithm + "Key";
         String blockStorePath = host + "_" + port + File.separator + chain + File.separator + algorithm + "Block";

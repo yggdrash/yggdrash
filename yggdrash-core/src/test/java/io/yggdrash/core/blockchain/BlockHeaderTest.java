@@ -30,6 +30,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class BlockHeaderTest {
 
@@ -71,8 +72,8 @@ public class BlockHeaderTest {
         TransactionSignature txSig =
                 new TransactionSignature(TestConstants.wallet(), txHeader.getHashForSigning());
 
-        Transaction tx1 = new Transaction(txHeader, txSig.getSignature(), txBody);
-        Transaction tx2 = new Transaction(tx1.toBinary());
+        Transaction tx1 = new TransactionImpl(txHeader, txSig.getSignature(), txBody);
+        Transaction tx2 = new TransactionImpl(tx1.toBinary());
 
         List<Transaction> txs1 = new ArrayList<>();
         txs1.add(tx1);
@@ -81,17 +82,24 @@ public class BlockHeaderTest {
         log.debug("txs=" + txs1.toString());
 
         BlockBody blockBody1 = new BlockBody(txs1);
-        BlockHeader blockHeader1 = new BlockHeader(
-                chain, version, type, prevBlockHash, index, timestamp,
-                blockBody1.getMerkleRoot(), blockBody1.length());
 
-        BlockHeader blockHeader2 = new BlockHeader(blockHeader1.toBinary());
-        assertEquals(blockHeader1.toJsonObject(), blockHeader2.toJsonObject());
-        assertArrayEquals(blockHeader1.getHashForSigning(), blockHeader2.getHashForSigning());
+        BlockHeader blockHeader1 = new BlockHeader(
+                chain, version, type, prevBlockHash, Long.MAX_VALUE, Long.MAX_VALUE,
+                blockBody1.getMerkleRoot(), Long.MAX_VALUE);
+        assertTrue(BlockHeader.LENGTH >= blockHeader1.getLength());
+
+        BlockHeader blockHeader2 = new BlockHeader(
+                chain, version, type, prevBlockHash, index, timestamp,
+                blockBody1.getMerkleRoot(), blockBody1.getLength());
+        assertTrue(BlockHeader.LENGTH >= blockHeader2.getLength());
 
         BlockHeader blockHeader3 = new BlockHeader(blockHeader1.toBinary());
         assertEquals(blockHeader1.toJsonObject(), blockHeader3.toJsonObject());
         assertArrayEquals(blockHeader1.getHashForSigning(), blockHeader3.getHashForSigning());
+
+        BlockHeader blockHeader4 = new BlockHeader(blockHeader1.toBinary());
+        assertEquals(blockHeader1.toJsonObject(), blockHeader4.toJsonObject());
+        assertArrayEquals(blockHeader1.getHashForSigning(), blockHeader4.getHashForSigning());
     }
 
 }

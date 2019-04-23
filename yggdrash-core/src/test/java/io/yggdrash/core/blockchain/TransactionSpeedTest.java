@@ -44,7 +44,6 @@ public class TransactionSpeedTest extends PerformanceTest {
     private TransactionBody txBody;
     private TransactionHeader txHeader;
     private Wallet wallet;
-    private TransactionSignature txSig;
     private Transaction tx1;
     private byte[] txBytes1;
 
@@ -69,8 +68,7 @@ public class TransactionSpeedTest extends PerformanceTest {
 
         wallet = new Wallet(new DefaultConfig(), "Password1234!");
 
-        txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
-        tx1 = new Transaction(txHeader, txSig.getSignature(), txBody);
+        tx1 = new TransactionImpl(txHeader, wallet, txBody);
         assertTrue(tx1.verify());
 
         txBytes1 = tx1.toBinary();
@@ -87,7 +85,7 @@ public class TransactionSpeedTest extends PerformanceTest {
             startTime = System.nanoTime();
 
             // Test method
-            new Transaction(txHeader, txSig.getSignature(), txBody);
+            new TransactionImpl(txHeader, wallet, txBody);
 
             endTime = System.nanoTime();
             Arrays.fill(timeList,endTime - startTime);
@@ -113,7 +111,7 @@ public class TransactionSpeedTest extends PerformanceTest {
             startTime = System.nanoTime();
 
             // Test method
-            new Transaction(txHeader, wallet, txBody);
+            new TransactionImpl(txHeader, wallet, txBody);
 
             endTime = System.nanoTime();
             Arrays.fill(timeList,endTime - startTime);
@@ -139,7 +137,7 @@ public class TransactionSpeedTest extends PerformanceTest {
             startTime = System.nanoTime();
 
             // Test method
-            new Transaction(tx1.toJsonObject());
+            new TransactionImpl(tx1.toJsonObject());
 
             endTime = System.nanoTime();
             Arrays.fill(timeList,endTime - startTime);
@@ -165,7 +163,7 @@ public class TransactionSpeedTest extends PerformanceTest {
             startTime = System.nanoTime();
 
             // Test method
-            new Transaction(txBytes1);
+            new TransactionImpl(txBytes1);
 
             endTime = System.nanoTime();
             Arrays.fill(timeList,endTime - startTime);

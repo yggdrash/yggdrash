@@ -1,10 +1,10 @@
 package io.yggdrash.validator.service.pbft;
 
 import io.grpc.stub.StreamObserver;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.proto.CommonProto;
-import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
 import io.yggdrash.validator.data.pbft.PbftBlock;
@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftServerStub.class);
-    private static final NetProto.Empty EMPTY = NetProto.Empty.getDefaultInstance();
+    private static final CommonProto.Empty EMPTY = CommonProto.Empty.getDefaultInstance();
 
     private final ConsensusBlockChain<PbftProto.PbftBlock, PbftMessage> blockChain;
     private final PbftService pbftService; //todo: check security!
@@ -53,7 +53,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
 
     @Override
     public void multicastPbftMessage(PbftProto.PbftMessage request,
-                                     StreamObserver<NetProto.Empty> responseObserver) {
+                                     StreamObserver<CommonProto.Empty> responseObserver) {
         log.trace("multicastPbftMessage");
         PbftMessage pbftMessage = new PbftMessage(request);
         try {
@@ -87,10 +87,10 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
 
     @Override
     public void broadcastPbftBlock(PbftProto.PbftBlock request,
-                                   StreamObserver<NetProto.Empty> responseObserver) {
+                                   StreamObserver<CommonProto.Empty> responseObserver) {
         PbftBlock newPbftBlock = new PbftBlock(request);
         try {
-            log.debug("Received BroadcastPbftBlock [{}] {} ", newPbftBlock.getIndex(), newPbftBlock.getHashHex());
+            log.debug("Received BroadcastPbftBlock [{}] {} ", newPbftBlock.getIndex(), newPbftBlock.getHash());
             if (!PbftBlock.verify(newPbftBlock)) {
                 log.warn("Verify Fail");
                 responseObserver.onNext(EMPTY);
@@ -98,11 +98,11 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
                 return;
             }
 
-            responseObserver.onNext(io.yggdrash.proto.NetProto.Empty.newBuilder().build());
+            responseObserver.onNext(CommonProto.Empty.newBuilder().build());
             responseObserver.onCompleted();
 
             pbftService.getLock().lock();
-            Block<PbftProto.PbftBlock> lastPbftBlock = this.blockChain.getLastConfirmedBlock();
+            ConsensusBlock<PbftProto.PbftBlock> lastPbftBlock = this.blockChain.getLastConfirmedBlock();
             if (lastPbftBlock.getIndex() == newPbftBlock.getIndex() - 1
                     && lastPbftBlock.getHash().equals(newPbftBlock.getPrevBlockHash())) {
                 this.blockChain.addBlock(newPbftBlock);
@@ -127,7 +127,9 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
         if (start < end) {
             for (long l = start; l <= end; l++) {
                 try {
-                    Block<PbftProto.PbftBlock> block = blockChain.getBlockStore().getBlockByIndex(l);
+                    ConsensusBlock<PbftProto.PbftBlock> block =
+                            blockChain.getBlockStore()
+                                    .get(Sha3Hash.createByHashed((byte[]) blockChain.getBlockKeyStore().get(l)));
                     builder.addPbftBlock(block.getInstance());
                 } catch (Exception e) {
                     break;

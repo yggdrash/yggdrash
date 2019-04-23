@@ -21,7 +21,7 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -30,7 +30,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BranchGroup {
@@ -55,15 +54,11 @@ public class BranchGroup {
         return branches.containsKey(branchId);
     }
 
-    public Set<BranchId> getAllBranchId() {
-        return branches.keySet();
-    }
-
     public Collection<BlockChain> getAllBranch() {
         return branches.values();
     }
 
-    public TransactionHusk addTransaction(TransactionHusk tx) {
+    public Transaction addTransaction(Transaction tx) {
         if (branches.containsKey(tx.getBranchId())) {
             return branches.get(tx.getBranchId()).addTransaction(tx);
         }
@@ -77,34 +72,34 @@ public class BranchGroup {
         return 0L;
     }
 
-    public Collection<TransactionHusk> getRecentTxs(BranchId branchId) {
+    public Collection<Transaction> getRecentTxs(BranchId branchId) {
         return branches.get(branchId).getRecentTxs();
     }
 
-    public TransactionHusk getTxByHash(BranchId branchId, String id) {
+    public Transaction getTxByHash(BranchId branchId, String id) {
         return getTxByHash(branchId, new Sha3Hash(id));
     }
 
-    TransactionHusk getTxByHash(BranchId branchId, Sha3Hash hash) {
+    Transaction getTxByHash(BranchId branchId, Sha3Hash hash) {
         return branches.get(branchId).getTxByHash(hash);
     }
 
-    Block addBlock(Block block) {
+    ConsensusBlock addBlock(ConsensusBlock block) {
         return addBlock(block, true);
     }
 
-    public Block addBlock(Block block, boolean broadcast) {
+    public ConsensusBlock addBlock(ConsensusBlock block, boolean broadcast) {
         if (branches.containsKey(block.getBranchId())) {
             return branches.get(block.getBranchId()).addBlock(block, broadcast);
         }
         return block;
     }
 
-    public Block getBlockByIndex(BranchId branchId, long index) {
+    public ConsensusBlock getBlockByIndex(BranchId branchId, long index) {
         return branches.get(branchId).getBlockByIndex(index);
     }
 
-    public Block getBlockByHash(BranchId branchId, String hash) {
+    public ConsensusBlock getBlockByHash(BranchId branchId, String hash) {
         return branches.get(branchId).getBlockByHash(new Sha3Hash(hash));
     }
 
@@ -124,7 +119,7 @@ public class BranchGroup {
         return branches.get(branchId).getTransactionReceipt(transactionId);
     }
 
-    public List<TransactionHusk> getUnconfirmedTxs(BranchId branchId) {
+    public List<Transaction> getUnconfirmedTxs(BranchId branchId) {
         if (branches.containsKey(branchId)) {
             return branches.get(branchId).getUnconfirmedTxs();
         } else {

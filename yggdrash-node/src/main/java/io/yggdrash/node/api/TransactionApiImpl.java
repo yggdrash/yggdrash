@@ -5,8 +5,8 @@ import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.blockchain.TransactionImpl;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
@@ -29,14 +29,14 @@ public class TransactionApiImpl implements TransactionApi {
     /* get */
     @Override
     public int getTransactionCountByBlockHash(String branchId, String blockId) {
-        Block block = branchGroup.getBlockByHash(BranchId.of(branchId), blockId);
-        return block.getBodyCount();
+        ConsensusBlock block = branchGroup.getBlockByHash(BranchId.of(branchId), blockId);
+        return block.getBody().getCount();
     }
 
     @Override
     public int getTransactionCountByBlockNumber(String branchId, long blockNumber) {
-        Block block = branchGroup.getBlockByIndex(BranchId.of(branchId), blockNumber);
-        return block.getBodyCount();
+        ConsensusBlock block = branchGroup.getBlockByIndex(BranchId.of(branchId), blockNumber);
+        return block.getBody().getCount();
     }
 
     @Override
@@ -50,7 +50,7 @@ public class TransactionApiImpl implements TransactionApi {
 
     @Override
     public TransactionDto getTransactionByHash(String branchId, String txId) {
-        TransactionHusk tx = branchGroup.getTxByHash(BranchId.of(branchId), txId);
+        Transaction tx = branchGroup.getTxByHash(BranchId.of(branchId), txId);
         if (tx == null) {
             throw new NonExistObjectException("Transaction");
         }
@@ -60,16 +60,16 @@ public class TransactionApiImpl implements TransactionApi {
     @Override
     public TransactionDto getTransactionByBlockHash(String branchId, String blockId,
                                                      int txIndexPosition) {
-        Block block = branchGroup.getBlockByHash(BranchId.of(branchId), blockId);
-        List<TransactionHusk> txList = block.getBody();
+        ConsensusBlock block = branchGroup.getBlockByHash(BranchId.of(branchId), blockId);
+        List<Transaction> txList = block.getBody().getTransactionList();
         return TransactionDto.createBy(txList.get(txIndexPosition));
     }
 
     @Override
     public TransactionDto getTransactionByBlockNumber(String branchId, long blockNumber,
                                                        int txIndexPosition) {
-        Block block = branchGroup.getBlockByIndex(BranchId.of(branchId), blockNumber);
-        List<TransactionHusk> txList = block.getBody();
+        ConsensusBlock block = branchGroup.getBlockByIndex(BranchId.of(branchId), blockNumber);
+        List<Transaction> txList = block.getBody().getTransactionList();
         return TransactionDto.createBy(txList.get(txIndexPosition));
     }
 
@@ -89,7 +89,7 @@ public class TransactionApiImpl implements TransactionApi {
     public String sendTransaction(TransactionDto tx) {
         if (branchGroup.getBranch(BranchId.of(tx.branchId)) != null) {
             // TODO Transaction Validate
-            TransactionHusk addedTx = branchGroup.addTransaction(TransactionDto.of(tx));
+            Transaction addedTx = branchGroup.addTransaction(TransactionDto.of(tx));
             return addedTx.getHash().toString();
         } else {
             return "No branch existed";
@@ -98,11 +98,10 @@ public class TransactionApiImpl implements TransactionApi {
 
     @Override
     public byte[] sendRawTransaction(byte[] bytes) {
-        Transaction tx = new Transaction(bytes);
-        TransactionHusk transaction = new TransactionHusk(tx);
+        Transaction transaction = new TransactionImpl(bytes);
         if (branchGroup.getBranch(transaction.getBranchId()) != null) {
             // TODO Transaction Validate
-            TransactionHusk addedTx = branchGroup.addTransaction(transaction);
+            Transaction addedTx = branchGroup.addTransaction(transaction);
             return addedTx.getHash().getBytes();
         } else {
             return "No branch existed".getBytes();

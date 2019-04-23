@@ -76,7 +76,7 @@ yggdrash:
 
 ---
 
-spring.profiles: delivery
+spring.profiles: proxy
 
 yggdrash:
   node:
@@ -91,7 +91,4 @@ spring.profiles: validator
 yggdrash:
   node:
     validator: true
-    broadcast-peer-list:
-      - "ynode://00@localhost:32920"
-      - "ynode://00@localhost:32921"
 

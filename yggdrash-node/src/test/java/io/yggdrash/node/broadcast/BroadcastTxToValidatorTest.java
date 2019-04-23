@@ -35,16 +35,16 @@ public class BroadcastTxToValidatorTest extends TcpNodeTesting {
         // validator
         TestNode validatorNode = createAndStartNode(32801, true);
         List<String> validatorList = Collections.singletonList(validatorNode.getPeer().getYnodeUri());
-        // delivery
-        TestNode deliveryNode = TestNode.createDeliveryNode(factory, validatorList);
-        deliveryNode.bootstrapping();
+        // proxyNode
+        TestNode proxyNode = TestNode.createProxyNode(factory, validatorList);
+        proxyNode.bootstrapping();
 
         // act
-        deliveryNode.getDefaultBranch().addTransaction(BlockChainTestUtils.createTransferTxHusk());
+        proxyNode.getDefaultBranch().addTransaction(BlockChainTestUtils.createTransferTxHusk());
         Utils.sleep(500);
 
         // assert
-        assertThat(validatorNode.countUnconfirmedTx()).isEqualTo(deliveryNode.countUnconfirmedTx());
+        assertThat(validatorNode.countUnconfirmedTx()).isEqualTo(proxyNode.countUnconfirmedTx());
         validatorNode.shutdown();
     }
 }

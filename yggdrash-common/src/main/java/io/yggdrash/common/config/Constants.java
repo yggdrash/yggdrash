@@ -12,7 +12,7 @@ public class Constants {
         throw new IllegalStateException("Constants class");
     }
 
-    private static final int BRANCH_LENGTH = 20;
+    public static final int BRANCH_LENGTH = 20;
     public static final int BRANCH_HEX_LENGTH = BRANCH_LENGTH * 2;
 
     private static final String STEM = "STEM";

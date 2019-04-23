@@ -17,7 +17,6 @@
 package io.yggdrash.contract.yeed;
 
 import com.google.gson.JsonObject;
-import com.sun.deploy.model.Resource;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.rlp.RLP;
 import io.yggdrash.common.utils.FileUtil;
@@ -32,8 +31,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.math.BigInteger;
-import java.net.URL;
 import java.util.Arrays;
 
 public class SwapEthTransactionTest {

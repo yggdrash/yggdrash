@@ -4,7 +4,7 @@ import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
-import io.yggdrash.validator.util.TestUtils;
+import io.yggdrash.validator.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -271,25 +271,26 @@ public class PbftBlockTest {
     @Test
     public void constuctorTest_Bytes() {
         {
-            PbftBlock newBlock = new PbftBlock(this.pbftBlock.getData());
+            PbftBlock newBlock = new PbftBlock(this.pbftBlock.toBinary());
+            log.debug(pbftBlock.toJsonObject().toString());
             log.debug(newBlock.toJsonObject().toString());
             assertEquals(newBlock, this.pbftBlock);
         }
 
         {
-            PbftBlock newBlock = new PbftBlock(this.pbftBlock2.getData());
+            PbftBlock newBlock = new PbftBlock(this.pbftBlock2.toBinary());
             log.debug(newBlock.toJsonObject().toString());
             assertEquals(newBlock, this.pbftBlock2);
         }
 
         {
-            PbftBlock newBlock = new PbftBlock(this.pbftBlock3.getData());
+            PbftBlock newBlock = new PbftBlock(this.pbftBlock3.toBinary());
             log.debug(newBlock.toJsonObject().toString());
             assertEquals(newBlock, this.pbftBlock3);
         }
 
         {
-            PbftBlock newBlock = new PbftBlock(this.pbftBlock4.getData());
+            PbftBlock newBlock = new PbftBlock(this.pbftBlock4.toBinary());
             log.debug(newBlock.toJsonObject().toString());
             assertEquals(newBlock, this.pbftBlock4);
         }
@@ -336,7 +337,7 @@ public class PbftBlockTest {
 
     @Test
     public void cloneTest() {
-        PbftBlock newPbftBlock = new PbftBlock(pbftBlock.getData());
+        PbftBlock newPbftBlock = new PbftBlock(pbftBlock.toBinary());
         assertEquals(newPbftBlock, this.pbftBlock);
 
         newPbftBlock.clear();

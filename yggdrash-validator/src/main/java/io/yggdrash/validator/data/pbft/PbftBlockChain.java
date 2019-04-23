@@ -3,10 +3,11 @@ package io.yggdrash.validator.data.pbft;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
+import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.consensus.Block;
 import io.yggdrash.core.consensus.Consensus;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.TransactionStore;
@@ -18,14 +19,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
-@Deprecated
 public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, PbftMessage> {
 
     private static final Logger log = LoggerFactory.getLogger(PbftBlockChain.class);
@@ -44,7 +44,7 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
 
     private final ReentrantLock lock = new ReentrantLock();
 
-    public PbftBlockChain(io.yggdrash.core.blockchain.Block genesisBlock, String dbPath,
+    public PbftBlockChain(Block genesisBlock, String dbPath,
                           String blockKeyStorePath, String blockStorePath, String txStorePath) {
         if (genesisBlock.getHeader().getIndex() != 0
                 || !Arrays.equals(genesisBlock.getHeader().getPrevBlockHash(), Constants.EMPTY_HASH)) {
@@ -63,7 +63,7 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
 
         if (this.blockKeyStore.size() == 0) {
             this.blockKeyStore.put(0L, this.genesisBlock.getHash().getBytes());
-            this.blockStore.put(Sha3Hash.createByHashed(genesisBlock.getHash()), this.genesisBlock);
+            this.blockStore.put(genesisBlock.getHash(), this.genesisBlock);
 
         } else {
             if (!Arrays.equals(this.blockKeyStore.get(0L), this.genesisBlock.getHash().getBytes())) {
@@ -134,7 +134,7 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
     }
 
     @Override
-    public Block<PbftProto.PbftBlock> addBlock(Block<PbftProto.PbftBlock> block) {
+    public ConsensusBlock<PbftProto.PbftBlock> addBlock(ConsensusBlock<PbftProto.PbftBlock> block) {
         this.lock.lock();
         try {
             if (block == null
@@ -165,7 +165,7 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
                     + "["
                     + block.getIndex()
                     + "]"
-                    + block.getHashHex()
+                    + block.getHash()
                     + " ("
                     + block.getConsensusMessages().getPrepareMap().size()
                     + ")"
@@ -176,7 +176,7 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
                     + block.getConsensusMessages().getViewChangeMap().size()
                     + ")"
                     + " ("
-                    + block.getBlock().getAddressHex()
+                    + block.getBlock().getAddress()
                     + ")");
         } catch (Exception e) {
             log.debug(e.getMessage());
@@ -191,8 +191,8 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
      * @return list of Block
      */
     @Override
-    public List<Block<PbftProto.PbftBlock>> getBlockList(long index, long count) {
-        List<Block<PbftProto.PbftBlock>> blockList = new ArrayList<>();
+    public List<ConsensusBlock<PbftProto.PbftBlock>> getBlockList(long index, long count) {
+        List<ConsensusBlock<PbftProto.PbftBlock>> blockList = new ArrayList<>();
         if (index < 0L || count < 1L || count > 100L) {
             log.debug("index or count is not valid");
             return blockList;
@@ -209,17 +209,15 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
         return blockList;
     }
 
-    private void batchTxs(Block block) {
+    private void batchTxs(ConsensusBlock block) {
         if (block == null
                 || block.getBlock() == null
-                || block.getBlock().getBody().length() == 0) {
+                || block.getBlock().getBody().getLength() == 0) {
             return;
         }
-        Set<Sha3Hash> keys = new HashSet<>();
+        Set<Sha3Hash> keys = block.getBlock().getBody().getTransactionList().stream()
+                .map(Transaction::getHash).collect(Collectors.toSet());
 
-        for (Transaction tx : block.getBlock().getBody().getBody()) {
-            keys.add(new Sha3Hash(tx.getHash(), true));
-        }
         transactionStore.batch(keys);
     }
 }

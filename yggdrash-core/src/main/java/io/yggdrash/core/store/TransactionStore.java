@@ -21,7 +21,8 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.contract.core.store.ReadWriterStore;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.TransactionImpl;
 import org.ehcache.Cache;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.CacheManagerBuilder;
@@ -39,15 +40,15 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class TransactionStore implements ReadWriterStore<Sha3Hash, TransactionHusk> {
+public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> {
     private static final Logger log = LoggerFactory.getLogger(TransactionStore.class);
     private static final Lock LOCK = new ReentrantLock();
 
     private static final int CACHE_SIZE = 500;
     private long countOfTxs = 0;
 
-    private Queue<TransactionHusk> readCache;
-    private final Cache<Sha3Hash, TransactionHusk> pendingPool;
+    private Queue<Transaction> readCache;
+    private final Cache<Sha3Hash, Transaction> pendingPool;
     private final Set<Sha3Hash> pendingKeys = new HashSet<>();
     private final DbSource<byte[], byte[]> db;
 
@@ -56,7 +57,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, TransactionHu
         this.pendingPool = CacheManagerBuilder
                 .newCacheManagerBuilder().build(true)
                 .createCache("txPool", CacheConfigurationBuilder
-                        .newCacheConfigurationBuilder(Sha3Hash.class, TransactionHusk.class,
+                        .newCacheConfigurationBuilder(Sha3Hash.class, Transaction.class,
                                 ResourcePoolsBuilder.heap(Long.MAX_VALUE)));
         this.readCache = EvictingQueue.create(CACHE_SIZE);
 
@@ -67,7 +68,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, TransactionHu
         this.readCache = EvictingQueue.create(cacheSize);
     }
 
-    public Collection<TransactionHusk> getRecentTxs() {
+    public Collection<Transaction> getRecentTxs() {
         return new ArrayList<>(readCache);
     }
 
@@ -82,7 +83,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, TransactionHu
     }
 
     @Override
-    public void put(Sha3Hash key, TransactionHusk tx) {
+    public void put(Sha3Hash key, Transaction tx) {
         LOCK.lock();
         pendingPool.put(key, tx);
         if (pendingPool.containsKey(key)) {
@@ -94,10 +95,10 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, TransactionHu
     }
 
     @Override
-    public TransactionHusk get(Sha3Hash key) {
-        TransactionHusk item = pendingPool.get(key);
+    public Transaction get(Sha3Hash key) {
+        Transaction item = pendingPool.get(key);
         try {
-            return item != null ? item : new TransactionHusk(db.get(key.getBytes()));
+            return item != null ? item : new TransactionImpl(db.get(key.getBytes()));
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }
@@ -108,12 +109,12 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, TransactionHu
             return;
         }
         LOCK.lock();
-        Map<Sha3Hash, TransactionHusk> map = pendingPool.getAll(keys);
+        Map<Sha3Hash, Transaction> map = pendingPool.getAll(keys);
         int countOfBatchedTxs = map.size();
-        for (Map.Entry<Sha3Hash, TransactionHusk> entry : map.entrySet()) {
-            TransactionHusk foundTx = entry.getValue();
+        for (Map.Entry<Sha3Hash, Transaction> entry : map.entrySet()) {
+            Transaction foundTx = entry.getValue();
             if (foundTx != null) {
-                db.put(entry.getKey().getBytes(), foundTx.getData());
+                db.put(entry.getKey().getBytes(), foundTx.toBinary());
                 addReadCache(foundTx);
             } else {
                 countOfBatchedTxs -= 1;
@@ -124,7 +125,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, TransactionHu
         LOCK.unlock();
     }
 
-    private void addReadCache(TransactionHusk tx) {
+    private void addReadCache(Transaction tx) {
         readCache.add(tx);
     }
 
@@ -132,12 +133,12 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, TransactionHu
         return this.countOfTxs;
     }
 
-    public List<TransactionHusk> getUnconfirmedTxsWithLimit(long limit) {
+    public List<Transaction> getUnconfirmedTxsWithLimit(long limit) {
         LOCK.lock();
         long bodySizeSum = 0;
-        List<TransactionHusk> unconfirmedTxs = new ArrayList<>(pendingKeys.size());
+        List<Transaction> unconfirmedTxs = new ArrayList<>(pendingKeys.size());
         for (Sha3Hash key : pendingKeys) {
-            TransactionHusk tx = pendingPool.get(key);
+            Transaction tx = pendingPool.get(key);
             if (tx != null) {
                 bodySizeSum += tx.getLength();
                 if (bodySizeSum > limit) {
@@ -150,9 +151,9 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, TransactionHu
         return unconfirmedTxs;
     }
 
-    public Collection<TransactionHusk> getUnconfirmedTxs() {
+    public Collection<Transaction> getUnconfirmedTxs() {
         LOCK.lock();
-        Collection<TransactionHusk> unconfirmedTxs = pendingPool.getAll(pendingKeys).values();
+        Collection<Transaction> unconfirmedTxs = pendingPool.getAll(pendingKeys).values();
         if (!unconfirmedTxs.isEmpty()) {
             log.debug("unconfirmedKeys={} unconfirmedTxs={}", pendingKeys.size(), unconfirmedTxs.size());
         }
@@ -166,7 +167,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, TransactionHu
         log.debug("flushSize={} remainPendingSize={}", keys.size(), pendingKeys.size());
     }
 
-    public void updateCache(List<TransactionHusk> body) {
+    public void updateCache(List<Transaction> body) {
         this.countOfTxs += body.size();
         this.readCache.addAll(body);
     }

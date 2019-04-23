@@ -16,9 +16,11 @@ import io.grpc.ManagedChannel;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BlockChain;
-import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.p2p.PeerHandler;
+import io.yggdrash.node.service.ConsensusHandlerFactory;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -32,9 +34,9 @@ public class RpcTest extends TcpNodeTesting {
     private static final Logger log = LoggerFactory.getLogger(RpcTest.class);
     private static final int NODE_CNT = 2;
 
-    private List<Block> blockList;
-    private List<TransactionHusk> txHuskList;
-    private GRpcPeerHandler handler;
+    private List<ConsensusBlock> blockList;
+    private List<Transaction> txList;
+    private PeerHandler handler;
 
     @Override
     public void setUp() {
@@ -46,14 +48,14 @@ public class RpcTest extends TcpNodeTesting {
         // Peer to send rpc msg
         Peer peer = nodeList.get(1).peerTableGroup.getOwner();
         ManagedChannel channel = createChannel(peer);
-        handler = new GRpcPeerHandler(channel, peer);
+        handler = new ConsensusHandlerFactory.PbftPeerHandler(channel, peer);
 
         setBlockHuskList();
         setTxHuskList();
 
         log.debug("{} nodes bootstrapped", NODE_CNT);
         log.debug("BlockHuskList and TxHuskList are set: size of BlockHuskList={}, TxHuskList={}",
-                blockList.size(), txHuskList.size());
+                blockList.size(), txList.size());
     }
 
     private void setBlockHuskList() {
@@ -61,7 +63,7 @@ public class RpcTest extends TcpNodeTesting {
         createBlockList(BlockChainTestUtils.createNextBlock());
     }
 
-    private void createBlockList(Block blockHusk) {
+    private void createBlockList(ConsensusBlock blockHusk) {
         while (blockList.size() < 10) {
             blockList.add(blockHusk);
             createBlockList(BlockChainTestUtils.createNextBlock(blockHusk));
@@ -74,10 +76,10 @@ public class RpcTest extends TcpNodeTesting {
     }
 
     private void setTxHuskList() {
-        txHuskList = new ArrayList<>();
+        txList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             String description = "TEST" + i;
-            txHuskList.add(BlockChainTestUtils.createBranchTxHusk(description));
+            txList.add(BlockChainTestUtils.createBranchTxHusk(description));
         }
     }
 
@@ -85,8 +87,8 @@ public class RpcTest extends TcpNodeTesting {
         log.debug("*** Add dummy txs ***");
         BlockChain branch = nodeList.get(1).getDefaultBranch();
 
-        for (TransactionHusk txHusk : txHuskList) {
-            branch.addTransaction(txHusk);
+        for (Transaction tx : txList) {
+            branch.addTransaction(tx);
         }
     }
 
@@ -95,13 +97,12 @@ public class RpcTest extends TcpNodeTesting {
         addDummyTx();
 
         BlockChain branch = nodeList.get(1).getDefaultBranch();
-        Future<List<TransactionHusk>> futureHusks = handler.syncTx(branch.getBranchId());
 
-        List<TransactionHusk> txHusks = futureHusks.get();
-        for (TransactionHusk txHusk : txHusks) {
-            Assert.assertTrue(txHuskList.contains(txHusk));
+        List<Transaction> foundTxList = (List<Transaction>) handler.syncTx(branch.getBranchId()).get();
+        for (Transaction tx : foundTxList) {
+            Assert.assertTrue(txList.contains(tx));
         }
-        Assert.assertEquals(txHusks.size(), txHuskList.size());
+        Assert.assertEquals(foundTxList.size(), txList.size());
     }
 
     @Test
@@ -109,17 +110,17 @@ public class RpcTest extends TcpNodeTesting {
         BlockChain branch = nodeList.get(1).getDefaultBranch();
         setSpecificBlockHeightOfBlockChain(branch);
 
-        Future<List<Block>> futureBlockList = handler.syncBlock(branch.getBranchId(), 5);
+        Future<List<ConsensusBlock>> futureBlockList = handler.syncBlock(branch.getBranchId(), 5);
 
-        List<Block> blockList = futureBlockList.get();
-        for (Block blockHusk : blockList) {
+        List<ConsensusBlock> blockList = futureBlockList.get();
+        for (ConsensusBlock blockHusk : blockList) {
             Assert.assertEquals(branch.getBlockByIndex(blockHusk.getIndex()), blockHusk);
         }
     }
 
     @Test
     public void broadcastBlockTest() {
-        for (Block block : blockList) {
+        for (ConsensusBlock block : blockList) {
             handler.broadcastBlock(block);
         }
         handler.stop();
@@ -127,14 +128,14 @@ public class RpcTest extends TcpNodeTesting {
 
     @Test
     public void broadcastTxTest() {
-        for (TransactionHusk txHusk : getTmpTxList()) {
-            handler.broadcastTx(txHusk);
+        for (Transaction tx : getTmpTxList()) {
+            handler.broadcastTx(tx);
         }
         handler.stop();
     }
 
-    private List<TransactionHusk> getTmpTxList() {
-        List<TransactionHusk> txList = new ArrayList<>();
+    private List<Transaction> getTmpTxList() {
+        List<Transaction> txList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             txList.add(BlockChainTestUtils.createTransferTxHusk());
         }

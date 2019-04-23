@@ -5,7 +5,7 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
-import io.yggdrash.validator.util.TestUtils;
+import io.yggdrash.validator.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -92,22 +93,22 @@ public class PbftMessageTest {
         byte[] prePrepareBytes = this.prePrepare.toBinary();
         PbftMessage prePrepare = new PbftMessage(prePrepareBytes);
         log.debug(prePrepare.toJsonObject().toString());
-        assertTrue(prePrepare.equals(this.prePrepare));
+        assertEquals(prePrepare, this.prePrepare);
 
         byte[] preparePbftBytes = prepare.toBinary();
         PbftMessage prepare = new PbftMessage(preparePbftBytes);
         log.debug(prepare.toJsonObject().toString());
-        assertTrue(prepare.equals(this.prepare));
+        assertEquals(prepare, this.prepare);
 
         byte[] commitBytes = commit.toBinary();
         PbftMessage commit = new PbftMessage(commitBytes);
         log.debug(commit.toJsonObject().toString());
-        assertTrue(commit.equals(this.commit));
+        assertEquals(commit, this.commit);
 
         byte[] viewChangeBytes = viewChange.toBinary();
         PbftMessage viewChange = new PbftMessage(viewChangeBytes);
         log.debug(viewChange.toJsonObject().toString());
-        assertTrue(viewChange.equals(this.viewChange));
+        assertEquals(viewChange, this.viewChange);
     }
 
     @Test
@@ -115,22 +116,22 @@ public class PbftMessageTest {
         JsonObject prePrepareJsonObject = prePrepare.toJsonObject();
         PbftMessage prePrepare = new PbftMessage(prePrepareJsonObject);
         log.debug(prePrepare.toJsonObject().toString());
-        assertTrue(prePrepare.equals(this.prePrepare));
+        assertEquals(prePrepare, this.prePrepare);
 
         JsonObject prepareJsonObject = prepare.toJsonObject();
         PbftMessage prepare = new PbftMessage(prepareJsonObject);
         log.debug(prepare.toJsonObject().toString());
-        assertTrue(prepare.equals(this.prepare));
+        assertEquals(prepare, this.prepare);
 
         JsonObject commitJsonObject = commit.toJsonObject();
         PbftMessage commit = new PbftMessage(commitJsonObject);
         log.debug(commit.toJsonObject().toString());
-        assertTrue(commit.equals(this.commit));
+        assertEquals(commit, this.commit);
 
         JsonObject viewChangeJsonObject = viewChange.toJsonObject();
         PbftMessage viewChange = new PbftMessage(viewChangeJsonObject);
         log.debug(viewChange.toJsonObject().toString());
-        assertTrue(viewChange.equals(this.viewChange));
+        assertEquals(viewChange, this.viewChange);
     }
 
     @Test
@@ -138,27 +139,27 @@ public class PbftMessageTest {
         PbftProto.PbftMessage prePrepare = PbftMessage.toProto(this.prePrepare);
         PbftMessage newPrePrepare = new PbftMessage(prePrepare);
         log.debug(newPrePrepare.toJsonObject().toString());
-        assertTrue(newPrePrepare.equals(this.prePrepare));
+        assertEquals(newPrePrepare, this.prePrepare);
 
         PbftProto.PbftMessage prepare = PbftMessage.toProto(this.prepare);
         PbftMessage newPrepare = new PbftMessage(prepare);
         log.debug(newPrepare.toJsonObject().toString());
-        assertTrue(newPrepare.equals(this.prepare));
+        assertEquals(newPrepare, this.prepare);
 
         PbftProto.PbftMessage commit = PbftMessage.toProto(this.commit);
         PbftMessage newCommit = new PbftMessage(commit);
         log.debug(newCommit.toJsonObject().toString());
-        assertTrue(newCommit.equals(this.commit));
+        assertEquals(newCommit, this.commit);
 
         PbftProto.PbftMessage viewChange = PbftMessage.toProto(this.viewChange);
         PbftMessage newViewChange = new PbftMessage(viewChange);
         log.debug(newViewChange.toJsonObject().toString());
-        assertTrue(newViewChange.equals(this.viewChange));
+        assertEquals(newViewChange, this.viewChange);
     }
 
     @Test
     public void getterTest() {
-        try {
+        {
             PbftMessage message = this.prePrepare;
             log.debug("type: " + message.getType());
             log.debug("viewNumber: " + message.getViewNumber());
@@ -171,12 +172,9 @@ public class PbftMessageTest {
             log.debug("signatureHex: " + message.getSignatureHex());
             log.debug("block: " + (message.getBlock() == null ? "null" :
                     message.getBlock().toString()));
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-            assert false;
         }
 
-        try {
+        {
             PbftMessage message = this.prepare;
             log.debug("type: " + message.getType());
             log.debug("viewNumber: " + message.getViewNumber());
@@ -189,12 +187,9 @@ public class PbftMessageTest {
             log.debug("signatureHex: " + message.getSignatureHex());
             log.debug("block: " + (message.getBlock() == null ? "null" :
                     message.getBlock().toString()));
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-            assert false;
         }
 
-        try {
+        {
             PbftMessage message = this.commit;
             log.debug("type: " + message.getType());
             log.debug("viewNumber: " + message.getViewNumber());
@@ -207,12 +202,9 @@ public class PbftMessageTest {
             log.debug("signatureHex: " + message.getSignatureHex());
             log.debug("block: " + (message.getBlock() == null ? "null" :
                     message.getBlock().toString()));
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-            assert false;
         }
 
-        try {
+        {
             PbftMessage message = this.viewChange;
             log.debug("type: " + message.getType());
             log.debug("viewNumber: " + message.getViewNumber());
@@ -225,9 +217,6 @@ public class PbftMessageTest {
             log.debug("signatureHex: " + message.getSignatureHex());
             log.debug("block: " + (message.getBlock() == null ? "null" :
                     message.getBlock().toString()));
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-            assert false;
         }
     }
 
@@ -278,29 +267,29 @@ public class PbftMessageTest {
             log.debug("before: " + before.toJsonObject().toString());
             PbftMessage after = newPbftMessageList.get(i);
             log.debug("after:  " + after.toJsonObject().toString());
-            assert before.equals(after);
+            assertEquals(before, after);
         }
     }
 
     @Test
     public void cloneTest() {
         PbftMessage newPbftMessage = this.prePrepare.clone();
-        assertTrue(newPbftMessage.equals(this.prePrepare));
+        assertEquals(newPbftMessage, this.prePrepare);
         newPbftMessage.clear();
         assertTrue(PbftMessage.verify(this.prePrepare));
 
         newPbftMessage = this.prepare.clone();
-        assertTrue(newPbftMessage.equals(this.prepare));
+        assertEquals(newPbftMessage, this.prepare);
         newPbftMessage.clear();
         assertTrue(PbftMessage.verify(this.prepare));
 
         newPbftMessage = this.commit.clone();
-        assertTrue(newPbftMessage.equals(this.commit));
+        assertEquals(newPbftMessage, this.commit);
         newPbftMessage.clear();
         assertTrue(PbftMessage.verify(this.commit));
 
         newPbftMessage = this.viewChange.clone();
-        assertTrue(newPbftMessage.equals(this.viewChange));
+        assertEquals(newPbftMessage, this.viewChange);
         newPbftMessage.clear();
         assertTrue(PbftMessage.verify(this.viewChange));
     }

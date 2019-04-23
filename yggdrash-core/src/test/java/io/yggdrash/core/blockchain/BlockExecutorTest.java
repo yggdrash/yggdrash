@@ -24,6 +24,7 @@ import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BranchStore;
 import io.yggdrash.core.store.ConsensusBlockStore;
+import io.yggdrash.core.store.PbftBlockStoreMock;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.junit.Assert;
@@ -37,7 +38,6 @@ public class BlockExecutorTest {
     @Test
     public void executorTest() {
 
-        StemContract contract = new StemContract();
         Runtime runtime = new Runtime(
                         new StateStore(new HashMapDbSource()),
                         new TransactionReceiptStore(new HashMapDbSource())
@@ -47,7 +47,10 @@ public class BlockExecutorTest {
         // Block Store
         // Blockchain Runtime
 
-        StoreBuilder builder = StoreBuilder.newBuilder().setConfig(new DefaultConfig()).setBranchId(BRANCH_ID);
+        StoreBuilder builder = StoreBuilder.newBuilder()
+                .setConfig(new DefaultConfig())
+                .setBranchId(BRANCH_ID)
+                .setBlockStoreFactory(PbftBlockStoreMock::new);
 
         ConsensusBlockStore store = builder.buildBlockStore();
         BranchStore branchStore = builder.buildBranchStore();

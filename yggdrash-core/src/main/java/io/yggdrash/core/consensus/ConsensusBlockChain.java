@@ -19,14 +19,14 @@ public interface ConsensusBlockChain<T, V> {
 
     TransactionStore getTransactionStore();
 
-    Block<T> getGenesisBlock();
+    ConsensusBlock<T> getGenesisBlock();
 
-    Block<T> getLastConfirmedBlock();
+    ConsensusBlock<T> getLastConfirmedBlock();
 
     Map<String, V> getUnConfirmedData();
 
-    Block<T> addBlock(Block<T> block);
+    ConsensusBlock<T> addBlock(ConsensusBlock<T> block);
 
-    List<Block<T>> getBlockList(long index, long count);
+    List<ConsensusBlock<T>> getBlockList(long index, long count);
 
 }

@@ -20,7 +20,7 @@ import ch.qos.logback.classic.Level;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.util.Utils;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.node.AbstractNodeTesting;
 import io.yggdrash.node.TestNode;
 import org.junit.Assert;
@@ -46,7 +46,7 @@ public class SimpleTxBroadcastTest extends AbstractNodeTesting {
         // act
         for (int i = 1; i < nodeCount; i++) {
             // broadcast 100 nodes (inProcess=300ms, tcp=700ms)
-            TransactionHusk tx = BlockChainTestUtils.createTransferTxHusk();
+            Transaction tx = BlockChainTestUtils.createTransferTxHusk();
             nodeList.get(i).getBranchGroup().addTransaction(tx);
             log.info("broadcast finish={}", i);
         }

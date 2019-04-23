@@ -4,6 +4,7 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
+import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.blockchain.Transaction;
@@ -49,7 +50,7 @@ public class GenesisBlock {
         contractTransaction(builder);
         // Save Validator Transaction
         //validatorTransaction(builder);
-        Transaction tx = builder.buildTransaction();
+        Transaction tx = builder.build();
 
         // Make Genesis Block
         return generatorGenesisBlock(tx);
@@ -79,9 +80,8 @@ public class GenesisBlock {
                 Constants.EMPTY_HASH,
                 0L,
                 branch.getTimestamp(),
-                blockBody.getMerkleRoot(),
-                blockBody.length());
-        return new Block(blockHeader, Constants.EMPTY_SIGNATURE, blockBody);
+                blockBody);
+        return new BlockImpl(blockHeader, Constants.EMPTY_SIGNATURE, blockBody);
     }
 
     public static GenesisBlock of(InputStream is) throws IOException {

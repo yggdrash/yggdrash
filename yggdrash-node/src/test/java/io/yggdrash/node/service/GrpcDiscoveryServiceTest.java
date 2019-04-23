@@ -22,7 +22,7 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.p2p.Peer;
-import io.yggdrash.proto.PeerGrpc;
+import io.yggdrash.proto.PeerServiceGrpc;
 import io.yggdrash.proto.Proto;
 import org.junit.Before;
 import org.junit.Rule;
@@ -53,7 +53,7 @@ public class GrpcDiscoveryServiceTest {
 
     @Test
     public void findPeers() {
-        PeerGrpc.PeerBlockingStub blockingStub = PeerGrpc.newBlockingStub(
+        PeerServiceGrpc.PeerServiceBlockingStub blockingStub = PeerServiceGrpc.newBlockingStub(
                 grpcServerRule.getChannel());
 
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
@@ -70,7 +70,7 @@ public class GrpcDiscoveryServiceTest {
 
     @Test
     public void ping() {
-        PeerGrpc.PeerBlockingStub blockingStub = PeerGrpc.newBlockingStub(
+        PeerServiceGrpc.PeerServiceBlockingStub blockingStub = PeerServiceGrpc.newBlockingStub(
                 grpcServerRule.getChannel());
         Peer from = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
         Peer to = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");

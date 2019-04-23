@@ -150,7 +150,7 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
 
         for (Peer peer : closest) {
             if (!tried.contains(peer) && !prevTried.contains(peer)) {
-                PeerHandler peerHandler = peerDialer.getPeerHandler(peer);
+                PeerHandler peerHandler = peerDialer.getPeerHandler(entry.getKey(), peer);
                 findPeers(target, entry, tried, peer, peerHandler);
             }
             if (tried.size() == KademliaOptions.ALPHA) {
