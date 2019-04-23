@@ -13,7 +13,6 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.core.consensus.ConsensusBlock;
-import io.yggdrash.core.net.CatchUpSyncEventListener;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerNetwork;
 import io.yggdrash.core.p2p.Peer;
@@ -25,7 +24,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListener {
+public class BlockChainSyncManager implements SyncManager {
     private static final Logger log = LoggerFactory.getLogger(BlockChainSyncManager.class);
 
     private NodeStatus nodeStatus;
@@ -69,7 +68,7 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
     the node isn't connected to the network.
     */
 
-    // When broadcastBlock is called (BlockChainServiceConsumer)
+    // When broadcastBlock is called (BlockServiceConsumer)
     @Override
     public void catchUpRequest(ConsensusBlock block) {
         BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
@@ -86,7 +85,7 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
         }
     }
 
-    // When syncBlock is called (BlockChainServiceConsumer)
+    // When syncBlock is called (BlockServiceConsumer)
     @Override
     public void catchUpRequest(BranchId branchId, long offset) {
         BlockChain blockChain = branchGroup.getBranch(branchId);

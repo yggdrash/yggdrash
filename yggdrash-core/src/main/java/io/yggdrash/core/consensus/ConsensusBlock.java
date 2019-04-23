@@ -6,7 +6,7 @@ import io.yggdrash.core.blockchain.ProtoObject;
 
 public interface ConsensusBlock<T> extends Block, ProtoObject<T> {
 
-    io.yggdrash.core.blockchain.Block getBlock();
+    Block getBlock();
 
     Object getConsensusMessages();
 
