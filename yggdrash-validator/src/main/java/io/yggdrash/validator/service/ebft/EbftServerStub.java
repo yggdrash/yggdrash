@@ -6,7 +6,6 @@ import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.EbftProto;
 import io.yggdrash.proto.EbftServiceGrpc;
-import io.yggdrash.proto.NetProto;
 import io.yggdrash.validator.data.ebft.EbftBlock;
 import io.yggdrash.validator.data.ebft.EbftStatus;
 import org.slf4j.LoggerFactory;
@@ -14,6 +13,7 @@ import org.slf4j.LoggerFactory;
 public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(EbftServerStub.class);
+    private static final CommonProto.Empty EMPTY = CommonProto.Empty.getDefaultInstance();
 
     private final ConsensusBlockChain<EbftProto.EbftBlock, EbftBlock> blockChain;
     private final EbftService ebftService; //todo: check security!
@@ -44,16 +44,16 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
     }
 
     @Override
-    public void multicastEbftBlock(EbftProto.EbftBlock request, StreamObserver<NetProto.Empty> responseObserver) {
+    public void multicastEbftBlock(EbftProto.EbftBlock request, StreamObserver<CommonProto.Empty> responseObserver) {
         EbftBlock newEbftBlock = new EbftBlock(request);
         if (!newEbftBlock.verify() || !ebftService.consensusVerify(newEbftBlock)) {
             log.warn("multicastEbftBlock Verify Fail");
-            responseObserver.onNext(NetProto.Empty.newBuilder().build());
+            responseObserver.onNext(EMPTY);
             responseObserver.onCompleted();
             return;
         }
 
-        responseObserver.onNext(NetProto.Empty.newBuilder().build());
+        responseObserver.onNext(EMPTY);
         responseObserver.onCompleted();
 
         ConsensusBlock<EbftProto.EbftBlock> lastEbftBlock = blockChain.getLastConfirmedBlock();
@@ -69,17 +69,17 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
 
     @Override
     public void broadcastEbftBlock(EbftProto.EbftBlock request,
-                                   StreamObserver<NetProto.Empty> responseObserver) {
+                                   StreamObserver<CommonProto.Empty> responseObserver) {
         EbftBlock newEbftBlock = new EbftBlock(request);
         try {
             if (!EbftBlock.verify(newEbftBlock) || !ebftService.consensusVerify(newEbftBlock)) {
                 log.warn("broadcastEbftBlock Verify Fail");
-                responseObserver.onNext(NetProto.Empty.newBuilder().build());
+                responseObserver.onNext(EMPTY);
                 responseObserver.onCompleted();
                 return;
             }
 
-            responseObserver.onNext(NetProto.Empty.newBuilder().build());
+            responseObserver.onNext(EMPTY);
             responseObserver.onCompleted();
 
             ConsensusBlock<EbftProto.EbftBlock> lastEbftBlock = this.blockChain.getLastConfirmedBlock();

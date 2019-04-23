@@ -19,6 +19,8 @@ import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.p2p.PeerHandler;
+import io.yggdrash.node.service.ConsensusHandlerFactory;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -34,7 +36,7 @@ public class RpcTest extends TcpNodeTesting {
 
     private List<ConsensusBlock> blockList;
     private List<Transaction> txList;
-    private GRpcPeerHandler handler;
+    private PeerHandler handler;
 
     @Override
     public void setUp() {
@@ -46,7 +48,7 @@ public class RpcTest extends TcpNodeTesting {
         // Peer to send rpc msg
         Peer peer = nodeList.get(1).peerTableGroup.getOwner();
         ManagedChannel channel = createChannel(peer);
-        handler = new GRpcPeerHandler(channel, peer);
+        handler = new ConsensusHandlerFactory.PbftPeerHandler(channel, peer);
 
         setBlockHuskList();
         setTxHuskList();
@@ -96,7 +98,7 @@ public class RpcTest extends TcpNodeTesting {
 
         BlockChain branch = nodeList.get(1).getDefaultBranch();
 
-        List<Transaction> foundTxList = handler.syncTx(branch.getBranchId()).get();
+        List<Transaction> foundTxList = (List<Transaction>) handler.syncTx(branch.getBranchId()).get();
         for (Transaction tx : foundTxList) {
             Assert.assertTrue(txList.contains(tx));
         }

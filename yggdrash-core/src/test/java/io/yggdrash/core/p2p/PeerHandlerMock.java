@@ -112,10 +112,10 @@ public class PeerHandlerMock implements PeerHandler {
     }
 
     public static PeerHandler dummy() {
-        return dummy(OWNER);
+        return dummy(null, OWNER);
     }
 
-    public static PeerHandler dummy(Peer peer) {
+    public static PeerHandler dummy(String consensus, Peer peer) {
         return new PeerHandlerMock(peer.getYnodeUri());
     }
 

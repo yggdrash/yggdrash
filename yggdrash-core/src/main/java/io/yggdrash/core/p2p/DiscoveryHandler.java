@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Akashic Foundation
+ * Copyright 2019 Akashic Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,25 +20,8 @@ import io.yggdrash.core.blockchain.BranchId;
 
 import java.util.List;
 
-public interface PeerDialer {
+public interface DiscoveryHandler {
+    List<Peer> findPeers(BranchId branchId, Peer targetPeer);
 
-    void setPeerEventListener(PeerEventListener peerEventListener);
-
-    void destroyAll();
-
-    void addConsensus(BranchId branchId, String consensus);
-
-    boolean healthCheck(BranchId branchId, Peer owner, Peer to);
-
-    void removeHandler(PeerHandler peerHandler);
-
-    int handlerCount();
-
-    List<String> getActivePeerList();
-
-    List<String> getActiveAddressList();
-
-    List<PeerHandler> getHandlerList(BranchId branchId, List<Peer> peerList);
-
-    PeerHandler getPeerHandler(BranchId branchId, Peer peer);
+    String ping(BranchId branchId, Peer owner, String message);
 }

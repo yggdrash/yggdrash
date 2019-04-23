@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Akashic Foundation
+ * Copyright 2019 Akashic Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,28 +17,18 @@
 package io.yggdrash.core.p2p;
 
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.consensus.ConsensusBlock;
 
 import java.util.List;
+import java.util.concurrent.Future;
 
-public interface PeerDialer {
+public interface BlockChainHandler<T> {
+    Future<List<ConsensusBlock<T>>> syncBlock(BranchId branchId, long offset);
 
-    void setPeerEventListener(PeerEventListener peerEventListener);
+    Future<List<Transaction>> syncTx(BranchId branchId);
 
-    void destroyAll();
+    void broadcastBlock(ConsensusBlock<T> block);
 
-    void addConsensus(BranchId branchId, String consensus);
-
-    boolean healthCheck(BranchId branchId, Peer owner, Peer to);
-
-    void removeHandler(PeerHandler peerHandler);
-
-    int handlerCount();
-
-    List<String> getActivePeerList();
-
-    List<String> getActiveAddressList();
-
-    List<PeerHandler> getHandlerList(BranchId branchId, List<Peer> peerList);
-
-    PeerHandler getPeerHandler(BranchId branchId, Peer peer);
+    void broadcastTx(Transaction txHusk);
 }

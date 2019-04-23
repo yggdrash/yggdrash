@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.node.service;
 
-import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
+import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.p2p.Peer;
-import io.yggdrash.proto.BlockChainGrpc;
-import io.yggdrash.proto.PeerGrpc;
+import io.yggdrash.core.p2p.PeerHandler;
+import io.yggdrash.proto.CommonProto;
+import io.yggdrash.proto.PbftProto;
+import io.yggdrash.proto.PbftServiceGrpc;
 import io.yggdrash.proto.Proto;
+import io.yggdrash.validator.data.pbft.PbftBlock;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,7 +44,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class GRpcPeerHandlerTest extends TestConstants.CiTest {
+public class PbftPeerHandlerTest extends TestConstants.CiTest {
 
     private static final Peer TARGET = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
 
@@ -48,65 +52,58 @@ public class GRpcPeerHandlerTest extends TestConstants.CiTest {
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();
 
     @Spy
-    private PeerGrpc.PeerImplBase peerService;
-
-    @Spy
-    private BlockChainGrpc.BlockChainImplBase blockChainService;
+    private PbftServiceGrpc.PbftServiceImplBase pbftService;
 
     @Captor
-    private ArgumentCaptor<Proto.Ping> pingRequestCaptor;
+    private ArgumentCaptor<CommonProto.Offset> offsetCaptor;
 
     @Captor
-    private ArgumentCaptor<Proto.TargetPeer> findPeersTargetCaptor;
+    private ArgumentCaptor<PbftProto.PbftBlock> blockCaptor;
 
-    private GRpcPeerHandler peerHandler;
+    private PeerHandler peerHandler;
 
     private BranchId yggdrash;
 
     @Before
     public void setUp() {
         yggdrash = TestConstants.yggdrash();
-        peerHandler = new GRpcPeerHandler(grpcServerRule.getChannel(), TARGET);
-        grpcServerRule.getServiceRegistry().addService(peerService);
-        grpcServerRule.getServiceRegistry().addService(blockChainService);
+        peerHandler = new ConsensusHandlerFactory.PbftPeerHandler(grpcServerRule.getChannel(), TARGET);
+        grpcServerRule.getServiceRegistry().addService(pbftService);
         assertEquals(TARGET, peerHandler.getPeer());
     }
 
     @Test
-    public void ping() {
+    public void getPbftBlockListTest() {
         doAnswer((invocationOnMock) -> {
             StreamObserver<Proto.BlockList> argument = invocationOnMock.getArgument(1);
             argument.onNext(null);
             argument.onCompleted();
             return null;
-        }).when(peerService).ping(pingRequestCaptor.capture(), any());
+        }).when(pbftService).getPbftBlockList(offsetCaptor.capture(), any());
 
-        Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
-        String ping = "Ping";
-        peerHandler.ping(yggdrash, owner, ping);
+        peerHandler.syncBlock(yggdrash, 1);
 
-        verify(peerService).ping(pingRequestCaptor.capture(), any());
+        verify(pbftService).getPbftBlockList(offsetCaptor.capture(), any());
 
-        assertEquals(ping, pingRequestCaptor.getValue().getPing());
-
-        ByteString branchId = pingRequestCaptor.getValue().getBranch();
-        assertEquals(yggdrash, BranchId.of(branchId.toByteArray()));
+        assertEquals(1, offsetCaptor.getValue().getIndex());
     }
 
     @Test
-    public void findPeers() {
+    public void broadcastPbftBlockTest() {
         doAnswer((invocationOnMock) -> {
             StreamObserver<Proto.BlockList> argument = invocationOnMock.getArgument(1);
             argument.onNext(null);
             argument.onCompleted();
             return null;
-        }).when(peerService).findPeers(findPeersTargetCaptor.capture(), any());
+        }).when(pbftService).broadcastPbftBlock(blockCaptor.capture(), any());
 
-        peerHandler.findPeers(yggdrash, TARGET);
+        Block block = BlockChainTestUtils.genesisBlock();
 
-        verify(peerService).findPeers(findPeersTargetCaptor.capture(), any());
+        PbftBlock pbftBlock = new PbftBlock(PbftProto.PbftBlock.newBuilder().setBlock(block.getProtoBlock()).build());
+        peerHandler.broadcastBlock(pbftBlock);
 
-        assertEquals("127.0.0.1", findPeersTargetCaptor.getValue().getIp());
-        assertEquals(32918, findPeersTargetCaptor.getValue().getPort());
+        verify(pbftService).broadcastPbftBlock(blockCaptor.capture(), any());
+
+        assertEquals(block.getBody().getCount(), blockCaptor.getValue().getBlock().getBody().getTransactionsCount());
     }
 }

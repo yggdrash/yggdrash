@@ -3,6 +3,7 @@ package io.yggdrash.validator.data.ebft;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
+import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.Consensus;
@@ -44,7 +45,7 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
 
     private final ReentrantLock lock = new ReentrantLock();
 
-    public EbftBlockChain(io.yggdrash.core.blockchain.Block genesisBlock, String dbPath,
+    public EbftBlockChain(Block genesisBlock, String dbPath,
                           String blockKeyStorePath, String blockStorePath, String txStorePath) {
         if (genesisBlock.getHeader().getIndex() != 0
                 || !Arrays.equals(genesisBlock.getHeader().getPrevBlockHash(), Constants.EMPTY_HASH)) {

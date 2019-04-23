@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Akashic Foundation
+ * Copyright 2019 Akashic Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,64 +14,51 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.core.p2p;
 
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.SimpleBlock;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionImpl;
-import io.yggdrash.core.consensus.ConsensusBlock;
-import io.yggdrash.core.p2p.Peer;
-import io.yggdrash.core.p2p.PeerHandler;
-import io.yggdrash.proto.BlockChainGrpc;
-import io.yggdrash.proto.NetProto;
-import io.yggdrash.proto.NetProto.SyncLimit;
-import io.yggdrash.proto.PeerGrpc;
+import io.yggdrash.proto.CommonProto;
+import io.yggdrash.proto.PeerServiceGrpc;
 import io.yggdrash.proto.Proto;
+import io.yggdrash.proto.TransactionServiceGrpc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-public class GRpcPeerHandler implements PeerHandler {
+public abstract class AbstractPeerHandler<T> implements PeerHandler<T> {
 
-    private static final Logger log = LoggerFactory.getLogger(GRpcPeerHandler.class);
-    private static final int DEFAULT_LIMIT = 10000;
+    private static final Logger log = LoggerFactory.getLogger(AbstractPeerHandler.class);
+    protected static final int DEFAULT_LIMIT = 10000;
 
     private final Peer peer;
 
     private final ManagedChannel channel;
-    private final PeerGrpc.PeerBlockingStub peerBlockingStub;
-    private final BlockChainGrpc.BlockChainStub blockChainAsyncStub;
-    private final StreamObserver<NetProto.Empty> emptyResponseStreamObserver;
-    private StreamObserver<Proto.Block> broadcastBlockRequestObserver;
+    private PeerServiceGrpc.PeerServiceBlockingStub peerBlockingStub;
+    private final TransactionServiceGrpc.TransactionServiceStub transactionAsyncStub;
+    private final StreamObserver<CommonProto.Empty> emptyResponseStreamObserver;
     private StreamObserver<Proto.Transaction> broadcastTxRequestObserver;
     private boolean alive;
 
-    GRpcPeerHandler(Peer peer) {
-        this(ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext()
-                .build(), peer);
-    }
-
-    GRpcPeerHandler(ManagedChannel channel, Peer peer) {
+    public AbstractPeerHandler(ManagedChannel channel, Peer peer) {
         this.channel = channel;
         this.peer = peer;
-        this.peerBlockingStub = PeerGrpc.newBlockingStub(channel);
-        this.blockChainAsyncStub = BlockChainGrpc.newStub(channel);
+        this.peerBlockingStub = PeerServiceGrpc.newBlockingStub(channel);
+        this.transactionAsyncStub = TransactionServiceGrpc.newStub(channel);
         this.emptyResponseStreamObserver =
-                new StreamObserver<NetProto.Empty>() {
+                new StreamObserver<CommonProto.Empty>() {
                     @Override
-                    public void onNext(NetProto.Empty empty) {
+                    public void onNext(CommonProto.Empty empty) {
                         log.debug("[PeerHandler] Empty Received");
                     }
 
@@ -88,6 +75,20 @@ public class GRpcPeerHandler implements PeerHandler {
                         channel.shutdown();
                     }
                 };
+    }
+
+    @Override
+    public Peer getPeer() {
+        return peer;
+    }
+
+    @Override
+    public void stop() {
+        log.debug("Stop for peer={}", peer.getYnodeUri());
+
+        if (channel != null) {
+            channel.shutdown();
+        }
     }
 
     @Override
@@ -114,84 +115,15 @@ public class GRpcPeerHandler implements PeerHandler {
     }
 
     @Override
-    public Peer getPeer() {
-        return peer;
-    }
-
-    @Override
-    public void stop() {
-        log.debug("Stop for peer={}", peer.getYnodeUri());
-
-        if (channel != null) {
-            if (broadcastBlockRequestObserver != null) {
-                try {
-                    broadcastBlockRequestObserver.onCompleted();
-                } catch (Exception e) {
-                    log.warn(e.getMessage());
-                }
-            }
-            if (broadcastTxRequestObserver != null) {
-                try {
-                    broadcastTxRequestObserver.onCompleted();
-                } catch (Exception e) {
-                    log.warn(e.getMessage());
-                }
-            }
-            channel.shutdown();
-        }
-    }
-
-    @Override
-    public Future<List<ConsensusBlock>> syncBlock(BranchId branchId, long offset) {
-        log.debug("Requesting sync block: branchId={}, offset={}", branchId, offset);
-
-        SyncLimit syncLimit = SyncLimit.newBuilder()
-                .setOffset(offset)
-                .setLimit(DEFAULT_LIMIT)
-                .setBranch(ByteString.copyFrom(branchId.getBytes()))
-                .setFrom(peer.getYnodeUri()).build();
-
-        CompletableFuture<List<ConsensusBlock>> husksCompletableFuture = new CompletableFuture<>();
-
-        blockChainAsyncStub.syncBlock(syncLimit,
-                new StreamObserver<Proto.BlockList>() {
-                    @Override
-                    public void onNext(Proto.BlockList protoBlockList) {
-                        List<ConsensusBlock> blockList = new ArrayList<>();
-                        for (Proto.Block block : protoBlockList.getBlocksList()) {
-                            blockList.add(new SimpleBlock(block.toByteArray()));
-                        }
-                        log.debug("[PeerHandler] BlockList(size={}) Received", blockList.size());
-                        husksCompletableFuture.complete(blockList);
-                    }
-
-                    @Override
-                    public void onError(Throwable t) {
-                        log.debug("[PeerHandler] Sync Block Failed: {}", Status.fromThrowable(t));
-                        husksCompletableFuture.completeExceptionally(t);
-                    }
-
-                    @Override
-                    public void onCompleted() {
-                        log.debug("[PeerHandler] Sync Block Finished");
-                        husksCompletableFuture.complete(Collections.emptyList());
-                    }
-                }
-        );
-
-        return husksCompletableFuture;
-    }
-
-    @Override
     public Future<List<Transaction>> syncTx(BranchId branchId) {
-        SyncLimit syncLimit = SyncLimit.newBuilder()
+        CommonProto.SyncLimit syncLimit = CommonProto.SyncLimit.newBuilder()
                 .setBranch(ByteString.copyFrom(branchId.getBytes())).build();
 
         log.debug("Requesting sync tx: branchId={}", branchId);
 
         CompletableFuture<List<Transaction>> husksCompletableFuture = new CompletableFuture<>();
 
-        blockChainAsyncStub.syncTx(syncLimit,
+        transactionAsyncStub.syncTx(syncLimit,
                 new StreamObserver<Proto.TransactionList>() {
                     @Override
                     public void onNext(Proto.TransactionList txList) {
@@ -219,27 +151,13 @@ public class GRpcPeerHandler implements PeerHandler {
         return husksCompletableFuture;
     }
 
-    // When we send a (single) block to the server and get back a (single) empty.
-    // Use the asynchronous stub for this method.
-    @Override
-    public void broadcastBlock(ConsensusBlock block) {
-        log.debug("Broadcasting blocks -> {}", peer.getYnodeUri());
-
-        if (!alive) {
-            alive = true;
-            this.broadcastBlockRequestObserver = blockChainAsyncStub.broadcastBlock(emptyResponseStreamObserver);
-        }
-
-        broadcastBlockRequestObserver.onNext(block.getProtoBlock());
-    }
-
     @Override
     public void broadcastTx(Transaction tx) {
         log.debug("Broadcasting txs -> {}", peer.getYnodeUri());
 
         if (!alive) {
             alive = true;
-            this.broadcastTxRequestObserver = blockChainAsyncStub.broadcastTx(emptyResponseStreamObserver);
+            this.broadcastTxRequestObserver = transactionAsyncStub.broadcastTx(emptyResponseStreamObserver);
         }
 
         broadcastTxRequestObserver.onNext(tx.getInstance());

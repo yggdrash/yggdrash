@@ -40,7 +40,7 @@ public class PeerNetworkMock implements PeerNetwork {
     public List<PeerHandler> getHandlerList(BranchId branchId) {
         List<PeerHandler> peerHandlerList = new ArrayList<>();
         for (int port = 32919; port < 32922; port++) {
-            peerHandlerList.add(PeerHandlerMock.dummy(Peer.valueOf("ynode://75bff16c@127.0.0.1:" + port)));
+            peerHandlerList.add(PeerHandlerMock.dummy(null, Peer.valueOf("ynode://75bff16c@127.0.0.1:" + port)));
         }
         return peerHandlerList;
     }
