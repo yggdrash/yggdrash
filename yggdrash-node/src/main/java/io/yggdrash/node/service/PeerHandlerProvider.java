@@ -23,9 +23,10 @@ import io.grpc.ManagedChannelBuilder;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.core.p2p.AbstractPeerHandler;
+import io.yggdrash.core.p2p.AbstractBlockChainHandler;
+import io.yggdrash.core.p2p.BlockChainHandlerFactory;
+import io.yggdrash.core.p2p.DiscoveryHandler;
 import io.yggdrash.core.p2p.Peer;
-import io.yggdrash.core.p2p.PeerHandlerFactory;
 import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.EbftProto;
 import io.yggdrash.proto.EbftServiceGrpc;
@@ -41,13 +42,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-public class ConsensusHandlerFactory {
+public class PeerHandlerProvider {
 
-    private ConsensusHandlerFactory() {
+    private PeerHandlerProvider() {
         throw new IllegalStateException("Utility class");
     }
 
-    public static PeerHandlerFactory factory() {
+    public static BlockChainHandlerFactory factory() {
         return (consensusAlgorithm, peer) -> {
 
             switch (consensusAlgorithm) {
@@ -55,13 +56,15 @@ public class ConsensusHandlerFactory {
                     return new PbftPeerHandler(peer);
                 case "ebft":
                     return new EbftPeerHandler(peer);
+                case "discovery":
+                    return new DiscoveryHandler(peer);
                 default:
             }
             throw new NotValidateException("Algorithm is not valid.");
         };
     }
 
-    public static class PbftPeerHandler extends AbstractPeerHandler<PbftProto.PbftBlock> {
+    public static class PbftPeerHandler extends AbstractBlockChainHandler<PbftProto.PbftBlock> {
         private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftPeerHandler.class);
 
         private final PbftServiceGrpc.PbftServiceBlockingStub blockingStub;
@@ -107,7 +110,7 @@ public class ConsensusHandlerFactory {
         }
     }
 
-    public static class EbftPeerHandler extends AbstractPeerHandler<EbftProto.EbftBlock> {
+    public static class EbftPeerHandler extends AbstractBlockChainHandler<EbftProto.EbftBlock> {
         private static final org.slf4j.Logger log = LoggerFactory.getLogger(EbftPeerHandler.class);
 
         private final EbftServiceGrpc.EbftServiceBlockingStub blockingStub;
