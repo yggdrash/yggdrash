@@ -25,7 +25,6 @@ import org.springframework.scheduling.support.CronTrigger;
 import java.io.File;
 import java.io.IOException;
 
-@Deprecated
 public class ValidatorService {
 
     private final DefaultConfig defaultConfig;

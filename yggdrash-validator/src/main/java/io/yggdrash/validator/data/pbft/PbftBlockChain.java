@@ -26,7 +26,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
-@Deprecated
 public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, PbftMessage> {
 
     private static final Logger log = LoggerFactory.getLogger(PbftBlockChain.class);

@@ -1,6 +1,7 @@
 package io.yggdrash.validator.service.ebft;
 
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.proto.CommonProto;
@@ -108,7 +109,9 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
         if (start < end) {
             for (long l = start; l <= end; l++) {
                 try {
-                    ConsensusBlock<EbftProto.EbftBlock> block = blockChain.getBlockStore().getBlockByIndex(l);
+                    ConsensusBlock<EbftProto.EbftBlock> block =
+                            blockChain.getBlockStore()
+                                    .get(Sha3Hash.createByHashed((byte[]) blockChain.getBlockKeyStore().get(l)));
                     builder.addEbftBlock(block.getInstance());
                 } catch (Exception e) {
                     break;
