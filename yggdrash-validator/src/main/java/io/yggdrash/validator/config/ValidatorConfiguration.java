@@ -2,6 +2,7 @@ package io.yggdrash.validator.config;
 
 import com.typesafe.config.ConfigFactory;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Block;
@@ -30,7 +31,9 @@ public class ValidatorConfiguration {
     public void makeValidatorService() throws IOException, InvalidCipherTextException {
 
         File validatorPath = new File(new DefaultConfig().getString("yggdrash.validator.path"));
-
+        if (!validatorPath.exists() || validatorPath.listFiles() == null) {
+            throw new FailedOperationException("Can't read validatorPath=" + validatorPath.getAbsolutePath());
+        }
         for (File validatorDir : Objects.requireNonNull(validatorPath.listFiles())) {
             File validatorConfFile = new File(validatorDir, "validator.conf");
             DefaultConfig validatorConfig = new DefaultConfig(ConfigFactory.parseFile(validatorConfFile));
