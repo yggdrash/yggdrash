@@ -13,7 +13,7 @@ public class PeerDialerTest {
 
     @Before
     public void setUp() {
-        this.peerDialer = new SimplePeerDialer(PeerHandlerMock.factory);
+        this.peerDialer = new BlockChainDialer(PeerHandlerMock.factory);
         peerDialer.setPeerEventListener(Assert::assertNotNull);
     }
 

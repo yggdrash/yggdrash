@@ -19,8 +19,8 @@ package io.yggdrash.core.net;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.p2p.BlockChainHandler;
 import io.yggdrash.core.p2p.Peer;
-import io.yggdrash.core.p2p.PeerHandler;
 import io.yggdrash.core.p2p.PeerHandlerMock;
 
 import java.util.ArrayList;
@@ -37,8 +37,8 @@ public class PeerNetworkMock implements PeerNetwork {
     public void destroy() {
     }
 
-    public List<PeerHandler> getHandlerList(BranchId branchId) {
-        List<PeerHandler> peerHandlerList = new ArrayList<>();
+    public List<BlockChainHandler> getHandlerList(BranchId branchId) {
+        List<BlockChainHandler> peerHandlerList = new ArrayList<>();
         for (int port = 32919; port < 32922; port++) {
             peerHandlerList.add(PeerHandlerMock.dummy(null, Peer.valueOf("ynode://75bff16c@127.0.0.1:" + port)));
         }

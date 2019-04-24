@@ -15,12 +15,12 @@ import io.yggdrash.core.net.BootStrapNode;
 import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.net.DiscoveryServiceConsumer;
 import io.yggdrash.core.net.NodeStatusMock;
+import io.yggdrash.core.p2p.BlockChainDialer;
+import io.yggdrash.core.p2p.BlockChainHandlerFactory;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
-import io.yggdrash.core.p2p.PeerHandlerFactory;
 import io.yggdrash.core.p2p.PeerTable;
 import io.yggdrash.core.p2p.PeerTableGroup;
-import io.yggdrash.core.p2p.SimplePeerDialer;
 import io.yggdrash.core.util.PeerTableCounter;
 import io.yggdrash.node.config.NetworkConfiguration;
 import io.yggdrash.node.config.NodeProperties;
@@ -37,7 +37,7 @@ public class TestNode extends BootStrapNode {
     private static final Logger log = LoggerFactory.getLogger(TestNode.class);
     private final BranchId branchId = TestConstants.yggdrash();
 
-    private PeerHandlerFactory factory;
+    private BlockChainHandlerFactory factory;
     private boolean enableBranch;
     private NodeProperties nodeProperties;
 
@@ -53,14 +53,14 @@ public class TestNode extends BootStrapNode {
     // branch specific
     TransactionService transactionService;
 
-    private TestNode(PeerHandlerFactory factory, int port, NodeProperties nodeProperties) {
+    private TestNode(BlockChainHandlerFactory factory, int port, NodeProperties nodeProperties) {
         this.factory = factory;
         this.port = port;
         this.nodeProperties = nodeProperties;
         this.enableBranch = true;
     }
 
-    TestNode(PeerHandlerFactory factory, int port, boolean enableBranch) {
+    TestNode(BlockChainHandlerFactory factory, int port, boolean enableBranch) {
         this(factory, port, createNodeProperties(new ArrayList<>()));
         this.enableBranch = enableBranch;
         config();
@@ -80,7 +80,7 @@ public class TestNode extends BootStrapNode {
 
     private void p2pConfiguration() {
         this.nodeStatus = NodeStatusMock.create();
-        this.peerDialer = new SimplePeerDialer(factory);
+        this.peerDialer = new BlockChainDialer(factory);
         this.peerTableGroup = PeerTestUtils.createTableGroup(port, peerDialer);
         this.discoveryConsumer = new DiscoveryServiceConsumer(peerTableGroup);
 
@@ -169,7 +169,7 @@ public class TestNode extends BootStrapNode {
         return port == PeerTestUtils.SEED_PORT;
     }
 
-    public static TestNode createProxyNode(PeerHandlerFactory factory, List<String> validatorList) {
+    public static TestNode createProxyNode(BlockChainHandlerFactory factory, List<String> validatorList) {
         NodeProperties nodeProperties = createNodeProperties(validatorList);
         TestNode node = new TestNode(factory, PeerTestUtils.OWNER_PORT, nodeProperties);
         node.config();

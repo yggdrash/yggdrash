@@ -28,19 +28,19 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-public class SimplePeerDialer implements PeerDialer {
+public class BlockChainDialer implements PeerDialer {
 
-    private static final Logger log = LoggerFactory.getLogger(SimplePeerDialer.class);
+    private static final Logger log = LoggerFactory.getLogger(BlockChainDialer.class);
 
-    private final Map<String, PeerHandler> handlerMap = new ConcurrentHashMap<>();
+    private final Map<String, BlockChainHandler> handlerMap = new ConcurrentHashMap<>();
 
     private final Map<BranchId, String> consensusMap = new HashMap<>();
 
-    private final PeerHandlerFactory peerHandlerFactory;
+    private final BlockChainHandlerFactory peerHandlerFactory;
 
     private PeerEventListener peerEventListener;
 
-    public SimplePeerDialer(PeerHandlerFactory peerHandlerFactory) {
+    public BlockChainDialer(BlockChainHandlerFactory peerHandlerFactory) {
         this.peerHandlerFactory = peerHandlerFactory;
     }
 
@@ -51,7 +51,7 @@ public class SimplePeerDialer implements PeerDialer {
 
     @Override
     public void destroyAll() {
-        handlerMap.values().forEach(PeerHandler::stop);
+        handlerMap.values().forEach(BlockChainHandler::stop);
         handlerMap.clear();
         consensusMap.clear();
     }
@@ -63,7 +63,7 @@ public class SimplePeerDialer implements PeerDialer {
 
     @Override
     public boolean healthCheck(BranchId branchId, Peer owner, Peer to) {
-        PeerHandler peerHandler = getPeerHandler(branchId, to);
+        BlockChainHandler peerHandler = getPeerHandler(branchId, to);
         try {
             String pong = peerHandler.ping(branchId, owner, "Ping");
             // TODO validation peer and considering expiration
@@ -78,7 +78,7 @@ public class SimplePeerDialer implements PeerDialer {
     }
 
     @Override
-    public void removeHandler(PeerHandler peerHandler) {
+    public void removeHandler(BlockChainHandler peerHandler) {
         peerHandler.stop();
         handlerMap.remove(peerHandler.getPeer().toAddress());
         if (peerEventListener != null) {
@@ -105,26 +105,34 @@ public class SimplePeerDialer implements PeerDialer {
     }
 
     @Override
-    public List<PeerHandler> getHandlerList(BranchId branchId, List<Peer> peerList) {
+    public List<BlockChainHandler> getHandlerList(BranchId branchId, List<Peer> peerList) {
         if (peerList == null || peerList.isEmpty()) {
             return Collections.emptyList();
         }
-        List<PeerHandler> handlerList = new ArrayList<>();
+        List<BlockChainHandler> handlerList = new ArrayList<>();
         for (Peer peer : peerList) {
-            PeerHandler handler = getPeerHandler(branchId, peer);
+            BlockChainHandler handler = getPeerHandler(branchId, peer);
             handlerList.add(handler);
         }
         return handlerList;
     }
 
     @Override
-    public synchronized PeerHandler getPeerHandler(BranchId branchId, Peer peer) {
-        PeerHandler peerHandler = handlerMap.get(peer.toAddress());
-        if (peerHandler == null) {
-            peerHandler = peerHandlerFactory.create(consensusMap.get(branchId), peer);
-            handlerMap.put(peer.toAddress(), peerHandler);
-            log.debug("Added size={}, id={}, handler={}", handlerCount(), peerHandler, peer.getYnodeUri());
+    public synchronized BlockChainHandler getPeerHandler(BranchId branchId, Peer peer) {
+        BlockChainHandler peerHandler = handlerMap.get(peer.toAddress());
+        if (peerHandler != null) {
+            return peerHandler;
         }
+
+        if (!consensusMap.containsKey(branchId)) {
+            // BS Node only
+            peerHandler = peerHandlerFactory.create("discovery", peer);
+        } else {
+            peerHandler = peerHandlerFactory.create(consensusMap.get(branchId), peer);
+        }
+        handlerMap.put(peer.toAddress(), peerHandler);
+        log.debug("Added size={}, id={}, handler={}", handlerCount(), peerHandler, peer.getYnodeUri());
+
         return peerHandler;
     }
 }

@@ -23,7 +23,7 @@ import io.yggdrash.core.consensus.ConsensusBlock;
 import java.util.List;
 import java.util.concurrent.Future;
 
-public interface BlockChainHandler<T> {
+public interface BlockChainHandler<T> extends PeerHandler {
     Future<List<ConsensusBlock<T>>> syncBlock(BranchId branchId, long offset);
 
     Future<List<Transaction>> syncTx(BranchId branchId);

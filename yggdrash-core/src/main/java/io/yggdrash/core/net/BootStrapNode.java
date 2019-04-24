@@ -19,7 +19,7 @@ package io.yggdrash.core.net;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.SyncManager;
-import io.yggdrash.core.p2p.PeerHandler;
+import io.yggdrash.core.p2p.BlockChainHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,11 +39,11 @@ public abstract class BootStrapNode implements BootStrap {
         try {
             nodeStatus.sync();
             for (BlockChain blockChain : branchGroup.getAllBranch()) {
-                List<PeerHandler> peerHandlerList = peerNetwork.getHandlerList(blockChain.getBranchId());
+                List<BlockChainHandler> peerHandlerList = peerNetwork.getHandlerList(blockChain.getBranchId());
 
                 fullSyncBlock(blockChain, peerHandlerList);
 
-                for (PeerHandler peerHandler : peerHandlerList) {
+                for (BlockChainHandler peerHandler : peerHandlerList) {
                     syncManager.syncTransaction(peerHandler, blockChain);
                 }
             }
@@ -54,12 +54,12 @@ public abstract class BootStrapNode implements BootStrap {
         }
     }
 
-    private void fullSyncBlock(BlockChain blockChain, List<PeerHandler> peerHandlerList) {
+    private void fullSyncBlock(BlockChain blockChain, List<BlockChainHandler> peerHandlerList) {
         boolean retry = true;
 
         while (retry) {
             retry = false;
-            for (PeerHandler peerHandler : peerHandlerList) {
+            for (BlockChainHandler peerHandler : peerHandlerList) {
                 boolean syncFinish = syncManager.syncBlock(peerHandler, blockChain);
                 if (!syncFinish) {
                     retry = true;

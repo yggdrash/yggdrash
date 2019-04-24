@@ -22,8 +22,8 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.p2p.BlockChainHandler;
 import io.yggdrash.core.p2p.Peer;
-import io.yggdrash.core.p2p.PeerHandler;
 import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
@@ -60,14 +60,14 @@ public class PbftPeerHandlerTest extends TestConstants.CiTest {
     @Captor
     private ArgumentCaptor<PbftProto.PbftBlock> blockCaptor;
 
-    private PeerHandler peerHandler;
+    private BlockChainHandler peerHandler;
 
     private BranchId yggdrash;
 
     @Before
     public void setUp() {
         yggdrash = TestConstants.yggdrash();
-        peerHandler = new ConsensusHandlerFactory.PbftPeerHandler(grpcServerRule.getChannel(), TARGET);
+        peerHandler = new PeerHandlerProvider.PbftPeerHandler(grpcServerRule.getChannel(), TARGET);
         grpcServerRule.getServiceRegistry().addService(pbftService);
         assertEquals(TARGET, peerHandler.getPeer());
     }

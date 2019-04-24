@@ -17,11 +17,11 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.core.net.CatchUpSyncEventListener;
-import io.yggdrash.core.p2p.PeerHandler;
+import io.yggdrash.core.p2p.BlockChainHandler;
 
 public interface SyncManager extends CatchUpSyncEventListener {
 
-    boolean syncBlock(PeerHandler peerHandler, BlockChain blockChain);
+    boolean syncBlock(BlockChainHandler peerHandler, BlockChain blockChain);
 
-    void syncTransaction(PeerHandler peerHandler, BlockChain blockChain);
+    void syncTransaction(BlockChainHandler peerHandler, BlockChain blockChain);
 }

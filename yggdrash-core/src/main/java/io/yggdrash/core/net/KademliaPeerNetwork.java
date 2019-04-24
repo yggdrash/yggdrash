@@ -19,10 +19,10 @@ package io.yggdrash.core.net;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.p2p.BlockChainHandler;
 import io.yggdrash.core.p2p.KademliaOptions;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
-import io.yggdrash.core.p2p.PeerHandler;
 import io.yggdrash.core.p2p.PeerTableGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,7 +79,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
     }
 
     @Override
-    public List<PeerHandler> getHandlerList(BranchId branchId) {
+    public List<BlockChainHandler> getHandlerList(BranchId branchId) {
         List<Peer> peerList = peerTableGroup.getBroadcastPeerList(branchId);
         return peerDialer.getHandlerList(branchId, peerList);
     }
@@ -128,13 +128,13 @@ public class KademliaPeerNetwork implements PeerNetwork {
         private void broadcastTx(Transaction tx) {
             if (validatorMap.containsKey(tx.getBranchId())) {
                 List<Peer> validatorPeerList = validatorMap.get(tx.getBranchId());
-                for (PeerHandler peerHandler : peerDialer.getHandlerList(tx.getBranchId(), validatorPeerList)) {
+                for (BlockChainHandler peerHandler : peerDialer.getHandlerList(tx.getBranchId(), validatorPeerList)) {
                     peerHandler.broadcastTx(tx);
                 }
             }
 
-            List<PeerHandler> getHandlerList = getHandlerList(tx.getBranchId());
-            for (PeerHandler peerHandler : getHandlerList) {
+            List<BlockChainHandler> getHandlerList = getHandlerList(tx.getBranchId());
+            for (BlockChainHandler peerHandler : getHandlerList) {
                 try {
                     peerHandler.broadcastTx(tx);
                 } catch (Exception e) {
@@ -162,8 +162,8 @@ public class KademliaPeerNetwork implements PeerNetwork {
         }
 
         private void broadcastBlock(ConsensusBlock block) {
-            List<PeerHandler> handlerList = getHandlerList(block.getBranchId());
-            for (PeerHandler peerHandler : handlerList) {
+            List<BlockChainHandler> handlerList = getHandlerList(block.getBranchId());
+            for (BlockChainHandler peerHandler : handlerList) {
                 try {
                     peerHandler.broadcastBlock(block);
                 } catch (Exception e) {
