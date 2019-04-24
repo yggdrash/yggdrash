@@ -25,64 +25,58 @@ import org.junit.Test;
 public class NodeSyncTest extends AbstractNodeTesting {
 
     @Test
-    public void bootstrapBlockSyncTest() {
-        // arrange
-        // bs node
-        bootstrapSeedNode();
-        // bootstrap -> generate block
-        int node1 = 1;
-        bootstrapSyncNode(node1);
-        generateBlock(node1, 4);
-        Assert.assertEquals(4, nodeList.get(node1).getDefaultBranch().getLastIndex());
-
-        // act
-        int node2 = 2;
-        bootstrapSyncNode(node2);
-
-        // assert
-        Assert.assertEquals(nodeList.get(node1).getDefaultBranch().getLastIndex(),
-                nodeList.get(node2).getDefaultBranch().getLastIndex());
-    }
-
-    @Test
     public void catchUpBlockSyncTest() {
-        ////// arrange //////
-        // 1) bs node: bootstrap
-        bootstrapSeedNode();
-        // 2) node1: bootstrap and generate block
+        // arrange
         int node1 = 1;
-        bootstrapSyncNode(node1);
-        generateBlock(node1, 1);
-        // 3) node2: bootstrap
         int node2 = 2;
-        bootstrapSyncNode(node2);
-        // 4) assert
-        Assert.assertEquals(nodeList.get(node1).getDefaultBranch().getLastIndex(),
-                nodeList.get(node2).getDefaultBranch().getLastIndex());
-        // 5) node1: before healthCheck no routing(node1 -> node2) and generate block
-        generateBlock(node1, 1);
+        bootstrapBlockSyncTest();
 
         // act
-        // node1: after healthCheck added routing(node1 -> node2) and generate block
+        // node1 > before healthCheck no routing(node1 -> node2) and generate block
+        generateBlock(node1, 1);
+        // node1 > after healthCheck added routing(node1 -> node2) and generate block
         nodeList.get(node1).peerTask.healthCheck();
         generateBlock(node1, 1);
 
         Utils.sleep(500); // wait for broadcast
 
-        nodeList.get(node1).shutdown();
-        nodeList.get(node2).shutdown();
+        // assert
+        Assert.assertEquals(nodeList.get(node1).getDefaultBranch().getLastIndex(),
+                nodeList.get(node2).getDefaultBranch().getLastIndex());
+    }
+
+    private void bootstrapBlockSyncTest() {
+        // arrange
+        int node1 = 1;
+        arrangeForSync(node1, 4);
+
+        // act
+        int node2 = 2;
+        bootstrapNodesByIndex(node2);
 
         // assert
         Assert.assertEquals(nodeList.get(node1).getDefaultBranch().getLastIndex(),
                 nodeList.get(node2).getDefaultBranch().getLastIndex());
     }
 
-    private void bootstrapSyncNode(int nodeIdx) {
-        createAndStartNode(PeerTestUtils.SEED_PORT + nodeIdx, true).bootstrapping();
+    private void arrangeForSync(int node1, int generateBlockCount) {
+        // 1) bsNode > bootstrap
+        int bsdNode = 0;
+        bootstrapNodesByIndex(bsdNode);
+
+        // 2) node1 > bootstrap
+        bootstrapNodesByIndex(node1);
+
+        // 3) bsNode > healthCheck: -> node1
+        nodeList.get(bsdNode).peerTask.healthCheck();
+
+        // 4) node1 > generate Block
+        generateBlock(node1, generateBlockCount);
+        Assert.assertEquals(generateBlockCount, nodeList.get(node1).getDefaultBranch().getLastIndex());
     }
 
-    private void bootstrapSeedNode() {
-        createAndStartNode(PeerTestUtils.SEED_PORT, false).bootstrapping();
+    private void bootstrapNodesByIndex(int nodeIdx) {
+        createAndStartNode(PeerTestUtils.SEED_PORT + nodeIdx, true).bootstrapping();
     }
 
     private void generateBlock(int nodeIdx, int count) {
