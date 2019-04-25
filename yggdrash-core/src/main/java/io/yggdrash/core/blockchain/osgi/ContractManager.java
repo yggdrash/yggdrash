@@ -9,6 +9,7 @@ import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.ContractStore;
@@ -471,8 +472,7 @@ public class ContractManager {
             String contractVersion = getContractVersion(tx);
             Bundle bundle = getBundle(contractVersion);
             if (bundle == null) {
-                log.error("ContractManager :: executeTxs : can't find bundle ({})", contractVersion);
-                //return null;
+                throw new NonExistObjectException(contractVersion + " bundle");
             }
 
             serviceMap.put(contractVersion, getService(bundle));

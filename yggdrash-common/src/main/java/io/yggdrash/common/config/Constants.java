@@ -55,11 +55,12 @@ public class Constants {
     public static final String PROPERTY_NETWORK_ID = "network.id";
     public static final String PROPERTY_NETWORK_P2P_VER = "network.p2p.version";
 
-    public static final String VALIDATOR_PATH = "yggdrash.validator.path";
     public static final String CONTRACT_PATH = "contract.path";
     public static final String OSGI_PATH = "osgi.path";
     public static final String BRANCH_PATH = "branch.path";
     public static final String DATABASE_PATH = "database.path";
+    public static final String VALIDATOR_DATABASE_PATH = "yggdrash.validator.database.path";
+    public static final String VALIDATOR_PATH = "yggdrash.validator.path";
 
     public static BigInteger getSECP256K1N() {
         return SECP256K1N;
