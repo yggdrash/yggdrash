@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 import org.osgi.framework.BundlePermission;
 import org.osgi.framework.CapabilityPermission;
 import org.osgi.framework.PackagePermission;
@@ -280,8 +281,7 @@ public class ContractManager {
                 return bundleId;
             }
 
-            reloadInject();
-        } catch (IOException | IllegalAccessException e) {
+        } catch (IOException e) {
             log.error("Contract file don't Load [{}]", e.getMessage()); //TODO Throw Runtime Exception
             return bundleId;
         }
@@ -294,7 +294,7 @@ public class ContractManager {
         return bundleId;
     }
 
-    private void reloadInject() throws IllegalAccessException {
+    public void reloadInject() throws IllegalAccessException {
         // TODO load After call
         for (Bundle bundle : framework.getBundleContext().getBundles()) {
             setFullLocation(bundle.getLocation()); // Cache the full location of an existing bundle.
@@ -423,11 +423,17 @@ public class ContractManager {
                     bundle.uninstall();
                     break;
                 case START:
-                    bundle.start();
-                    // ContractStore is null in Test
-                    if (contractStore != null) {
-                        inject(bundle);
+                    try {
+                        bundle.start();
+                        // ContractStore is null in Test
+                        if (contractStore != null) {
+                            inject(bundle);
+                        }
+                     } catch (Exception e) {
+                        bundle.uninstall();
+                        throw new RuntimeException(e);
                     }
+
                     break;
                 case STOP:
                     bundle.stop();
@@ -436,6 +442,7 @@ public class ContractManager {
                     throw new Exception("Action is not Exist");
             }
         } catch (Exception e) {
+
             log.error("Execute bundle exception: contractId:{}, path:{}, stack:{}",
                     bundle.getBundleId(), bundle.getLocation(), ExceptionUtils.getStackTrace(e));
             throw new RuntimeException(e);

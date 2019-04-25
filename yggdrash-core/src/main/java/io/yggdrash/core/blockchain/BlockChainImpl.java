@@ -88,6 +88,12 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                 File branchContractFile = prepareBlockchain.loadContractFile(contract.getContractVersion());
                 contractManager.installContract(contract.getContractVersion(), branchContractFile, contract.isSystem());
             }
+            try {
+                contractManager.reloadInject();
+            } catch (IllegalAccessException e) {
+                log.error(e.getMessage());
+                throw new RuntimeException("contract Inject Fail");
+            }
         } else {
             // TODO BlockChain ready fails
             log.error("BlockChain is not Ready");
