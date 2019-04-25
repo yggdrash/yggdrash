@@ -53,7 +53,7 @@ public class BlockServiceConsumerTest {
         List<ConsensusBlock> received = blockServiceConsumer.syncBlock(branchId, 1, height);
 
         // assert
-        Assert.assertEquals(106, received.size());
+        Assert.assertTrue(height > received.size());
     }
 
     @Test

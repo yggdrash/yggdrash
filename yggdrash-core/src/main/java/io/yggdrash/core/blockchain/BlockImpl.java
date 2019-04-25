@@ -101,6 +101,11 @@ public class BlockImpl implements Block, ProtoObject<Proto.Block> {
                 .build();
     }
 
+    /**
+     * Block Constructor.
+     *
+     * @param jsonObject jsonObject block
+     */
     public BlockImpl(JsonObject jsonObject) {
         this(new BlockHeader(jsonObject.getAsJsonObject(HEADER)),
                 Hex.decode(jsonObject.get(SIGNATURE).getAsString()),
@@ -154,7 +159,7 @@ public class BlockImpl implements Block, ProtoObject<Proto.Block> {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
 
         try {
-            bao.write(header.toBinary());
+            bao.write(header.getBinaryForSinging());
             bao.write(getSignature());
         } catch (IOException e) {
             throw new NotValidateException();
@@ -187,7 +192,7 @@ public class BlockImpl implements Block, ProtoObject<Proto.Block> {
 
     @Override
     public long getLength() {
-        return BlockHeader.LENGTH + Constants.SIGNATURE_LENGTH + this.body.getLength();
+        return BlockHeader.LENGTH + Constants.SIGNATURE_LENGTH + header.getBodyLength();
     }
 
     @Override
@@ -255,7 +260,6 @@ public class BlockImpl implements Block, ProtoObject<Proto.Block> {
                 this.header.getPrevBlockHash(), Constants.HASH_LENGTH, "prevBlockHash");
         check &= verifyCheckLengthNotNull(
                 this.header.getMerkleRoot(), Constants.HASH_LENGTH, "merkleRootLength");
-        check &= BlockHeader.LENGTH >= this.header.getLength();
         if (header.getIndex() != 0) {
             // Genesis Block is not check signature
             check &= verifyCheckLengthNotNull(getSignature(), SIGNATURE_LENGTH, SIGNATURE);

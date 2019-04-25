@@ -26,23 +26,27 @@ import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.Proto;
 import org.spongycastle.util.encoders.Hex;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 
 public class TransactionHeader implements ProtoObject<Proto.Transaction.Header> {
 
-    static final int LENGTH = 96;
+    static final int LENGTH = 84;
 
     static final int VERSION_LENGTH = 8;
     static final int TYPE_LENGTH = 8;
 
-    private final Proto.Transaction.Header protoTransactionHeader;
+    private final Proto.Transaction.Header protoHeader;
+
+    private byte[] binaryForSigning;
 
     public TransactionHeader(byte[] bytes) {
         this(toProto(bytes));
     }
 
     public TransactionHeader(Proto.Transaction.Header protoTransactionHeader) {
-        this.protoTransactionHeader = protoTransactionHeader;
+        this.protoHeader = protoTransactionHeader;
     }
 
     public TransactionHeader(
@@ -53,7 +57,7 @@ public class TransactionHeader implements ProtoObject<Proto.Transaction.Header> 
             byte[] bodyHash,
             long bodyLength) {
 
-        this.protoTransactionHeader = Proto.Transaction.Header.newBuilder()
+        this.protoHeader = Proto.Transaction.Header.newBuilder()
                 .setChain(ByteString.copyFrom(chain))
                 .setVersion(ByteString.copyFrom(version))
                 .setType(ByteString.copyFrom(type))
@@ -82,27 +86,27 @@ public class TransactionHeader implements ProtoObject<Proto.Transaction.Header> 
     }
 
     public byte[] getChain() {
-        return protoTransactionHeader.getChain().toByteArray();
+        return protoHeader.getChain().toByteArray();
     }
 
     public byte[] getVersion() {
-        return protoTransactionHeader.getVersion().toByteArray();
+        return protoHeader.getVersion().toByteArray();
     }
 
     public byte[] getType() {
-        return protoTransactionHeader.getType().toByteArray();
+        return protoHeader.getType().toByteArray();
     }
 
     public long getTimestamp() {
-        return protoTransactionHeader.getTimestamp();
+        return protoHeader.getTimestamp();
     }
 
     public byte[] getBodyHash() {
-        return protoTransactionHeader.getBodyHash().toByteArray();
+        return protoHeader.getBodyHash().toByteArray();
     }
 
     public long getBodyLength() {
-        return protoTransactionHeader.getBodyLength();
+        return protoHeader.getBodyLength();
     }
 
     /**
@@ -111,11 +115,7 @@ public class TransactionHeader implements ProtoObject<Proto.Transaction.Header> 
      * @return hash of header
      */
     public byte[] getHashForSigning() {
-        return HashUtil.sha3(toBinary());
-    }
-
-    public long getLength() {
-        return toBinary().length;
+        return HashUtil.sha3(getBinaryForSigning());
     }
 
     /**
@@ -123,14 +123,38 @@ public class TransactionHeader implements ProtoObject<Proto.Transaction.Header> 
      *
      * @return the binary data
      */
+    public byte[] getBinaryForSigning() {
+        if (binaryForSigning == null) {
+            setBinaryForSinging();
+        }
+
+        return binaryForSigning;
+    }
+
+    private void setBinaryForSinging() {
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        try {
+            bao.write(getChain());
+            bao.write(getVersion());
+            bao.write(getType());
+            bao.write(ByteUtil.longToBytes(getTimestamp()));
+            bao.write(getBodyHash());
+            bao.write(ByteUtil.longToBytes(getBodyLength()));
+        } catch (IOException e) {
+            throw new NotValidateException();
+        }
+
+        this.binaryForSigning = bao.toByteArray();
+    }
+
     @Override
     public byte[] toBinary() {
-        return protoTransactionHeader.toByteArray();
+        return protoHeader.toByteArray();
     }
 
     @Override
     public Proto.Transaction.Header getInstance() {
-        return protoTransactionHeader;
+        return protoHeader;
     }
 
     /**
