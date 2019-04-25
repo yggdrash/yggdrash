@@ -404,7 +404,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
     @Override
     public List<BranchContract> getBranchContracts() {
-        //if (this.branchStore.getBranchContacts() == null) {
         if (this.branchStore.getBranchContacts().size() < 1) {
             return branch.getBranchContracts();
         } else {

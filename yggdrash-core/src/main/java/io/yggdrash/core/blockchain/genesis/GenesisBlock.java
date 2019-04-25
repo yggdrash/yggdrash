@@ -43,19 +43,14 @@ public class GenesisBlock {
     }
 
     private Block toBlock() {
-        // Divided Branch Transaction
-        // TODO Save Branch Genesis Transaction
-        List<Transaction> txs = new ArrayList<>();
-        for (TransactionBuilder builder : contractTransactions()) {
-            Transaction tx = builder.build();
-            txs.add(tx);
-        }
-        return generatorGenesisBlock(txs);
+        return generatorGenesisBlock(contractTransactions());
     }
 
     // Contract initial value
-    private List<TransactionBuilder> contractTransactions() {
-        List<TransactionBuilder> txBuilders = new ArrayList<>();
+    private List<Transaction> contractTransactions() {
+        // Divided Branch Transaction
+        // TODO Save Branch Genesis Transaction
+        List<Transaction> txs = new ArrayList<>();
         List<BranchContract> contracts = branch.getBranchContracts();
 
         for (BranchContract c : contracts) {
@@ -64,9 +59,9 @@ public class GenesisBlock {
                     .setTimeStamp(branch.getTimestamp())
                     .addTxBody(c.getContractVersion(), "init", c.getInit(), c.isSystem(), branch.getConsensus());
 
-            txBuilders.add(builder);
+            txs.add(builder.build());
         }
-        return txBuilders;
+        return txs;
     }
 
     private Block generatorGenesisBlock(List<Transaction> txs) {

@@ -26,7 +26,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
-@Deprecated
 public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, EbftBlock> {
 
     private static final Logger log = LoggerFactory.getLogger(EbftBlockChain.class);

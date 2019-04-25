@@ -66,14 +66,6 @@ public class TestUtils {
             nodeWallet = newWallet;
         }
 
-        /*
-        JsonArray jsonArray = new JsonArray();
-        jsonArray.add(body);
-
-        TransactionBody txBody;
-        txBody = new TransactionBody(jsonArray);
-        */
-
         TransactionBody txBody = new TransactionBody(body);
 
         byte[] version = new byte[8];

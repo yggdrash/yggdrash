@@ -51,7 +51,6 @@ public class PrepareBlockchain {
     boolean checkBlockChainIsReady(BlockChain blockChain) {
         // Get BranchContract
         contractList = blockChain.getBranchContracts();
-
         // TODO check branch contract file exist
         if (contractList.isEmpty()) {
             log.error("Branch Contract is Null");
@@ -59,6 +58,7 @@ public class PrepareBlockchain {
 
         for (BranchContract bc : contractList) {
             ContractVersion contractVersion = bc.getContractVersion();
+
             File contractFile = loadContractFile(contractVersion);
 
             if (contractFile == null && !findContractFile(contractVersion)) {

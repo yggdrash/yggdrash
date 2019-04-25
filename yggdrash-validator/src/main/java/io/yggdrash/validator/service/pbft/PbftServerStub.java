@@ -1,6 +1,7 @@
 package io.yggdrash.validator.service.pbft;
 
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.proto.CommonProto;
@@ -126,7 +127,9 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
         if (start < end) {
             for (long l = start; l <= end; l++) {
                 try {
-                    ConsensusBlock<PbftProto.PbftBlock> block = blockChain.getBlockStore().getBlockByIndex(l);
+                    ConsensusBlock<PbftProto.PbftBlock> block =
+                            blockChain.getBlockStore()
+                                    .get(Sha3Hash.createByHashed((byte[]) blockChain.getBlockKeyStore().get(l)));
                     builder.addPbftBlock(block.getInstance());
                 } catch (Exception e) {
                     break;
