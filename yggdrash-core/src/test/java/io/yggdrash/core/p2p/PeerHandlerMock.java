@@ -85,8 +85,10 @@ public class PeerHandlerMock implements BlockChainHandler {
         CompletableFuture<List<ConsensusBlock>> husksCompletableFuture = new CompletableFuture<>();
 
         List<ConsensusBlock> tmp = new ArrayList<>();
-        for (int i = (int) offset; i < (int) offset + 33; i++) {
-            tmp.add(BlockChainTestUtils.getSampleBlockHuskList().get(i));
+        if (offset < 33) {
+            for (int i = (int) offset; i < (int) offset + 33; i++) {
+                tmp.add(BlockChainTestUtils.getSampleBlockHuskList().get(i));
+            }
         }
         husksCompletableFuture.complete(tmp);
         return husksCompletableFuture;

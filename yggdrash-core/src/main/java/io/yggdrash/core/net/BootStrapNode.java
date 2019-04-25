@@ -36,22 +36,15 @@ public abstract class BootStrapNode implements BootStrap {
     @Override
     public void bootstrapping() {
         peerNetwork.init();
-        try {
-            nodeStatus.sync();
-            for (BlockChain blockChain : branchGroup.getAllBranch()) {
-                List<BlockChainHandler> peerHandlerList = peerNetwork.getHandlerList(blockChain.getBranchId());
+        nodeStatus.sync();
+        for (BlockChain blockChain : branchGroup.getAllBranch()) {
+            List<BlockChainHandler> peerHandlerList = peerNetwork.getHandlerList(blockChain.getBranchId());
 
-                fullSyncBlock(blockChain, peerHandlerList);
+            fullSyncBlock(blockChain, peerHandlerList);
 
-                for (BlockChainHandler peerHandler : peerHandlerList) {
-                    syncManager.syncTransaction(peerHandler, blockChain);
-                }
-            }
-        } catch (Exception e) {
-            log.warn(e.getMessage(), e);
-        } finally {
-            nodeStatus.up();
+            syncTransaction(blockChain, peerHandlerList);
         }
+        nodeStatus.up();
     }
 
     private void fullSyncBlock(BlockChain blockChain, List<BlockChainHandler> peerHandlerList) {
@@ -60,10 +53,25 @@ public abstract class BootStrapNode implements BootStrap {
         while (retry) {
             retry = false;
             for (BlockChainHandler peerHandler : peerHandlerList) {
-                boolean syncFinish = syncManager.syncBlock(peerHandler, blockChain);
-                if (!syncFinish) {
-                    retry = true;
+                try {
+                    boolean syncFinish = syncManager.syncBlock(peerHandler, blockChain);
+                    if (!syncFinish) {
+                        retry = true;
+                    }
+                } catch (Exception e) {
+                    log.warn("[SyncManager] Sync Block ERR occurred: {}", e.getCause().getMessage());
                 }
+            }
+        }
+    }
+
+    private void syncTransaction(BlockChain blockChain, List<BlockChainHandler> peerHandlerList) {
+
+        for (BlockChainHandler peerHandler : peerHandlerList) {
+            try {
+                syncManager.syncTransaction(peerHandler, blockChain);
+            } catch (Exception e) {
+                log.warn("[SyncManager] Sync Tx ERR occurred: {}", e.getCause().getMessage());
             }
         }
     }

@@ -42,7 +42,7 @@ public class PrepareBlockchain {
         File contractFile = new File(String.format("%s/%s.jar", contractPath,
                 version));
         if (!(contractFile.exists() && contractFile.canRead())) {
-            log.debug("Contract file not Exist");
+            log.error("Contract {} is not exists", version);
             return null;
         }
         return contractFile;
@@ -62,7 +62,6 @@ public class PrepareBlockchain {
             File contractFile = loadContractFile(contractVersion);
 
             if (contractFile == null && !findContractFile(contractVersion)) {
-                log.error("Contract {} is not exists", contractVersion);
                 return false;
             }
 

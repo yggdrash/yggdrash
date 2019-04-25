@@ -180,7 +180,7 @@ public class PbftBlockChainTest {
             newBlock = new PbftBlock(block, PbftMessageSet.forGenesis());
 
             pbftBlockChain.getBlockKeyStore().put(newBlock.getIndex(), newBlock.getHash().getBytes());
-            pbftBlockChain.getBlockStore().put(newBlock.getHash(), newBlock);
+            pbftBlockChain.getBlockStore().addBlock(newBlock);
         }
 
         List blockList = getBlockList(pbftBlockChain.getBlockStore(), 1, 100);
