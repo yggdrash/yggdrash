@@ -2,6 +2,7 @@ package io.yggdrash.validator.data.ebft;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.protobuf.ByteString;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
@@ -75,25 +76,25 @@ public class EbftBlockChainTest {
 
         this.ebftBlock0 = new EbftBlock(this.block0);
 
-        List<String> consensusList1 = new ArrayList<>();
-        consensusList1.add(wallet0.signHex(block1.getHash().getBytes(), true));
-        consensusList1.add(wallet1.signHex(block1.getHash().getBytes(), true));
-        consensusList1.add(wallet2.signHex(block1.getHash().getBytes(), true));
-        consensusList1.add(wallet3.signHex(block1.getHash().getBytes(), true));
+        List<ByteString> consensusList1 = new ArrayList<>();
+        consensusList1.add(wallet0.signByteString(block1.getHash().getBytes(), true));
+        consensusList1.add(wallet1.signByteString(block1.getHash().getBytes(), true));
+        consensusList1.add(wallet2.signByteString(block1.getHash().getBytes(), true));
+        consensusList1.add(wallet3.signByteString(block1.getHash().getBytes(), true));
         this.ebftBlock1 = new EbftBlock(this.block1, consensusList1);
 
-        List<String> consensusList2 = new ArrayList<>();
-        consensusList2.add(wallet0.signHex(block2.getHash().getBytes(), true));
-        consensusList2.add(wallet1.signHex(block2.getHash().getBytes(), true));
-        consensusList2.add(wallet2.signHex(block2.getHash().getBytes(), true));
-        consensusList2.add(wallet3.signHex(block2.getHash().getBytes(), true));
+        List<ByteString> consensusList2 = new ArrayList<>();
+        consensusList2.add(wallet0.signByteString(block2.getHash().getBytes(), true));
+        consensusList2.add(wallet1.signByteString(block2.getHash().getBytes(), true));
+        consensusList2.add(wallet2.signByteString(block2.getHash().getBytes(), true));
+        consensusList2.add(wallet3.signByteString(block2.getHash().getBytes(), true));
         this.ebftBlock2 = new EbftBlock(this.block2, consensusList2);
 
-        List<String> consensusList3 = new ArrayList<>();
-        consensusList3.add(wallet0.signHex(block3.getHash().getBytes(), true));
-        consensusList3.add(wallet1.signHex(block3.getHash().getBytes(), true));
-        consensusList3.add(wallet2.signHex(block3.getHash().getBytes(), true));
-        consensusList3.add(wallet3.signHex(block3.getHash().getBytes(), true));
+        List<ByteString> consensusList3 = new ArrayList<>();
+        consensusList3.add(wallet0.signByteString(block3.getHash().getBytes(), true));
+        consensusList3.add(wallet1.signByteString(block3.getHash().getBytes(), true));
+        consensusList3.add(wallet2.signByteString(block3.getHash().getBytes(), true));
+        consensusList3.add(wallet3.signByteString(block3.getHash().getBytes(), true));
         this.ebftBlock3 = new EbftBlock(this.block3, consensusList3);
 
     }
