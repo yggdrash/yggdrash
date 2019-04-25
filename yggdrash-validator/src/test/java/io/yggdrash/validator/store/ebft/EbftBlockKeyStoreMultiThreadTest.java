@@ -2,6 +2,7 @@ package io.yggdrash.validator.store.ebft;
 
 import com.anarsoft.vmlens.concurrent.junit.ConcurrentTestRunner;
 import com.anarsoft.vmlens.concurrent.junit.ThreadCount;
+import com.google.protobuf.ByteString;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
@@ -66,12 +67,12 @@ public class EbftBlockKeyStoreMultiThreadTest {
         return new TestUtils(wallet0).sampleBlock(index, prevHash);
     }
 
-    private List<String> makeConsensusList(Block block) {
-        List<String> consensusList = new ArrayList<>();
-        consensusList.add(wallet0.signHex(block.getHash().getBytes(), true));
-        consensusList.add(wallet1.signHex(block.getHash().getBytes(), true));
-        consensusList.add(wallet2.signHex(block.getHash().getBytes(), true));
-        consensusList.add(wallet3.signHex(block.getHash().getBytes(), true));
+    private List<ByteString> makeConsensusList(Block block) {
+        List<ByteString> consensusList = new ArrayList<>();
+        consensusList.add(wallet0.signByteString(block.getHash().getBytes(), true));
+        consensusList.add(wallet1.signByteString(block.getHash().getBytes(), true));
+        consensusList.add(wallet2.signByteString(block.getHash().getBytes(), true));
+        consensusList.add(wallet3.signByteString(block.getHash().getBytes(), true));
         return consensusList;
     }
 

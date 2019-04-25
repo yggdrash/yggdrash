@@ -1,5 +1,6 @@
 package io.yggdrash.validator.service.ebft;
 
+import com.google.protobuf.ByteString;
 import com.typesafe.config.ConfigException;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
@@ -356,7 +357,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
         }
 
         EbftBlock ebftBlock = unConfirmedEbftBlockMap.get(minKey);
-        String consensus = wallet.signHex(ebftBlock.getHash().getBytes(), true);
+        ByteString consensus = wallet.signByteString(ebftBlock.getHash().getBytes(), true);
         ebftBlock.getConsensusMessages().add(consensus);
         this.isConsensused = true;
 
@@ -366,7 +367,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
                 + "] "
                 + ebftBlock.getHash()
                 + " ("
-                + consensus
+                + Hex.toHexString(consensus.toByteArray())
                 + ")");
 
         return ebftBlock;
@@ -468,7 +469,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
                             + ")");
                     for (int i = 0; i < ebftBlock.getConsensusMessages().size(); i++) {
                         if (ebftBlock.getConsensusMessages().get(i) != null) {
-                            log.debug(ebftBlock.getConsensusMessages().get(i)
+                            log.debug(Hex.toHexString(ebftBlock.getConsensusMessages().get(i).toByteArray())
                                     + " ("
                                     + ebftBlock.getBlock().getAddress()
                                     + ")");
@@ -531,7 +532,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
         if (unConfirmedBlock != null) {
             // if exist, update consensus
             if (!ebftBlock.getConsensusMessages().isEmpty()) {
-                for (String consensus : ebftBlock.getConsensusMessages()) {
+                for (ByteString consensus : ebftBlock.getConsensusMessages()) {
                     if (!unConfirmedBlock.getConsensusMessages().contains(consensus)
                             && this.totalValidatorMap.containsKey(addr)) {
                         unConfirmedBlock.getConsensusMessages().add(consensus);
@@ -659,8 +660,8 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
             return true;
         }
 
-        for (String signature : ebftBlock.getConsensusMessages()) {
-            if (!Wallet.verify(ebftBlock.getHash().getBytes(), Hex.decode(signature), true)) {
+        for (ByteString signature : ebftBlock.getConsensusMessages()) {
+            if (!Wallet.verify(ebftBlock.getHash().getBytes(), signature.toByteArray(), true)) {
                 return false;
             }
             // todo: else, check validator

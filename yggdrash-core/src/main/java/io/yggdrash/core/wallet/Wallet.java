@@ -19,6 +19,7 @@ package io.yggdrash.core.wallet;
 import com.google.common.base.Strings;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.google.protobuf.ByteString;
 import com.typesafe.config.ConfigFactory;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
@@ -296,6 +297,17 @@ public class Wallet {
      */
     public String signHex(byte[] data, boolean hashed) {
         return HexUtil.toHexString(this.sign(data, hashed));
+    }
+
+    /**
+     * Sign data as ByteString.
+     *
+     * @param data   plain data
+     * @param hashed whether hashed or not
+     * @return signature as ByteString
+     */
+    public ByteString signByteString(byte[] data, boolean hashed) {
+        return ByteString.copyFrom(sign(data, hashed));
     }
 
     /**

@@ -1,5 +1,6 @@
 package io.yggdrash.validator.store.ebft;
 
+import com.google.protobuf.ByteString;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
@@ -35,8 +36,8 @@ public class EbftBlockStoreTest {
                 new LevelDbDataSource(StoreTestUtils.getTestPath(), "block-con-store-test");
         EbftBlockStore ebftBlockStore = new EbftBlockStore(ds);
         Block block = new TestUtils(wallet).sampleBlock();
-        List<String> consensusList = new ArrayList<>();
-        consensusList.add(wallet.signHex(block.getHash().getBytes(), true));
+        List<ByteString> consensusList = new ArrayList<>();
+        consensusList.add(wallet.signByteString(block.getHash().getBytes(), true));
 
         EbftBlock ebftBlock = new EbftBlock(block, consensusList);
 
