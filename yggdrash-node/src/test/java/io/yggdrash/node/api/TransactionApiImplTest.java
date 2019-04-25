@@ -25,15 +25,16 @@ import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.gateway.dto.TransactionDto;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 
 import static io.yggdrash.node.api.JsonRpcConfig.BLOCK_API;
 import static io.yggdrash.node.api.JsonRpcConfig.TX_API;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class TransactionApiImplTest {
@@ -146,7 +147,7 @@ public class TransactionApiImplTest {
     public void sendRawTransactionTest() {
         // Request Transaction with byteArr
         try {
-            byte[] input = createTx().toBinary();
+            byte[] input = ((TransactionImpl)createTx()).toRawTransaction();
             // Convert byteArray to Transaction
             assertThat(TX_API.sendRawTransaction(input)).isNotEmpty();
         } catch (Exception e) {
@@ -155,7 +156,6 @@ public class TransactionApiImplTest {
     }
 
     @Test
-    @Ignore
     public void sendRawTransactionTest2() {
         String byteArray = "a5f436a66ce5ca5b7dbd6bbf8460701b8cbf048500000000000000000000000000000"
                 + "0000000016a498c743a0100879b01624d75b33aafb7861c701c1815f8ef56e9db2c8542e61bc31d1"
@@ -166,10 +166,10 @@ public class TransactionApiImplTest {
                 + "4223a2231303030227d7d5d";
 
         byte[] input = HexUtil.hexStringToBytes(byteArray);
-        Transaction tx = new TransactionImpl(input);
+        Transaction tx = TransactionImpl.parseFromRaw(input);
         log.debug(tx.getHeader().toString());
         log.debug(tx.toJsonObject().toString());
-
+        assertEquals("358de690f952fc2671826a33d3b61e3839ed011b302cf902b282669fbceef5cb", tx.getHash().toString());
     }
 
 
