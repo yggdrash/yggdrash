@@ -76,8 +76,10 @@ public class RawTransaction  {
         this.bodyLength = ByteUtil.byteArrayToLong(bodyLengthBytes);
         pos += bodyLengthBytes.length;
 
-        if (this.bodyLength < 0 || HEADER_LENGTH + SIGNATURE_LENGTH + bodyLength != bytes.length) {
-            throw new FailedOperationException("Invalid bytes");
+        long expected = HEADER_LENGTH + SIGNATURE_LENGTH + bodyLength;
+        if (this.bodyLength < 0 ||  expected != bytes.length) {
+            throw new FailedOperationException(String.format("Invalid body bytes. HeaderBodyLength=(%d). Expected=(%d), Actual=(%d)",
+                            bodyLength, expected, bytes.length));
         }
 
         // Signature parse
