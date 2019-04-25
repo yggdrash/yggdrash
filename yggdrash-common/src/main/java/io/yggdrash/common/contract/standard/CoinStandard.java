@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package io.yggdrash.contract.coin;
+package io.yggdrash.common.contract.standard;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.contract.core.TransactionReceipt;
 
+import io.yggdrash.contract.core.TransactionReceipt;
 import java.math.BigInteger;
 
 public interface CoinStandard {
