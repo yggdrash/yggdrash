@@ -66,7 +66,7 @@ public class BlockChainTest extends CiTest {
         Sha3Hash prevHash = new Sha3Hash("9358");
         ConsensusBlock block1 = getBlockFixture(1L, prevHash);
         blockChain.addBlock(block1, false);
-        ConsensusBlock block2 =  getBlockFixture(2L, prevHash);
+        ConsensusBlock block2 = getBlockFixture(2L, prevHash);
         blockChain.addBlock(block2, false);
     }
 

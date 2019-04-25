@@ -17,8 +17,8 @@
 package io.yggdrash.validator.data.ebft;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockImpl;
@@ -32,7 +32,7 @@ import java.util.List;
 
 public class EbftBlock extends AbstractConsensusBlock<EbftProto.EbftBlock> {
 
-    private final transient List<String> consensusList;
+    private final transient List<ByteString> consensusList;
 
     public EbftBlock(byte[] bytes) {
         this(toProto(bytes));
@@ -46,18 +46,13 @@ public class EbftBlock extends AbstractConsensusBlock<EbftProto.EbftBlock> {
         this(block, Collections.emptyList());
     }
 
-    public EbftBlock(Block block, List<String> consensusList) {
+    public EbftBlock(Block block, List<ByteString> consensusList) {
         super(block);
         this.consensusList = new ArrayList<>(consensusList);
     }
 
-    public EbftBlock(JsonObject jsonObject) {
-        this(new BlockImpl(jsonObject.get("block").getAsJsonObject()),
-                toConsensusList(jsonObject.get("consensusList")));
-    }
-
     @Override
-    public List<String> getConsensusMessages() {
+    public List<ByteString> getConsensusMessages() {
         return consensusList;
     }
 
@@ -78,8 +73,8 @@ public class EbftBlock extends AbstractConsensusBlock<EbftProto.EbftBlock> {
         jsonObject.add("block", getBlock().toJsonObject());
         if (!consensusList.isEmpty()) {
             JsonArray consensusJsonArray = new JsonArray();
-            for (String consensus : consensusList) {
-                consensusJsonArray.add(consensus);
+            for (ByteString consensus : consensusList) {
+                consensusJsonArray.add(consensus.toString());
             }
             jsonObject.add("consensusList", consensusJsonArray);
         }
@@ -97,17 +92,6 @@ public class EbftBlock extends AbstractConsensusBlock<EbftProto.EbftBlock> {
         }
         // todo: check consensuses whether validator's signatures or not
         return ebftBlock.getBlock().verify();
-    }
-
-    private static List<String> toConsensusList(JsonElement consensusJsonElement) {
-        List<String> consensusList = new ArrayList<>();
-        if (consensusJsonElement == null) {
-            return consensusList;
-        }
-        for (JsonElement jsonElement : consensusJsonElement.getAsJsonArray()) {
-            consensusList.add(jsonElement.getAsString());
-        }
-        return consensusList;
     }
 
     private static EbftProto.EbftBlock toProto(byte[] bytes) {

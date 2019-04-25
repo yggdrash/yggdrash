@@ -118,7 +118,7 @@ public class BranchStore implements ReadWriterStore<String, String> {
         return lastBlockHash;
     }
 
-    public  void setLastExecuteBlock(ConsensusBlock block) {
+    public void setLastExecuteBlock(ConsensusBlock block) {
         storeLongValue(BlockchainMetaInfo.LAST_EXECUTE_BLOCK_INDEX.toString(), block.getIndex());
         Sha3Hash executeBlockHash = block.getHash();
         db.put(BlockchainMetaInfo.LAST_EXECUTE_BLOCK.toString().getBytes(), executeBlockHash.getBytes());

@@ -28,6 +28,6 @@ public interface ConsensusBlockStore<T> extends ReadWriterStore<Sha3Hash, Consen
 
     ConsensusBlock<T> getBlockByIndex(long index);
 
-    long getBlockchainTransactionSize();
+    long getBlockChainTransactionSize();
 
 }

@@ -19,7 +19,7 @@ package io.yggdrash.core.blockchain;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.core.blockchain.osgi.ContractContainer;
+import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -49,11 +49,11 @@ public interface BlockChain<T, V> extends ConsensusBlockChain<T, V> {
 
     TransactionReceiptStore getTransactionReceiptStore();
 
+    ContractManager getContractManager();
+
     TransactionReceipt getTransactionReceipt(String transactionId);
 
     List<Transaction> getUnconfirmedTxs();
-
-    ContractContainer getContractContainer();
 
     long countOfTxs();
 

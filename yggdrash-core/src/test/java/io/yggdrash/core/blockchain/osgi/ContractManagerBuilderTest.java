@@ -21,12 +21,13 @@ import io.yggdrash.common.contract.ContractVersion;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ContractContainerBuilderTest {
-    private static final Logger log = LoggerFactory.getLogger(ContractContainerBuilderTest.class);
+public class ContractManagerBuilderTest {
+    private static final Logger log = LoggerFactory.getLogger(ContractManagerBuilderTest.class);
 
     @Test
     public void build() {
@@ -35,7 +36,7 @@ public class ContractContainerBuilderTest {
         ContractPolicyLoader loader = new ContractPolicyLoader();
         Map output = new HashMap();
 
-        ContractContainer container = ContractContainerBuilder.newInstance()
+        ContractManager container = ContractManagerBuilder.newInstance()
                 .withConfig(config)
                 .withFrameworkFactory(loader.getFrameworkFactory())
                 .withContainerConfig(loader.getContainerConfig())
@@ -44,7 +45,7 @@ public class ContractContainerBuilderTest {
                 .build();
 
         assert container != null;
-        assert container.getContractManager() != null;
+        assert container.getContractExecutor() != null;
 
 
         // Contract File
@@ -54,13 +55,13 @@ public class ContractContainerBuilderTest {
         File contractFile = new File(filePath);
 
         ContractVersion version = ContractVersion.of("TEST".getBytes());
-        if (contractFile.exists() && !container.getContractManager().checkExistContract(
+        if (contractFile.exists() && !container.checkExistContract(
                 "io.yggdrash.contract.coin.CoinContract","1.0.0")) {
             long bundle = container.installContract(version, contractFile, true);
             assert bundle > 0L;
         }
-        ContractManager manager = container.getContractManager();
-        for (ContractStatus cs : manager.searchContracts()) {
+
+        for (ContractStatus cs : container.searchContracts()) {
             log.debug("Description {}", cs.getDescription());
             log.debug("Location {}", cs.getLocation());
             log.debug("SymbolicName {}", cs.getSymbolicName());
@@ -68,8 +69,6 @@ public class ContractContainerBuilderTest {
             log.debug(Long.toString(cs.getId()));
         }
 
-
         ///container.loadUserContract();
-
     }
 }

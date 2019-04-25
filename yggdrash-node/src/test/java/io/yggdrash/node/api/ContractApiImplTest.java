@@ -16,7 +16,7 @@
 
 package io.yggdrash.node.api;
 
-import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BranchId;
@@ -73,21 +73,21 @@ public class ContractApiImplTest {
 
     @Test
     public void transfer() {
-        JsonArray txBody = CoinContractTestUtils.createTransferBody(
+        JsonObject txBody = CoinContractTestUtils.createTransferBody(
                 "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e", new BigInteger("1000"));
         sendTransaction(txBody);
     }
 
     @Test
     public void approve() {
-        JsonArray txBody = CoinContractTestUtils.createApproveBody(
+        JsonObject txBody = CoinContractTestUtils.createApproveBody(
                 "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e", new BigInteger("1000"));
         sendTransaction(txBody);
     }
 
     @Test
     public void transferFrom() {
-        JsonArray txBody = CoinContractTestUtils.createTransferFromBody(
+        JsonObject txBody = CoinContractTestUtils.createTransferFromBody(
                 "cee3d4755e47055b530deeba062c5bd0c17eb00f",
                 "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e",
                 new BigInteger("1000"));
@@ -110,7 +110,7 @@ public class ContractApiImplTest {
         }
     }
 
-    private void sendTransaction(JsonArray txBody) {
+    private void sendTransaction(JsonObject txBody) {
         Transaction tx = BlockChainTestUtils.createTxHusk(TestConstants.yggdrash(), txBody);
         Assert.assertTrue(tx.verify());
         try {

@@ -1,107 +1,121 @@
 package io.yggdrash.core.blockchain.osgi;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
-import io.yggdrash.common.store.StateStore;
-import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.contract.core.TransactionReceiptImpl;
-import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
-import io.yggdrash.contract.core.annotation.ContractStateStore;
-import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
-import io.yggdrash.contract.core.annotation.InjectEvent;
-import io.yggdrash.contract.core.annotation.InjectOutputStore;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
-import io.yggdrash.core.store.StoreContainer;
-import io.yggdrash.core.store.TransactionReceiptStore;
+import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
+import io.yggdrash.core.store.ContractStore;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundlePermission;
+import org.osgi.framework.CapabilityPermission;
+import org.osgi.framework.PackagePermission;
+import org.osgi.framework.ServicePermission;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
+import org.osgi.framework.launch.FrameworkFactory;
+import org.osgi.service.condpermadmin.BundleLocationCondition;
+import org.osgi.service.condpermadmin.ConditionInfo;
+import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
+import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
+import org.osgi.service.condpermadmin.ConditionalPermissionUpdate;
+import org.osgi.service.permissionadmin.PermissionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FilePermission;
+import java.io.IOException;
 import java.io.InputStream;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.lang.reflect.ReflectPermission;
+import java.net.SocketPermission;
 import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.PropertyPermission;
+import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 public class ContractManager {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
 
-    private final Framework framework;
+    static final String SUFFIX_SYSTEM_CONTRACT = "contract/system";
+    static final String SUFFIX_USER_CONTRACT = "contract/user";
+
+    private Framework framework;
+
+    private final FrameworkFactory frameworkFactory;
+    private final Map<String, String> commonContainerConfig;
     private final String branchId;
-    private final StoreContainer storeContainer;
-
-    private final Map<OutputType, OutputStore> outputStore;
+    private final ContractStore contractStore;
+    private final DefaultConfig config;
     private final SystemProperties systemProperties;
-    private final ContractCache contractCache;
+    private final Map<String, String> fullLocation; // => Map<contractVersion, fullLocation>
 
-    ContractManager(Framework framework, String branchId, StoreContainer storeContainer,
-                    Map<OutputType, OutputStore> outputStore, SystemProperties systemProperties) {
-        this.framework = framework;
+    private ContractExecutor contractExecutor;
+    private Map<OutputType, OutputStore> outputStore;
+
+    ContractManager(FrameworkFactory frameworkFactory, Map<String, String> containerConfig,
+                    String branchId, ContractStore contractStore, DefaultConfig config,
+                    SystemProperties systemProperties, Map<OutputType, OutputStore> outputStore) {
+        this.frameworkFactory = frameworkFactory;
+        this.commonContainerConfig = containerConfig;
         this.branchId = branchId;
-        this.storeContainer = storeContainer;
-        this.outputStore = outputStore;
+        this.contractStore = contractStore;
+        this.config = config;
         this.systemProperties = systemProperties;
-        contractCache = new ContractCache();
+        this.outputStore = outputStore;
+        this.fullLocation = new HashMap<>();
 
+        newFramework();
     }
 
-    void inject(Bundle bundle) throws IllegalAccessException {
-        ServiceReference<?>[] serviceRefs = bundle.getRegisteredServices();
-        if (serviceRefs == null) {
-            return;
-        }
+    public ContractExecutor getContractExecutor() {
+        return contractExecutor;
+    }
 
-        boolean isSystemContract = bundle.getLocation()
-                .startsWith(ContractContainer.SUFFIX_SYSTEM_CONTRACT);
+    public String getContractPath() {
+        return this.config.getContractPath();
+    }
 
-        for (ServiceReference serviceRef : serviceRefs) {
-            Object service = framework.getBundleContext().getService(serviceRef);
-            injectField(service, service.getClass().getDeclaredFields(), isSystemContract);
+    private String getFullLocation(String contractName) {
+        return fullLocation.get(contractName);
+    }
+
+    private void setFullLocation(String location) {
+        if (!fullLocation.containsValue(location)) {
+            String contractName = location.substring(location.lastIndexOf('/') + 1);
+            fullLocation.put(contractName, location);
         }
     }
 
-    private void injectField(Object o, Field[] fields, boolean isSystemContract) throws IllegalAccessException {
-        for (Field field : fields) {
-            field.setAccessible(true);
-            for (Annotation annotation : field.getDeclaredAnnotations()) {
-                // TODO User Contract Store 를 분리할 것인지 결정 하고, 각 컨트렉트 별로 분리한다면, 추가, 분리 안하면 해당 코드 제거
-                if (isSystemContract) {
-                    if (annotation.annotationType().equals(ContractStateStore.class)) {
-                        field.set(o, storeContainer.getStateStore());
-                    }
-                    // Branch Store
-                    if (annotation.annotationType().equals(ContractBranchStateStore.class)) {
-                        field.set(o, storeContainer.getBranchStore());
-                    }
-                }
-                if (outputStore != null
-                        && annotation.annotationType().equals(InjectOutputStore.class)
-                        && field.getType().isAssignableFrom(outputStore.getClass())) {
-                    field.set(o, outputStore);
-                }
-                if (systemProperties != null
-                        && annotation.annotationType().equals(InjectEvent.class)
-                        && field.getType().isAssignableFrom(systemProperties.getEventStore().getClass())) {
-                    field.set(o, systemProperties.getEventStore());
-                }
-            }
-        }
+    private Object getService(Bundle bundle) {
+        //Assume one service
+        ServiceReference serviceRef = bundle.getRegisteredServices()[0];
+        return framework.getBundleContext().getService(serviceRef);
+    }
+
+    private String getContractVersion(Transaction tx) {
+        JsonObject txBody = JsonUtil.parseJsonObject(tx.getBody().toString());
+        return txBody.get("contractVersion").getAsString();
+    }
+
+    private Bundle getBundle(String contractVersion) {
+        Object contractBundleLocation = getFullLocation(contractVersion);
+        return getBundle(contractBundleLocation);
     }
 
     private Bundle getBundle(Object identifier) {
@@ -114,66 +128,194 @@ public class ContractManager {
         return bundle;
     }
 
-    private enum ActionType {
-        UNINSTALL,
-        START,
-        STOP
-    }
-
-    private enum MethodType {
-        EndBlock,
-        Query,
-        InvokeTx
-    }
-
-    private boolean action(Object identifier, ActionType action) {
-        Bundle bundle = getBundle(identifier);
-        if (bundle == null) {
-            return false;
+    void newFramework() {
+        String managerPath = String.format("%s/%s", config.getOsgiPath(), branchId);
+        log.debug("ContractManager Path : {}", managerPath);
+        Map<String, String> containerConfig = new HashMap<>();
+        containerConfig.put("org.osgi.framework.storage", managerPath);
+        containerConfig.putAll(commonContainerConfig);
+        if (System.getSecurityManager() != null) {
+            containerConfig.remove("org.osgi.framework.security");
         }
+
+        framework = frameworkFactory.newFramework(containerConfig);
+
+        contractExecutor = new ContractExecutor(framework, contractStore, outputStore, systemProperties);
 
         try {
-            switch (action) {
-                case UNINSTALL:
-                    bundle.uninstall();
-                    break;
-                case START:
-                    bundle.start();
-                    // StoreContainer is null in Test
-                    if (storeContainer != null) {
-                        inject(bundle);
-                    }
-                    break;
-                case STOP:
-                    bundle.stop();
-                    break;
-                default:
-                    throw new Exception("Action is not Exist");
-            }
+            framework.start();
+            setDefaultPermission(branchId);
         } catch (Exception e) {
-            log.error("Execute bundle exception: contractId:{}, path:{}, stack:{}",
-                    bundle.getBundleId(), bundle.getLocation(), ExceptionUtils.getStackTrace(e));
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e.getCause());
         }
-        return true;
+
+        log.info("Load contract manager: branchID - {}", branchId);
     }
 
+    private void setDefaultPermission(String branchId) {
+        BundleContext context = framework.getBundleContext();
+        String permissionKey = String.format("%s-container-permission", branchId);
 
-    public boolean verifyManifest(Manifest manifest) {
+
+        ServiceReference<ConditionalPermissionAdmin> ref =
+                context.getServiceReference(ConditionalPermissionAdmin.class);
+        ConditionalPermissionAdmin admin = context.getService(ref);
+        ConditionalPermissionUpdate update = admin.newConditionalPermissionUpdate();
+        List<ConditionalPermissionInfo> infos = update.getConditionalPermissionInfos();
+
+        //Check existence
+        if (infos == null) {
+            return;
+        }
+
+        for (ConditionalPermissionInfo conditionalPermissionInfo : infos) {
+            if (conditionalPermissionInfo.getName().equals(permissionKey)) {
+                return;
+            }
+        }
+
+        List<PermissionInfo> defaultPermissions = new ArrayList<>();
+
+        defaultPermissions.add(new PermissionInfo(PropertyPermission.class.getName(),
+                "org.osgi.framework", "read"));
+        defaultPermissions.add(new PermissionInfo(PropertyPermission.class.getName(),
+                "com.fasterxml.jackson.core.util.BufferRecyclers.trackReusableBuffers", "read"));
+        defaultPermissions.add(new PermissionInfo(RuntimePermission.class.getName(),
+                "*", "accessDeclaredMembers"));
+        defaultPermissions.add(new PermissionInfo(ReflectPermission.class.getName(),
+                "*", "suppressAccessChecks"));
+        defaultPermissions.add(new PermissionInfo(PackagePermission.class.getName(),
+                "*", "import,export,exportonly"));
+        defaultPermissions.add(new PermissionInfo(CapabilityPermission.class.getName(),
+                "osgi.ee", "require"));
+        defaultPermissions.add(new PermissionInfo(CapabilityPermission.class.getName(),
+                "osgi.native", "require"));
+        defaultPermissions.add(new PermissionInfo(ServicePermission.class.getName(),
+                "*", "get,register"));
+        defaultPermissions.add(new PermissionInfo(BundlePermission.class.getName(),
+                "*", "provide,require,host,fragment"));
+
+        infos.add(admin.newConditionalPermissionInfo(
+                permissionKey,
+                new ConditionInfo[]{
+                        new ConditionInfo(BundleLocationCondition.class.getName(), new String[]{"*"})
+                },
+                defaultPermissions.toArray(new PermissionInfo[defaultPermissions.size()]),
+                ConditionalPermissionInfo.ALLOW));
+
+        //Allow file permission to system contract
+        // 시스템 컨트렉트 권한
+        // Branch State Store 권한추가 - 읽기/쓰기 권한
+        // 컨트렉트 폴더 읽기/쓰기 권한
+        // TODO 아카식 시스템 폴더 읽기/쓰기 권한
+
+        String stateStorePath = String.format("%s/%s/state", config.getDatabasePath(), branchId);
+        String stateStoreFile = String.format("%s/%s/state/*", config.getDatabasePath(), branchId);
+
+        String branchStorePath = String.format("%s/%s/branch", config.getDatabasePath(), branchId);
+        String allPermission = "read,write,delete";
+        String filePermissionName = FilePermission.class.getName();
+
+        List<PermissionInfo> commonPermissions = new ArrayList<>();
+        commonPermissions.add(new PermissionInfo(filePermissionName, stateStorePath, "read"));
+        commonPermissions.add(new PermissionInfo(filePermissionName, stateStoreFile, allPermission));
+        commonPermissions.add(new PermissionInfo(filePermissionName, branchStorePath, "read"));
+
+        String branchStoreFile = String.format("%s/%s/branch/*", config.getDatabasePath(), branchId);
+
+        List<PermissionInfo> systemPermissions = commonPermissions;
+        systemPermissions.add(new PermissionInfo(filePermissionName, branchStoreFile, allPermission));
+        if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getEsHost())) {
+            systemPermissions.add(new PermissionInfo(
+                    SocketPermission.class.getName(), systemProperties.getEsHost(), "connect,resolve"));
+        }
+        // Bundle 파일의 위치로 권한을 할당한다.
+        // {BID}-container-permission-system-file
+        infos.add(admin.newConditionalPermissionInfo(
+                String.format("%s-system-file", permissionKey),
+                new ConditionInfo[]{new ConditionInfo(BundleLocationCondition.class.getName(),
+                        new String[]{String.format("%s/*", SUFFIX_SYSTEM_CONTRACT)})
+                },
+                systemPermissions.toArray(new PermissionInfo[systemPermissions.size()]),
+                ConditionalPermissionInfo.ALLOW));
+
+        //Allow file permission to user contract
+        // 사용자 컨트렉트 권한
+        // Branch State Store 권한 추가 - 읽기 권한
+        // {BID}-container-permission-user-file
+        List<PermissionInfo> userPermissions = commonPermissions;
+        userPermissions.add(new PermissionInfo(filePermissionName, branchStoreFile, "read"));
+
+        if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getEsHost())) {
+            userPermissions.add(
+                    new PermissionInfo(SocketPermission.class.getName(),
+                            systemProperties.getEsHost(), "connect,resolve"));
+        }
+        infos.add(admin.newConditionalPermissionInfo(
+                String.format("%s-user-file", permissionKey),
+                new ConditionInfo[]{new ConditionInfo(BundleLocationCondition.class.getName(),
+                        new String[]{String.format("%s/*", SUFFIX_USER_CONTRACT)})
+                },
+                userPermissions.toArray(new PermissionInfo[userPermissions.size()]),
+                ConditionalPermissionInfo.ALLOW));
+
+        boolean isSuccess = update.commit();
+        log.info("Load complete policy: branchID - {}, isSuccess - {}", branchId, isSuccess);
+    }
+
+    public long installContract(ContractVersion contract, File contractFile, boolean isSystem) {
+        long bundleId = -1L;
+        try (JarFile jar = new JarFile(contractFile)) {
+            Manifest m = jar.getManifest();
+            if (m != null && verifyManifest(m)) {
+                String symbolicName = m.getMainAttributes().getValue("Bundle-SymbolicName");
+                String version = m.getMainAttributes().getValue("Bundle-Version");
+                if (checkExistContract(symbolicName, version)) {
+                    log.error("Contract SymbolicName and Version exist {}-{}", symbolicName, version);
+                    return bundleId;
+                }
+            } else {
+                log.error("Contract Manifest is not verify");
+                return bundleId;
+            }
+
+            reloadInject();
+        } catch (IOException | IllegalAccessException e) {
+            log.error("Contract file don't Load [{}]", e.getMessage()); //TODO Throw Runtime Exception
+            return bundleId;
+        }
+        try {
+            bundleId = install(contract, contractFile, isSystem);
+        } catch (RuntimeException e) {
+            log.error(e.getMessage());
+            bundleId = -2;
+        }
+        return bundleId;
+    }
+
+    private void reloadInject() throws IllegalAccessException {
+        // TODO load After call
+        for (Bundle bundle : framework.getBundleContext().getBundles()) {
+            setFullLocation(bundle.getLocation()); // Cache the full location of an existing bundle.
+            inject(bundle);
+        }
+    }
+
+    private boolean verifyManifest(Manifest manifest) {
         String manifestVersion = manifest.getMainAttributes().getValue("Bundle-ManifestVersion");
         String bundleSymbolicName = manifest.getMainAttributes().getValue("Bundle-SymbolicName");
         String bundleVersion = manifest.getMainAttributes().getValue("Bundle-Version");
         return verifyManifest(manifestVersion, bundleSymbolicName, bundleVersion);
     }
 
-    public boolean verifyManifest(Bundle bundle) {
+    private boolean verifyManifest(Bundle bundle) {
         String bundleManifestVersion = bundle.getHeaders().get("Bundle-ManifestVersion");
         String bundleSymbolicName = bundle.getHeaders().get("Bundle-SymbolicName");
         String bundleVersion = bundle.getHeaders().get("Bundle-Version");
         return verifyManifest(bundleManifestVersion, bundleSymbolicName, bundleVersion);
     }
 
-    public boolean verifyManifest(String manifestVersion, String bundleSymbolicName, String bundleVersion) {
+    private boolean verifyManifest(String manifestVersion, String bundleSymbolicName, String bundleVersion) {
         if (!"2".equals(manifestVersion)) {
             log.error("Must set Bundle-ManifestVersion to 2");
             return false;
@@ -191,219 +333,14 @@ public class ContractManager {
         return true;
     }
 
-
-    public boolean checkExistContract(String symbol, String version) {
+    boolean checkExistContract(String symbol, String version) {
         for (Bundle b : framework.getBundleContext().getBundles()) {
-            if (
-                    b.getVersion().toString().equals(version)
-                            && b.getSymbolicName().equals(symbol)
-            ) {
+            if (b.getVersion().toString().equals(version) && b.getSymbolicName().equals(symbol)) {
+                setFullLocation(b.getLocation()); // Cache the full location of an existing bundle.
                 return true;
             }
         }
         return false;
-    }
-
-    public long install(ContractVersion version, File file, boolean isSystem) {
-        Bundle bundle;
-        try (InputStream fileStream = new FileInputStream(file.getAbsoluteFile())) {
-
-            // set location
-            String locationPrefix = isSystem ? ContractContainer.SUFFIX_SYSTEM_CONTRACT :
-                    ContractContainer.SUFFIX_USER_CONTRACT;
-
-            String location = String.format("%s/%s", locationPrefix, version.toString());
-            // set Location
-            bundle = framework.getBundleContext().installBundle(location, fileStream);
-            log.debug("installed  {} {}", version.toString(), bundle.getLocation());
-
-            boolean isPass = verifyManifest(bundle);
-            if (!isPass) {
-                uninstall(bundle.getBundleId());
-            }
-            start(bundle.getBundleId());
-            contractCache.cacheContract(bundle, framework);
-        } catch (Exception e) {
-            log.error("Install bundle exception: branchID - {}, msg - {}", branchId, e.getMessage());
-            throw new RuntimeException(e);
-        }
-
-        return bundle.getBundleId();
-    }
-
-
-    private boolean uninstall(long contractId) {
-        return action(contractId, ActionType.UNINSTALL);
-    }
-
-    public boolean start(long contractId) {
-        return action(contractId, ActionType.START);
-    }
-
-    public boolean stop(long contractId) {
-        return action(contractId, ActionType.STOP);
-    }
-
-    private Object callContractMethod(Bundle bundle, String methodName, JsonObject params,
-                                      MethodType methodType, TransactionReceipt txReceipt,
-                                      JsonObject endBlockParams) {
-        if (bundle.getRegisteredServices() == null) {
-            return null;
-        }
-        // Assume one service
-        ServiceReference serviceRef = bundle.getRegisteredServices()[0];
-        Object service = framework.getBundleContext().getService(serviceRef);
-
-        Map<String, Method> methodMap = null;
-        contractCache.cacheContract(bundle, framework);
-        switch (methodType) {
-            case InvokeTx:
-                methodMap = contractCache.getInvokeTransactionMethods().get(bundle.getLocation());
-                break;
-            case Query:
-                methodMap = contractCache.getQueryMethods().get(bundle.getLocation());
-                break;
-            case EndBlock:
-                methodMap = contractCache.getEndBlockMethods().get(bundle.getLocation());
-                break;
-            default:
-                log.error("Method Type is not exist");
-                return null;
-        }
-
-        if (methodMap == null || methodMap.get(methodName) == null) {
-            return null;
-        }
-
-        Method method = methodMap.get(methodName);
-        try {
-            if (methodType == MethodType.InvokeTx) {
-                // Inject field
-                Map<Field, List<Annotation>> fields = contractCache.getInjectingFields().get(bundle.getLocation());
-                for (Field field : fields.keySet()) {
-                    field.setAccessible(true);
-                    for (Annotation a : field.getDeclaredAnnotations()) {
-                        if (a.annotationType().equals(ContractTransactionReceipt.class)) {
-                            field.set(service, txReceipt);
-                        }
-                    }
-                }
-            }
-
-            if (method.getParameterCount() == 0) {
-                return method.invoke(service);
-            } else {
-                if (methodType == MethodType.EndBlock) {
-                    return method.invoke(service, endBlockParams);
-                } else {
-                    return method.invoke(service, params);
-                }
-            }
-        } catch (Exception e) {
-            log.error("Call contract method : {} and bundle {} {} ", methodName,
-                    bundle.getBundleId(), bundle.getLocation());
-        }
-
-        return null;
-    }
-
-    public Object query(String contractVersion, String methodName, JsonObject params) {
-        String contractBundleLocation = contractCache.getFullLocation(contractVersion);
-        Bundle bundle = getBundle(contractBundleLocation);
-        if (bundle == null) {
-            return null;
-        }
-        return callContractMethod(bundle, methodName, params, MethodType.Query, null, null);
-    }
-
-    public Object invoke(String contractVersion, JsonObject txBody, TransactionReceipt txReceipt) {
-        String contractBundleLocation = contractCache.getFullLocation(contractVersion);
-        Bundle bundle = getBundle(contractBundleLocation);
-        if (bundle == null) {
-            return null;
-        }
-        return invoke(bundle.getBundleId(), txBody, txReceipt);
-    }
-
-    public Object invoke(long contractId, JsonObject txBody, TransactionReceipt txReceipt) {
-        Bundle bundle = getBundle(contractId);
-        if (bundle == null) {
-            return null;
-        }
-        return callContractMethod(bundle, txBody.get("method").getAsString(),
-                txBody.getAsJsonObject("params"), MethodType.InvokeTx, txReceipt, null);
-    }
-
-    private List<Object> endBlock(JsonObject endBlockParams) {
-        List<Object> results = new ArrayList<>();
-        for (Bundle bundle : framework.getBundleContext().getBundles()) {
-            contractCache.cacheContract(bundle, framework);
-            Map<String, Method> endBlockMethods = contractCache.getEndBlockMethods().get(bundle.getLocation());
-            if (endBlockMethods != null) {
-                endBlockMethods.forEach((k, m) -> {
-                    Object result = callContractMethod(bundle, k, null, MethodType.EndBlock, null, endBlockParams);
-                    if (result != null) {
-                        results.add(result);
-                    }
-                });
-            }
-        }
-
-        return results;
-    }
-
-    public BlockRuntimeResult executeTransactions(ConsensusBlock nextBlock) {
-        if (nextBlock.getIndex() == 0) {
-            // TODO first transaction is genesis
-            // TODO init method don't call any more
-        }
-
-        BlockRuntimeResult result = new BlockRuntimeResult(nextBlock);
-        // TODO tempStateStore
-        // TempStateStore blockState = new TempStateStore(stateStore);
-        List<Transaction> txList = nextBlock.getBody().getTransactionList();
-        for (Transaction tx : txList) {
-            TransactionReceipt txReceipt = createTransactionReceipt(tx);
-            // set Block ID
-            txReceipt.setBlockId(nextBlock.getHash().toString());
-            txReceipt.setBlockHeight(nextBlock.getIndex());
-            txReceipt.setBranchId(nextBlock.getBranchId().toString());
-
-            for (JsonElement transactionElement : tx.getBody().getBody()) {
-                JsonObject txBody = transactionElement.getAsJsonObject();
-                String contractVersion = txBody.get("contractVersion").getAsString();
-                Object contractResult = invoke(
-                        contractVersion, txBody, txReceipt
-                );
-                log.debug("{} is {}", txReceipt.getTxId(), txReceipt.isSuccess());
-            }
-            result.addTxReceipt(txReceipt);
-            // Save TxReceipt
-        }
-        // TODO end block params
-        /*
-        JsonObject endBlockParams = new JsonObject();
-        endBlockParams.addProperty("blockNo", nextBlock.getCoreBlock().getIndex());
-        List<Object> endBlockResult = endBlock(endBlockParams);
-        */
-        // Save BlockStates
-        // TODO tempStateStore
-        // result.setBlockResult(blockState.changeValues());
-
-        return result;
-    }
-
-    public void commitBlockResult(BlockRuntimeResult result) {
-        // TODO store transaction bybatch
-        Map<String, JsonObject> changes = result.getBlockResult();
-        TransactionReceiptStore transactionReceiptStore = storeContainer.getTransactionReceiptStore();
-        result.getTxReceipts().forEach(transactionReceiptStore::put);
-        if (!changes.isEmpty()) {
-            StateStore stateStore = storeContainer.getStateStore();
-            changes.forEach(stateStore::put);
-        }
-        // TODO make transaction Receipt Event
-
     }
 
     public List<ContractStatus> searchContracts() {
@@ -427,15 +364,131 @@ public class ContractManager {
         return result;
     }
 
-    public static TransactionReceipt createTransactionReceipt(Transaction tx) {
-        String txId = tx.getHash().toString();
-        long txSize = tx.getBody().getLength();
-        String issuer = null;
-        try {
-            issuer = tx.getAddress().toString();
+    private long install(ContractVersion version, File file, boolean isSystem) {
+        Bundle bundle;
+        try (InputStream fileStream = new FileInputStream(file.getAbsoluteFile())) {
+
+            // set location
+            String locationPrefix = isSystem ? ContractManager.SUFFIX_SYSTEM_CONTRACT :
+                    ContractManager.SUFFIX_USER_CONTRACT;
+
+            String location = String.format("%s/%s", locationPrefix, version.toString());
+            // set Location
+            bundle = framework.getBundleContext().installBundle(location, fileStream);
+            log.debug("installed  {} {}", version.toString(), bundle.getLocation());
+
+            boolean isPass = verifyManifest(bundle);
+            if (!isPass) {
+                uninstall(bundle.getBundleId());
+            }
+            start(bundle.getBundleId());
+
+            setFullLocation(bundle.getLocation());
         } catch (Exception e) {
-            log.warn(e.getMessage());
+            log.error("Install bundle exception: branchID - {}, msg - {}", branchId, e.getMessage());
+            throw new RuntimeException(e);
         }
-        return new TransactionReceiptImpl(txId, txSize, issuer);
+
+        return bundle.getBundleId();
+    }
+
+    private boolean uninstall(long contractId) {
+        return action(contractId, ActionType.UNINSTALL);
+    }
+
+    private boolean start(long contractId) {
+        return action(contractId, ActionType.START);
+    }
+
+    private boolean stop(long contractId) {
+        return action(contractId, ActionType.STOP);
+    }
+
+    private enum ActionType {
+        UNINSTALL,
+        START,
+        STOP
+    }
+
+    private boolean action(Object identifier, ActionType action) {
+        Bundle bundle = getBundle(identifier);
+        if (bundle == null) {
+            return false;
+        }
+
+        try {
+            switch (action) {
+                case UNINSTALL:
+                    bundle.uninstall();
+                    break;
+                case START:
+                    bundle.start();
+                    // ContractStore is null in Test
+                    if (contractStore != null) {
+                        inject(bundle);
+                    }
+                    break;
+                case STOP:
+                    bundle.stop();
+                    break;
+                default:
+                    throw new Exception("Action is not Exist");
+            }
+        } catch (Exception e) {
+            log.error("Execute bundle exception: contractId:{}, path:{}, stack:{}",
+                    bundle.getBundleId(), bundle.getLocation(), ExceptionUtils.getStackTrace(e));
+            throw new RuntimeException(e);
+        }
+        return true;
+    }
+
+    private void inject(Bundle bundle) throws IllegalAccessException {
+        ServiceReference<?>[] serviceRefs = bundle.getRegisteredServices();
+        if (serviceRefs == null) {
+            return;
+        }
+
+        boolean isSystemContract = bundle.getLocation()
+                .startsWith(SUFFIX_SYSTEM_CONTRACT);
+
+        for (ServiceReference serviceRef : serviceRefs) {
+            Object service = framework.getBundleContext().getService(serviceRef);
+
+            contractExecutor.injectFields(bundle.getLocation(), service, isSystemContract);
+        }
+    }
+
+    public Object query(String contractVersion, String methodName, JsonObject params) {
+        Bundle bundle = getBundle(contractVersion);
+        return bundle != null ? contractExecutor.query(contractVersion, getService(bundle), methodName, params) : null;
+    }
+
+    public BlockRuntimeResult executeTxs(ConsensusBlock nextBlock) {
+        Map<String, Object> serviceMap = new HashMap<>();   // => Map<contractVersion, service>
+
+        for (Transaction tx : nextBlock.getBody().getTransactionList()) {
+
+            String contractVersion = getContractVersion(tx);
+            Bundle bundle = getBundle(contractVersion);
+            if (bundle == null) {
+                log.error("ContractManager :: executeTxs : can't find bundle ({})", contractVersion);
+                //return null;
+            }
+
+            serviceMap.put(contractVersion, getService(bundle));
+        }
+
+        return contractExecutor.executeTxs(serviceMap, nextBlock);
+    }
+
+    public TransactionRuntimeResult executeTx(Transaction tx) {
+        String contractVersion = getContractVersion(tx);
+        Bundle bundle = getBundle(contractVersion);
+
+        return bundle != null ? contractExecutor.executeTx(contractVersion, getService(bundle), tx) : null;
+    }
+
+    public void commitBlockResult(BlockRuntimeResult result) {
+        contractExecutor.commitBlockResult(result);
     }
 }

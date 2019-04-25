@@ -3,7 +3,7 @@ package io.yggdrash.core.blockchain;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.contract.core.store.OutputType;
-import io.yggdrash.core.blockchain.osgi.ContractContainer;
+import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.store.BranchStore;
 import io.yggdrash.core.store.ConsensusBlockStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -21,9 +21,9 @@ public class PbftBlockChainMock extends BlockChainImpl<PbftProto.PbftBlock, Pbft
                               BranchStore branchStore,
                               StateStore stateStore,
                               TransactionReceiptStore transactionReceiptStore,
-                              ContractContainer contractContainer,
+                              ContractManager contractManager,
                               Map<OutputType, OutputStore> outputStores) {
         super(branch, new PbftBlockMock(genesisBlock), blockStore, transactionStore, branchStore, stateStore,
-                transactionReceiptStore, contractContainer, outputStores);
+                transactionReceiptStore, contractManager, outputStores);
     }
 }

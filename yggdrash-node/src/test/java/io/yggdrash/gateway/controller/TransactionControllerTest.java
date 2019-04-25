@@ -69,8 +69,8 @@ public class TransactionControllerTest extends TestConstants.CiTest {
         mockMvc.perform(get(basePath))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.countOfTotal", is(1)))
-                .andExpect(jsonPath("$.txs", hasSize(1)))
+                .andExpect(jsonPath("$.countOfTotal", is(3)))
+                .andExpect(jsonPath("$.txs", hasSize(3)))
                 .andExpect(jsonPath("$.txs[0].branchId", is(yggdrashBranch.toString())));
     }
 

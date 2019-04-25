@@ -8,7 +8,7 @@ import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.contract.core.store.OutputType;
-import io.yggdrash.core.blockchain.osgi.ContractContainer;
+import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.InvalidSignatureException;
@@ -50,7 +50,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
     private ConsensusBlock<T> lastConfirmedBlock;
 
-    private final ContractContainer contractContainer;
+    private final ContractManager contractManager;
     private final Map<OutputType, OutputStore> outputStores;
 
     private final Consensus consensus;
@@ -61,7 +61,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                           BranchStore branchStore,
                           StateStore stateStore,
                           TransactionReceiptStore transactionReceiptStore,
-                          ContractContainer contractContainer,
+                          ContractManager contractManager,
                           Map<OutputType, OutputStore> outputStores) {
         if (genesisBlock.getIndex() != 0
                 || !genesisBlock.getPrevBlockHash().equals(Sha3Hash.createByHashed(Constants.EMPTY_HASH))) {
@@ -75,31 +75,22 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         this.branchStore = branchStore;
         this.stateStore = stateStore;
         this.transactionReceiptStore = transactionReceiptStore;
-        this.contractContainer = contractContainer;
+        this.contractManager = contractManager;
         this.outputStores = outputStores;
         this.consensus = new Consensus(branch.getConsensus());
 
         // Check BlockChain is Ready
-        PrepareBlockchain prepareBlockchain = new PrepareBlockchain(contractContainer.getContractPath());
+        PrepareBlockchain prepareBlockchain = new PrepareBlockchain(contractManager.getContractPath());
         // check block chain is ready
         if (prepareBlockchain.checkBlockChainIsReady(this)) {
             // install bundles
-            // bc.getContractContainer()
-            ContractContainer container = getContractContainer();
             for (BranchContract contract : prepareBlockchain.getContractList()) {
                 File branchContractFile = prepareBlockchain.loadContractFile(contract.getContractVersion());
-                container.installContract(contract.getContractVersion(), branchContractFile, contract.isSystem());
-            }
-
-            try {
-                container.reloadInject();
-            } catch (IllegalAccessException e) {
-                log.error(e.getMessage());
-                // TODO throw Runtime Exception
+                contractManager.installContract(contract.getContractVersion(), branchContractFile, contract.isSystem());
             }
         } else {
-            // TODO blockchain ready fails
-            log.error("Blockchain is not Ready");
+            // TODO BlockChain ready fails
+            log.error("BlockChain is not Ready");
         }
 
         // getGenesis Block by Store
@@ -218,11 +209,10 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         // TODO run block execute move to other process (or thread)
         // TODO last execute block will invoke
         if (nextBlock.getIndex() > branchStore.getLastExecuteBlockIndex()) {
-            //BlockRuntimeResult result = runtime.invokeBlock(nextBlock);
-            BlockRuntimeResult result = contractContainer.getContractManager().executeTransactions(nextBlock);
+            BlockRuntimeResult result = contractManager.executeTxs(nextBlock); //TODO Exception
             // Save Result
-            contractContainer.getContractManager().commitBlockResult(result);
-            //runtime.commitBlockResult(result);
+            contractManager.commitBlockResult(result);
+
             branchStore.setLastExecuteBlock(nextBlock);
 
             //Store event
@@ -377,8 +367,8 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     }
 
     @Override
-    public ContractContainer getContractContainer() {
-        return contractContainer;
+    public ContractManager getContractManager() {
+        return contractManager;
     }
 
     @Override
@@ -388,7 +378,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
     @Override
     public List<BranchContract> getBranchContracts() {
-        if (this.branchStore.getBranchContacts() == null) {
+        if (this.branchStore.getBranchContacts().size() < 1) {
             return branch.getBranchContracts();
         } else {
             return this.branchStore.getBranchContacts();

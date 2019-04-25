@@ -16,24 +16,18 @@
 
 package io.yggdrash.core.blockchain;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.wallet.Wallet;
 
-import java.util.LinkedList;
-import java.util.List;
-
 public class TransactionBuilder {
     private BranchId branchId;
     private Wallet wallet;
-    private final List<JsonObject> txBody = new LinkedList<>();
+    private JsonObject txBody = new JsonObject(); //TODO Change modifier to final
     private byte[] version = Constants.EMPTY_BYTE8;
     private byte[] type = Constants.EMPTY_BYTE8;
-    private JsonArray txArray;
 
     private long timestamp = -1L;
 
@@ -52,16 +46,8 @@ public class TransactionBuilder {
         return this;
     }
 
-    private TransactionBuilder addTransactionBody(JsonObject txBody) {
-        this.txBody.add(txBody);
-        return this;
-    }
-
-    public TransactionBuilder addTransactionBody(JsonArray txBody) {
-        for (JsonElement jsonElement : txBody) {
-            JsonObject tx = jsonElement.getAsJsonObject();
-            this.txBody.add(tx);
-        }
+    public TransactionBuilder addTransactionBody(JsonObject txBody) {
+        this.txBody = txBody;
         return this;
     }
 
@@ -78,29 +64,30 @@ public class TransactionBuilder {
 
     public TransactionBuilder addTxBody(ContractVersion contractVersion, String method,
                                         JsonObject params, boolean isSystem) {
-        JsonObject txObj = new JsonObject();
-        txObj.addProperty("contractVersion", contractVersion.toString());
-        txObj.addProperty("method", method);
-        txObj.add("params", params);
-        txObj.addProperty("isSystem", isSystem);
-        return addTransactionBody(txObj);
+        return addTransactionBody(commonTxBody(contractVersion.toString(), method, params, isSystem));
     }
 
     public TransactionBuilder addTxBody(ContractVersion contractVersion, String method,
                                         JsonObject params, boolean isSystem, JsonObject consensus) {
+        JsonObject txObj = commonTxBody(contractVersion.toString(), method, params, isSystem);
+        txObj.add("consensus", consensus);
+        return addTransactionBody(txObj);
+    }
+
+    private JsonObject commonTxBody(String contractVersion, String method, JsonObject params, boolean isSystem) {
         JsonObject txObj = new JsonObject();
-        txObj.addProperty("contractVersion", contractVersion.toString());
+        txObj.addProperty("contractVersion", contractVersion);
         txObj.addProperty("method", method);
         txObj.add("params", params);
         txObj.addProperty("isSystem", isSystem);
-        txObj.add("consensus", consensus);
-        return addTransactionBody(txObj);
+
+        return txObj;
     }
 
     private Transaction createTx() {
         //Wallet wallet, byte[] version, byte[] type, BranchId txBranchId, JsonArray body
 
-        TransactionBody transactionBody = new TransactionBody(txArray);
+        TransactionBody transactionBody = new TransactionBody(txBody);
 
         byte[] chain = branchId.getBytes();
         // Check timeStamp
@@ -123,12 +110,10 @@ public class TransactionBuilder {
     }
 
     public Transaction build() {
-        if (branchId == null || txBody.isEmpty()) {
+        if (branchId == null || txBody.size() == 0) {
             return  null;
-        } else {
-            txArray = new JsonArray();
-            txBody.forEach(txArray::add);
         }
         return createTx();
     }
+
 }

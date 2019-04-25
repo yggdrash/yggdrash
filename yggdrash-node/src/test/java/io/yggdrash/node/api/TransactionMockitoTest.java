@@ -17,11 +17,13 @@
 package io.yggdrash.node.api;
 
 import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
@@ -131,10 +133,18 @@ public class TransactionMockitoTest {
         assertThat(res).isNotEmpty();
     }
 
-    @Test
-    public void sendRawTransaction() {
+    @Test(expected = FailedOperationException.class)
+    public void sendInvalidRawTransaction() {
         byte[] res = txApiImpl.sendRawTransaction(tx.toBinary());
         log.debug("\n\nres :: " + Hex.encodeHexString(res));
         assertThat(res).isNotEmpty();
+    }
+
+    @Test
+    public void sendRawTransaction() {
+        TransactionImpl testTx = new TransactionImpl(tx.getInstance());
+        byte[] res = txApiImpl.sendRawTransaction(testTx.toRawTransaction());
+        log.debug("\n\nres :: " + Hex.encodeHexString(res));
+        assertThat(res).isNotEqualTo(testTx.getHash().getBytes());
     }
 }

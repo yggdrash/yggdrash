@@ -60,7 +60,7 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
             throw new NotValidateException("Store is not valid.");
         }
         // get Transaction Size
-        transactionSize = getBlockchainTransactionSize();
+        transactionSize = getBlockChainTransactionSize();
     }
 
     @Override
@@ -139,7 +139,7 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
     }
 
     @Override
-    public long getBlockchainTransactionSize() {
+    public long getBlockChainTransactionSize() {
         // loading db is just first
         if (transactionSize == 0L) {
             lock.lock();

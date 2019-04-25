@@ -16,7 +16,6 @@
 
 package io.yggdrash;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
@@ -101,7 +100,7 @@ public class BlockChainTestUtils {
     }
 
     public static Transaction createBranchTxHusk(BranchId branchId, String method,
-                                                     JsonObject branch) {
+                                                 JsonObject branch) {
         TransactionBuilder builder = new TransactionBuilder();
 
         return builder.addTxBody(Constants.STEM_CONTRACT_VERSION, method, branch, false)
@@ -110,7 +109,7 @@ public class BlockChainTestUtils {
                 .build();
     }
 
-    public static Transaction createTxHusk(BranchId branchId, JsonArray txBody) {
+    public static Transaction createTxHusk(BranchId branchId, JsonObject txBody) {
         TransactionBuilder builder = new TransactionBuilder();
         return builder.addTransactionBody(txBody)
                 .setWallet(TestConstants.wallet())
@@ -192,7 +191,7 @@ public class BlockChainTestUtils {
     }
 
     private static Transaction createTransferTx(String to, int amount) {
-        JsonArray txBody = ContractTestUtils.transferTxBodyJson(to, amount);
+        JsonObject txBody = ContractTestUtils.transferTxBodyJson(to, amount);
         TransactionBuilder builder = new TransactionBuilder();
         return builder.addTransactionBody(txBody)
                 .setWallet(TestConstants.wallet())
