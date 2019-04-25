@@ -15,7 +15,7 @@ package io.yggdrash.core.net;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainSyncManager;
-import io.yggdrash.core.p2p.PeerHandler;
+import io.yggdrash.core.p2p.BlockChainHandler;
 import io.yggdrash.core.p2p.PeerHandlerMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class BlockChainSyncManagerTest {
 
-    private final PeerHandler handler = PeerHandlerMock.dummy();
+    private final BlockChainHandler handler = PeerHandlerMock.dummy();
     private BlockChainSyncManager syncManager;
     private BlockChain blockChain;
 

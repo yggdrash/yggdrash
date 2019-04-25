@@ -30,7 +30,6 @@ import java.util.List;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class BlockHeaderTest {
 
@@ -86,12 +85,12 @@ public class BlockHeaderTest {
         BlockHeader blockHeader1 = new BlockHeader(
                 chain, version, type, prevBlockHash, Long.MAX_VALUE, Long.MAX_VALUE,
                 blockBody1.getMerkleRoot(), Long.MAX_VALUE);
-        assertTrue(BlockHeader.LENGTH >= blockHeader1.getLength());
+        assertEquals(BlockHeader.LENGTH, blockHeader1.getBinaryForSigning().length);
 
         BlockHeader blockHeader2 = new BlockHeader(
                 chain, version, type, prevBlockHash, index, timestamp,
                 blockBody1.getMerkleRoot(), blockBody1.getLength());
-        assertTrue(BlockHeader.LENGTH >= blockHeader2.getLength());
+        assertEquals(BlockHeader.LENGTH, blockHeader2.getBinaryForSigning().length);
 
         BlockHeader blockHeader3 = new BlockHeader(blockHeader1.toBinary());
         assertEquals(blockHeader1.toJsonObject(), blockHeader3.toJsonObject());

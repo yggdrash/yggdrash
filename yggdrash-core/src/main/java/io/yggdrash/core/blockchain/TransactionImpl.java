@@ -16,11 +16,13 @@
 
 package io.yggdrash.core.blockchain;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
+import io.yggdrash.common.RawTransaction;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.ECKey;
@@ -45,7 +47,7 @@ import static io.yggdrash.common.config.Constants.KEY.SIGNATURE;
 import static io.yggdrash.common.config.Constants.TIMESTAMP_2018;
 
 public class TransactionImpl implements Transaction {
-    private static final Logger log = LoggerFactory.getLogger(Transaction.class);
+    private static final Logger log = LoggerFactory.getLogger(TransactionImpl.class);
 
     private final Proto.Transaction protoTransaction;
 
@@ -83,9 +85,9 @@ public class TransactionImpl implements Transaction {
     /**
      * Transaction Constructor.
      *
-     * @param header transaction header
+     * @param header    transaction header
      * @param signature transaction signature
-     * @param body   transaction body
+     * @param body      transaction body
      */
     public TransactionImpl(TransactionHeader header, byte[] signature, TransactionBody body) {
         this.header = header;
@@ -100,7 +102,7 @@ public class TransactionImpl implements Transaction {
     /**
      * Transaction Constructor.
      *
-     * @param jsonObject jsonObject transaction.
+     * @param jsonObject jsonObject transaction
      */
     public TransactionImpl(JsonObject jsonObject) {
         this(new TransactionHeader(jsonObject.getAsJsonObject(HEADER)),
@@ -110,7 +112,7 @@ public class TransactionImpl implements Transaction {
 
     @Override
     public TransactionHeader getHeader() {
-        return this.header;
+        return header;
     }
 
     @Override
@@ -120,7 +122,7 @@ public class TransactionImpl implements Transaction {
 
     @Override
     public TransactionBody getBody() {
-        return this.body;
+        return body;
     }
 
     @Override
@@ -140,7 +142,7 @@ public class TransactionImpl implements Transaction {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
 
         try {
-            bao.write(header.toBinary());
+            bao.write(header.getBinaryForSigning());
             bao.write(getSignature());
         } catch (IOException e) {
             throw new NotValidateException();
@@ -173,7 +175,7 @@ public class TransactionImpl implements Transaction {
 
     @Override
     public long getLength() {
-        return TransactionHeader.LENGTH + Constants.SIGNATURE_LENGTH + body.getLength();
+        return TransactionHeader.LENGTH + Constants.SIGNATURE_LENGTH + header.getBodyLength();
     }
 
     @Override
@@ -233,7 +235,6 @@ public class TransactionImpl implements Transaction {
                 this.header.getVersion(), TransactionHeader.VERSION_LENGTH, "version");
         check &= verifyCheckLengthNotNull(
                 this.header.getType(), TransactionHeader.TYPE_LENGTH, "type");
-        check &= TransactionHeader.LENGTH >= this.header.getLength();
         check &= this.header.getTimestamp() > TIMESTAMP_2018;
         check &= verifyCheckLengthNotNull(
                 this.header.getBodyHash(), Constants.HASH_LENGTH, "bodyHash");
@@ -302,6 +303,36 @@ public class TransactionImpl implements Transaction {
     @Override
     public int compareTo(Transaction o) {
         return Long.compare(getHeader().getTimestamp(), o.getHeader().getTimestamp());
+    }
+
+    @VisibleForTesting
+    public byte[] toRawTransaction() {
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+
+        try {
+            bao.write(header.getBinaryForSigning());
+            bao.write(getSignature());
+            bao.write(body.toBinary());
+        } catch (IOException e) {
+            throw new NotValidateException();
+        }
+        return bao.toByteArray();
+    }
+
+    public static Transaction parseFromRaw(byte[] bytes) {
+        RawTransaction raw = new RawTransaction(bytes);
+
+        TransactionHeader header = new TransactionHeader(
+                raw.getChain(),
+                raw.getVersion(),
+                raw.getType(),
+                raw.getTimestamp(),
+                raw.getBodyHash(),
+                raw.getBodyLength());
+
+        TransactionBody body = new TransactionBody(raw.getBody());
+
+        return new TransactionImpl(header, raw.getSignature(), body);
     }
 
     private static Proto.Transaction toProto(byte[] bytes) {

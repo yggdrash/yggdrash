@@ -98,7 +98,7 @@ public class TransactionApiImpl implements TransactionApi {
 
     @Override
     public byte[] sendRawTransaction(byte[] bytes) {
-        Transaction transaction = new TransactionImpl(bytes);
+        Transaction transaction = TransactionImpl.parseFromRaw(bytes);
         if (branchGroup.getBranch(transaction.getBranchId()) != null) {
             // TODO Transaction Validate
             Transaction addedTx = branchGroup.addTransaction(transaction);

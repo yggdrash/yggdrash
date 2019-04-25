@@ -26,23 +26,27 @@ import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.Proto;
 import org.spongycastle.util.encoders.Hex;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 
 public class BlockHeader implements ProtoObject<Proto.Block.Header> {
 
-    static final int LENGTH = 140;
+    static final int LENGTH = 124;
 
     static final int VERSION_LENGTH = 8;
     static final int TYPE_LENGTH = 8;
 
-    private final Proto.Block.Header protoBlockHeader;
+    private final Proto.Block.Header protoHeader;
+
+    private byte[] binaryForSigning;
 
     public BlockHeader(byte[] bytes) {
         this(toProto(bytes));
     }
 
     public BlockHeader(Proto.Block.Header protoBlockHeader) {
-        this.protoBlockHeader = protoBlockHeader;
+        this.protoHeader = protoBlockHeader;
     }
 
     public BlockHeader(
@@ -55,7 +59,7 @@ public class BlockHeader implements ProtoObject<Proto.Block.Header> {
             byte[] merkleRoot,
             long bodyLength) {
 
-        this.protoBlockHeader = Proto.Block.Header.newBuilder()
+        this.protoHeader = Proto.Block.Header.newBuilder()
                 .setChain(ByteString.copyFrom(chain))
                 .setVersion(ByteString.copyFrom(version))
                 .setType(ByteString.copyFrom(type))
@@ -90,35 +94,35 @@ public class BlockHeader implements ProtoObject<Proto.Block.Header> {
     }
 
     public byte[] getChain() {
-        return protoBlockHeader.getChain().toByteArray();
+        return protoHeader.getChain().toByteArray();
     }
 
     public byte[] getVersion() {
-        return protoBlockHeader.getVersion().toByteArray();
+        return protoHeader.getVersion().toByteArray();
     }
 
     public byte[] getType() {
-        return protoBlockHeader.getType().toByteArray();
+        return protoHeader.getType().toByteArray();
     }
 
     public byte[] getPrevBlockHash() {
-        return protoBlockHeader.getPrevBlockHash().toByteArray();
+        return protoHeader.getPrevBlockHash().toByteArray();
     }
 
     public long getIndex() {
-        return protoBlockHeader.getIndex();
+        return protoHeader.getIndex();
     }
 
     public long getTimestamp() {
-        return protoBlockHeader.getTimestamp();
+        return protoHeader.getTimestamp();
     }
 
     public byte[] getMerkleRoot() {
-        return protoBlockHeader.getMerkleRoot().toByteArray();
+        return protoHeader.getMerkleRoot().toByteArray();
     }
 
     public long getBodyLength() {
-        return protoBlockHeader.getBodyLength();
+        return protoHeader.getBodyLength();
     }
 
     /**
@@ -127,11 +131,7 @@ public class BlockHeader implements ProtoObject<Proto.Block.Header> {
      * @return hash of header
      */
     public byte[] getHashForSigning() {
-        return HashUtil.sha3(toBinary());
-    }
-
-    public long getLength() {
-        return toBinary().length;
+        return HashUtil.sha3(getBinaryForSigning());
     }
 
     /**
@@ -139,14 +139,40 @@ public class BlockHeader implements ProtoObject<Proto.Block.Header> {
      *
      * @return the binary data
      */
+    public byte[] getBinaryForSigning() {
+        if (binaryForSigning == null) {
+            setBinaryForSigning();
+        }
+
+        return binaryForSigning;
+    }
+
+    private void setBinaryForSigning() {
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        try {
+            bao.write(getChain());
+            bao.write(getVersion());
+            bao.write(getType());
+            bao.write(getPrevBlockHash());
+            bao.write(ByteUtil.longToBytes(getIndex()));
+            bao.write(ByteUtil.longToBytes(getTimestamp()));
+            bao.write(getMerkleRoot());
+            bao.write(ByteUtil.longToBytes(getBodyLength()));
+        } catch (IOException e) {
+            throw new NotValidateException();
+        }
+
+        this.binaryForSigning = bao.toByteArray();
+    }
+
     @Override
     public byte[] toBinary() {
-        return protoBlockHeader.toByteArray();
+        return protoHeader.toByteArray();
     }
 
     @Override
     public Proto.Block.Header getInstance() {
-        return protoBlockHeader;
+        return protoHeader;
     }
 
     /**

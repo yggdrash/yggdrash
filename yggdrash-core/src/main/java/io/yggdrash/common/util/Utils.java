@@ -187,7 +187,6 @@ public class Utils {
         return String.format("%dGb", size / (1L << 30));
     }
 
-    @Deprecated
     public static void sleep(long ms) {
         try {
             Thread.sleep(ms);

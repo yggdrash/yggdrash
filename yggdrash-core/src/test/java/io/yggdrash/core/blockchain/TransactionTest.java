@@ -22,6 +22,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.TestConstants.SlowTest;
+import io.yggdrash.common.RawTransaction;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.util.TimeUtils;
@@ -216,6 +217,22 @@ public class TransactionTest extends SlowTest {
         JsonObject jsonObj = tx1.toJsonObjectFromProto();
         assertThat(jsonObj).isNotNull();
         assertThat(jsonObj.toString()).contains(tx1.getHash().toString());
+    }
+
+    @Test
+    public void testRawTransaction() {
+        TransactionImpl tx = new TransactionImpl(tx1.getInstance());
+        TransactionHeader header = tx.getHeader();
+        RawTransaction rawTx = new RawTransaction(tx.toRawTransaction());
+
+        assertArrayEquals(header.getChain(), rawTx.getChain());
+        assertArrayEquals(header.getVersion(), rawTx.getVersion());
+        assertArrayEquals(header.getType(), rawTx.getType());
+        assertEquals(header.getTimestamp(), rawTx.getTimestamp());
+        assertArrayEquals(header.getBodyHash(), rawTx.getBodyHash());
+        assertEquals(header.getBodyLength(), rawTx.getBodyLength());
+        assertArrayEquals(tx.getSignature(), rawTx.getSignature());
+        assertEquals(tx.getBody().toString(), rawTx.getBody());
     }
 
     @Test

@@ -15,8 +15,8 @@ package io.yggdrash.core.blockchain;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerNetwork;
+import io.yggdrash.core.p2p.BlockChainHandler;
 import io.yggdrash.core.p2p.Peer;
-import io.yggdrash.core.p2p.PeerHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,7 +115,7 @@ public class BlockChainSyncManager implements SyncManager {
     }
 
     @Override
-    public boolean syncBlock(PeerHandler peerHandler, BlockChain blockChain) {
+    public boolean syncBlock(BlockChainHandler peerHandler, BlockChain blockChain) {
         long offset = blockChain.getLastIndex() + 1;
 
         BranchId branchId = blockChain.getBranchId();
@@ -141,7 +141,7 @@ public class BlockChainSyncManager implements SyncManager {
     }
 
     @Override
-    public void syncTransaction(PeerHandler peerHandler, BlockChain blockChain) {
+    public void syncTransaction(BlockChainHandler peerHandler, BlockChain blockChain) {
         Future<List<Transaction>> futureTxList = peerHandler.syncTx(blockChain.getBranchId());
 
         try {
@@ -172,7 +172,7 @@ public class BlockChainSyncManager implements SyncManager {
         }
         BranchId branchId = blockChain.getBranchId();
         nodeStatus.sync();
-        for (PeerHandler peerHandler : peerNetwork.getHandlerList(branchId)) {
+        for (BlockChainHandler peerHandler : peerNetwork.getHandlerList(branchId)) {
             syncBlock(peerHandler, blockChain);
         }
         nodeStatus.up();
