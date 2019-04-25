@@ -131,7 +131,7 @@ public class BlockHeader implements ProtoObject<Proto.Block.Header> {
      * @return hash of header
      */
     public byte[] getHashForSigning() {
-        return HashUtil.sha3(getBinaryForSinging());
+        return HashUtil.sha3(getBinaryForSigning());
     }
 
     /**
@@ -139,15 +139,15 @@ public class BlockHeader implements ProtoObject<Proto.Block.Header> {
      *
      * @return the binary data
      */
-    public byte[] getBinaryForSinging() {
+    public byte[] getBinaryForSigning() {
         if (binaryForSigning == null) {
-            setBinaryForSinging();
+            setBinaryForSigning();
         }
 
         return binaryForSigning;
     }
 
-    private void setBinaryForSinging() {
+    private void setBinaryForSigning() {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
         try {
             bao.write(getChain());

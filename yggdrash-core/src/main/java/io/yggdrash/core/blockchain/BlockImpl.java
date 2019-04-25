@@ -159,7 +159,7 @@ public class BlockImpl implements Block, ProtoObject<Proto.Block> {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
 
         try {
-            bao.write(header.getBinaryForSinging());
+            bao.write(header.getBinaryForSigning());
             bao.write(getSignature());
         } catch (IOException e) {
             throw new NotValidateException();

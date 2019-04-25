@@ -125,13 +125,13 @@ public class TransactionHeader implements ProtoObject<Proto.Transaction.Header> 
      */
     public byte[] getBinaryForSigning() {
         if (binaryForSigning == null) {
-            setBinaryForSinging();
+            setBinaryForSigning();
         }
 
         return binaryForSigning;
     }
 
-    private void setBinaryForSinging() {
+    private void setBinaryForSigning() {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
         try {
             bao.write(getChain());
