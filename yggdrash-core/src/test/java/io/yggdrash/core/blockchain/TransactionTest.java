@@ -16,19 +16,30 @@
 
 package io.yggdrash.core.blockchain;
 
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import io.yggdrash.ContractTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.TestConstants.SlowTest;
+import io.yggdrash.common.config.Constants;
+import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.ByteUtil;
+import io.yggdrash.core.wallet.Account;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.proto.Proto;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.crypto.InvalidCipherTextException;
 import org.spongycastle.util.encoders.Hex;
 
+import java.io.IOException;
+import java.security.SignatureException;
+
+import static io.yggdrash.TestConstants.TRANSFER_TO;
 import static junit.framework.TestCase.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -39,8 +50,7 @@ public class TransactionTest extends SlowTest {
 
     private TransactionBody txBody;
     private TransactionHeader txHeader;
-    private Wallet wallet;
-    private TransactionSignature txSig;
+    private Wallet wallet = TestConstants.wallet();
     private Transaction tx1;
 
     @Before
@@ -55,175 +65,216 @@ public class TransactionTest extends SlowTest {
         jsonObject.add("params", jsonParam);
 
         txBody = new TransactionBody(jsonObject);
+        txHeader = new TransactionHeader(Constants.EMPTY_BRANCH, Constants.EMPTY_BYTE8, Constants.EMPTY_BYTE8,
+                TimeUtils.time(), txBody);
 
-        byte[] chain = new byte[20];
-        byte[] version = new byte[8];
-        byte[] type = new byte[8];
-        long timestamp = TimeUtils.time();
+        log.debug("wallet.pubKey={}", Hex.toHexString(wallet.getPubicKey()));
 
-        txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
-
-        wallet = new Wallet();
+        wallet = new Wallet("tmp/nodePri.key", "Password1234!");
         log.debug("wallet.pubKey=" + Hex.toHexString(wallet.getPubicKey()));
 
-        txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
-        tx1 = new Transaction(txHeader, txSig.getSignature(), txBody);
+        tx1 = new TransactionImpl(txHeader, wallet, txBody);
         assertTrue(tx1.verify());
     }
 
     @Test
     public void testTransactionConstructor() {
-        Transaction tx2 = new Transaction(tx1.toJsonObject());
+        Transaction tx2 = new TransactionImpl(tx1.toJsonObject());
         assertTrue(tx2.verify());
-        log.debug("tx2=" + tx2.toJsonObject());
-        log.debug("tx2=" + tx2.toString());
+        log.debug("tx2={}", tx2);
         assertEquals(tx1.toJsonObject(), tx2.toJsonObject());
 
-        Transaction tx3 = new Transaction(tx1.toBinary());
+        Transaction tx3 = new TransactionImpl(tx1.toBinary());
         assertTrue(tx3.verify());
 
-        log.debug("tx3=" + tx3.toJsonObject());
-        log.debug("tx3=" + tx3.toString());
+        log.debug("tx3={}", tx3);
+        assertArrayEquals(tx1.toBinary(), tx3.toBinary());
         assertEquals(tx1.toJsonObject(), tx3.toJsonObject());
 
         JsonObject jsonObject = tx1.toJsonObject();
         jsonObject.getAsJsonObject("header").addProperty("timestamp",
                 Hex.toHexString(ByteUtil.longToBytes(TimeUtils.time() + 1)));
 
-        Transaction tx4 = new Transaction(jsonObject);
+        Transaction tx4 = new TransactionImpl(jsonObject);
         assertTrue(tx4.verify());
 
-        log.debug("tx1=" + tx1.toJsonObject());
-        log.debug("tx4=" + tx4.toJsonObject());
+        log.debug("tx1={}", tx1);
+        log.debug("tx4={}", tx4);
         assertNotEquals(tx1.toJsonObject().toString(), tx4.toJsonObject().toString());
 
-        Transaction tx5 = new Transaction(tx1.getHeader(), tx1.getSignature(), tx1.getBody());
+        Transaction tx5 = new TransactionImpl(tx1.getHeader(), tx1.getSignature(), tx1.getBody());
         assertTrue(tx5.verify());
 
-        log.debug("tx1=" + tx1.toString());
-        log.debug("tx5=" + tx5.toString());
+        log.debug("tx1={}", tx1);
+        log.debug("tx5={}", tx5);
         assertEquals(tx1.toJsonObject(), tx5.toJsonObject());
 
-        Transaction tx6 = new Transaction(tx1.getHeader(), wallet, tx1.getBody());
+        Transaction tx6 = new TransactionImpl(tx1.getHeader(), wallet, tx1.getBody());
         assertTrue(tx6.verify());
 
-        log.debug("tx1=" + tx1.toString());
-        log.debug("tx6=" + tx6.toString());
+        log.debug("tx1={}", tx1);
+        log.debug("tx6={}", tx6);
         assertEquals(tx1.toJsonObject(), tx6.toJsonObject());
 
-        Transaction tx7 = new Transaction(tx1.toBinary());
+        Transaction tx7 = new TransactionImpl(tx1.getInstance());
         assertTrue(tx7.verify());
 
-        log.debug("tx1=" + tx1.toString());
-        log.debug("tx7=" + tx7.toString());
-        assertEquals(tx1.toJsonObject(), tx7.toJsonObject());
+        log.debug("tx1={}", tx1);
+        log.debug("tx7={}", tx7);
+        assertEquals(tx1, tx7);
 
-        log.debug("tx7(pretty)=" + tx7.toStringPretty());
-    }
-
-    @Test
-    public void testTransactionRawConstructor() {
-        Transaction tx2 = new Transaction(tx1.toBinary());
-        assertArrayEquals(tx1.toBinary(), tx2.toBinary());
-    }
-
-    @Test
-    public void testTransactionClone() {
-        Transaction tx2 = new Transaction(tx1.toBinary());
-        log.debug("tx2=" + tx2.toJsonObject());
-
-        assertEquals(tx1.toJsonObject(), tx2.toJsonObject());
-
-        JsonObject jsonObject = tx1.toJsonObject();
-        jsonObject.getAsJsonObject("header").addProperty("timestamp",
-                Hex.toHexString(ByteUtil.longToBytes(TimeUtils.time() + 1)));
-
-        Transaction tx3 = new Transaction(jsonObject);
-        log.debug("tx1=" + tx1.toJsonObject());
-        log.debug("tx3=" + tx3.toJsonObject());
-
-        assertNotEquals(tx1.toJsonObject().toString(), tx3.toJsonObject().toString());
+        log.debug("tx7(pretty)={}", new GsonBuilder().setPrettyPrinting().create().toJson(tx7.toJsonObject()));
     }
 
     @Test
     public void testTransactionField() {
-        Transaction tx2 = new Transaction(tx1.toBinary());
+        Transaction tx2 = new TransactionImpl(tx1.toBinary());
         log.debug("tx2=" + tx2.toJsonObject());
 
         assertEquals(txHeader.toJsonObject().toString(),
                 tx2.getHeader().toJsonObject().toString());
-        assertArrayEquals(txSig.getSignature(), txSig.getSignature());
-        assertEquals(txBody.toHexString(), tx2.getBody().toHexString());
+        assertArrayEquals(tx2.getSignature(), tx1.getSignature());
     }
 
     @Test
     public void testTransactionGetHash() {
-        Transaction tx2 = new Transaction(tx1.toBinary());
+        Transaction tx2 = new TransactionImpl(tx1.toBinary());
         log.debug("tx2=" + tx2.toJsonObject());
 
-        assertEquals(tx1.getHashString(), tx2.getHashString());
+        assertEquals(tx1.getHash(), tx2.getHash());
 
         JsonObject jsonObject = tx1.toJsonObject();
         jsonObject.getAsJsonObject("header").addProperty("timestamp",
                 Hex.toHexString(ByteUtil.longToBytes(TimeUtils.time() + 1)));
 
-        Transaction tx3 = new Transaction(jsonObject);
-        log.debug("tx1 hash=" + tx1.getHashString());
-        log.debug("tx3 hash=" + tx3.getHashString());
-        assertNotEquals(tx1.getHashString(), tx3.getHashString());
+        Transaction tx3 = new TransactionImpl(jsonObject);
+        log.debug("tx1 hash={}", tx1.getHash());
+        log.debug("tx3 hash={}", tx3.getHash());
+        assertNotEquals(tx1.getHash(), tx3.getHash());
     }
 
     @Test
-    public void testTransactionKey() throws Exception {
-        Transaction tx2 = new Transaction(tx1.toBinary());
-        log.debug("tx2 pubKey=" + tx2.getPubKeyHexString());
-        log.debug("tx2 headerHash=" + Hex.toHexString(tx2.getHeader().getHashForSigning()));
-        log.debug("tx2 pubKey=" + Hex.toHexString(tx2.getPubKey()));
+    public void testTransactionKey() {
+        Transaction tx2 = new TransactionImpl(tx1.toBinary());
+        log.debug("tx2 headerHash={}", Hex.toHexString(tx2.getHeader().getHashForSigning()));
+        log.debug("tx2 pubKey={}", Hex.toHexString(tx2.getPubKey()));
 
-        assertEquals(tx1.getPubKeyHexString(), tx2.getPubKeyHexString());
         assertArrayEquals(tx1.getPubKey(), tx2.getPubKey());
         assertArrayEquals(tx1.getPubKey(), wallet.getPubicKey());
 
-        log.debug("tx1 address=" + tx1.getAddressToString());
-        log.debug("tx2 address=" + tx2.getAddressToString());
-        log.debug("wallet address=" + wallet.getHexAddress());
-        log.debug("wallet signature=" + Hex.toHexString(wallet.sign(tx1.getHeader().getHashForSigning(), true)));
-        log.debug("wallet pubKey=" + Hex.toHexString(wallet.getPubicKey()));
+        log.debug("tx1 address={}", tx1.getAddress());
+        log.debug("tx2 address={}", tx2.getAddress());
+        log.debug("wallet address={}", wallet.getHexAddress());
+        log.debug("wallet signature={}", Hex.toHexString(wallet.sign(tx1.getHeader().getHashForSigning(), true)));
+        log.debug("wallet pubKey={}", Hex.toHexString(wallet.getPubicKey()));
 
-        assertArrayEquals(tx1.getAddress(), tx2.getAddress());
-        assertArrayEquals(tx1.getAddress(), wallet.getAddress());
+        assertEquals(tx1.getAddress(), tx2.getAddress());
+        assertArrayEquals(tx1.getAddress().getBytes(), wallet.getAddress());
     }
 
     @Test
-    public void testTransactionToProto() throws Exception {
-        Transaction tx2 = new Transaction(tx1.toBinary());
-        log.debug("tx2 pubKey=" + tx2.getPubKeyHexString());
+    public void testTransactionToProto() {
+        Transaction tx2 = new TransactionImpl(tx1.toBinary());
 
-        assertEquals(tx1.getPubKeyHexString(), tx2.getPubKeyHexString());
         assertArrayEquals(tx1.getPubKey(), tx2.getPubKey());
         assertArrayEquals(tx1.getPubKey(), wallet.getPubicKey());
 
-        log.debug("tx1 address=" + tx1.getAddressToString());
-        log.debug("tx2 address=" + tx2.getAddressToString());
-        log.debug("wallet address=" + wallet.getHexAddress());
-        assertArrayEquals(tx1.getAddress(), tx2.getAddress());
-        assertArrayEquals(tx1.getAddress(), wallet.getAddress());
+        log.debug("tx1 address={}", tx1.getAddress());
+        log.debug("tx2 address={}", tx2.getAddress());
+        log.debug("wallet address={}", wallet.getHexAddress());
+        assertEquals(tx1.getAddress(), tx2.getAddress());
+        assertArrayEquals(tx1.getAddress().getBytes(), wallet.getAddress());
 
-        Proto.Transaction protoTx1 = Transaction.toProtoTransaction(tx1);
-        Proto.Transaction protoTx2 = Transaction.toProtoTransaction(tx2);
-        log.debug("tx1 proto=" + Hex.toHexString(protoTx1.toByteArray()));
-        log.debug("tx2 proto=" + Hex.toHexString(protoTx2.toByteArray()));
+        log.debug("tx1 proto={}", Hex.toHexString(tx1.toBinary()));
+        log.debug("tx2 proto={}", Hex.toHexString(tx2.toBinary()));
 
-        assertArrayEquals(protoTx1.toByteArray(), protoTx2.toByteArray());
+        assertEquals(tx1, tx2);
 
-        Transaction tx3 = Transaction.toTransaction(protoTx1);
-        log.debug("tx1=" + tx1.toString());
-        log.debug("tx3=" + tx3.toString());
+        Transaction tx3 = new TransactionImpl(tx1.getInstance());
+        log.debug("tx1={}", tx1);
+        log.debug("tx3={}", tx3);
 
         assertEquals(tx1.toString(), tx3.toString());
-
-        Proto.Transaction protoTx3 = Transaction.toProtoTransaction(tx1);
-        assertArrayEquals(protoTx1.toByteArray(), protoTx3.toByteArray());
+        assertEquals(tx1, tx3);
     }
 
+    @Test
+    public void shouldGetJsonObjectFromProto() {
+        JsonObject jsonObj = tx1.toJsonObjectFromProto();
+        assertThat(jsonObj).isNotNull();
+        assertThat(jsonObj.toString()).contains(tx1.getHash().toString());
+    }
+
+    @Test
+    public void testGetAddressWithWalletAccount() throws IOException, InvalidCipherTextException {
+        Account account = new Account();
+        log.debug("Account={}", account);
+        log.debug("Account.address={}", Hex.toHexString(account.getAddress()));
+
+        Wallet wallet = new Wallet(account.getKey(), "tmp/path", "nodePri.key", "Aa1234567890!");
+        log.debug("Wallet={}", wallet);
+        log.debug("Wallet.address={}", Hex.toHexString(wallet.getAddress()));
+
+        Transaction tx1 = createTx(wallet);
+        Transaction tx2 = createTx(wallet);
+
+        log.debug("Test Transaction1={}", tx1);
+        log.debug("Test Transaction1 Address={}", tx1.getAddress());
+
+        log.debug("Test Transaction2={}", tx2);
+        log.debug("Test Transaction2 Address={}", tx2.getAddress());
+
+
+        assertThat(wallet.getAddress()).isEqualTo(account.getAddress());
+        assertThat(tx1.getAddress()).isEqualTo(tx2.getAddress());
+        assertThat(account.getAddress()).isEqualTo(tx1.getAddress().getBytes());
+    }
+
+    @Test
+    public void testGetAddressWithSig() throws IOException, InvalidCipherTextException, SignatureException {
+        Account account = new Account();
+        log.debug("Account: " + account.toString());
+        log.debug("Account.address: " + Hex.toHexString(account.getAddress()));
+        log.debug("Account.pubKey: " + Hex.toHexString(account.getKey().getPubKey()));
+
+        Wallet wallet = new Wallet(account.getKey(), "tmp/path", "nodePri.key", "Aa1234567890!");
+        log.debug("Wallet: " + wallet.toString());
+        log.debug("Wallet.address: " + Hex.toHexString(wallet.getAddress()));
+        log.debug("Wallet.pubKey: " + Hex.toHexString(wallet.getPubicKey()));
+
+        Transaction tx1 = createTx(wallet);
+        log.debug("Test Transaction1={}", tx1);
+        log.debug("Test Transaction1 Address={}", tx1.getAddress());
+
+        assertThat(tx1.verify()).isTrue();
+        assertThat(wallet.getAddress()).isEqualTo(account.getAddress());
+        assertThat(wallet.getAddress()).isEqualTo(tx1.getAddress().getBytes());
+
+        byte[] hashedRawData = tx1.getHeader().getHashForSigning();
+        log.debug("hashedRawData={}", Hex.toHexString(hashedRawData));
+
+        byte[] signatureBin = tx1.getSignature();
+        log.debug("signatureBin={}", Hex.toHexString(signatureBin));
+
+        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(signatureBin);
+        ECKey key = ECKey.signatureToKey(hashedRawData, ecdsaSignature);
+
+        byte[] address = key.getAddress();
+        byte[] pubKey = key.getPubKey();
+
+        log.debug("address={}", Hex.toHexString(address));
+        log.debug("pubKey={}", Hex.toHexString(pubKey));
+
+        assertThat(account.getAddress()).isEqualTo(address);
+        assertThat(account.getKey().getPubKey()).isEqualTo(pubKey);
+    }
+
+    private Transaction createTx(Wallet wallet) {
+        JsonObject txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, 100);
+        TransactionBuilder builder = new TransactionBuilder();
+        return builder.setWallet(wallet)
+                .setBranchId(TestConstants.yggdrash())
+                .addTransactionBody(txBody)
+                .build();
+    }
 }

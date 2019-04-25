@@ -20,7 +20,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.node.CoinContractTestUtils;
 import org.junit.Assert;
@@ -111,7 +111,7 @@ public class ContractApiImplTest {
     }
 
     private void sendTransaction(JsonObject txBody) {
-        TransactionHusk tx = BlockChainTestUtils.createTxHusk(TestConstants.yggdrash(), txBody);
+        Transaction tx = BlockChainTestUtils.createTxHusk(TestConstants.yggdrash(), txBody);
         Assert.assertTrue(tx.verify());
         try {
             TX_API.sendTransaction(TransactionDto.createBy(tx));

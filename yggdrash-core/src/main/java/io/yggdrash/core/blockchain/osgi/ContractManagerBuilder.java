@@ -75,7 +75,7 @@ public class ContractManagerBuilder {
             throw new IllegalStateException("Must set branchId");
         }
 
-        ContractManager contractManager = new ContractManager(
+        return new ContractManager(
                 this.frameworkFactory,
                 this.containerConfig,
                 this.branchId,
@@ -84,8 +84,6 @@ public class ContractManagerBuilder {
                 this.systemProperties,
                 this.outputStore
         );
-        contractManager.newFramework(); //TODO Remove business logic
-        return contractManager;
     }
 
 }

@@ -22,9 +22,9 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.vo.dpoa.Validator;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,11 +53,11 @@ public class BranchStoreTest {
 
     @Test
     public void shouldBeLoaded() {
-        BlockHusk blockHusk = BlockChainTestUtils.genesisBlock();
-        ms.setBestBlockHash(blockHusk.getHash());
+        ConsensusBlock block = BlockChainTestUtils.genesisBlock();
+        ms.setBestBlockHash(block.getHash());
 
         Sha3Hash sha3Hash = ms.getBestBlockHash();
-        assertThat(sha3Hash).isEqualTo(blockHusk.getHash());
+        assertThat(sha3Hash).isEqualTo(block.getHash());
 
         Sha3Hash sha3HashAgain = ms.getBestBlockHash();
         assertThat(sha3HashAgain).isEqualTo(sha3Hash);
@@ -65,23 +65,23 @@ public class BranchStoreTest {
 
     @Test
     public void shouldBePutMeta() {
-        BlockHusk blockHusk = BlockChainTestUtils.genesisBlock();
-        ms.setBestBlock(blockHusk);
+        ConsensusBlock block = BlockChainTestUtils.genesisBlock();
+        ms.setBestBlock(block);
         Long bestBlock = ms.getBestBlock();
 
-        assertThat(bestBlock).isEqualTo(blockHusk.getIndex());
+        assertThat(bestBlock).isEqualTo(block.getIndex());
     }
 
     @Test
     public void getSetGenesisBlock() {
-        BlockHusk blockHusk = BlockChainTestUtils.genesisBlock();
-        ms.setGenesisBlockHash(blockHusk.getHash());
+        ConsensusBlock block = BlockChainTestUtils.genesisBlock();
+        ms.setGenesisBlockHash(block.getHash());
 
         Sha3Hash genesis = ms.getGenesisBlockHash();
-        log.debug(blockHusk.getHash().toString());
+        log.debug(block.getHash().toString());
         log.debug(genesis.toString());
 
-        assertThat(genesis).isEqualTo(blockHusk.getHash());
+        assertThat(genesis).isEqualTo(block.getHash());
 
         Sha3Hash otherGenesisBlock = new Sha3Hash("TEST".getBytes());
         assertThat(ms.setGenesisBlockHash(otherGenesisBlock)).isFalse();
@@ -102,7 +102,6 @@ public class BranchStoreTest {
 
     @Test
     public void getSetValidators() {
-        ValidatorSet validatorSet = new ValidatorSet();
         Map<String, Validator> validatorMap = new HashMap<>();
         validatorMap.put("TEST1",
                 new Validator("a2b0f5fce600eb6c595b28d6253bed92be0568ed"));
@@ -110,6 +109,7 @@ public class BranchStoreTest {
                 new Validator("a2b0f5fce600eb6c595b28d6253bed92be0568ed"));
         validatorMap.put("TEST3",
                 new Validator("a2b0f5fce600eb6c595b28d6253bed92be0568ed"));
+        ValidatorSet validatorSet = new ValidatorSet();
         validatorSet.setValidatorMap(validatorMap);
 
         ms.setValidators(validatorSet);

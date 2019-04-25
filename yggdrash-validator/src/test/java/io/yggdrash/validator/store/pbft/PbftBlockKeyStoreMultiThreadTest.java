@@ -4,14 +4,16 @@ import com.anarsoft.vmlens.concurrent.junit.ConcurrentTestRunner;
 import com.anarsoft.vmlens.concurrent.junit.ThreadCount;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.validator.TestUtils;
 import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftMessage;
 import io.yggdrash.validator.data.pbft.PbftMessageSet;
-import io.yggdrash.validator.util.TestUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +27,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.config.Constants.PBFT_COMMIT;
 import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
@@ -51,15 +52,16 @@ public class PbftBlockKeyStoreMultiThreadTest {
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
-        wallet0 = new Wallet();
-        wallet1 = new Wallet(null, "/tmp/",
+        wallet0 = new Wallet(null, "tmp/",
+                "test1" + TimeUtils.time(), "Password1234!");
+        wallet1 = new Wallet(null, "tmp/",
                 "test2" + TimeUtils.time(), "Password1234!");
-        wallet2 = new Wallet(null, "/tmp/",
+        wallet2 = new Wallet(null, "tmp/",
                 "test3" + TimeUtils.time(), "Password1234!");
-        wallet3 = new Wallet(null, "/tmp/",
+        wallet3 = new Wallet(null, "tmp/",
                 "test4" + TimeUtils.time(), "Password1234!");
 
-        this.pbftBlock0 = makePbftBlock(0L, EMPTY_BYTE32);
+        this.pbftBlock0 = makePbftBlock(0L, Constants.EMPTY_HASH);
         this.pbftBlock1 = makePbftBlock(pbftBlock0.getIndex() + 1, pbftBlock0.getHash());
         this.pbftBlock2 = makePbftBlock(pbftBlock1.getIndex() + 1, pbftBlock1.getHash());
         this.pbftBlock3 = makePbftBlock(pbftBlock2.getIndex() + 1, pbftBlock2.getHash());
@@ -68,11 +70,15 @@ public class PbftBlockKeyStoreMultiThreadTest {
 
         this.ds = new LevelDbDataSource(StoreTestUtils.getTestPath(), "pbftBlockKeyStoreTest");
         this.blockKeyStore = new PbftBlockKeyStore(ds);
-        this.blockKeyStore.put(this.pbftBlock0.getIndex(), this.pbftBlock0.getHash());
+        this.blockKeyStore.put(this.pbftBlock0.getIndex(), this.pbftBlock0.getHash().getBytes());
     }
 
     private Block makeBlock(long index, byte[] prevHash) {
         return new TestUtils(wallet0).sampleBlock(index, prevHash);
+    }
+
+    private PbftBlock makePbftBlock(long index, Sha3Hash prevHash) {
+        return makePbftBlock(index, prevHash.getBytes());
     }
 
     private PbftBlock makePbftBlock(long index, byte[] prevHash) {
@@ -120,7 +126,7 @@ public class PbftBlockKeyStoreMultiThreadTest {
     public void putTestMultiThread() {
         long testNumber = 1000;
         for (long l = 0L; l < testNumber; l++) {
-            this.blockKeyStore.put(l, EMPTY_BYTE32);
+            this.blockKeyStore.put(l, Constants.EMPTY_HASH);
         }
         log.debug("blockKeyStore size= " + this.blockKeyStore.size());
         assertEquals(testNumber, this.blockKeyStore.size());

@@ -10,11 +10,12 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;
-import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.wallet.Wallet;
@@ -36,7 +37,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -136,7 +136,7 @@ public class NodeContractDemoClient {
         }
     }
 
-    private static void sendTx() throws Exception {
+    private static void sendTx() {
         System.out.print("[1] STEM  [2] YEED [3] NONE [4] GENERAL\n> ");
         String num = scan.nextLine();
 
@@ -190,7 +190,7 @@ public class NodeContractDemoClient {
         int times = getSendTimes();
         BranchId branchId = BranchId.of(branch);
         for (int i = 0; i < times; i++) {
-            TransactionHusk tx = BlockChainTestUtils.createBranchTxHusk(branchId, method, branch);
+            Transaction tx = BlockChainTestUtils.createBranchTxHusk(branchId, method, branch);
             sendTransaction(tx);
         }
     }
@@ -201,12 +201,12 @@ public class NodeContractDemoClient {
         int amount = 1;
         for (int i = 0; i < times; i++) {
             JsonObject txBody = ContractTestUtils.transferTxBodyJson("", amount);
-            TransactionHusk tx = createTxHusk(BranchId.of(branchId), txBody);
+            Transaction tx = createTxHusk(BranchId.of(branchId), txBody);
             sendTransaction(tx);
         }
     }
 
-    private static void sendGeneralTxOrQuery() throws Exception {
+    private static void sendGeneralTxOrQuery() {
         // TODO change Spec
         String branchId = getBranchId();
         List<String> methodList = (List<String>)rpc.proxyOf(TARGET_SERVER, ContractApi.class)
@@ -217,7 +217,7 @@ public class NodeContractDemoClient {
         int index = getMethodIndex(methodList);
         String selectedMethod = MethodNameParser.parse(methodList.get(index));
         if (methodList.get(index).contains("TransactionReceipt")) {
-            TransactionHusk tx = createTx(branchId, selectedMethod);
+            Transaction tx = createTx(branchId, selectedMethod);
             System.out.println("tx => " + tx);
             sendTransaction(tx);
         } else {
@@ -284,7 +284,7 @@ public class NodeContractDemoClient {
         return params;
     }
 
-    private static TransactionHusk createTx(String branchId, String method) {
+    private static Transaction createTx(String branchId, String method) {
         System.out.println("파라미터 직접 입력하시겠습니가? 예, {key : value, key : value ...} (Y/N)");
         JsonObject txBody = null;
         String from;
@@ -347,12 +347,12 @@ public class NodeContractDemoClient {
         int times = getSendTimes();
         for (int i = 0; i < times; i++) {
             JsonObject txBody = ContractTestUtils.transferTxBodyJson(address, amount);
-            TransactionHusk tx = createTxHusk(yggdrash, txBody);
+            Transaction tx = createTxHusk(yggdrash, txBody);
             sendTransaction(tx);
         }
     }
 
-    private static void view() throws Exception {
+    private static void view() {
         String branchId = getBranchId();
         Map params = ContractApiImplTest.createParams(BRANCH_ID, branchId);
 
@@ -408,7 +408,7 @@ public class NodeContractDemoClient {
         rpc.proxyOf(TARGET_SERVER, BranchApi.class).getBranches();
     }
 
-    private static void balance() throws Exception {
+    private static void balance() {
         System.out.println("조회할 주소를 적어주세요\n>");
         Map params = ContractApiImplTest.createParams("address", scan.nextLine());
 
@@ -485,7 +485,7 @@ public class NodeContractDemoClient {
         String seedPath = String.format("classpath:/%s/%s", dir, fileName);
         Resource resource = new DefaultResourceLoader().getResource(seedPath);
         try (InputStream is = resource.getInputStream()) {
-            Reader json = new InputStreamReader(is, StandardCharsets.UTF_8);
+            Reader json = new InputStreamReader(is, FileUtil.DEFAULT_CHARSET);
             JsonObject jsonObject = JsonUtil.parseJsonObject(json);
             if (!jsonObject.has("timestamp")) {
                 long timestamp = TimeUtils.time();
@@ -519,7 +519,7 @@ public class NodeContractDemoClient {
         System.out.println("created at " + file.getAbsolutePath());
     }
 
-    private static TransactionHusk createTxHusk(BranchId branchId, JsonObject txBody) {
+    private static Transaction createTxHusk(BranchId branchId, JsonObject txBody) {
         TransactionBuilder builder = new TransactionBuilder();
         return builder.addTransactionBody(txBody)
                 .setWallet(wallet)
@@ -539,7 +539,7 @@ public class NodeContractDemoClient {
         }
     }
 
-    private static void sendTransaction(TransactionHusk tx) {
+    private static void sendTransaction(Transaction tx) {
         TransactionDto txd = TransactionDto.createBy(tx);
         lastTransactionId = rpc.proxyOf(TARGET_SERVER, TransactionApi.class)
                 .sendTransaction(txd);

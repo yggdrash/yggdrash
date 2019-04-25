@@ -12,14 +12,13 @@ import io.yggdrash.contract.core.annotation.InjectEvent;
 import io.yggdrash.contract.core.annotation.InjectOutputStore;
 import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.contract.core.store.OutputType;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.SystemProperties;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
-import io.yggdrash.core.wallet.Address;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.launch.Framework;
 import org.slf4j.Logger;
@@ -182,12 +181,12 @@ public class ContractExecutor {
         return results;
     }
 
-    TransactionRuntimeResult executeTx(String contractVersion, Object service, TransactionHusk tx) {
+    TransactionRuntimeResult executeTx(String contractVersion, Object service, Transaction tx) {
         TransactionReceipt txReceipt = createTransactionReceipt(tx);
         TransactionRuntimeResult txRuntimeResult = new TransactionRuntimeResult(tx);
         txRuntimeResult.setTransactionReceipt(txReceipt);
 
-        JsonObject txBody = JsonUtil.parseJsonObject(tx.getBody());
+        JsonObject txBody = JsonUtil.parseJsonObject(tx.getBody().toString());
         Object contractResult = invoke(contractVersion, service, txBody, txReceipt);
         //TODO Q. Where will the contractResult be used?
 
@@ -196,7 +195,7 @@ public class ContractExecutor {
         return txRuntimeResult;
     }
 
-    BlockRuntimeResult executeTxs(Map<String, Object> serviceMap, BlockHusk nextBlock) {
+    BlockRuntimeResult executeTxs(Map<String, Object> serviceMap, ConsensusBlock nextBlock) {
         if (nextBlock.getIndex() == 0) {
             // TODO first transaction is genesis
             // TODO init method don't call any more
@@ -204,14 +203,14 @@ public class ContractExecutor {
 
         BlockRuntimeResult blockRuntimeResult = new BlockRuntimeResult(nextBlock);
 
-        for (TransactionHusk tx : nextBlock.getBody()) {
+        for (Transaction tx : nextBlock.getBody().getTransactionList()) {
             TransactionReceipt txReceipt = createTransactionReceipt(tx);
 
             txReceipt.setBlockId(nextBlock.getHash().toString());
             txReceipt.setBlockHeight(nextBlock.getIndex());
             txReceipt.setBranchId(nextBlock.getBranchId().toString());
 
-            JsonObject txBody = JsonUtil.parseJsonObject(tx.getBody());
+            JsonObject txBody = JsonUtil.parseJsonObject(tx.getBody().toString());
             String contractVersion = txBody.get("contractVersion").getAsString();
             Object service = serviceMap.get(contractVersion);
             Object contractResult = invoke(contractVersion, service, txBody, txReceipt);
@@ -237,14 +236,11 @@ public class ContractExecutor {
         // TODO make transaction Receipt Event
     }
 
-    public static TransactionReceipt createTransactionReceipt(TransactionHusk tx) {
+    public static TransactionReceipt createTransactionReceipt(Transaction tx) {
         String txId = tx.getHash().toString();
-        long txSize = tx.getBody().length();
-        Address address = tx.getAddress();
-        String issuer = null;
-        if (address != null) {
-            issuer = address.toString();
-        }
+        long txSize = tx.getBody().getLength();
+        String issuer = tx.getAddress().toString();
+
         return new TransactionReceiptImpl(txId, txSize, issuer);
     }
 }

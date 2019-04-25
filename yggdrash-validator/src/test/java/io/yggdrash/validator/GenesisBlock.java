@@ -3,6 +3,7 @@ package io.yggdrash.validator;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.TimeUtils;
@@ -10,22 +11,22 @@ import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
+import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBody;
 import io.yggdrash.core.blockchain.TransactionHeader;
+import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
 import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
 
 class GenesisBlock {
@@ -59,14 +60,14 @@ class GenesisBlock {
         // todo: change values(version, type) using the configuration.
         txHeader = new TransactionHeader(
                 chain,
-                new byte[8],
-                new byte[8],
+                EMPTY_BYTE8,
+                EMPTY_BYTE8,
                 timestamp,
                 txBody);
 
         DefaultConfig defaultConfig = new DefaultConfig();
-        Wallet wallet = new Wallet(defaultConfig);
-        Transaction tx = new Transaction(txHeader, wallet, txBody);
+        Wallet wallet = new Wallet(defaultConfig, "Password1234!");
+        Transaction tx = new TransactionImpl(txHeader, wallet, txBody);
         List<Transaction> txList = new ArrayList<>();
         txList.add(tx);
 
@@ -77,13 +78,13 @@ class GenesisBlock {
                 chain,
                 EMPTY_BYTE8,
                 EMPTY_BYTE8,
-                EMPTY_BYTE32,
+                Constants.EMPTY_HASH,
                 0L,
                 timestamp,
                 blockBody.getMerkleRoot(),
-                blockBody.length());
+                blockBody.getLength());
 
-        genesisBlock = new Block(blockHeader, wallet, blockBody);
+        genesisBlock = new BlockImpl(blockHeader, wallet, blockBody);
 
     }
 
@@ -120,10 +121,13 @@ class GenesisBlock {
             File genesisFile = new File(classLoader.getResource("./genesis/genesis.json").getFile());
             FileUtil.writeStringToFile(genesisFile,
                     new GsonBuilder().setPrettyPrinting().create().toJson(jsonObject),
-                    StandardCharsets.UTF_8, false);
+                    FileUtil.DEFAULT_CHARSET, false);
         } catch (Exception e) {
             throw new NotValidateException();
         }
     }
 
+    public Block getGenesisBlock() {
+        return genesisBlock;
+    }
 }

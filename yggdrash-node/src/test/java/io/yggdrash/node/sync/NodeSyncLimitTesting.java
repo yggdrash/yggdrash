@@ -69,7 +69,7 @@ public class NodeSyncLimitTesting extends TcpNodeTesting {
 
         // assert
         assertThat(node2.getDefaultBranch().getLastIndex()).isEqualTo(node1.getDefaultBranch().getLastIndex());
-        assertThat(node2.getDefaultBranch().transactionCount()).isEqualTo(node1.getDefaultBranch().transactionCount());
+        assertThat(node2.getDefaultBranch().countOfTxs()).isEqualTo(node1.getDefaultBranch().countOfTxs());
     }
 
     private void generateTxAndBlock(TestNode node, int blockCount, int txCount) {

@@ -2,7 +2,7 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.PeerTestUtils;
-import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
 import io.yggdrash.core.p2p.PeerHandlerMock;
@@ -14,14 +14,14 @@ import org.junit.Test;
 
 public class PeerNetworkTest {
     private KademliaPeerNetwork peerNetwork;
-    private final BlockHusk genesis = BlockChainTestUtils.genesisBlock();
+    private final ConsensusBlock genesis = BlockChainTestUtils.genesisBlock();
 
     @Before
     public void setUp() {
         PeerDialer peerDialer = new SimplePeerDialer(PeerHandlerMock.factory);
         PeerTableGroup peerTableGroup = PeerTestUtils.createTableGroup();
         peerNetwork = new KademliaPeerNetwork(peerTableGroup, peerDialer);
-        peerNetwork.addNetwork(genesis.getBranchId());
+        peerNetwork.addNetwork(genesis.getBranchId(), "pbft");
         peerTableGroup.addPeer(genesis.getBranchId(), Peer.valueOf("ynode://75bff16c@127.0.0.1:32919"));
         peerNetwork.init();
     }

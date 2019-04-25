@@ -1,14 +1,13 @@
 syntax = "proto3";
 
-import "Yggdrash.proto";
-import "BlockChain.proto";
-import "Common.proto";
-
 option java_package = "io.yggdrash.proto";
 option java_outer_classname = "EbftProto";
 
+import "Common.proto";
+import "Yggdrash.proto";
+
 message ConsensusList {
-    repeated string consensusList = 1;
+    repeated string consensus = 1;
 }
 
 message EbftBlock {
@@ -17,7 +16,7 @@ message EbftBlock {
 }
 
 message EbftBlockList {
-    repeated EbftBlock ebftBlockList = 1;
+    repeated EbftBlock ebftBlock = 1;
 }
 
 message EbftStatus {
@@ -38,5 +37,8 @@ service EbftService {
     }
 
     rpc multicastEbftBlock (EbftBlock) returns (Empty) {
+    }
+
+    rpc broadcastEbftBlock (EbftBlock) returns (Empty) {
     }
 }

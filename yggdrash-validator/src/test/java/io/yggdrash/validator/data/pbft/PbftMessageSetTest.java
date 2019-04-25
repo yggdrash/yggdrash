@@ -5,7 +5,7 @@ import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
-import io.yggdrash.validator.util.TestUtils;
+import io.yggdrash.validator.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -61,12 +61,13 @@ public class PbftMessageSetTest {
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
-        wallet = new Wallet();
-        wallet2 = new Wallet(null, "/tmp/",
+        wallet = new Wallet(null, "tmp/",
+                "test1" + TimeUtils.time(), "Password1234!");
+        wallet2 = new Wallet(null, "tmp/",
                 "test2" + TimeUtils.time(), "Password1234!");
-        wallet3 = new Wallet(null, "/tmp/",
+        wallet3 = new Wallet(null, "tmp/",
                 "test3" + TimeUtils.time(), "Password1234!");
-        wallet4 = new Wallet(null, "/tmp/",
+        wallet4 = new Wallet(null, "tmp/",
                 "test4" + TimeUtils.time(), "Password1234!");
 
         block = new TestUtils(wallet).sampleBlock();
@@ -356,13 +357,13 @@ public class PbftMessageSetTest {
             assertNotNull(messageSet.getPrePrepare());
 
             log.debug("prepareMap Size: " + messageSet.getPrepareMap().size());
-            assertEquals(messageSet.getPrepareMap().size(), 4);
+            assertEquals(4, messageSet.getPrepareMap().size());
 
             log.debug("commitMap Size: " + messageSet.getCommitMap().size());
-            assertEquals(messageSet.getCommitMap().size(), 4);
+            assertEquals(4, messageSet.getCommitMap().size());
 
             log.debug("viewChangeMap Size: " + messageSet.getViewChangeMap().size());
-            assertEquals(messageSet.getViewChangeMap().size(), 4);
+            assertEquals(4, messageSet.getViewChangeMap().size());
 
         } catch (Exception e) {
             log.debug(e.getMessage());
@@ -375,13 +376,13 @@ public class PbftMessageSetTest {
             assertNotNull(messageSet.getPrePrepare());
 
             log.debug("prepareMap Size: " + messageSet.getPrepareMap().size());
-            assertEquals(messageSet.getPrepareMap().size(), 0);
+            assertEquals(0, messageSet.getPrepareMap().size());
 
             log.debug("commitMap Size: " + messageSet.getCommitMap().size());
-            assertEquals(messageSet.getCommitMap().size(), 0);
+            assertEquals(0, messageSet.getCommitMap().size());
 
             log.debug("viewChangeMap Size: " + messageSet.getViewChangeMap().size());
-            assertEquals(messageSet.getViewChangeMap().size(), 0);
+            assertEquals(0, messageSet.getViewChangeMap().size());
 
         } catch (Exception e) {
             log.debug(e.getMessage());
@@ -394,13 +395,13 @@ public class PbftMessageSetTest {
             assertNotNull(messageSet.getPrePrepare());
 
             log.debug("prepareMap Size: " + messageSet.getPrepareMap().size());
-            assertEquals(messageSet.getPrepareMap().size(), 4);
+            assertEquals(4, messageSet.getPrepareMap().size());
 
             log.debug("commitMap Size: " + messageSet.getCommitMap().size());
-            assertEquals(messageSet.getCommitMap().size(), 0);
+            assertEquals(0, messageSet.getCommitMap().size());
 
             log.debug("viewChangeMap Size: " + messageSet.getViewChangeMap().size());
-            assertEquals(messageSet.getViewChangeMap().size(), 0);
+            assertEquals(0, messageSet.getViewChangeMap().size());
 
         } catch (Exception e) {
             log.debug(e.getMessage());
@@ -413,13 +414,13 @@ public class PbftMessageSetTest {
             assertNotNull(messageSet.getPrePrepare());
 
             log.debug("prepareMap Size: " + messageSet.getPrepareMap().size());
-            assertEquals(messageSet.getPrepareMap().size(), 4);
+            assertEquals(4, messageSet.getPrepareMap().size());
 
             log.debug("commitMap Size: " + messageSet.getCommitMap().size());
-            assertEquals(messageSet.getCommitMap().size(), 4);
+            assertEquals(4, messageSet.getCommitMap().size());
 
             log.debug("viewChangeMap Size: " + messageSet.getViewChangeMap().size());
-            assertEquals(messageSet.getViewChangeMap().size(), 0);
+            assertEquals(0, messageSet.getViewChangeMap().size());
 
         } catch (Exception e) {
             log.debug(e.getMessage());

@@ -4,7 +4,7 @@ import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
-import io.yggdrash.validator.util.TestUtils;
+import io.yggdrash.validator.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -63,12 +63,13 @@ public class PbftStatusTest {
 
     @Before
     public void setup() throws IOException, InvalidCipherTextException {
-        wallet = new Wallet();
-        wallet2 = new Wallet(null, "/tmp/",
+        wallet = new Wallet(null, "tmp/",
+                "test1" + TimeUtils.time(), "Password1234!");
+        wallet2 = new Wallet(null, "tmp/",
                 "test2" + TimeUtils.time(), "Password1234!");
-        wallet3 = new Wallet(null, "/tmp/",
+        wallet3 = new Wallet(null, "tmp/",
                 "test3" + TimeUtils.time(), "Password1234!");
-        wallet4 = new Wallet(null, "/tmp/",
+        wallet4 = new Wallet(null, "tmp/",
                 "test4" + TimeUtils.time(), "Password1234!");
 
         block = new TestUtils(wallet).sampleBlock(1);
@@ -197,10 +198,10 @@ public class PbftStatusTest {
 
     @Test
     public void constuctorTest_Default() {
-        assertEquals(pbftStatus.getUnConfirmedPbftMessageMap().size(), 1);
-        assertEquals(pbftStatus2.getUnConfirmedPbftMessageMap().size(), 5);
-        assertEquals(pbftStatus3.getUnConfirmedPbftMessageMap().size(), 9);
-        assertEquals(pbftStatus4.getUnConfirmedPbftMessageMap().size(), 4);
+        assertEquals(1, pbftStatus.getUnConfirmedPbftMessageMap().size());
+        assertEquals(5, pbftStatus2.getUnConfirmedPbftMessageMap().size());
+        assertEquals(9, pbftStatus3.getUnConfirmedPbftMessageMap().size());
+        assertEquals(4, pbftStatus4.getUnConfirmedPbftMessageMap().size());
     }
 
     @Test
@@ -210,28 +211,28 @@ public class PbftStatusTest {
             PbftStatus newPbftStatus = new PbftStatus(pbftStatusProto);
             log.debug(this.pbftStatus.toJsonObject().toString());
             log.debug(newPbftStatus.toJsonObject().toString());
-            assertTrue(newPbftStatus.equals(this.pbftStatus));
+            assertEquals(newPbftStatus, this.pbftStatus);
         }
         {
             PbftProto.PbftStatus pbftStatusProto = PbftStatus.toProto(this.pbftStatus2);
             PbftStatus newPbftStatus = new PbftStatus(pbftStatusProto);
             log.debug(this.pbftStatus2.toJsonObject().toString());
             log.debug(newPbftStatus.toJsonObject().toString());
-            assertTrue(newPbftStatus.equals(this.pbftStatus2));
+            assertEquals(newPbftStatus, this.pbftStatus2);
         }
         {
             PbftProto.PbftStatus pbftStatusProto = PbftStatus.toProto(this.pbftStatus3);
             PbftStatus newPbftStatus = new PbftStatus(pbftStatusProto);
             log.debug(this.pbftStatus3.toJsonObject().toString());
             log.debug(newPbftStatus.toJsonObject().toString());
-            assertTrue(newPbftStatus.equals(this.pbftStatus3));
+            assertEquals(newPbftStatus, this.pbftStatus3);
         }
         {
             PbftProto.PbftStatus pbftStatusProto = PbftStatus.toProto(this.pbftStatus4);
             PbftStatus newPbftStatus = new PbftStatus(pbftStatusProto);
             log.debug(this.pbftStatus4.toJsonObject().toString());
             log.debug(newPbftStatus.toJsonObject().toString());
-            assertTrue(newPbftStatus.equals(this.pbftStatus4));
+            assertEquals(newPbftStatus, this.pbftStatus4);
         }
     }
 

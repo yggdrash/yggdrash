@@ -22,7 +22,7 @@ import io.grpc.ServerInterceptor;
 import io.grpc.StatusRuntimeException;
 import io.yggdrash.node.springboot.grpc.context.LocalRunningGrpcPort;
 import io.yggdrash.node.springboot.grpc.demo.GrpcDemoApp;
-import io.yggdrash.proto.PeerGrpc;
+import io.yggdrash.proto.PeerServiceGrpc;
 import io.yggdrash.proto.Proto;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,11 +51,8 @@ public class IpBlockFilterAutoConfigTest {
         assertThat(ipBlockFilter).isNotNull();
 
         // Create channel
-        ManagedChannel channel = ManagedChannelBuilder
-                .forAddress("localhost", runningPort)
-                .usePlaintext().build();
+        ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", runningPort).usePlaintext().build();
 
-        PeerGrpc.newBlockingStub(channel)
-                .ping(Proto.Ping.newBuilder().setPing("Ping").build());
+        PeerServiceGrpc.newBlockingStub(channel).ping(Proto.Ping.newBuilder().setPing("Ping").build());
     }
 }

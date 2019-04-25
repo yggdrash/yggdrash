@@ -19,9 +19,10 @@ package io.yggdrash.core.store;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import org.junit.Before;
 import org.junit.Test;
+
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -31,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TransactionStoreTest {
 
     private TransactionStore ts;
-    private TransactionHusk tx;
+    private Transaction tx;
 
     @Before
     public void setUp() {
@@ -62,9 +63,9 @@ public class TransactionStoreTest {
     public void shouldBeGotRecentTxs() {
         ts.put(tx.getHash(), tx);
         batch();
-        Collection<TransactionHusk> unconfirmedTxs = ts.getUnconfirmedTxs();
+        Collection<Transaction> unconfirmedTxs = ts.getUnconfirmedTxs();
         assertThat(unconfirmedTxs.size()).isEqualTo(0);
-        Collection<TransactionHusk> recentTxs = ts.getRecentTxs();
+        Collection<Transaction> recentTxs = ts.getRecentTxs();
         assertThat(recentTxs.size()).isEqualTo(1);
         assertThat(recentTxs.contains(tx)).isTrue();
     }
@@ -73,9 +74,9 @@ public class TransactionStoreTest {
     @Test
     public void shouldNotGetRecentTxsWhenNotBatched() {
         ts.put(tx.getHash(), tx);
-        Collection<TransactionHusk> recentTxs = ts.getRecentTxs();
+        Collection<Transaction> recentTxs = ts.getRecentTxs();
         assertThat(recentTxs).isEmpty();
-        Collection<TransactionHusk> unconfirmedTxs = ts.getUnconfirmedTxs();
+        Collection<Transaction> unconfirmedTxs = ts.getUnconfirmedTxs();
         assertThat(unconfirmedTxs.size()).isEqualTo(1);
     }
 
@@ -84,8 +85,8 @@ public class TransactionStoreTest {
         Sha3Hash key = tx.getHash();
         ts.put(tx.getHash(), tx);
         batch();
-        TransactionHusk transactionHusk = ts.get(key);
-        assertThat(transactionHusk).isEqualTo(tx);
+        Transaction foundTx = ts.get(key);
+        assertThat(foundTx).isEqualTo(tx);
     }
 
     @Test
@@ -100,14 +101,13 @@ public class TransactionStoreTest {
     public void shouldBeGotTxFromCache() {
         Sha3Hash key = tx.getHash();
         ts.put(tx.getHash(), tx);
-        TransactionHusk foundTx = ts.get(key);
+        Transaction foundTx = ts.get(key);
         assertThat(foundTx).isNotNull();
         assertThat(ts.getUnconfirmedTxs()).isNotEmpty();
     }
 
     private void batch() {
-        Set<Sha3Hash> keys = ts.getUnconfirmedTxs().stream().map(TransactionHusk::getHash)
-                .collect(Collectors.toSet());
+        Set<Sha3Hash> keys = ts.getUnconfirmedTxs().stream().map(Transaction::getHash).collect(Collectors.toSet());
         ts.batch(keys);
     }
 }

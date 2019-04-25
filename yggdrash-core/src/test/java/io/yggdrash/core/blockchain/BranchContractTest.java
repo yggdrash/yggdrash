@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 
 public class BranchContractTest {
 
-    private static final Logger log = LoggerFactory.getLogger(TransactionSignatureTest.class);
+    private static final Logger log = LoggerFactory.getLogger(BranchContractTest.class);
 
     @Test
     public void jsonConvertTest() {

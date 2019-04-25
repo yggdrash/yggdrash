@@ -8,10 +8,12 @@ import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.validator.util.TestUtils;
+import io.yggdrash.validator.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,7 +24,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.FileCopyUtils;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,13 +56,14 @@ public class EbftBlockChainMultiThreadTest {
     public void setUp() throws IOException, InvalidCipherTextException {
         defaultConfig = new DefaultConfig();
 
-        wallet0 = new Wallet(defaultConfig);
-        wallet1 = new Wallet(null, "/tmp/",
+        wallet0 = new Wallet(null, "tmp/",
+                "test0" + TimeUtils.time(), "Password1234!");
+        wallet1 = new Wallet(null, "tmp/",
+                "test1" + TimeUtils.time(), "Password1234!");
+        wallet2 = new Wallet(null, "tmp/",
                 "test2" + TimeUtils.time(), "Password1234!");
-        wallet2 = new Wallet(null, "/tmp/",
+        wallet3 = new Wallet(null, "tmp/",
                 "test3" + TimeUtils.time(), "Password1234!");
-        wallet3 = new Wallet(null, "/tmp/",
-                "test4" + TimeUtils.time(), "Password1234!");
 
         block0 = this.genesisBlock();
         block1 = new TestUtils(wallet0).sampleBlock(block0.getIndex() + 1, block0.getHash());
@@ -75,27 +77,27 @@ public class EbftBlockChainMultiThreadTest {
                 "/ebftBlock",
                 "/ebftTx");
 
-        this.ebftBlock0 = new EbftBlock(this.block0, null);
+        this.ebftBlock0 = new EbftBlock(this.block0);
 
         List<String> consensusList1 = new ArrayList<>();
-        consensusList1.add(wallet0.signHex(block1.getHash(), true));
-        consensusList1.add(wallet1.signHex(block1.getHash(), true));
-        consensusList1.add(wallet2.signHex(block1.getHash(), true));
-        consensusList1.add(wallet3.signHex(block1.getHash(), true));
+        consensusList1.add(wallet0.signHex(block1.getHash().getBytes(), true));
+        consensusList1.add(wallet1.signHex(block1.getHash().getBytes(), true));
+        consensusList1.add(wallet2.signHex(block1.getHash().getBytes(), true));
+        consensusList1.add(wallet3.signHex(block1.getHash().getBytes(), true));
         this.ebftBlock1 = new EbftBlock(this.block1, consensusList1);
 
         List<String> consensusList2 = new ArrayList<>();
-        consensusList2.add(wallet0.signHex(block2.getHash(), true));
-        consensusList2.add(wallet1.signHex(block2.getHash(), true));
-        consensusList2.add(wallet2.signHex(block2.getHash(), true));
-        consensusList2.add(wallet3.signHex(block2.getHash(), true));
+        consensusList2.add(wallet0.signHex(block2.getHash().getBytes(), true));
+        consensusList2.add(wallet1.signHex(block2.getHash().getBytes(), true));
+        consensusList2.add(wallet2.signHex(block2.getHash().getBytes(), true));
+        consensusList2.add(wallet3.signHex(block2.getHash().getBytes(), true));
         this.ebftBlock2 = new EbftBlock(this.block2, consensusList2);
 
         List<String> consensusList3 = new ArrayList<>();
-        consensusList3.add(wallet0.signHex(block3.getHash(), true));
-        consensusList3.add(wallet1.signHex(block3.getHash(), true));
-        consensusList3.add(wallet2.signHex(block3.getHash(), true));
-        consensusList3.add(wallet3.signHex(block3.getHash(), true));
+        consensusList3.add(wallet0.signHex(block3.getHash().getBytes(), true));
+        consensusList3.add(wallet1.signHex(block3.getHash().getBytes(), true));
+        consensusList3.add(wallet2.signHex(block3.getHash().getBytes(), true));
+        consensusList3.add(wallet3.signHex(block3.getHash().getBytes(), true));
         this.ebftBlock3 = new EbftBlock(this.block3, consensusList3);
 
     }
@@ -105,13 +107,13 @@ public class EbftBlockChainMultiThreadTest {
         ClassPathResource cpr = new ClassPathResource("genesis/genesis.json");
         try {
             byte[] bdata = FileCopyUtils.copyToByteArray(cpr.getInputStream());
-            genesisString = new String(bdata, StandardCharsets.UTF_8);
+            genesisString = SerializationUtil.deserializeString(bdata);
             log.debug("geneis: " + genesisString);
         } catch (IOException e) {
             throw new NotValidateException("Error genesisFile");
         }
 
-        return new Block(new Gson().fromJson(genesisString, JsonObject.class));
+        return new BlockImpl(new Gson().fromJson(genesisString, JsonObject.class));
     }
 
     private Block makeBlock(long index, byte[] prevHash) {
@@ -120,10 +122,10 @@ public class EbftBlockChainMultiThreadTest {
 
     private List<String> makeConsensusList(Block block) {
         List<String> consensusList = new ArrayList<>();
-        consensusList.add(wallet0.signHex(block.getHash(), true));
-        consensusList.add(wallet1.signHex(block.getHash(), true));
-        consensusList.add(wallet2.signHex(block.getHash(), true));
-        consensusList.add(wallet3.signHex(block.getHash(), true));
+        consensusList.add(wallet0.signHex(block.getHash().getBytes(), true));
+        consensusList.add(wallet1.signHex(block.getHash().getBytes(), true));
+        consensusList.add(wallet2.signHex(block.getHash().getBytes(), true));
+        consensusList.add(wallet3.signHex(block.getHash().getBytes(), true));
         return consensusList;
     }
 
@@ -144,7 +146,7 @@ public class EbftBlockChainMultiThreadTest {
         long testCount = 2000;
         for (long l = 0; l < testCount; l++) {
             long index = this.ebftBlockChain.getLastConfirmedBlock().getIndex() + 1;
-            byte[] prevHash = this.ebftBlockChain.getLastConfirmedBlock().getHash();
+            byte[] prevHash = this.ebftBlockChain.getLastConfirmedBlock().getHash().getBytes();
 
             EbftBlock ebftBlock = makeEbftBlock(index, prevHash);
             this.ebftBlockChain.addBlock(ebftBlock);

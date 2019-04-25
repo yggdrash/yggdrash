@@ -2,16 +2,18 @@ package io.yggdrash.validator.store.pbft;
 
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.validator.TestUtils;
 import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftMessage;
 import io.yggdrash.validator.data.pbft.PbftMessageSet;
-import io.yggdrash.validator.util.TestUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,12 +28,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.config.Constants.PBFT_COMMIT;
 import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_VIEWCHANGE;
-import static junit.framework.TestCase.assertNull;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -85,12 +86,13 @@ public class PbftBlockStoreTest {
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
-        wallet = new Wallet();
-        wallet2 = new Wallet(null, "/tmp/",
+        wallet = new Wallet(null, "tmp/",
+                "test1" + TimeUtils.time(), "Password1234!");
+        wallet2 = new Wallet(null, "tmp/",
                 "test2" + TimeUtils.time(), "Password1234!");
-        wallet3 = new Wallet(null, "/tmp/",
+        wallet3 = new Wallet(null, "tmp/",
                 "test3" + TimeUtils.time(), "Password1234!");
-        wallet4 = new Wallet(null, "/tmp/",
+        wallet4 = new Wallet(null, "tmp/",
                 "test4" + TimeUtils.time(), "Password1234!");
 
         block = new TestUtils(wallet).sampleBlock();
@@ -244,7 +246,7 @@ public class PbftBlockStoreTest {
 
         this.blockKeyDs = new LevelDbDataSource(StoreTestUtils.getTestPath(), "pbftBlockKeyStoreTest");
         this.blockKeyStore = new PbftBlockKeyStore(blockKeyDs);
-        this.blockKeyStore.put(this.pbftBlock.getIndex(), this.pbftBlock.getHash());
+        this.blockKeyStore.put(this.pbftBlock.getIndex(), this.pbftBlock.getHash().getBytes());
 
         this.blockDs = new LevelDbDataSource(StoreTestUtils.getTestPath(), "pbftBlockStoreTest");
         this.blockStore = new PbftBlockStore(blockDs);
@@ -254,20 +256,16 @@ public class PbftBlockStoreTest {
     @Test
     public void putGetTest() {
         byte[] newHash = blockKeyStore.get(this.pbftBlock.getIndex());
-        PbftBlock newBlock = blockStore.get(newHash);
-        assertTrue(newBlock.equals(this.pbftBlock));
+        PbftBlock newBlock = blockStore.get(Sha3Hash.createByHashed(newHash));
+        assertEquals(newBlock, this.pbftBlock);
         assertTrue(blockStore.contains(this.pbftBlock.getHash()));
-        assertFalse(blockStore.contains(EMPTY_BYTE32));
+        assertFalse(blockStore.contains(Sha3Hash.createByHashed(Constants.EMPTY_HASH)));
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void closeTest() {
         blockStore.close();
-        assertNull(blockStore.get(this.pbftBlock.getHash()));
-
-        this.blockStore = new PbftBlockStore(blockDs);
-        PbftBlock newBlock = blockStore.get(this.pbftBlock.getHash());
-        assertTrue(newBlock.equals(this.pbftBlock));
+        blockStore.get(this.pbftBlock.getHash());
     }
 
     @Test
@@ -280,8 +278,9 @@ public class PbftBlockStoreTest {
 
         log.debug("Before free memory: " + Runtime.getRuntime().freeMemory());
         for (long l = 0L; l < testNumber; l++) {
-            this.blockStore.put(HashUtil.sha3(ByteUtil.longToBytes(l)), this.pbftBlock);
-            result = this.blockStore.get(HashUtil.sha3(ByteUtil.longToBytes(l)));
+            Sha3Hash key = Sha3Hash.createByHashed(HashUtil.sha3(ByteUtil.longToBytes(l)));
+            this.blockStore.put(key, this.pbftBlock);
+            result = this.blockStore.get(key);
             resultList.add(result);
         }
 
@@ -306,13 +305,13 @@ public class PbftBlockStoreTest {
             Block newBlock = new TestUtils(wallet).sampleBlock(l, block.getHash());
             PbftBlock newPbftBlock = new PbftBlock(newBlock, this.pbftMessageSet);
 
-            this.blockKeyStore.put(l, newPbftBlock.getHash());
+            this.blockKeyStore.put(l, newPbftBlock.getHash().getBytes());
             this.blockStore.put(newPbftBlock.getHash(), newPbftBlock);
         }
 
         for (long l = 0; l < testNumber; l++) {
             log.debug("blockKeyStore: " + l + " " + Hex.toHexString(this.blockKeyStore.get(l)));
-            log.debug("blockStore: " + this.blockStore.get(this.blockKeyStore.get(l)).getIndex());
+            log.debug("blockStore: " + this.blockStore.get(Sha3Hash.createByHashed(blockKeyStore.get(l))).getIndex());
         }
 
         System.gc();

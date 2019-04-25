@@ -18,18 +18,18 @@ package io.yggdrash.core.runtime.result;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 public class TransactionRuntimeResult {
-    private final TransactionHusk tx;
+    private final Transaction tx;
     private final Map<String, JsonObject> changeValues = new HashMap<>();
     private TransactionReceipt receipt;
 
-    public TransactionRuntimeResult(TransactionHusk tx) {
+    public TransactionRuntimeResult(Transaction tx) {
         this.tx = tx;
     }
 

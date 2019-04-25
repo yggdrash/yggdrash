@@ -4,7 +4,7 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.validator.store.BlockKeyStore;
+import io.yggdrash.core.store.BlockKeyStore;
 import org.iq80.leveldb.CompressionType;
 import org.iq80.leveldb.Options;
 import org.slf4j.Logger;
@@ -44,8 +44,7 @@ public class PbftBlockKeyStore implements BlockKeyStore<Long, byte[]> {
 
     @Override
     public void put(Long key, byte[] value) {
-        if (key < 0 || value == null
-                || value.length != Constants.BLOCK_HASH_LENGTH) {
+        if (key < 0 || value == null || value.length != Constants.HASH_LENGTH) {
             log.debug("Key or value are not vaild. {}", key);
             return;
         }

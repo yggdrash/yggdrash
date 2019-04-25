@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 public class BranchDtoTest {
 
@@ -37,7 +36,7 @@ public class BranchDtoTest {
     public void convertBranchDto() throws IOException {
         File genesisFile = new File(getClass().getClassLoader().getResource("./branch-yggdrash.json").getFile());
 
-        String genesisString = FileUtil.readFileToString(genesisFile, StandardCharsets.UTF_8);
+        String genesisString = FileUtil.readFileToString(genesisFile, FileUtil.DEFAULT_CHARSET);
         JsonObject branch = JsonUtil.parseJsonObject(genesisString);
 
         BranchDto dto = BranchDto.of(branch);

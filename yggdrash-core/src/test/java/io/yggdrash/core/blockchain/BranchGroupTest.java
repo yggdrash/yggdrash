@@ -19,27 +19,25 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.DuplicatedException;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import static io.yggdrash.TestConstants.PerformanceTest;
 import static io.yggdrash.TestConstants.TRANSFER_TO;
-import static io.yggdrash.TestConstants.wallet;
 import static io.yggdrash.TestConstants.yggdrash;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BranchGroupTest {
 
     private BranchGroup branchGroup;
-    private TransactionHusk tx;
-    private BlockHusk block;
+    private Transaction tx;
+    private ConsensusBlock block;
     protected static final Logger log = LoggerFactory.getLogger(BranchGroupTest.class);
 
     @Before
@@ -49,7 +47,7 @@ public class BranchGroupTest {
         assertThat(branchGroup.getBranchSize()).isEqualTo(1);
         BlockChain bc = branchGroup.getBranch(tx.getBranchId());
         //block = newBlock(Collections.singletonList(tx), bc.getPrevBlock());
-        block = newBlock(new ArrayList<>(), bc.getPrevBlock());
+        block = BlockChainTestUtils.createNextBlock(bc.getLastConfirmedBlock());
     }
 
     @Test(expected = DuplicatedException.class)
@@ -61,16 +59,14 @@ public class BranchGroupTest {
     @Test
     public void addTransaction() {
         // should be existed tx on genesis block
-        assertThat(branchGroup.getRecentTxs(tx.getBranchId()).size()).isEqualTo(1);
-        assertThat(branchGroup.countOfTxs(tx.getBranchId())).isEqualTo(1);
+        assertThat(branchGroup.getRecentTxs(tx.getBranchId()).size()).isEqualTo(3);
+        assertThat(branchGroup.countOfTxs(tx.getBranchId())).isEqualTo(3);
 
         branchGroup.addTransaction(tx);
-        TransactionHusk foundTxBySha3 = branchGroup.getTxByHash(
-                tx.getBranchId(), tx.getHash());
+        Transaction foundTxBySha3 = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
         assertThat(foundTxBySha3.getHash()).isEqualTo(tx.getHash());
 
-        TransactionHusk foundTxByString = branchGroup.getTxByHash(
-                tx.getBranchId(), tx.getHash().toString());
+        Transaction foundTxByString = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash().toString());
         assertThat(foundTxByString.getHash()).isEqualTo(tx.getHash());
 
         assertThat(branchGroup.getUnconfirmedTxs(tx.getBranchId()).size()).isEqualTo(1);
@@ -79,11 +75,11 @@ public class BranchGroupTest {
     @Test
     public void generateBlock() {
         branchGroup.addTransaction(tx);
-        branchGroup.generateBlock(wallet(), tx.getBranchId());
+        BlockChainTestUtils.generateBlock(branchGroup, tx.getBranchId());
         long latest = branchGroup.getLastIndex(tx.getBranchId());
-        BlockHusk chainedBlock = branchGroup.getBlockByIndex(tx.getBranchId(), latest);
+        ConsensusBlock chainedBlock = branchGroup.getBlockByIndex(tx.getBranchId(), latest);
         assertThat(latest).isEqualTo(1);
-        assertThat(chainedBlock.getBody().size()).isEqualTo(1);
+        assertThat(chainedBlock.getBody().getCount()).isEqualTo(1);
         assertThat(branchGroup.getTxByHash(tx.getBranchId(), tx.getHash()).getHash())
                 .isEqualTo(tx.getHash());
     }
@@ -96,26 +92,25 @@ public class BranchGroupTest {
         PerformanceTest.apply();
         BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
         for (int i = 0; i < 100; i++) {
-            TransactionHusk tx = createTx(i);
+            Transaction tx = createTx(i);
             blockChain.addTransaction(tx);
         }
 
-        branchGroup.generateBlock(wallet(), blockChain.getBranchId());
-        assertThat(blockChain.transactionCount()).isEqualTo(101); // include genesis tx
+        BlockChainTestUtils.generateBlock(branchGroup, blockChain.getBranchId());
+        assertThat(blockChain.countOfTxs()).isEqualTo(101); // include genesis tx
     }
 
     @Test
     public void addBlock() {
         branchGroup.addTransaction(tx);
         branchGroup.addBlock(block);
-
-        BlockHusk newBlock = newBlock(Collections.singletonList(tx), block);
+        ConsensusBlock newBlock = BlockChainTestUtils.createNextBlock(Collections.singletonList(tx), block);
         branchGroup.addBlock(newBlock);
 
         assertThat(branchGroup.getLastIndex(newBlock.getBranchId())).isEqualTo(2);
         assertThat(branchGroup.getBlockByIndex(newBlock.getBranchId(), 2).getHash())
                 .isEqualTo(newBlock.getHash());
-        TransactionHusk foundTx = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
+        Transaction foundTx = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
         assertThat(foundTx.getHash()).isEqualTo(tx.getHash());
     }
 
@@ -126,12 +121,12 @@ public class BranchGroupTest {
         assertThat(blockChain.getLastIndex()).isEqualTo(10);
     }
 
-    private void addMultipleBlock(BlockHusk block) {
+    private void addMultipleBlock(ConsensusBlock block) {
         BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
         while (blockChain.getLastIndex() < 10) {
             log.debug("Last Index : {}", blockChain.getLastIndex());
             branchGroup.addBlock(block);
-            BlockHusk nextBlockHusk = newBlock(new ArrayList<>(), block);
+            ConsensusBlock nextBlockHusk = BlockChainTestUtils.createNextBlock(Collections.emptyList(), block);
             addMultipleBlock(nextBlockHusk);
         }
     }
@@ -146,12 +141,8 @@ public class BranchGroupTest {
         assertThat(branchGroup.getTransactionReceiptStore(tx.getBranchId())).isNotNull();
     }
 
-    private TransactionHusk createTx(int amount) {
+    private Transaction createTx(int amount) {
         JsonObject txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, amount);
         return BlockChainTestUtils.createTxHusk(yggdrash(), txBody);
-    }
-
-    private BlockHusk newBlock(List<TransactionHusk> body, BlockHusk prevBlock) {
-        return new BlockHusk(wallet(), body, prevBlock);
     }
 }

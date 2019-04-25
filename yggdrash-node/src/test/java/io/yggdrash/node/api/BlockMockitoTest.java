@@ -17,9 +17,9 @@
 package io.yggdrash.node.api;
 
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.gateway.dto.BlockDto;
 import org.junit.Before;
@@ -37,11 +37,11 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BlockMockitoTest {
-    private final List<BlockHusk> blockList = new ArrayList<>();
+    private final List<ConsensusBlock> blockList = new ArrayList<>();
 
     @Mock
     private BranchGroup branchGroupMock;
-    private BlockHusk block;
+    private ConsensusBlock block;
 
     private BlockApiImpl blockApiImpl;
     private String blockId;

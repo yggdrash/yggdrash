@@ -4,7 +4,7 @@ import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
-import io.yggdrash.validator.util.TestUtils;
+import io.yggdrash.validator.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -19,6 +19,7 @@ import static io.yggdrash.common.config.Constants.PBFT_COMMIT;
 import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_VIEWCHANGE;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -67,12 +68,13 @@ public class PbftBlockTest {
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
-        wallet = new Wallet();
-        wallet2 = new Wallet(null, "/tmp/",
+        wallet = new Wallet(null, "tmp/",
+                "test1" + TimeUtils.time(), "Password1234!");
+        wallet2 = new Wallet(null, "tmp/",
                 "test2" + TimeUtils.time(), "Password1234!");
-        wallet3 = new Wallet(null, "/tmp/",
+        wallet3 = new Wallet(null, "tmp/",
                 "test3" + TimeUtils.time(), "Password1234!");
-        wallet4 = new Wallet(null, "/tmp/",
+        wallet4 = new Wallet(null, "tmp/",
                 "test4" + TimeUtils.time(), "Password1234!");
 
         block = new TestUtils(wallet).sampleBlock();
@@ -244,25 +246,25 @@ public class PbftBlockTest {
         {
             PbftBlock newBlock = new PbftBlock(this.pbftBlock.toJsonObject());
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock));
+            assertEquals(newBlock, this.pbftBlock);
         }
 
         {
             PbftBlock newBlock = new PbftBlock(this.pbftBlock2.toJsonObject());
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock2));
+            assertEquals(newBlock, this.pbftBlock2);
         }
 
         {
             PbftBlock newBlock = new PbftBlock(this.pbftBlock3.toJsonObject());
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock3));
+            assertEquals(newBlock, this.pbftBlock3);
         }
 
         {
             PbftBlock newBlock = new PbftBlock(this.pbftBlock4.toJsonObject());
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock4));
+            assertEquals(newBlock, this.pbftBlock4);
         }
     }
 
@@ -270,57 +272,58 @@ public class PbftBlockTest {
     public void constuctorTest_Bytes() {
         {
             PbftBlock newBlock = new PbftBlock(this.pbftBlock.toBinary());
+            log.debug(pbftBlock.toJsonObject().toString());
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock));
+            assertEquals(newBlock, this.pbftBlock);
         }
 
         {
             PbftBlock newBlock = new PbftBlock(this.pbftBlock2.toBinary());
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock2));
+            assertEquals(newBlock, this.pbftBlock2);
         }
 
         {
             PbftBlock newBlock = new PbftBlock(this.pbftBlock3.toBinary());
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock3));
+            assertEquals(newBlock, this.pbftBlock3);
         }
 
         {
             PbftBlock newBlock = new PbftBlock(this.pbftBlock4.toBinary());
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock4));
+            assertEquals(newBlock, this.pbftBlock4);
         }
     }
 
     @Test
     public void constuctorTest_Proto() {
         {
-            PbftProto.PbftBlock newBlockProto = PbftBlock.toProto(this.pbftBlock);
+            PbftProto.PbftBlock newBlockProto = this.pbftBlock.getInstance();
             PbftBlock newBlock = new PbftBlock(newBlockProto);
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock));
+            assertEquals(newBlock, this.pbftBlock);
         }
 
         {
-            PbftProto.PbftBlock newBlockProto = PbftBlock.toProto(this.pbftBlock2);
+            PbftProto.PbftBlock newBlockProto = this.pbftBlock2.getInstance();
             PbftBlock newBlock = new PbftBlock(newBlockProto);
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock2));
+            assertEquals(newBlock, this.pbftBlock2);
         }
 
         {
-            PbftProto.PbftBlock newBlockProto = PbftBlock.toProto(this.pbftBlock3);
+            PbftProto.PbftBlock newBlockProto = this.pbftBlock3.getInstance();
             PbftBlock newBlock = new PbftBlock(newBlockProto);
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock3));
+            assertEquals(newBlock, this.pbftBlock3);
         }
 
         {
-            PbftProto.PbftBlock newBlockProto = PbftBlock.toProto(this.pbftBlock4);
+            PbftProto.PbftBlock newBlockProto = this.pbftBlock4.getInstance();
             PbftBlock newBlock = new PbftBlock(newBlockProto);
             log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock4));
+            assertEquals(newBlock, this.pbftBlock4);
         }
     }
 
@@ -334,8 +337,8 @@ public class PbftBlockTest {
 
     @Test
     public void cloneTest() {
-        PbftBlock newPbftBlock = this.pbftBlock.clone();
-        assertTrue(newPbftBlock.equals(this.pbftBlock));
+        PbftBlock newPbftBlock = new PbftBlock(pbftBlock.toBinary());
+        assertEquals(newPbftBlock, this.pbftBlock);
 
         newPbftBlock.clear();
         assertTrue(PbftBlock.verify(this.pbftBlock));

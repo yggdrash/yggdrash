@@ -18,13 +18,17 @@ package io.yggdrash.node;
 
 import ch.qos.logback.classic.Level;
 import io.grpc.ManagedChannel;
+import io.grpc.ServerBuilder;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.testing.GrpcCleanupRule;
 import io.yggdrash.PeerTestUtils;
+import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerHandlerFactory;
-import io.yggdrash.node.service.BlockChainService;
+import io.yggdrash.node.service.BlockServiceFactory;
+import io.yggdrash.node.service.ConsensusHandlerFactory;
 import io.yggdrash.node.service.DiscoveryService;
 import org.junit.Before;
 import org.junit.Rule;
@@ -53,16 +57,8 @@ public class AbstractNodeTesting {
 
     @Before
     public void setUp() {
-        nodeList = Collections.synchronizedList(new ArrayList<>());
-        setPeerHandlerFactory();
-    }
-
-    private void setPeerHandlerFactory() {
-        this.factory = peer -> {
-            ManagedChannel managedChannel = createChannel(peer);
-            grpcCleanup.register(managedChannel);
-            return new GRpcPeerHandler(managedChannel, peer);
-        };
+        this.nodeList = Collections.synchronizedList(new ArrayList<>());
+        this.factory = createHandlerFactory();
     }
 
     protected TestNode createAndStartNode(int port, boolean enableBranch) {
@@ -81,15 +77,22 @@ public class AbstractNodeTesting {
         String ynodeUri = node.getPeer().getYnodeUri();
         InProcessServerBuilder serverBuilder = InProcessServerBuilder.forName(ynodeUri).directExecutor().addService(
                 new DiscoveryService(node.discoveryConsumer));
-
-        if (node.blockChainConsumer != null) {
-            serverBuilder.addService(new BlockChainService(node.blockChainConsumer));
-        }
+        addService(node, serverBuilder);
         node.server = serverBuilder.build();
         try {
             node.server.start();
         } catch (Exception e) {
             log.debug(e.getMessage());
+        }
+    }
+
+    void addService(TestNode node, ServerBuilder builder) {
+        if (node.transactionService != null) {
+            builder.addService(node.transactionService);
+            for (BlockChain blockChain : node.getBranchGroup().getAllBranch()) {
+                builder.addService(BlockServiceFactory.create(blockChain.getConsensus().getAlgorithm(),
+                        node.getBranchGroup(), node.getSyncManger()));
+            }
         }
     }
 
@@ -113,6 +116,22 @@ public class AbstractNodeTesting {
         node.shutdown();
         log.info("Stop nodePort={}", node.port);
         nodeList.remove(node);
+    }
+
+    private PeerHandlerFactory createHandlerFactory() {
+        return (consensusAlgorithm, peer) -> {
+            ManagedChannel managedChannel = createChannel(peer);
+            grpcCleanup.register(managedChannel);
+
+            switch (consensusAlgorithm) {
+                case "pbft":
+                    return new ConsensusHandlerFactory.PbftPeerHandler(managedChannel, peer);
+                case "ebft":
+                    return new ConsensusHandlerFactory.EbftPeerHandler(managedChannel, peer);
+                default:
+            }
+            throw new NotValidateException("Algorithm is not valid.");
+        };
     }
 
 }

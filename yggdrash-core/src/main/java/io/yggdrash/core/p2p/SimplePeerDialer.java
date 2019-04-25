@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,6 +33,8 @@ public class SimplePeerDialer implements PeerDialer {
     private static final Logger log = LoggerFactory.getLogger(SimplePeerDialer.class);
 
     private final Map<String, PeerHandler> handlerMap = new ConcurrentHashMap<>();
+
+    private final Map<BranchId, String> consensusMap = new HashMap<>();
 
     private final PeerHandlerFactory peerHandlerFactory;
 
@@ -50,11 +53,17 @@ public class SimplePeerDialer implements PeerDialer {
     public void destroyAll() {
         handlerMap.values().forEach(PeerHandler::stop);
         handlerMap.clear();
+        consensusMap.clear();
+    }
+
+    @Override
+    public void addConsensus(BranchId branchId, String consensus) {
+        consensusMap.put(branchId, consensus);
     }
 
     @Override
     public boolean healthCheck(BranchId branchId, Peer owner, Peer to) {
-        PeerHandler peerHandler = getPeerHandler(to);
+        PeerHandler peerHandler = getPeerHandler(branchId, to);
         try {
             String pong = peerHandler.ping(branchId, owner, "Ping");
             // TODO validation peer and considering expiration
@@ -96,23 +105,23 @@ public class SimplePeerDialer implements PeerDialer {
     }
 
     @Override
-    public List<PeerHandler> getHandlerList(List<Peer> peerList) {
+    public List<PeerHandler> getHandlerList(BranchId branchId, List<Peer> peerList) {
         if (peerList == null || peerList.isEmpty()) {
             return Collections.emptyList();
         }
         List<PeerHandler> handlerList = new ArrayList<>();
         for (Peer peer : peerList) {
-            PeerHandler handler = getPeerHandler(peer);
+            PeerHandler handler = getPeerHandler(branchId, peer);
             handlerList.add(handler);
         }
         return handlerList;
     }
 
     @Override
-    public synchronized PeerHandler getPeerHandler(Peer peer) {
+    public synchronized PeerHandler getPeerHandler(BranchId branchId, Peer peer) {
         PeerHandler peerHandler = handlerMap.get(peer.toAddress());
         if (peerHandler == null) {
-            peerHandler = peerHandlerFactory.create(peer);
+            peerHandler = peerHandlerFactory.create(consensusMap.get(branchId), peer);
             handlerMap.put(peer.toAddress(), peerHandler);
             log.debug("Added size={}, id={}, handler={}", handlerCount(), peerHandler, peer.getYnodeUri());
         }

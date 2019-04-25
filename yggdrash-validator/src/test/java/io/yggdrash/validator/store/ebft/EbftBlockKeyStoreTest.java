@@ -7,8 +7,8 @@ import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.validator.TestUtils;
 import io.yggdrash.validator.data.ebft.EbftBlock;
-import io.yggdrash.validator.util.TestUtils;
 import junit.framework.TestCase;
 import org.junit.After;
 import org.junit.Before;
@@ -45,22 +45,22 @@ public class EbftBlockKeyStoreTest {
     public void setUp() throws IOException, InvalidCipherTextException {
         StoreTestUtils.clearTestDb();
 
-        wallet0 = new Wallet(null, "/tmp/",
+        wallet0 = new Wallet(null, "tmp/",
                 "test0" + TimeUtils.time(), "Password1234!");
-        wallet1 = new Wallet(null, "/tmp/",
+        wallet1 = new Wallet(null, "tmp/",
                 "test1" + TimeUtils.time(), "Password1234!");
-        wallet2 = new Wallet(null, "/tmp/",
+        wallet2 = new Wallet(null, "tmp/",
                 "test2" + TimeUtils.time(), "Password1234!");
-        wallet3 = new Wallet(null, "/tmp/",
+        wallet3 = new Wallet(null, "tmp/",
                 "test3" + TimeUtils.time(), "Password1234!");
 
         this.ds =
                 new LevelDbDataSource(StoreTestUtils.getTestPath(), "ebftBlockKeyStoreTest");
         this.blockKeyStore = new EbftBlockKeyStore(ds);
 
-        this.ebftBlock = makeEbftBlock(0L, Constants.EMPTY_BYTE32);
+        this.ebftBlock = makeEbftBlock(0L, Constants.EMPTY_HASH);
 
-        this.blockKeyStore.put(this.ebftBlock.getIndex(), this.ebftBlock.getHash());
+        this.blockKeyStore.put(this.ebftBlock.getIndex(), this.ebftBlock.getHash().getBytes());
     }
 
     private Block makeBlock(long index, byte[] prevHash) {
@@ -69,10 +69,10 @@ public class EbftBlockKeyStoreTest {
 
     private List<String> makeConsensusList(Block block) {
         List<String> consensusList = new ArrayList<>();
-        consensusList.add(wallet0.signHex(block.getHash(), true));
-        consensusList.add(wallet1.signHex(block.getHash(), true));
-        consensusList.add(wallet2.signHex(block.getHash(), true));
-        consensusList.add(wallet3.signHex(block.getHash(), true));
+        consensusList.add(wallet0.signHex(block.getHash().getBytes(), true));
+        consensusList.add(wallet1.signHex(block.getHash().getBytes(), true));
+        consensusList.add(wallet2.signHex(block.getHash().getBytes(), true));
+        consensusList.add(wallet3.signHex(block.getHash().getBytes(), true));
         return consensusList;
     }
 
@@ -84,17 +84,17 @@ public class EbftBlockKeyStoreTest {
     @Test
     public void putGetTest() {
         byte[] newHash = blockKeyStore.get(this.ebftBlock.getIndex());
-        assertArrayEquals(this.ebftBlock.getHash(), newHash);
+        assertArrayEquals(this.ebftBlock.getHash().getBytes(), newHash);
         assertTrue(blockKeyStore.contains(this.ebftBlock.getIndex()));
         assertFalse(blockKeyStore.contains(this.ebftBlock.getIndex() + 1));
         assertFalse(blockKeyStore.contains(-1L));
-        assertEquals(blockKeyStore.size(), 1);
+        assertEquals(1, blockKeyStore.size());
     }
 
     @Test
     public void putTest_NegativeNumber() {
         long beforeSize = blockKeyStore.size();
-        blockKeyStore.put(-1L, this.ebftBlock.getHash());
+        blockKeyStore.put(-1L, this.ebftBlock.getHash().getBytes());
         assertEquals(blockKeyStore.size(), beforeSize);
     }
 
@@ -133,7 +133,7 @@ public class EbftBlockKeyStoreTest {
 
         this.blockKeyStore = new EbftBlockKeyStore(ds);
         byte[] newHash = blockKeyStore.get(0L);
-        assertArrayEquals(this.ebftBlock.getHash(), newHash);
+        assertArrayEquals(this.ebftBlock.getHash().getBytes(), newHash);
     }
 
     @After

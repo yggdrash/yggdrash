@@ -4,12 +4,11 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.utils.JsonUtil;
+import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.PbftProto;
 import org.spongycastle.util.encoders.Hex;
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
@@ -68,7 +67,7 @@ public class PbftMessageSet {
     }
 
     public PbftMessageSet(byte[] bytes) {
-        this(JsonUtil.parseJsonObject(new String(bytes, StandardCharsets.UTF_8)));
+        this(JsonUtil.parseJsonObject(SerializationUtil.deserializeString(bytes)));
     }
 
     public PbftMessageSet(PbftProto.PbftMessageSet protoPbftMessageSet) {
@@ -155,7 +154,7 @@ public class PbftMessageSet {
     }
 
     public byte[] toBinary() {
-        return this.toJsonObject().toString().getBytes(StandardCharsets.UTF_8);
+        return SerializationUtil.serializeJson(toJsonObject());
     }
 
     public JsonObject toJsonObject() {
@@ -210,12 +209,10 @@ public class PbftMessageSet {
                 PbftMessage.toProto(pbftMessageSet.getPrePrepare());
 
         PbftProto.PbftMessageList protoPrepareMessageList =
-                PbftMessage.toProtoList(
-                        new ArrayList<>(pbftMessageSet.getPrepareMap().values()));
+                PbftMessage.toProtoList(pbftMessageSet.getPrepareMap().values());
 
         PbftProto.PbftMessageList protoCommitMessageList =
-                PbftMessage.toProtoList(
-                        new ArrayList<>(pbftMessageSet.getCommitMap().values()));
+                PbftMessage.toProtoList(pbftMessageSet.getCommitMap().values());
 
         PbftProto.PbftMessageSet.Builder protoPbftMessageSetBuilder =
                 PbftProto.PbftMessageSet.newBuilder();
@@ -230,13 +227,17 @@ public class PbftMessageSet {
         }
 
         PbftProto.PbftMessageList protoViewChangeMessageList =
-                PbftMessage.toProtoList(
-                        new ArrayList<>(pbftMessageSet.getViewChangeMap().values()));
+                PbftMessage.toProtoList(pbftMessageSet.getViewChangeMap().values());
         if (protoViewChangeMessageList != null) {
             protoPbftMessageSetBuilder.setViewChangeList(protoViewChangeMessageList);
         }
 
         return protoPbftMessageSetBuilder.build();
+    }
+
+    public static PbftMessageSet forGenesis() {
+        PbftProto.PbftMessage empty = PbftProto.PbftMessage.newBuilder().build();
+        return new PbftMessageSet(new PbftMessage(empty), null, null, null);
     }
 
     public void clear() {

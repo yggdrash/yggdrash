@@ -10,7 +10,8 @@ public class Constants {
         throw new IllegalStateException("Constants class");
     }
 
-    public static final int BRANCH_HEX_LENGTH = 40;
+    public static final int BRANCH_LENGTH = 20;
+    public static final int BRANCH_HEX_LENGTH = BRANCH_LENGTH * 2;
 
     /*
     private static final String STEM = "STEM"; //isSystem = false
@@ -26,24 +27,39 @@ public class Constants {
     public static final long TIMESTAMP_2018 = 1514764800000L;
     public static final int MAX_MEMORY = 10000000;
 
-    public static final byte[] EMPTY_BYTE8 = new byte[8];
-    public static final byte[] EMPTY_BYTE20 = new byte[20];
-    public static final byte[] EMPTY_BYTE32 = new byte[32];
-    public static final byte[] EMPTY_BYTE1K = new byte[1024];
-    public static final byte[] EMPTY_BYTE10K = new byte[10240];
-    public static final byte[] EMPTY_BYTE100K = new byte[102400];
-    public static final byte[] EMPTY_BYTE1M = new byte[1024000];
+    public static final int HASH_LENGTH = 32;
+    public static final int SIGNATURE_LENGTH = 65;
 
-    public static final int BLOCK_HASH_LENGTH = 32;
-
-    public static final int TX_HEADER_LENGTH = 84;
-    public static final int TX_SIG_LENGTH = 65;
     public static final int TX_BODY_MAX_LENGTH = 10000000; // 10 Mb
+
+    public static final byte[] EMPTY_BRANCH = new byte[BRANCH_LENGTH];
+    public static final byte[] EMPTY_HASH = new byte[HASH_LENGTH];
+    public static final byte[] EMPTY_SIGNATURE = new byte[SIGNATURE_LENGTH];
+
+    public static final byte[] EMPTY_BYTE8 = new byte[8];
+    public static final byte[] EMPTY_BYTE1K = new byte[1024];
 
     public static final String PBFT_PREPREPARE = "PREPREPA";
     public static final String PBFT_PREPARE = "PREPAREM";
     public static final String PBFT_COMMIT = "COMMITMS";
     public static final String PBFT_VIEWCHANGE = "VIEWCHAN";
+
+    public static final int PASSWORD_MIN = 12;
+    public static final int PASSWORD_MAX = 32;
+
+    public static final String YGG_DATA_PATH = "YGG_DATA_PATH";
+    public static final String PROPERTY_KEYPATH = "key.path";
+    public static final String PROPERTY_KEKPASS = "key.password";
+    public static final String PROPERTY_NODE_NAME = "node.name";
+    public static final String PROPERTY_NODE_VER = "node.version";
+    public static final String PROPERTY_NETWORK_ID = "network.id";
+    public static final String PROPERTY_NETWORK_P2P_VER = "network.p2p.version";
+
+    public static final String VALIDATOR_PATH = "validator.path";
+    public static final String CONTRACT_PATH = "contract.path";
+    public static final String OSGI_PATH = "osgi.path";
+    public static final String BRANCH_PATH = "branch.path";
+    public static final String DATABASE_PATH = "database.path";
 
     public static BigInteger getSECP256K1N() {
         return SECP256K1N;

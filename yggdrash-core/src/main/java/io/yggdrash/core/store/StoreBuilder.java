@@ -25,37 +25,57 @@ import io.yggdrash.core.blockchain.BranchId;
 
 public class StoreBuilder {
 
-    private final DefaultConfig config;
+    private DefaultConfig config;
+    private BranchId branchId;
+    private String consensusAlgorithm;
+    private BlockStoreFactory blockStoreFactory;
 
-    public StoreBuilder(DefaultConfig config) {
+    public StoreBuilder setConfig(DefaultConfig config) {
         this.config = config;
+        return this;
     }
 
     public DefaultConfig getConfig() {
         return config;
     }
 
-    public BlockStore buildBlockStore(BranchId branchId) {
-        return new BlockStore(getDbSource(branchId + "/blocks"));
+    public StoreBuilder setBranchId(BranchId branchId) {
+        this.branchId = branchId;
+        return this;
     }
 
-    public TransactionStore buildTxStore(BranchId branchId) {
+    public StoreBuilder setConsensusAlgorithm(String consensusAlgorithm) {
+        this.consensusAlgorithm = consensusAlgorithm;
+        return this;
+    }
+
+    public StoreBuilder setBlockStoreFactory(BlockStoreFactory blockStoreFactory) {
+        this.blockStoreFactory = blockStoreFactory;
+        return this;
+    }
+
+    public ConsensusBlockStore buildBlockStore() {
+        DbSource dbSource = getDbSource(branchId + "/blocks");
+        return blockStoreFactory.create(consensusAlgorithm, dbSource);
+    }
+
+    public TransactionStore buildTxStore() {
         return new TransactionStore(getDbSource(branchId + "/txs"));
     }
 
-    public PeerStore buildPeerStore(BranchId branchId) {
+    public PeerStore buildPeerStore() {
         return new PeerStore(getDbSource(branchId + "/peers"));
     }
 
-    public BranchStore buildMetaStore(BranchId branchId) {
+    public BranchStore buildBranchStore() {
         return new BranchStore(getDbSource(branchId + "/branch"));
     }
 
-    public StateStore buildStateStore(BranchId branchId) {
+    public StateStore buildStateStore() {
         return new StateStore(getDbSource(branchId + "/state"));
     }
 
-    public TransactionReceiptStore buildTransactionReceiptStore(BranchId branchId) {
+    public TransactionReceiptStore buildTransactionReceiptStore() {
         return new TransactionReceiptStore(getDbSource(branchId + "/txreceipt"));
     }
 
@@ -65,5 +85,13 @@ public class StoreBuilder {
         } else {
             return new HashMapDbSource();
         }
+    }
+
+    public static StoreBuilder newBuilder() {
+        return new StoreBuilder();
+    }
+
+    public interface BlockStoreFactory {
+        ConsensusBlockStore create(String consensusAlgorithm, DbSource dbSource);
     }
 }

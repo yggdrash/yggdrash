@@ -19,15 +19,15 @@ package io.yggdrash.node.config;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.BlockChain;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
-import io.yggdrash.core.store.StoreBuilder;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -43,7 +43,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 
 @Ignore
 public class BranchConfigurationTest {
@@ -57,8 +56,7 @@ public class BranchConfigurationTest {
 
     @Before
     public void setUp() {
-        StoreBuilder builder = new StoreBuilder(config);
-        this.branchConfig = new BranchConfiguration(builder);
+        this.branchConfig = new BranchConfiguration(config);
     }
 
     @Test
@@ -79,9 +77,9 @@ public class BranchConfigurationTest {
     }
 
     private void assertTransaction(BlockChain branch) throws IOException {
-        BlockHusk genesis = branch.getBlockByIndex(0);
+        ConsensusBlock genesis = branch.getBlockByIndex(0);
         log.debug(genesis.toJsonObject().toString());
-        TransactionHusk genesisTx = genesis.getBody().get(0);
+        Transaction genesisTx = genesis.getBody().getTransactionList().get(0);
         String txSignature = Hex.toHexString(genesisTx.getSignature());
         JsonObject branchJson = getBranchJson();
         assert txSignature.equals(branchJson.get("signature").getAsString());
@@ -96,7 +94,7 @@ public class BranchConfigurationTest {
 
     private JsonObject getBranchJson() throws IOException {
         Resource resource = resourceLoader.getResource("classpath:/branch/branch-yggdrash.json");
-        Reader json = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8);
+        Reader json = new InputStreamReader(resource.getInputStream(), FileUtil.DEFAULT_CHARSET);
         return JsonUtil.parseJsonObject(json);
     }
 
@@ -106,7 +104,7 @@ public class BranchConfigurationTest {
             log.error("can't create at " + branchDir);
         }
         File file = new File(branchDir, BranchLoader.BRANCH_FILE);
-        FileUtils.writeStringToFile(file, branch.toString(), StandardCharsets.UTF_8);
+        FileUtils.writeStringToFile(file, branch.toString(), FileUtil.DEFAULT_CHARSET);
     }
 
 }

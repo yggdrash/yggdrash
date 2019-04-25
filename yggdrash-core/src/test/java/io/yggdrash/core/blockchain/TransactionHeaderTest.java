@@ -17,6 +17,7 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.ByteUtil;
 import org.junit.Before;
@@ -28,20 +29,20 @@ import org.spongycastle.util.encoders.Hex;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TransactionHeaderTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionHeaderTest.class);
 
-    private final byte[] chain = new byte[20];
-    private final byte[] version = new byte[8];
-    private final byte[] type = new byte[8];
+    private final byte[] chain = Constants.EMPTY_BRANCH;
+    private final byte[] version = Constants.EMPTY_BYTE8;
+    private final byte[] type = Constants.EMPTY_BYTE8;
     private long timestamp;
     private byte[] bodyHash;
     private long bodyLength;
 
     private TransactionBody txBody;
-
 
     @Before
     public void init() {
@@ -51,12 +52,16 @@ public class TransactionHeaderTest {
 
         timestamp = TimeUtils.time();
         txBody = new TransactionBody(jsonObject);
-        bodyHash = txBody.getBodyHash();
-        bodyLength = txBody.length();
+        bodyHash = txBody.getHash();
+        bodyLength = txBody.getLength();
     }
 
     @Test
     public void testTransactionHeader() {
+
+        TransactionHeader txHeader =
+                new TransactionHeader(chain, version, type, Long.MAX_VALUE, bodyHash, Long.MAX_VALUE);
+        assertTrue(TransactionHeader.LENGTH >= txHeader.getLength());
 
         TransactionHeader txHeader1 =
                 new TransactionHeader(chain, version, type, timestamp, bodyHash, bodyLength);

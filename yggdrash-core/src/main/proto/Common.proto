@@ -20,3 +20,13 @@ message Offset {
 message Chain {
     bytes chain = 1;
 }
+
+message Empty {
+}
+
+message SyncLimit {
+    bytes branch = 1;
+    uint64 offset = 2;
+    uint32 limit = 3;
+    string from = 4;
+}

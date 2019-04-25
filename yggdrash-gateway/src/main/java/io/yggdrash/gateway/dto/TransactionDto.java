@@ -17,12 +17,15 @@
 package io.yggdrash.gateway.dto;
 
 import com.google.protobuf.ByteString;
-import com.google.protobuf.util.Timestamps;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.proto.Proto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 public class TransactionDto {
+    private static final Logger log = LoggerFactory.getLogger(TransactionDto.class);
 
     public String branchId;
     public String version;
@@ -35,12 +38,12 @@ public class TransactionDto {
     public String author;
     public String txId;
 
-    public static TransactionHusk of(TransactionDto dto) {
+    public static Transaction of(TransactionDto dto) {
         Proto.Transaction.Header header = Proto.Transaction.Header.newBuilder()
                 .setChain(ByteString.copyFrom(Hex.decode(dto.branchId)))
                 .setVersion(ByteString.copyFrom(Hex.decode(dto.version)))
                 .setType(ByteString.copyFrom(Hex.decode(dto.type)))
-                .setTimestamp(Timestamps.fromMillis(dto.timestamp))
+                .setTimestamp(dto.timestamp)
                 .setBodyHash(ByteString.copyFrom(Hex.decode(dto.bodyHash)))
                 .setBodyLength(dto.bodyLength)
                 .build();
@@ -48,24 +51,22 @@ public class TransactionDto {
         Proto.Transaction tx = Proto.Transaction.newBuilder()
                 .setHeader(header)
                 .setSignature(ByteString.copyFrom(Hex.decode(dto.signature)))
-                .setBody(ByteString.copyFromUtf8(dto.body))
+                .setBody(dto.body)
                 .build();
-        return new TransactionHusk(tx);
+        return new TransactionImpl(tx);
     }
 
-    public static TransactionDto createBy(TransactionHusk tx) {
+    public static TransactionDto createBy(Transaction tx) {
         TransactionDto transactionDto = new TransactionDto();
-        Proto.Transaction.Header header = tx.getInstance().getHeader();
-
-        transactionDto.branchId = Hex.toHexString(header.getChain().toByteArray());
-        transactionDto.version = Hex.toHexString(header.getVersion().toByteArray());
-        transactionDto.type = Hex.toHexString(header.getType().toByteArray());
-        transactionDto.timestamp = Timestamps.toMillis(header.getTimestamp());
-        transactionDto.bodyHash = Hex.toHexString(header.getBodyHash().toByteArray());
-        transactionDto.bodyLength = header.getBodyLength();
-        transactionDto.signature = Hex.toHexString(tx.getInstance().getSignature().toByteArray());
-        transactionDto.body = tx.getBody();
-        transactionDto.author = tx.getAddress() == null ? null : tx.getAddress().toString();
+        transactionDto.branchId = tx.getBranchId().toString();
+        transactionDto.version = Hex.toHexString(tx.getHeader().getVersion());
+        transactionDto.type = Hex.toHexString(tx.getHeader().getType());
+        transactionDto.timestamp = tx.getHeader().getTimestamp();
+        transactionDto.bodyHash = Hex.toHexString(tx.getBody().getHash());
+        transactionDto.bodyLength = tx.getBody().getLength();
+        transactionDto.signature = Hex.toHexString(tx.getSignature());
+        transactionDto.body = tx.getBody().toString();
+        transactionDto.author = tx.getAddress().toString();
         transactionDto.txId = tx.getHash().toString();
         return transactionDto;
     }

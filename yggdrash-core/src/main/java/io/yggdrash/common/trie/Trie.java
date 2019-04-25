@@ -1,14 +1,13 @@
 package io.yggdrash.common.trie;
 
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.blockchain.TransactionHusk;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.crypto.HashUtil.HASH_256_ALGORITHM_NAME;
 
 /**
@@ -22,27 +21,6 @@ public class Trie {
     }
 
     /**
-     * Get merkle root value.
-     *
-     * @param txs Transaction list
-     * @return byte[32] - merkle root value <br>
-     * null - if txs is null or txs.size is smaller than 1
-     */
-    public static byte[] getMerkleRootHusk(List<TransactionHusk> txs) {
-
-        if (txs == null || txs.isEmpty() || txs.contains(null)) {
-            return EMPTY_BYTE32;
-        }
-
-        List<byte[]> tree = new ArrayList<>();
-        for (TransactionHusk tx : txs) {
-            tree.add(tx.getHash().getBytes());
-        }
-
-        return getMerkleRoot(tree, HASH_256_ALGORITHM_NAME);
-    }
-
-    /**
      * Get merkleRoot using Transactions.
      *
      * @param txs Transaction list
@@ -52,15 +30,19 @@ public class Trie {
     public static byte[] getMerkleRoot(List<Transaction> txs) {
 
         if (txs == null || txs.isEmpty() || txs.contains(null)) {
-            return EMPTY_BYTE32;
+            return Constants.EMPTY_HASH;
         }
 
         List<byte[]> tree = new ArrayList<>();
         for (Transaction tx : txs) {
-            tree.add(tx.getHash());
+            tree.add(tx.getHash().getBytes());
         }
 
         return getMerkleRoot(tree, HASH_256_ALGORITHM_NAME);
+    }
+
+    public static byte[] getMerkleRoot(List<byte[]> hashTree, String algorithm) {
+        return getMerkleRoot(hashTree, algorithm, false);
     }
 
     /**
@@ -78,15 +60,15 @@ public class Trie {
 
         try {
             if (hashTree == null || hashTree.contains(null)) {
-                return EMPTY_BYTE32;
+                return Constants.EMPTY_HASH;
             }
 
             treeSize = hashTree.size();
             if (treeSize == 0) {
-                return EMPTY_BYTE32;
+                return Constants.EMPTY_HASH;
             }
         } catch (Exception e) {
-            return EMPTY_BYTE32;
+            return Constants.EMPTY_HASH;
         }
 
         for (int levelSize = treeSize; levelSize > 1; levelSize = (levelSize + 1) / 2) {
@@ -102,9 +84,5 @@ public class Trie {
         }
 
         return hashTree.get(hashTree.size() - 1);
-    }
-
-    public static byte[] getMerkleRoot(List<byte[]> hashTree, String algorithm) {
-        return getMerkleRoot(hashTree, algorithm, false);
     }
 }

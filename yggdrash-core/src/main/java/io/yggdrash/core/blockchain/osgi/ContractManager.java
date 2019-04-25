@@ -6,9 +6,9 @@ import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.contract.core.store.OutputType;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.SystemProperties;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.ContractStore;
@@ -79,6 +79,8 @@ public class ContractManager {
         this.systemProperties = systemProperties;
         this.outputStore = outputStore;
         this.fullLocation = new HashMap<>();
+
+        newFramework();
     }
 
     public ContractExecutor getContractExecutor() {
@@ -106,8 +108,8 @@ public class ContractManager {
         return framework.getBundleContext().getService(serviceRef);
     }
 
-    private String getContractVersion(TransactionHusk tx) {
-        JsonObject txBody = JsonUtil.parseJsonObject(tx.getBody());
+    private String getContractVersion(Transaction tx) {
+        JsonObject txBody = JsonUtil.parseJsonObject(tx.getBody().toString());
         return txBody.get("contractVersion").getAsString();
     }
 
@@ -127,10 +129,10 @@ public class ContractManager {
     }
 
     void newFramework() {
-        String containerPath = String.format("%s/%s", config.getOsgiPath(), branchId);
-        log.debug("Container Path : {}", containerPath);
+        String managerPath = String.format("%s/%s", config.getOsgiPath(), branchId);
+        log.debug("ContractManager Path : {}", managerPath);
         Map<String, String> containerConfig = new HashMap<>();
-        containerConfig.put("org.osgi.framework.storage", containerPath);
+        containerConfig.put("org.osgi.framework.storage", managerPath);
         containerConfig.putAll(commonContainerConfig);
         if (System.getSecurityManager() != null) {
             containerConfig.remove("org.osgi.framework.security");
@@ -147,7 +149,7 @@ public class ContractManager {
             throw new IllegalStateException(e.getCause());
         }
 
-        log.info("Load contract container: branchID - {}", branchId);
+        log.info("Load contract manager: branchID - {}", branchId);
     }
 
     private void setDefaultPermission(String branchId) {
@@ -276,8 +278,10 @@ public class ContractManager {
                 log.error("Contract Manifest is not verify");
                 return bundleId;
             }
-        } catch (IOException e) {
-            log.error("Contract file don't Load");
+
+            reloadInject();
+        } catch (IOException | IllegalAccessException e) {
+            log.error("Contract file don't Load [{}]", e.getMessage()); //TODO Throw Runtime Exception
             return bundleId;
         }
         try {
@@ -289,9 +293,10 @@ public class ContractManager {
         return bundleId;
     }
 
-    public void reloadInject() throws IllegalAccessException {
+    private void reloadInject() throws IllegalAccessException {
         // TODO load After call
         for (Bundle bundle : framework.getBundleContext().getBundles()) {
+            setFullLocation(bundle.getLocation()); // Cache the full location of an existing bundle.
             inject(bundle);
         }
     }
@@ -330,12 +335,8 @@ public class ContractManager {
 
     boolean checkExistContract(String symbol, String version) {
         for (Bundle b : framework.getBundleContext().getBundles()) {
-            if (
-                    b.getVersion().toString().equals(version)
-                            && b.getSymbolicName().equals(symbol)
-            ) {
-                // Cache the full location of an existing bundle.
-                setFullLocation(b.getLocation());
+            if (b.getVersion().toString().equals(version) && b.getSymbolicName().equals(symbol)) {
+                setFullLocation(b.getLocation()); // Cache the full location of an existing bundle.
                 return true;
             }
         }
@@ -462,15 +463,16 @@ public class ContractManager {
         return bundle != null ? contractExecutor.query(contractVersion, getService(bundle), methodName, params) : null;
     }
 
-    public BlockRuntimeResult executeTxs(BlockHusk nextBlock) {
+    public BlockRuntimeResult executeTxs(ConsensusBlock nextBlock) {
         Map<String, Object> serviceMap = new HashMap<>();   // => Map<contractVersion, service>
 
-        for (TransactionHusk tx : nextBlock.getBody()) {
+        for (Transaction tx : nextBlock.getBody().getTransactionList()) {
 
             String contractVersion = getContractVersion(tx);
             Bundle bundle = getBundle(contractVersion);
             if (bundle == null) {
-                return null;
+                log.error("ContractManager :: executeTxs : can't find bundle ({})", contractVersion);
+                //return null;
             }
 
             serviceMap.put(contractVersion, getService(bundle));
@@ -479,11 +481,14 @@ public class ContractManager {
         return contractExecutor.executeTxs(serviceMap, nextBlock);
     }
 
-    public TransactionRuntimeResult executeTx(TransactionHusk tx) {
+    public TransactionRuntimeResult executeTx(Transaction tx) {
         String contractVersion = getContractVersion(tx);
         Bundle bundle = getBundle(contractVersion);
 
         return bundle != null ? contractExecutor.executeTx(contractVersion, getService(bundle), tx) : null;
     }
 
+    public void commitBlockResult(BlockRuntimeResult result) {
+        contractExecutor.commitBlockResult(result);
+    }
 }

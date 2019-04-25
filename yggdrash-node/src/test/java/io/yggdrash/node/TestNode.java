@@ -4,12 +4,13 @@ import io.grpc.Server;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.PeerTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainSyncManager;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.net.BlockChainConsumer;
-import io.yggdrash.core.net.BlockChainServiceConsumer;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.net.BootStrapNode;
 import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.net.DiscoveryServiceConsumer;
@@ -23,6 +24,9 @@ import io.yggdrash.core.p2p.SimplePeerDialer;
 import io.yggdrash.core.util.PeerTableCounter;
 import io.yggdrash.node.config.NetworkConfiguration;
 import io.yggdrash.node.config.NodeProperties;
+import io.yggdrash.node.service.TransactionService;
+import io.yggdrash.proto.PbftProto;
+import io.yggdrash.validator.data.pbft.PbftBlock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +51,7 @@ public class TestNode extends BootStrapNode {
     public PeerTask peerTask;
 
     // branch specific
-    public BlockChainConsumer blockChainConsumer;
+    TransactionService transactionService;
 
     private TestNode(PeerHandlerFactory factory, int port, NodeProperties nodeProperties) {
         this.factory = factory;
@@ -96,16 +100,13 @@ public class TestNode extends BootStrapNode {
         }
         BlockChain bc = BlockChainTestUtils.createBlockChain(false);
         branchGroup.addBranch(bc);
-        blockChainConsumer = new BlockChainServiceConsumer(branchGroup);
+        transactionService = new TransactionService(branchGroup);
     }
 
     private void networkConfiguration() {
         NetworkConfiguration config = new NetworkConfiguration(nodeProperties);
         this.peerNetwork = config.peerNetwork(peerTableGroup, peerDialer, branchGroup);
         setSyncManager(config.syncManager(nodeStatus, peerNetwork, branchGroup));
-        if (blockChainConsumer != null) {
-            blockChainConsumer.setListener(getSyncManger());
-        }
     }
 
     public Peer getPeer() {
@@ -124,12 +125,20 @@ public class TestNode extends BootStrapNode {
         return branchGroup.getUnconfirmedTxs(branchId).size();
     }
 
-    public BlockChainSyncManager getSyncManger() {
+    BlockChainSyncManager getSyncManger() {
         return (BlockChainSyncManager) this.syncManager;
     }
 
     public void generateBlock() {
-        branchGroup.generateBlock(TestConstants.wallet(), branchId);
+        for (BlockChain branch : branchGroup.getAllBranch()) {
+            List<Transaction> txs =
+                    branch.getTransactionStore().getUnconfirmedTxsWithLimit(Constants.LIMIT.BLOCK_SYNC_SIZE);
+            ConsensusBlock block = BlockChainTestUtils.createNextBlock(txs, branch.getLastConfirmedBlock());
+
+            PbftBlock newBlock = new PbftBlock(PbftProto.PbftBlock.newBuilder()
+                    .setBlock(block.getBlock().getProtoBlock()).build());
+            branch.addBlock(newBlock);
+        }
     }
 
     public int getActivePeerCount() {
@@ -146,7 +155,7 @@ public class TestNode extends BootStrapNode {
         String branchInfo = "";
         if (getDefaultBranch() != null) {
             branchInfo = String.format(" bestBlock=%d, txCnt=%d, unConfirmed=%d,", getDefaultBranch().getLastIndex(),
-                    getDefaultBranch().transactionCount(), branchGroup.getUnconfirmedTxs(branchId).size());
+                    getDefaultBranch().countOfTxs(), branchGroup.getUnconfirmedTxs(branchId).size());
         }
 
         log.info("{} =>{} peer={}, bucket={}, active={}",
@@ -160,7 +169,7 @@ public class TestNode extends BootStrapNode {
         return port == PeerTestUtils.SEED_PORT;
     }
 
-    public static TestNode createDeliveryNode(PeerHandlerFactory factory, List<String> validatorList) {
+    public static TestNode createProxyNode(PeerHandlerFactory factory, List<String> validatorList) {
         NodeProperties nodeProperties = createNodeProperties(validatorList);
         TestNode node = new TestNode(factory, PeerTestUtils.OWNER_PORT, nodeProperties);
         node.config();

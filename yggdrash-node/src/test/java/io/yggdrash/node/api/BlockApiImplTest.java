@@ -19,7 +19,7 @@ package io.yggdrash.node.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
-import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.gateway.dto.BlockDto;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -83,7 +83,7 @@ public class BlockApiImplTest {
     @Test
     public void BlockDtoTest() throws IOException {
         // Create Block
-        BlockHusk block = BlockChainTestUtils.genesisBlock();
+        ConsensusBlock block = BlockChainTestUtils.genesisBlock();
 
         ObjectMapper mapper = new ObjectMapper();
         String jsonStr = mapper.writeValueAsString(BlockDto.createBy(block));
@@ -91,8 +91,7 @@ public class BlockApiImplTest {
         // Receive Transaction
         BlockDto resDto = mapper.readValue(jsonStr, BlockDto.class);
 
-        assertEquals(Hex.toHexString(block.getInstance().getSignature().toByteArray()),
-                resDto.signature);
+        assertEquals(Hex.toHexString(block.getSignature()), resDto.signature);
     }
 
 }

@@ -3,16 +3,17 @@ package io.yggdrash.validator.store.pbft;
 import com.anarsoft.vmlens.concurrent.junit.ConcurrentTestRunner;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.validator.TestUtils;
 import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftMessage;
 import io.yggdrash.validator.data.pbft.PbftMessageSet;
-import io.yggdrash.validator.util.TestUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -83,12 +84,13 @@ public class PbftBlockStoreMultiThreadTest {
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
-        wallet = new Wallet();
-        wallet2 = new Wallet(null, "/tmp/",
+        wallet = new Wallet(null, "tmp/",
+                "test1" + TimeUtils.time(), "Password1234!");
+        wallet2 = new Wallet(null, "tmp/",
                 "test2" + TimeUtils.time(), "Password1234!");
-        wallet3 = new Wallet(null, "/tmp/",
+        wallet3 = new Wallet(null, "tmp/",
                 "test3" + TimeUtils.time(), "Password1234!");
-        wallet4 = new Wallet(null, "/tmp/",
+        wallet4 = new Wallet(null, "tmp/",
                 "test4" + TimeUtils.time(), "Password1234!");
 
         block = new TestUtils(wallet).sampleBlock();
@@ -242,7 +244,7 @@ public class PbftBlockStoreMultiThreadTest {
 
         this.ds = new LevelDbDataSource(StoreTestUtils.getTestPath(), "pbftBlockKeyStoreTest");
         this.blockKeyStore = new PbftBlockKeyStore(ds);
-        this.blockKeyStore.put(this.pbftBlock.getIndex(), this.pbftBlock.getHash());
+        this.blockKeyStore.put(this.pbftBlock.getIndex(), this.pbftBlock.getHash().getBytes());
 
         this.blockDs = new LevelDbDataSource(StoreTestUtils.getTestPath(), "pbftBlockStoreTest");
         this.blockStore = new PbftBlockStore(blockDs);
@@ -254,7 +256,7 @@ public class PbftBlockStoreMultiThreadTest {
     public void putTestMultiThread() {
         long testNumber = 1000;
         for (long l = 0L; l < testNumber; l++) {
-            this.blockStore.put(HashUtil.sha3(ByteUtil.longToBytes(l)), pbftBlock);
+            this.blockStore.put(Sha3Hash.createByHashed(HashUtil.sha3(ByteUtil.longToBytes(l))), pbftBlock);
         }
         log.debug("blockStore size= " + this.blockStore.size());
         assertEquals(testNumber + 1, this.blockStore.size());

@@ -8,6 +8,7 @@ import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.utils.JsonUtil;
+import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
@@ -15,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
@@ -72,7 +72,7 @@ public class PbftStatus {
         this.signature = pbftStatus.getSignature().toByteArray();
     }
 
-    public PbftStatus(JsonObject jsonObject) {
+    private PbftStatus(JsonObject jsonObject) {
         this.index = jsonObject.get("index").getAsLong();
         if (jsonObject.get("unConfirmedList") != null) {
             for (JsonElement pbftMessageJsonElement : jsonObject.get("unConfirmedList").getAsJsonArray()) {
@@ -85,7 +85,7 @@ public class PbftStatus {
     }
 
     public PbftStatus(byte[] bytes) {
-        this(JsonUtil.parseJsonObject(new String(bytes, StandardCharsets.UTF_8)));
+        this(JsonUtil.parseJsonObject(SerializationUtil.deserializeString(bytes)));
     }
 
     public long getIndex() {
@@ -122,7 +122,7 @@ public class PbftStatus {
         return HashUtil.sha3(dataForSigning.toByteArray());
     }
 
-    public byte[] sign(Wallet wallet) {
+    private byte[] sign(Wallet wallet) {
         if (wallet == null) {
             throw new NotValidateException("wallet is null");
         }
@@ -190,14 +190,25 @@ public class PbftStatus {
     }
 
     public byte[] toBinary() {
-        return this.toJsonObject().toString().getBytes(StandardCharsets.UTF_8);
+        return SerializationUtil.serializeJson(toJsonObject());
     }
 
-    public boolean equals(PbftStatus newPbftStatus) {
-        if (newPbftStatus == null) {
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        return Arrays.equals(this.toBinary(), newPbftStatus.toBinary());
+
+        PbftStatus other = (PbftStatus) o;
+        return Arrays.equals(toBinary(), other.toBinary());
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(toBinary());
     }
 
     public void clear() {

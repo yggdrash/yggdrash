@@ -17,6 +17,7 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.wallet.Wallet;
@@ -25,8 +26,8 @@ public class TransactionBuilder {
     private BranchId branchId;
     private Wallet wallet;
     private JsonObject txBody = new JsonObject(); //TODO Change modifier to final
-    private byte[] version = new byte[8];
-    private byte[] type = new byte[8];
+    private byte[] version = Constants.EMPTY_BYTE8;
+    private byte[] type = Constants.EMPTY_BYTE8;
 
     private long timestamp = -1L;
 
@@ -85,7 +86,7 @@ public class TransactionBuilder {
 
     private Transaction createTx() {
         //Wallet wallet, byte[] version, byte[] type, BranchId txBranchId, JsonArray body
-        Transaction tx;
+
         TransactionBody transactionBody = new TransactionBody(txBody);
 
         byte[] chain = branchId.getBytes();
@@ -94,36 +95,25 @@ public class TransactionBuilder {
             timestamp = TimeUtils.time();
         }
 
-        TransactionHeader txHeader;
-        txHeader = new TransactionHeader(chain, version, type, timestamp, transactionBody);
+        TransactionHeader txHeader = new TransactionHeader(chain, version, type, timestamp, transactionBody);
 
         try {
-            byte[] sign = new byte[]{};
+            byte[] sign = Constants.EMPTY_SIGNATURE;
             if (wallet != null) {
-                TransactionSignature txSig;
-                txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
-                sign = txSig.getSignature();
+                sign = wallet.sign(txHeader.getHashForSigning(), true);
             }
 
-            tx = new Transaction(txHeader, sign, transactionBody);
-
-            return tx;
-
+            return new TransactionImpl(txHeader, sign, transactionBody);
         } catch (Exception e) {
             return null;
         }
     }
 
-    public Transaction buildTransaction() {
+    public Transaction build() {
         if (branchId == null || txBody.size() == 0) {
             return  null;
         }
         return createTx();
-    }
-
-    public TransactionHusk build() {
-        Transaction tx = buildTransaction();
-        return new TransactionHusk(tx);
     }
 
 }

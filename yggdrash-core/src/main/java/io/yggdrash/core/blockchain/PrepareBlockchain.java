@@ -30,9 +30,8 @@ import java.util.List;
 public class PrepareBlockchain {
     private static final Logger log = LoggerFactory.getLogger(PrepareBlockchain.class);
 
-    String contractPath;
-    List<BranchContract> contractList;
-
+    private String contractPath;
+    private List<BranchContract> contractList;
 
     public PrepareBlockchain(String contractPath) {
         this.contractPath = contractPath;
@@ -49,26 +48,17 @@ public class PrepareBlockchain {
         return contractFile;
     }
 
-
-    public boolean checkBlockChainIsReady(BlockChain blockChain) {
+    boolean checkBlockChainIsReady(BlockChain blockChain) {
         // Get BranchContract
         contractList = blockChain.getBranchContracts();
-        if (blockChain.getLastIndex() == 0 && contractList.isEmpty()) {
-            // is Genesis Blockchain
-            contractList = blockChain.getBranch().getBranchContracts();
-        }
 
         // TODO check branch contract file exist
-        if (contractList == null) {
-            contractList = blockChain.getBranch().getBranchContracts();
-        }
         if (contractList.isEmpty()) {
             log.error("Branch Contract is Null");
         }
 
         for (BranchContract bc : contractList) {
             ContractVersion contractVersion = bc.getContractVersion();
-
             File contractFile = loadContractFile(contractVersion);
 
             if (contractFile == null && !findContractFile(contractVersion)) {
@@ -86,7 +76,7 @@ public class PrepareBlockchain {
         return true;
     }
 
-    public boolean findContractFile(ContractVersion contractVersion) {
+    private boolean findContractFile(ContractVersion contractVersion) {
         // TODO contract file download
         return false;
     }
@@ -107,7 +97,7 @@ public class PrepareBlockchain {
 
     }
 
-    public List<BranchContract> getContractList() {
+    List<BranchContract> getContractList() {
         return this.contractList;
     }
 

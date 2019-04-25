@@ -18,7 +18,7 @@ package io.yggdrash.gateway.controller;
 
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.gateway.dto.TransactionDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -53,9 +53,9 @@ class TransactionController {
     @PostMapping
     public ResponseEntity add(@PathVariable(name = BRANCH_ID) String branchId,
                               @RequestBody TransactionDto request) {
-        TransactionHusk tx = TransactionDto.of(request);
+        Transaction tx = TransactionDto.of(request);
         if (BranchId.of(branchId).equals(tx.getBranchId())) {
-            TransactionHusk addedTx = branchGroup.addTransaction(tx);
+            Transaction addedTx = branchGroup.addTransaction(tx);
             return ResponseEntity.ok(TransactionDto.createBy(addedTx));
         } else {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -65,7 +65,7 @@ class TransactionController {
     @GetMapping("/{id}")
     public ResponseEntity get(@PathVariable(name = BRANCH_ID) String branchId,
                               @PathVariable String id) {
-        TransactionHusk tx = branchGroup.getTxByHash(BranchId.of(branchId), id);
+        Transaction tx = branchGroup.getTxByHash(BranchId.of(branchId), id);
 
         if (tx == null) {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -77,8 +77,7 @@ class TransactionController {
     @GetMapping
     public ResponseEntity getAll(@PathVariable(name = BRANCH_ID) String branchId) {
         long countOfTotal = branchGroup.countOfTxs(BranchId.of(branchId));
-        List<TransactionHusk> txs =
-                new ArrayList<>(branchGroup.getRecentTxs(BranchId.of(branchId)));
+        List<Transaction> txs = new ArrayList<>(branchGroup.getRecentTxs(BranchId.of(branchId)));
         List<TransactionDto> dtoList = txs.stream().sorted(Comparator.reverseOrder())
                 .map(TransactionDto::createBy).collect(Collectors.toList());
 

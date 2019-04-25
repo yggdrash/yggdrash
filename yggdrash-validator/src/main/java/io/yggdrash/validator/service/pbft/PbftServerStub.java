@@ -1,32 +1,27 @@
 package io.yggdrash.validator.service.pbft;
 
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.proto.CommonProto;
-import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
-import io.yggdrash.validator.data.ConsensusBlockChain;
 import io.yggdrash.validator.data.pbft.PbftBlock;
-import io.yggdrash.validator.data.pbft.PbftBlockChain;
 import io.yggdrash.validator.data.pbft.PbftMessage;
 import io.yggdrash.validator.data.pbft.PbftStatus;
-import io.yggdrash.validator.service.ConsensusService;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftServerStub.class);
-    private static final NetProto.Empty EMPTY = NetProto.Empty.getDefaultInstance();
+    private static final CommonProto.Empty EMPTY = CommonProto.Empty.getDefaultInstance();
 
-    private final PbftBlockChain blockChain;
+    private final ConsensusBlockChain<PbftProto.PbftBlock, PbftMessage> blockChain;
     private final PbftService pbftService; //todo: check security!
 
-    public PbftServerStub(ConsensusBlockChain blockChain, ConsensusService consensusService) {
-        this.blockChain = (PbftBlockChain) blockChain;
-        this.pbftService = (PbftService) consensusService;
+    public PbftServerStub(PbftService consensusService) {
+        this.blockChain = consensusService.getBlockChain();
+        this.pbftService = consensusService;
     }
 
     @Override
@@ -57,7 +52,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
 
     @Override
     public void multicastPbftMessage(PbftProto.PbftMessage request,
-                                     StreamObserver<NetProto.Empty> responseObserver) {
+                                     StreamObserver<CommonProto.Empty> responseObserver) {
         log.trace("multicastPbftMessage");
         PbftMessage pbftMessage = new PbftMessage(request);
         try {
@@ -90,34 +85,57 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
     }
 
     @Override
+    public void broadcastPbftBlock(PbftProto.PbftBlock request,
+                                   StreamObserver<CommonProto.Empty> responseObserver) {
+        PbftBlock newPbftBlock = new PbftBlock(request);
+        try {
+            log.debug("Received BroadcastPbftBlock [{}] {} ", newPbftBlock.getIndex(), newPbftBlock.getHash());
+            if (!PbftBlock.verify(newPbftBlock)) {
+                log.warn("Verify Fail");
+                responseObserver.onNext(EMPTY);
+                responseObserver.onCompleted();
+                return;
+            }
+
+            responseObserver.onNext(CommonProto.Empty.newBuilder().build());
+            responseObserver.onCompleted();
+
+            pbftService.getLock().lock();
+            ConsensusBlock<PbftProto.PbftBlock> lastPbftBlock = this.blockChain.getLastConfirmedBlock();
+            if (lastPbftBlock.getIndex() == newPbftBlock.getIndex() - 1
+                    && lastPbftBlock.getHash().equals(newPbftBlock.getPrevBlockHash())) {
+                this.blockChain.addBlock(newPbftBlock);
+            }
+            pbftService.getLock().unlock();
+        } finally {
+            newPbftBlock.clear();
+        }
+    }
+
+    @Override
     public void getPbftBlockList(io.yggdrash.proto.CommonProto.Offset request,
                                  io.grpc.stub.StreamObserver<PbftProto.PbftBlockList> responseObserver) {
         long start = request.getIndex();
         long count = request.getCount();
-        List<PbftBlock> blockList = new ArrayList<>();
+        long end = Math.min(start - 1 + count, this.blockChain.getLastConfirmedBlock().getIndex());
 
-        try {
-            long end = Math.min(start - 1 + count,
-                    this.blockChain.getLastConfirmedBlock().getIndex());
+        log.trace("start: {}", start);
+        log.trace("end: {}", end);
 
-            log.trace("start: " + start);
-            log.trace("end: " + end);
-
-            if (start < end) {
-                for (long l = start; l <= end; l++) {
-                    byte[] key = this.blockChain.getBlockKeyStore().get(l);
-                    blockList.add(this.blockChain.getBlockStore().get(key));
+        PbftProto.PbftBlockList.Builder builder = PbftProto.PbftBlockList.newBuilder();
+        if (start < end) {
+            for (long l = start; l <= end; l++) {
+                try {
+                    ConsensusBlock<PbftProto.PbftBlock> block = blockChain.getBlockStore().getBlockByIndex(l);
+                    builder.addPbftBlock(block.getInstance());
+                } catch (Exception e) {
+                    break;
                 }
             }
-
-            responseObserver.onNext(PbftBlock.toProtoList(blockList));
-            responseObserver.onCompleted();
-        } finally {
-            for (PbftBlock pbftBlock : blockList) {
-                pbftBlock.clear();
-            }
-            blockList.clear();
         }
+
+        responseObserver.onNext(builder.build());
+        responseObserver.onCompleted();
     }
 
     private void updateStatus(PbftStatus status) {

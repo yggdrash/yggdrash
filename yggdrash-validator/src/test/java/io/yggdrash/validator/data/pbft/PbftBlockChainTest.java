@@ -5,11 +5,12 @@ import com.google.gson.JsonObject;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.validator.data.ConsensusBlock;
-import io.yggdrash.validator.util.TestUtils;
+import io.yggdrash.validator.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -19,7 +20,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.FileCopyUtils;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -60,13 +60,14 @@ public class PbftBlockChainTest {
     public void setUp() throws IOException, InvalidCipherTextException {
         defaultConfig = new DefaultConfig();
 
-        wallet0 = new Wallet(defaultConfig);
-        wallet1 = new Wallet(null, "/tmp/",
+        wallet0 = new Wallet(null, "tmp/",
+                "test0" + TimeUtils.time(), "Password1234!");
+        wallet1 = new Wallet(null, "tmp/",
+                "test1" + TimeUtils.time(), "Password1234!");
+        wallet2 = new Wallet(null, "tmp/",
                 "test2" + TimeUtils.time(), "Password1234!");
-        wallet2 = new Wallet(null, "/tmp/",
+        wallet3 = new Wallet(null, "tmp/",
                 "test3" + TimeUtils.time(), "Password1234!");
-        wallet3 = new Wallet(null, "/tmp/",
-                "test4" + TimeUtils.time(), "Password1234!");
 
         block0 = this.genesisBlock();
         block1 = new TestUtils(wallet1).sampleBlock(block0.getIndex() + 1, block0.getHash());
@@ -132,28 +133,28 @@ public class PbftBlockChainTest {
         ClassPathResource cpr = new ClassPathResource("genesis/genesis.json");
         try {
             byte[] bdata = FileCopyUtils.copyToByteArray(cpr.getInputStream());
-            genesisString = new String(bdata, StandardCharsets.UTF_8);
+            genesisString = SerializationUtil.deserializeString(bdata);
         } catch (IOException e) {
             throw new NotValidateException("Error genesisFile");
         }
 
-        return new Block(new Gson().fromJson(genesisString, JsonObject.class));
+        return new BlockImpl(new Gson().fromJson(genesisString, JsonObject.class));
     }
 
     @Test
     public void constuctorTest() {
         assertNotNull(this.pbftBlockChain);
-        assertEquals(this.pbftBlockChain.getLastConfirmedBlock().getIndex(), 0L);
+        assertEquals(0L, this.pbftBlockChain.getLastConfirmedBlock().getIndex());
     }
 
     @Test
     public void getterTest() {
-        assertNotNull(this.pbftBlockChain.getChain());
+        assertNotNull(this.pbftBlockChain.getBranchId());
         assertNotNull(this.pbftBlockChain.getBlockKeyStore());
         assertNotNull(this.pbftBlockChain.getBlockStore());
         assertNotNull(this.pbftBlockChain.getGenesisBlock());
         assertNotNull(this.pbftBlockChain.getGenesisBlock());
-        assertEquals(this.pbftBlockChain.getUnConfirmedData().size(), 0);
+        assertEquals(0, this.pbftBlockChain.getUnConfirmedData().size());
         assertNotNull(this.pbftBlockChain.getTransactionStore());
         assertNotNull(this.pbftBlockChain.getLastConfirmedBlock());
     }
@@ -172,13 +173,13 @@ public class PbftBlockChainTest {
 
         for (int i = 0; i < count; i++) {
             block = new TestUtils(wallet0).sampleBlock(newBlock.getIndex() + 1, newBlock.getHash());
-            newBlock = new PbftBlock(block, null);
+            newBlock = new PbftBlock(block, PbftMessageSet.forGenesis());
 
-            pbftBlockChain.getBlockKeyStore().put(newBlock.getIndex(), newBlock.getHash());
+            pbftBlockChain.getBlockKeyStore().put(newBlock.getIndex(), newBlock.getHash().getBytes());
             pbftBlockChain.getBlockStore().put(newBlock.getHash(), newBlock);
         }
 
-        List<ConsensusBlock> blockList = pbftBlockChain.getBlockList(1, 100);
+        List blockList = pbftBlockChain.getBlockList(1, 100);
         assertEquals(blockList.size(), count);
     }
 
