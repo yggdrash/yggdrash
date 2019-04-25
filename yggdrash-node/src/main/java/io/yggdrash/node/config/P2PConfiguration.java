@@ -19,14 +19,14 @@ package io.yggdrash.node.config;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.net.DiscoveryServiceConsumer;
+import io.yggdrash.core.p2p.BlockChainDialer;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
 import io.yggdrash.core.p2p.PeerTableGroup;
 import io.yggdrash.core.p2p.PeerTableGroupBuilder;
-import io.yggdrash.core.p2p.SimplePeerDialer;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.node.service.ConsensusHandlerFactory;
+import io.yggdrash.node.service.PeerHandlerProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +60,7 @@ public class P2PConfiguration {
 
     @Bean
     PeerDialer peerDialer() {
-        return new SimplePeerDialer(ConsensusHandlerFactory.factory());
+        return new BlockChainDialer(PeerHandlerProvider.factory());
     }
 
     @Bean

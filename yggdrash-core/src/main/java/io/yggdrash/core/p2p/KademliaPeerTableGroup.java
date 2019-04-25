@@ -150,7 +150,7 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
 
         for (Peer peer : closest) {
             if (!tried.contains(peer) && !prevTried.contains(peer)) {
-                PeerHandler peerHandler = peerDialer.getPeerHandler(entry.getKey(), peer);
+                BlockChainHandler peerHandler = peerDialer.getPeerHandler(entry.getKey(), peer);
                 findPeers(target, entry, tried, peer, peerHandler);
             }
             if (tried.size() == KademliaOptions.ALPHA) {
@@ -161,7 +161,7 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
     }
 
     private void findPeers(Peer target, Map.Entry<BranchId, PeerTable> entry, List<Peer> tried, Peer peer,
-                           PeerHandler peerHandler) {
+                           BlockChainHandler peerHandler) {
         try {
             List<Peer> peerList = peerHandler.findPeers(entry.getKey(), target);
             for (Peer findPeer : peerList) {

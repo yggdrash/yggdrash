@@ -3,11 +3,11 @@ package io.yggdrash.core.net;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.PeerTestUtils;
 import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.p2p.BlockChainDialer;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
 import io.yggdrash.core.p2p.PeerHandlerMock;
 import io.yggdrash.core.p2p.PeerTableGroup;
-import io.yggdrash.core.p2p.SimplePeerDialer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,7 +18,7 @@ public class PeerNetworkTest {
 
     @Before
     public void setUp() {
-        PeerDialer peerDialer = new SimplePeerDialer(PeerHandlerMock.factory);
+        PeerDialer peerDialer = new BlockChainDialer(PeerHandlerMock.factory);
         PeerTableGroup peerTableGroup = PeerTestUtils.createTableGroup();
         peerNetwork = new KademliaPeerNetwork(peerTableGroup, peerDialer);
         peerNetwork.addNetwork(genesis.getBranchId(), "pbft");

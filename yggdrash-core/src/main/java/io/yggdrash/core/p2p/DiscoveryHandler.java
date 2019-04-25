@@ -16,12 +16,96 @@
 
 package io.yggdrash.core.p2p;
 
+import com.google.protobuf.ByteString;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.proto.PeerServiceGrpc;
+import io.yggdrash.proto.Proto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
-public interface DiscoveryHandler {
-    List<Peer> findPeers(BranchId branchId, Peer targetPeer);
+public class DiscoveryHandler<T> implements BlockChainHandler<T> {
+    private static final FailedOperationException NOT_IMPLEMENTED = new FailedOperationException("Not implemented");
 
-    String ping(BranchId branchId, Peer owner, String message);
+    private static final Logger log = LoggerFactory.getLogger(DiscoveryHandler.class);
+
+    private final Peer peer;
+
+    private final ManagedChannel channel;
+    private PeerServiceGrpc.PeerServiceBlockingStub peerBlockingStub;
+
+    public DiscoveryHandler(Peer peer) {
+        this(ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext().build(), peer);
+    }
+
+    public DiscoveryHandler(ManagedChannel channel, Peer peer) {
+        this.channel = channel;
+        this.peer = peer;
+        this.peerBlockingStub = PeerServiceGrpc.newBlockingStub(channel);
+    }
+
+    @Override
+    public Peer getPeer() {
+        return peer;
+    }
+
+    @Override
+    public void stop() {
+        log.debug("Stop for peer={}", peer.getYnodeUri());
+
+        if (channel != null) {
+            channel.shutdown();
+        }
+    }
+
+    @Override
+    public List<Peer> findPeers(BranchId branchId, Peer peer) {
+        Proto.TargetPeer targetPeer = Proto.TargetPeer.newBuilder()
+                .setPubKey(peer.getPubKey().toString())
+                .setIp(peer.getHost())
+                .setPort(peer.getPort())
+                .setBranch(ByteString.copyFrom(branchId.getBytes()))
+                .build();
+        return peerBlockingStub.findPeers(targetPeer).getPeersList().stream()
+                .map(peerInfo -> Peer.valueOf(peerInfo.getUrl()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public String ping(BranchId branchId, Peer owner, String message) {
+        Proto.Ping request = Proto.Ping.newBuilder().setPing(message)
+                .setFrom(owner.getYnodeUri())
+                .setTo(peer.getYnodeUri())
+                .setBranch(ByteString.copyFrom(branchId.getBytes()))
+                .build();
+        return peerBlockingStub.ping(request).getPong();
+    }
+
+    @Override
+    public Future<List<ConsensusBlock<T>>> syncBlock(BranchId branchId, long offset) {
+        throw NOT_IMPLEMENTED;
+    }
+
+    @Override
+    public Future<List<Transaction>> syncTx(BranchId branchId) {
+        throw NOT_IMPLEMENTED;
+    }
+
+    @Override
+    public void broadcastBlock(ConsensusBlock<T> block) {
+        throw NOT_IMPLEMENTED;
+    }
+
+    @Override
+    public void broadcastTx(Transaction txHusk) {
+        throw NOT_IMPLEMENTED;
+    }
 }

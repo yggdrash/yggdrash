@@ -17,13 +17,13 @@
 package io.yggdrash;
 
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.core.p2p.BlockChainDialer;
 import io.yggdrash.core.p2p.KademliaPeerTable;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
 import io.yggdrash.core.p2p.PeerHandlerMock;
 import io.yggdrash.core.p2p.PeerTableGroup;
 import io.yggdrash.core.p2p.PeerTableGroupBuilder;
-import io.yggdrash.core.p2p.SimplePeerDialer;
 import io.yggdrash.core.store.StoreBuilder;
 
 import java.util.Collections;
@@ -37,7 +37,7 @@ public class PeerTestUtils {
     private PeerTestUtils() {}
 
     public static PeerTableGroup createTableGroup() {
-        return createTableGroup(OWNER_PORT, new SimplePeerDialer(PeerHandlerMock.factory));
+        return createTableGroup(OWNER_PORT, new BlockChainDialer(PeerHandlerMock.factory));
     }
 
     public static PeerTableGroup createTableGroup(int port, PeerDialer peerDialer) {

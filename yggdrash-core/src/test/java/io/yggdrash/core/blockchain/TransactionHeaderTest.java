@@ -29,7 +29,6 @@ import org.spongycastle.util.encoders.Hex;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
 
 public class TransactionHeaderTest {
 
@@ -61,7 +60,7 @@ public class TransactionHeaderTest {
 
         TransactionHeader txHeader =
                 new TransactionHeader(chain, version, type, Long.MAX_VALUE, bodyHash, Long.MAX_VALUE);
-        assertTrue(TransactionHeader.LENGTH >= txHeader.getLength());
+        assertEquals(TransactionHeader.LENGTH, txHeader.getBinaryForSigning().length);
 
         TransactionHeader txHeader1 =
                 new TransactionHeader(chain, version, type, timestamp, bodyHash, bodyLength);

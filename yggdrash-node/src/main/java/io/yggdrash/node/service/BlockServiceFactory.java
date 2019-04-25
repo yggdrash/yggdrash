@@ -25,7 +25,6 @@ import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.net.BlockConsumer;
 import io.yggdrash.core.net.BlockServiceConsumer;
 import io.yggdrash.core.net.CatchUpSyncEventListener;
-import io.yggdrash.core.p2p.AbstractPeerHandler;
 import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.EbftProto;
 import io.yggdrash.proto.EbftServiceGrpc;
@@ -58,7 +57,7 @@ public class BlockServiceFactory {
     }
 
     private static class PbftBlockService extends PbftServiceGrpc.PbftServiceImplBase {
-        private static final Logger log = LoggerFactory.getLogger(AbstractPeerHandler.class);
+        private static final Logger log = LoggerFactory.getLogger(PbftBlockService.class);
         private final BlockConsumer<PbftProto.PbftBlock> blockConsumer;
 
         private PbftBlockService(BranchGroup branchGroup, CatchUpSyncEventListener listener) {
@@ -100,7 +99,7 @@ public class BlockServiceFactory {
     }
 
     private static class EbftBlockService extends EbftServiceGrpc.EbftServiceImplBase {
-        private static final Logger log = LoggerFactory.getLogger(AbstractPeerHandler.class);
+        private static final Logger log = LoggerFactory.getLogger(EbftBlockService.class);
         private final BlockConsumer<EbftProto.EbftBlock> blockConsumer;
 
         private EbftBlockService(BranchGroup branchGroup, CatchUpSyncEventListener listener) {

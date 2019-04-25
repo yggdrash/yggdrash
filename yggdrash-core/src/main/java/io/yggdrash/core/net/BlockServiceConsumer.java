@@ -82,7 +82,7 @@ public class BlockServiceConsumer<T> implements BlockConsumer<T> {
     private boolean isNeedBlockSync(long curIndex, long reqIndex) {
         // TODO limit maxDiff
         long maxDiffBetweenCurrentAndReceivedBlockHeight = 10000;
-        if (curIndex < reqIndex) {
+        if (curIndex + 1 < reqIndex) {
             long diff = reqIndex - curIndex;
             // TODO 'from' is a bad peer if 'diff' is greater then 10000. Add 'from' peer to the blackList.
             return diff < maxDiffBetweenCurrentAndReceivedBlockHeight;

@@ -24,12 +24,12 @@ import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.testing.GrpcCleanupRule;
 import io.yggdrash.PeerTestUtils;
 import io.yggdrash.core.blockchain.BlockChain;
-import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.p2p.BlockChainHandlerFactory;
+import io.yggdrash.core.p2p.DiscoveryHandler;
 import io.yggdrash.core.p2p.Peer;
-import io.yggdrash.core.p2p.PeerHandlerFactory;
 import io.yggdrash.node.service.BlockServiceFactory;
-import io.yggdrash.node.service.ConsensusHandlerFactory;
 import io.yggdrash.node.service.DiscoveryService;
+import io.yggdrash.node.service.PeerHandlerProvider;
 import org.junit.Before;
 import org.junit.Rule;
 import org.slf4j.Logger;
@@ -44,7 +44,7 @@ public class AbstractNodeTesting {
     protected static final ch.qos.logback.classic.Logger rootLogger =
             (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
-    protected PeerHandlerFactory factory;
+    protected BlockChainHandlerFactory factory;
 
     protected List<TestNode> nodeList;
 
@@ -58,7 +58,7 @@ public class AbstractNodeTesting {
     @Before
     public void setUp() {
         this.nodeList = Collections.synchronizedList(new ArrayList<>());
-        this.factory = createHandlerFactory();
+        this.factory = mockFactory();
     }
 
     protected TestNode createAndStartNode(int port, boolean enableBranch) {
@@ -75,8 +75,7 @@ public class AbstractNodeTesting {
 
     protected void createAndStartServer(TestNode node) {
         String ynodeUri = node.getPeer().getYnodeUri();
-        InProcessServerBuilder serverBuilder = InProcessServerBuilder.forName(ynodeUri).directExecutor().addService(
-                new DiscoveryService(node.discoveryConsumer));
+        InProcessServerBuilder serverBuilder = InProcessServerBuilder.forName(ynodeUri).directExecutor();
         addService(node, serverBuilder);
         node.server = serverBuilder.build();
         try {
@@ -87,6 +86,7 @@ public class AbstractNodeTesting {
     }
 
     void addService(TestNode node, ServerBuilder builder) {
+        builder.addService(new DiscoveryService(node.discoveryConsumer));
         if (node.transactionService != null) {
             builder.addService(node.transactionService);
             for (BlockChain blockChain : node.getBranchGroup().getAllBranch()) {
@@ -118,19 +118,20 @@ public class AbstractNodeTesting {
         nodeList.remove(node);
     }
 
-    private PeerHandlerFactory createHandlerFactory() {
+    private BlockChainHandlerFactory mockFactory() {
         return (consensusAlgorithm, peer) -> {
             ManagedChannel managedChannel = createChannel(peer);
             grpcCleanup.register(managedChannel);
 
             switch (consensusAlgorithm) {
                 case "pbft":
-                    return new ConsensusHandlerFactory.PbftPeerHandler(managedChannel, peer);
+                    return new PeerHandlerProvider.PbftPeerHandler(managedChannel, peer);
                 case "ebft":
-                    return new ConsensusHandlerFactory.EbftPeerHandler(managedChannel, peer);
+                    return new PeerHandlerProvider.EbftPeerHandler(managedChannel, peer);
                 default:
+                    // BS Node only
+                    return new DiscoveryHandler(managedChannel, peer);
             }
-            throw new NotValidateException("Algorithm is not valid.");
         };
     }
 

@@ -29,12 +29,12 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
-public class PeerHandlerMock implements PeerHandler {
+public class PeerHandlerMock implements BlockChainHandler {
     private static final Logger log = LoggerFactory.getLogger(PeerHandlerMock.class);
     private static final String NODE_URI_PREFIX = "ynode://75bff16c@127.0.0.1:";
     private static final Peer OWNER = Peer.valueOf(NODE_URI_PREFIX + 32920);
 
-    public static final PeerHandlerFactory factory = PeerHandlerMock::dummy;
+    public static final BlockChainHandlerFactory factory = PeerHandlerMock::dummy;
 
     private final Peer peer;
     private boolean pongResponse = true;
@@ -111,11 +111,11 @@ public class PeerHandlerMock implements PeerHandler {
     public void broadcastTx(Transaction tx) {
     }
 
-    public static PeerHandler dummy() {
+    public static BlockChainHandler dummy() {
         return dummy(null, OWNER);
     }
 
-    public static PeerHandler dummy(String consensus, Peer peer) {
+    public static BlockChainHandler dummy(String consensus, Peer peer) {
         return new PeerHandlerMock(peer.getYnodeUri());
     }
 
