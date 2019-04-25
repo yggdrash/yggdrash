@@ -287,32 +287,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         transactionStore.batch(keys);
     }
 
-    /**
-     * Get BlockList from BlockStore with index, count.
-     *
-     * @param index index of block (0 <= index)
-     * @param count count of blocks (1 < count <= 100)
-     * @return list of Block
-     */
-    @Override
-    public List<ConsensusBlock<T>> getBlockList(long index, long count) {
-        List<ConsensusBlock<T>> blockList = new ArrayList<>();
-        if (index < 0L || count < 1L || count > 100L) {
-            log.debug("index or count is not valid");
-            return blockList;
-        }
-
-        for (long l = index; l < index + count; l++) {
-            try {
-                blockList.add(blockStore.getBlockByIndex(l));
-            } catch (Exception e) {
-                break;
-            }
-        }
-
-        return blockList;
-    }
-
     @Override
     public Transaction addTransaction(Transaction tx) {
         return addTransaction(tx, true);
