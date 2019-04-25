@@ -132,8 +132,8 @@ public class BranchGroup {
             throw new NonExistObjectException(branchId.toString() + " branch");
         }
         try {
-            BlockChain branch = branches.get(branchId);
-            return branch.getContractContainer().getContractManager().query(contractVersion, method, params);
+            BlockChain chain = branches.get(branchId);
+            return chain.getContractManager().query(contractVersion, method, params);
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }

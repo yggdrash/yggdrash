@@ -24,6 +24,8 @@ import java.util.Arrays;
 public class Address {
     private final byte[] data;
 
+    public static final Address NULL_ADDRESS = new Address(new byte[20], true);
+
     public Address(byte[] data) {
         this(data, false);
     }

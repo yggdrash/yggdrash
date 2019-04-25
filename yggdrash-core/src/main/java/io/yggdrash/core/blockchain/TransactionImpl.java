@@ -107,7 +107,7 @@ public class TransactionImpl implements Transaction {
     public TransactionImpl(JsonObject jsonObject) {
         this(new TransactionHeader(jsonObject.getAsJsonObject(HEADER)),
                 Hex.decode(jsonObject.get(SIGNATURE).getAsString()),
-                new TransactionBody(jsonObject.getAsJsonArray(BODY)));
+                new TransactionBody(jsonObject.getAsJsonObject(BODY)));
     }
 
     @Override
@@ -170,7 +170,11 @@ public class TransactionImpl implements Transaction {
     }
 
     private void setAddress() {
-        this.address = new Address(getPubKey());
+        try {
+            this.address = new Address(getPubKey());
+        } catch (Exception e) {
+            this.address = Address.NULL_ADDRESS;
+        }
     }
 
     @Override

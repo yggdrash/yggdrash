@@ -2,7 +2,6 @@ package io.yggdrash.validator;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
@@ -44,10 +43,7 @@ class GenesisBlock {
         JsonObject nodeListObject = getJsonObjectFromFile("./genesis/consensus.json");
         genesisObject.add("consensus", nodeListObject.get("consensus"));
 
-        JsonArray jsonArrayTxBody = new JsonArray();
-        jsonArrayTxBody.add(genesisObject);
-
-        TransactionBody txBody = new TransactionBody(jsonArrayTxBody);
+        TransactionBody txBody = new TransactionBody(genesisObject);
 
         long timestamp = TimeUtils.time();
 

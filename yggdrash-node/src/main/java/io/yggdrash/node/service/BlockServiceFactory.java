@@ -68,7 +68,7 @@ public class BlockServiceFactory {
         /**
          * Sync block response
          *
-         * @param request        the start branch id, block index and limit to sync
+         * @param request          the start branch id, block index and limit to sync
          * @param responseObserver the observer response to the block list
          */
         @Override
@@ -110,7 +110,7 @@ public class BlockServiceFactory {
         /**
          * Sync block response
          *
-         * @param request        the start branch id, block index and limit to sync
+         * @param request          the start branch id, block index and limit to sync
          * @param responseObserver the observer response to the block list
          */
         @Override

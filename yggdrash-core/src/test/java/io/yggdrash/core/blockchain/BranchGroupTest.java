@@ -16,7 +16,7 @@
 
 package io.yggdrash.core.blockchain;
 
-import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.core.consensus.ConsensusBlock;
@@ -59,8 +59,8 @@ public class BranchGroupTest {
     @Test
     public void addTransaction() {
         // should be existed tx on genesis block
-        assertThat(branchGroup.getRecentTxs(tx.getBranchId()).size()).isEqualTo(1);
-        assertThat(branchGroup.countOfTxs(tx.getBranchId())).isEqualTo(1);
+        assertThat(branchGroup.getRecentTxs(tx.getBranchId()).size()).isEqualTo(3);
+        assertThat(branchGroup.countOfTxs(tx.getBranchId())).isEqualTo(3);
 
         branchGroup.addTransaction(tx);
         Transaction foundTxBySha3 = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
@@ -142,7 +142,7 @@ public class BranchGroupTest {
     }
 
     private Transaction createTx(int amount) {
-        JsonArray txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, amount);
+        JsonObject txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, amount);
         return BlockChainTestUtils.createTxHusk(yggdrash(), txBody);
     }
 }

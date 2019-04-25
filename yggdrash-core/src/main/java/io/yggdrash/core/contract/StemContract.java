@@ -34,6 +34,7 @@ import static io.yggdrash.common.config.Constants.TX_ID;
 
 public class StemContract implements BundleActivator, ServiceListener {
     private static final Logger log = LoggerFactory.getLogger(StemContract.class);
+    //private ServiceRegistration registration;
 
     @Override
     public void start(BundleContext context) {
@@ -43,11 +44,15 @@ public class StemContract implements BundleActivator, ServiceListener {
         Hashtable<String, String> props = new Hashtable<>();
         props.put("YGGDRASH", "Stem");
         context.registerService(StemService.class.getName(), new StemService(), props);
+        //Register our service in the bundle context using the name.
+        //registration = context.registerService(StemService.class.getName(), new StemService(), props);
     }
 
     @Override
     public void stop(BundleContext context) {
         log.info("⚫ Stop stem contract");
+        //TODO Why don't unregister the service?
+        //registration.unregister();
     }
 
     @Override

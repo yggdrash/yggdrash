@@ -16,7 +16,7 @@
 
 package io.yggdrash.core.blockchain;
 
-import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.common.utils.SerializationUtil;
@@ -25,19 +25,19 @@ import java.util.Arrays;
 
 public class TransactionBody {
 
-    private final JsonArray body;
+    private JsonObject body; //TODO Change modifier to final
 
     private byte[] binary;
 
     public TransactionBody(String body) {
-        this(JsonUtil.parseJsonArray(body));
+        this.body = JsonUtil.parseJsonObject(body);
     }
 
-    public TransactionBody(JsonArray body) {
+    public TransactionBody(JsonObject body) {
         this.body = body;
     }
 
-    public JsonArray getBody() {
+    public JsonObject getBody() {
         return this.body;
     }
 

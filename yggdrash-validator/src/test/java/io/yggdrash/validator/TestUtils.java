@@ -66,11 +66,7 @@ public class TestUtils {
             nodeWallet = newWallet;
         }
 
-        JsonArray jsonArray = new JsonArray();
-        jsonArray.add(body);
-
-        TransactionBody txBody;
-        txBody = new TransactionBody(jsonArray);
+        TransactionBody txBody = new TransactionBody(body);
 
         byte[] version = new byte[8];
         byte[] type = new byte[8];
@@ -166,7 +162,7 @@ public class TestUtils {
         return new BlockImpl(sampleBlockObject(index));
     }
 
-    public Block sampleBlock(long index,Sha3Hash prevBlockHash) {
+    public Block sampleBlock(long index, Sha3Hash prevBlockHash) {
         return sampleBlock(index, prevBlockHash.getBytes());
     }
 

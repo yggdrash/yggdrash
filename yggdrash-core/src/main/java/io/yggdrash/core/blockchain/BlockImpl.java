@@ -87,9 +87,9 @@ public class BlockImpl implements Block, ProtoObject<Proto.Block> {
     /**
      * Block Constructor.
      *
-     * @param header block header
+     * @param header    block header
      * @param signature block signature
-     * @param body   block body
+     * @param body      block body
      */
     public BlockImpl(BlockHeader header, byte[] signature, BlockBody body) {
         this.header = header;
@@ -187,7 +187,11 @@ public class BlockImpl implements Block, ProtoObject<Proto.Block> {
     }
 
     private void setAddress() {
-        this.address = new Address(getPubKey());
+        try {
+            this.address = new Address(getPubKey());
+        } catch (Exception e) {
+            this.address = Address.NULL_ADDRESS;
+        }
     }
 
     @Override
