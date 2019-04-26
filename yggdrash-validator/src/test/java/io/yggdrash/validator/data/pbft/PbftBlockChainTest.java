@@ -8,9 +8,12 @@ import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockImpl;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.proto.PbftProto;
 import io.yggdrash.validator.TestUtils;
+import io.yggdrash.validator.store.pbft.PbftBlockStore;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -20,6 +23,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.FileCopyUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -176,10 +180,10 @@ public class PbftBlockChainTest {
             newBlock = new PbftBlock(block, PbftMessageSet.forGenesis());
 
             pbftBlockChain.getBlockKeyStore().put(newBlock.getIndex(), newBlock.getHash().getBytes());
-            pbftBlockChain.getBlockStore().put(newBlock.getHash(), newBlock);
+            pbftBlockChain.getBlockStore().addBlock(newBlock);
         }
 
-        List blockList = pbftBlockChain.getBlockList(1, 100);
+        List blockList = getBlockList(pbftBlockChain.getBlockStore(), 1, 100);
         assertEquals(blockList.size(), count);
     }
 
@@ -194,4 +198,30 @@ public class PbftBlockChainTest {
         this.pbftBlockChain.addBlock(pbftBlock3);
         assertEquals(3L, this.pbftBlockChain.getLastConfirmedBlock().getIndex());
     }
+
+    /**
+     * Get BlockList from BlockStore with index, count.
+     *
+     * @param index index of block (0 <= index)
+     * @param count count of blocks (1 < count <= 100)
+     * @return list of Block
+     */
+    private List<ConsensusBlock<PbftProto.PbftBlock>> getBlockList(PbftBlockStore store, long index, long count) {
+        List<ConsensusBlock<PbftProto.PbftBlock>> blockList = new ArrayList<>();
+        if (index < 0L || count < 1L || count > 100L) {
+            log.debug("index or count is not valid");
+            return blockList;
+        }
+
+        for (long l = index; l < index + count; l++) {
+            try {
+                blockList.add(store.getBlockByIndex(l));
+            } catch (Exception e) {
+                break;
+            }
+        }
+
+        return blockList;
+    }
+
 }

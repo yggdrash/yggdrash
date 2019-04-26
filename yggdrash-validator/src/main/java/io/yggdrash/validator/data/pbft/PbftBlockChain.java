@@ -17,9 +17,7 @@ import io.yggdrash.validator.store.pbft.PbftBlockStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -181,32 +179,6 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
         } catch (Exception e) {
             log.debug(e.getMessage());
         }
-    }
-
-    /**
-     * Get BlockList from BlockStore with index, count.
-     *
-     * @param index index of block (0 <= index)
-     * @param count count of blocks (1 < count <= 100)
-     * @return list of Block
-     */
-    @Override
-    public List<ConsensusBlock<PbftProto.PbftBlock>> getBlockList(long index, long count) {
-        List<ConsensusBlock<PbftProto.PbftBlock>> blockList = new ArrayList<>();
-        if (index < 0L || count < 1L || count > 100L) {
-            log.debug("index or count is not valid");
-            return blockList;
-        }
-
-        byte[] key;
-        for (long l = index; l < index + count; l++) {
-            key = blockKeyStore.get(l);
-            if (key != null) {
-                blockList.add(blockStore.get(Sha3Hash.createByHashed(key)));
-            }
-        }
-
-        return blockList;
     }
 
     private void batchTxs(ConsensusBlock block) {

@@ -22,6 +22,7 @@ import static io.yggdrash.common.config.Constants.PROPERTY_NETWORK_ID;
 import static io.yggdrash.common.config.Constants.PROPERTY_NETWORK_P2P_VER;
 import static io.yggdrash.common.config.Constants.PROPERTY_NODE_NAME;
 import static io.yggdrash.common.config.Constants.PROPERTY_NODE_VER;
+import static io.yggdrash.common.config.Constants.VALIDATOR_DATABASE_PATH;
 import static io.yggdrash.common.config.Constants.VALIDATOR_PATH;
 import static io.yggdrash.common.config.Constants.YGG_DATA_PATH;
 
@@ -144,7 +145,11 @@ public class DefaultConfig {
     }
 
     public String getDatabasePath() {
-        return config.getString(DATABASE_PATH);
+        if (config.hasPath(VALIDATOR_DATABASE_PATH)) {
+            return config.getString(VALIDATOR_DATABASE_PATH);
+        } else {
+            return config.getString(DATABASE_PATH);
+        }
     }
 
     public String getContractPath() {

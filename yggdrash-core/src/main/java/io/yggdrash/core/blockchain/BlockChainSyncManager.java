@@ -151,7 +151,7 @@ public class BlockChainSyncManager implements SyncManager {
             addTransaction(blockChain, txList);
 
         } catch (InterruptedException | ExecutionException e) {
-            log.debug("[SyncManager] Sync Tx ERR occurred: {}", e.getMessage(), e);
+            log.debug("[SyncManager] Sync Tx ERR occurred: {}", e.getMessage());
             Thread.currentThread().interrupt();
         }
     }

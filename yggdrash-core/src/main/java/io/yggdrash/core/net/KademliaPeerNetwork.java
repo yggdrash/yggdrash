@@ -27,6 +27,7 @@ import io.yggdrash.core.p2p.PeerTableGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +82,12 @@ public class KademliaPeerNetwork implements PeerNetwork {
     @Override
     public List<BlockChainHandler> getHandlerList(BranchId branchId) {
         List<Peer> peerList = peerTableGroup.getBroadcastPeerList(branchId);
+
+        if (validatorMap.containsKey(branchId)) {
+            peerList = new ArrayList<>(peerList);
+            peerList.addAll(validatorMap.get(branchId));
+        }
+
         return peerDialer.getHandlerList(branchId, peerList);
     }
 
@@ -126,13 +133,6 @@ public class KademliaPeerNetwork implements PeerNetwork {
         }
 
         private void broadcastTx(Transaction tx) {
-            if (validatorMap.containsKey(tx.getBranchId())) {
-                List<Peer> validatorPeerList = validatorMap.get(tx.getBranchId());
-                for (BlockChainHandler peerHandler : peerDialer.getHandlerList(tx.getBranchId(), validatorPeerList)) {
-                    peerHandler.broadcastTx(tx);
-                }
-            }
-
             List<BlockChainHandler> getHandlerList = getHandlerList(tx.getBranchId());
             for (BlockChainHandler peerHandler : getHandlerList) {
                 try {
