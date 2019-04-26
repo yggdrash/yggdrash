@@ -20,6 +20,9 @@ ext {
     importPackage =
                     "io.yggdrash.common.contract" +
                     ",io.yggdrash.common.contract.method" +
+                    ",io.yggdrash.common.contract.standard" +
+                    ",com.google.common.base" +
+                    ",com.google.common.primitives" +
                     ",io.yggdrash.common.contract.vo" +
                     ",io.yggdrash.common.contract.vo.dpoa" +
                     ",io.yggdrash.common.contract.vo.dpoa.tx" +

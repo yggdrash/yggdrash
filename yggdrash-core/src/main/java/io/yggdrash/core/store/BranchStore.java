@@ -23,6 +23,7 @@ import com.google.gson.JsonParser;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
+import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.common.utils.SerializationUtil;
@@ -35,7 +36,7 @@ import io.yggdrash.core.consensus.ConsensusBlock;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BranchStore implements ReadWriterStore<String, String> {
+public class BranchStore implements ReadWriterStore<String, String>, BranchStateStore {
 
     private final DbSource<byte[], byte[]> db;
 
@@ -163,7 +164,7 @@ public class BranchStore implements ReadWriterStore<String, String> {
         return new BranchId(getBranchIdHash());
     }
 
-    private Sha3Hash getBranchIdHash() {
+    public Sha3Hash getBranchIdHash() {
         byte[] branchIdBytes = db.get(BlockchainMetaInfo.BRANCH_ID.toString().getBytes());
         return new Sha3Hash(branchIdBytes, true);
     }

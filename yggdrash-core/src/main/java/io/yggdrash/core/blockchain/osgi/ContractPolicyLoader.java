@@ -13,6 +13,7 @@ import java.util.ServiceLoader;
 public class ContractPolicyLoader {
     private static final String EXTRA_PACKAGES = "io.yggdrash.common.contract"
             + ",io.yggdrash.common.contract.method"
+            + ",io.yggdrash.common.contract.standard"
             + ",io.yggdrash.common.contract.vo"
             + ",io.yggdrash.common.contract.vo.dpoa"
             + ",io.yggdrash.common.contract.vo.dpoa.tx"
@@ -24,6 +25,8 @@ public class ContractPolicyLoader {
             + ",io.yggdrash.common.utils"
             + ",org.osgi.util.tracker"
             + ",com.google.gson"
+            + ",com.google.common.base"
+            + ",com.google.common.primitives"
             + ",org.w3c.dom"
             + ",org.slf4j"
             + ",java.math"
