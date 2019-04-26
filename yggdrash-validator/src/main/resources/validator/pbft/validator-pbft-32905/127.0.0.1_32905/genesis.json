@@ -1,0 +1,69 @@
+{
+  "header": {
+    "chain": "b6fcaa33529845074ea517096a073d6b941214c5",
+    "version": "0000000000000000",
+    "type": "0000000000000000",
+    "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "index": "0000000000000000",
+    "timestamp": "0000016a575fb57b",
+    "merkleRoot": "d663347f9cacedc9fdbf7380b2a6154019e1f3000ec8e3fcde0261667e5318bc",
+    "bodyLength": "000000000000045e"
+  },
+  "signature": "1be1481d3d26175943bfc335017ffc0db8065fefea8a3bb9d000c08c91a8ce5829430540d960eb26ce4182ff5edce706d2661a66563b344abce9d1be33e30f73dc",
+  "body": [
+    {
+      "header": {
+        "chain": "b6fcaa33529845074ea517096a073d6b941214c5",
+        "version": "0000000000000000",
+        "type": "0000000000000000",
+        "timestamp": "0000016a575fb57b",
+        "bodyHash": "3472185bf808f2ba0dd3128ecadf36a59c9be651fe3790637f449e48e57ec1f5",
+        "bodyLength": "00000000000003c9"
+      },
+      "signature": "1b0dbeaea6f02f553f898c6a701fe5d7be60cc09596079b9cdfa65431c9af8a6fb1f5a41e61f1928d094af2d4d3cb658f721b35022e5b9af4fa8d3b91646686099",
+      "body": {
+        "operator": "GENESIS",
+        "chainName": "YEED",
+        "frontier": {
+          "5db10750e8caff27f906b41c71b3471057dd2000": {
+            "balance": "1000000000"
+          },
+          "77283a04b3410fe21ba5ed04c7bd3ba89e70b78c": {
+            "balance": "1000000000"
+          },
+          "9911fb4663637706811a53a0e0b4bcedeee38686": {
+            "balance": "1000000000"
+          },
+          "2ee2eb80c93d031147c21ba8e2e0f0f4a33f5312": {
+            "balance": "1000000000"
+          },
+          "51e2128e8deb622c2ec6dc38f9d895f0be044eb4": {
+            "balance": "1000000000"
+          },
+          "047269a50640ed2b0d45d461488c13abad1e0fac": {
+            "balance": "1000000000"
+          },
+          "21640f2116389a3e37462fd6b68b969e490b6a50": {
+            "balance": "1000000000"
+          },
+          "63fef4912dc8b0781351b18eb9be450638ea2c17": {
+            "balance": "1000000000"
+          }
+        },
+        "consensus": {
+          "algorithm": "pbft",
+          "period": "* * * * * *",
+          "validator": [
+            "77283a04b3410fe21ba5ed04c7bd3ba89e70b78c",
+            "9911fb4663637706811a53a0e0b4bcedeee38686",
+            "2ee2eb80c93d031147c21ba8e2e0f0f4a33f5312",
+            "51e2128e8deb622c2ec6dc38f9d895f0be044eb4",
+            "047269a50640ed2b0d45d461488c13abad1e0fac",
+            "21640f2116389a3e37462fd6b68b969e490b6a50",
+            "63fef4912dc8b0781351b18eb9be450638ea2c17"
+          ]
+        }
+      }
+    }
+  ]
+}

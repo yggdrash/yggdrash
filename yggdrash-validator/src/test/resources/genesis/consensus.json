@@ -1,6 +1,6 @@
 {
   "consensus": {
-    "algorithm": "pbft",
+    "algorithm": "ebft",
     "period": "* * * * * *",
     "validator": [
       "77283a04b3410fe21ba5ed04c7bd3ba89e70b78c",

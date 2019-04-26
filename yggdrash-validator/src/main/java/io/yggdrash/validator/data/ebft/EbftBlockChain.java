@@ -79,7 +79,8 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
 
         } else {
             this.blockKeyStore.put(0L, genesisBlock.getHash().getBytes());
-            this.blockStore.put(genesisBlock.getHash(), this.genesisBlock);
+            this.blockStore.addBlock(this.genesisBlock); // todo: check efficiency & change index
+            // this.blockStore.put(genesisBlock.getHash(), this.genesisBlock);
         }
 
         this.transactionStore = new TransactionStore(
@@ -140,7 +141,8 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
             }
 
             this.blockKeyStore.put(block.getIndex(), block.getHash().getBytes());
-            this.blockStore.put(Sha3Hash.createByHashed(block.getHash().getBytes()), block);
+            this.blockStore.addBlock(block); // todo: check efficiency & change index
+            // this.blockStore.put(Sha3Hash.createByHashed(block.getHash().getBytes()), block);
 
             this.lastConfirmedBlock = (EbftBlock) block;
             loggingBlock(this.lastConfirmedBlock);
