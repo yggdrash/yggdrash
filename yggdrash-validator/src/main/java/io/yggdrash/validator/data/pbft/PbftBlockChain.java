@@ -61,8 +61,8 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
 
         if (this.blockKeyStore.size() == 0) {
             this.blockKeyStore.put(0L, this.genesisBlock.getHash().getBytes());
-            this.blockStore.put(genesisBlock.getHash(), this.genesisBlock);
-
+            this.blockStore.addBlock(this.genesisBlock); // todo: check efficiency & change index
+            //this.blockStore.put(genesisBlock.getHash(), this.genesisBlock);
         } else {
             if (!Arrays.equals(this.blockKeyStore.get(0L), this.genesisBlock.getHash().getBytes())) {
                 throw new NotValidateException("PbftBlockKeyStore is not valid.");
@@ -143,7 +143,8 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
             }
 
             this.blockKeyStore.put(block.getIndex(), block.getHash().getBytes());
-            this.blockStore.put(block.getHash(), block);
+            this.blockStore.addBlock(block); // todo: check efficiency & change index
+            // this.blockStore.put(block.getHash(), block);
 
             this.lastConfirmedBlock = (PbftBlock) block;
             loggingBlock(this.lastConfirmedBlock);
