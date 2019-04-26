@@ -15,6 +15,7 @@ public class ContractPolicyLoader {
             + ",io.yggdrash.common.contract.method"
             + ",io.yggdrash.common.contract.standard"
             + ",io.yggdrash.common.contract.vo"
+            + ",io.yggdrash.common.rlp"
             + ",io.yggdrash.common.contract.vo.dpoa"
             + ",io.yggdrash.common.contract.vo.dpoa.tx"
             + ",io.yggdrash.common.crypto"

@@ -756,7 +756,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
             // validator can validate other network transaction
             // check validate
             // TODO validator or truth node can validate transaction confirm
-            if (!isValidator(this.txReceipt.getIssuer())) {
+            if (!this.branchStateStore.isValidator(this.txReceipt.getIssuer())) {
                 throw new RuntimeException("Transaction Confirm is require Validator");
             }
 
@@ -856,10 +856,6 @@ public class YeedContract implements BundleActivator, ServiceListener {
                         txConfirm.getStatus().toString()));
                 this.txReceipt.setStatus(ExecuteStatus.FALSE);
             }
-        }
-
-        private boolean isValidator(String address) {
-            return this.branchStateStore.getValidators().getValidatorMap().containsKey(address);
         }
 
         // propose close

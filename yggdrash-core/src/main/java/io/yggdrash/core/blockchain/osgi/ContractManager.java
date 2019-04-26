@@ -214,6 +214,7 @@ public class ContractManager {
         String stateStoreFile = String.format("%s/%s/state/*", config.getDatabasePath(), branchId);
 
         String branchStorePath = String.format("%s/%s/branch", config.getDatabasePath(), branchId);
+        String branchStoreFile = String.format("%s/%s/branch/*", config.getDatabasePath(), branchId);
         String allPermission = "read,write,delete";
         String filePermissionName = FilePermission.class.getName();
 
@@ -221,10 +222,12 @@ public class ContractManager {
         commonPermissions.add(new PermissionInfo(filePermissionName, stateStorePath, "read"));
         commonPermissions.add(new PermissionInfo(filePermissionName, stateStoreFile, allPermission));
         commonPermissions.add(new PermissionInfo(filePermissionName, branchStorePath, "read"));
+        commonPermissions.add(new PermissionInfo(filePermissionName, branchStoreFile, "read"));
 
-        String branchStoreFile = String.format("%s/%s/branch/*", config.getDatabasePath(), branchId);
+
 
         List<PermissionInfo> systemPermissions = commonPermissions;
+        // Add Branch File Write
         systemPermissions.add(new PermissionInfo(filePermissionName, branchStoreFile, allPermission));
         if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getEsHost())) {
             systemPermissions.add(new PermissionInfo(
@@ -284,12 +287,7 @@ public class ContractManager {
             log.error("Contract file don't Load [{}]", e.getMessage()); //TODO Throw Runtime Exception
             return bundleId;
         }
-        try {
-            bundleId = install(contract, contractFile, isSystem);
-        } catch (RuntimeException e) {
-            log.error(e.getMessage());
-            bundleId = -2;
-        }
+        bundleId = install(contract, contractFile, isSystem);
         return bundleId;
     }
 

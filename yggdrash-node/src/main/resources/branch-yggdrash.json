@@ -12,7 +12,7 @@
       "isSystem": true
     },
     {
-      "contractVersion": "d1acfe88347a2d7c18e380b47b8121356fc17604",
+      "contractVersion": "1319aef6bf061927e9e26fb19da1020f73e01588",
       "isSystem": true,
       "init": {
         "alloc": {
@@ -46,7 +46,7 @@
       "name": "YEED"
     },
     {
-      "contractVersion": "f5f92857982260477387d519f020b6b1fe37b2d5",
+      "contractVersion": "f410278dec7b89db97ea7cbf76abdabaabc20486",
       "isSystem": true,
       "init": {
         "validators": [
