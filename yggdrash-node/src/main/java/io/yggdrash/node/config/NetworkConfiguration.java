@@ -30,6 +30,8 @@ import io.yggdrash.core.p2p.PeerTableGroup;
 import io.yggdrash.node.PeerTask;
 import io.yggdrash.node.service.BlockServiceFactory;
 import io.yggdrash.node.springboot.grpc.GrpcServerBuilderConfigurer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,6 +47,7 @@ import java.util.stream.Collectors;
 @EnableScheduling
 @DependsOn("branchLoader")
 public class NetworkConfiguration {
+    private static final Logger log = LoggerFactory.getLogger(NetworkConfiguration.class);
 
     private final List<Peer> validatorList;
 
@@ -95,6 +98,7 @@ public class NetworkConfiguration {
                         branchGroup,
                         syncManager);
                 serverBuilder.addService(service);
+                log.info("'{}' service has been registered.", service.getClass().getName());
             }
         };
     }

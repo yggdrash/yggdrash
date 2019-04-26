@@ -58,6 +58,8 @@ public class BranchConfiguration {
     @Value("${event.store:#{null}}")
     private String[] eventStore;
 
+    private SystemProperties systemProperties;
+
     @Autowired
     BranchConfiguration(DefaultConfig defaultConfig) {
         this.storeBuilder = StoreBuilder.newBuilder().setConfig(defaultConfig);
@@ -66,8 +68,8 @@ public class BranchConfiguration {
     // TODO Remove Default Branch Load
     @Bean
     @ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
-    BlockChain yggdrash(BranchGroup branchGroup, ContractPolicyLoader contractPolicyLoader) throws IOException {
-        BlockChain yggdrash = createBranch(yggdrashResource.getInputStream(), contractPolicyLoader);
+    BlockChain yggdrash(BranchGroup branchGroup, ContractPolicyLoader policyLoader) throws IOException {
+        BlockChain yggdrash = createBranch(yggdrashResource.getInputStream(), policyLoader);
         branchGroup.addBranch(yggdrash);
         return yggdrash;
     }
@@ -78,8 +80,18 @@ public class BranchConfiguration {
     }
 
     @Bean
-    ContractPolicyLoader contractPolicyLoader() {
+    ContractPolicyLoader policyLoader() {
         return new ContractPolicyLoader();
+    }
+
+    @Bean
+    SystemProperties systemProperties() {
+        this.systemProperties = SystemProperties.SystemPropertiesBuilder.aSystemProperties()
+                .withEsHost(esHost)
+                .withEsTransport(esTransport)
+                .withEventStore(eventStore)
+                .build();
+        return systemProperties;
     }
 
     @Bean
@@ -106,11 +118,6 @@ public class BranchConfiguration {
     private BlockChain createBranch(GenesisBlock genesis, ContractPolicyLoader policyLoader) {
         log.info("createBranch {} {}", genesis.getBranch().getBranchId(), genesis.getBranch().getName());
 
-        SystemProperties systemProperties = SystemProperties.SystemPropertiesBuilder.aSystemProperties()
-                .withEsHost(esHost)
-                .withEsTransport(esTransport)
-                .withEventStore(eventStore)
-                .build();
         try {
             Consensus consensus = new Consensus(genesis.getBranch().getConsensus());
             storeBuilder.setConsensusAlgorithm(consensus.getAlgorithm())

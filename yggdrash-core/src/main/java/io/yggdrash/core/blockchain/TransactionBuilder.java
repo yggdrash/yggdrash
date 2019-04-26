@@ -62,12 +62,12 @@ public class TransactionBuilder {
     }
 
 
-    public TransactionBuilder addTxBody(ContractVersion contractVersion, String method,
+    public TransactionBuilder setTxBody(ContractVersion contractVersion, String method,
                                         JsonObject params, boolean isSystem) {
         return addTransactionBody(commonTxBody(contractVersion.toString(), method, params, isSystem));
     }
 
-    public TransactionBuilder addTxBody(ContractVersion contractVersion, String method,
+    public TransactionBuilder setTxBody(ContractVersion contractVersion, String method,
                                         JsonObject params, boolean isSystem, JsonObject consensus) {
         JsonObject txObj = commonTxBody(contractVersion.toString(), method, params, isSystem);
         txObj.add("consensus", consensus);

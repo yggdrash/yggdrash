@@ -5,7 +5,6 @@ import io.yggdrash.core.store.BlockKeyStore;
 import io.yggdrash.core.store.ConsensusBlockStore;
 import io.yggdrash.core.store.TransactionStore;
 
-import java.util.List;
 import java.util.Map;
 
 public interface ConsensusBlockChain<T, V> {
@@ -26,7 +25,5 @@ public interface ConsensusBlockChain<T, V> {
     Map<String, V> getUnConfirmedData();
 
     ConsensusBlock<T> addBlock(ConsensusBlock<T> block);
-
-    List<ConsensusBlock<T>> getBlockList(long index, long count);
 
 }

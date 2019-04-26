@@ -9,6 +9,7 @@ import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.ContractStore;
@@ -16,7 +17,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.osgi.framework.BundlePermission;
 import org.osgi.framework.CapabilityPermission;
 import org.osgi.framework.PackagePermission;
@@ -59,7 +59,7 @@ public class ContractManager {
     private Framework framework;
 
     private final FrameworkFactory frameworkFactory;
-    private final Map<String, String> commonContainerConfig;
+    private final Map<String, String> commonContractManagerConfig;
     private final String branchId;
     private final ContractStore contractStore;
     private final DefaultConfig config;
@@ -69,11 +69,11 @@ public class ContractManager {
     private ContractExecutor contractExecutor;
     private Map<OutputType, OutputStore> outputStore;
 
-    ContractManager(FrameworkFactory frameworkFactory, Map<String, String> containerConfig,
+    ContractManager(FrameworkFactory frameworkFactory, Map<String, String> contractManagerConfig,
                     String branchId, ContractStore contractStore, DefaultConfig config,
                     SystemProperties systemProperties, Map<OutputType, OutputStore> outputStore) {
         this.frameworkFactory = frameworkFactory;
-        this.commonContainerConfig = containerConfig;
+        this.commonContractManagerConfig = contractManagerConfig;
         this.branchId = branchId;
         this.contractStore = contractStore;
         this.config = config;
@@ -132,14 +132,14 @@ public class ContractManager {
     void newFramework() {
         String managerPath = String.format("%s/%s", config.getOsgiPath(), branchId);
         log.debug("ContractManager Path : {}", managerPath);
-        Map<String, String> containerConfig = new HashMap<>();
-        containerConfig.put("org.osgi.framework.storage", managerPath);
-        containerConfig.putAll(commonContainerConfig);
+        Map<String, String> contractManagerConfig = new HashMap<>();
+        contractManagerConfig.put("org.osgi.framework.storage", managerPath);
+        contractManagerConfig.putAll(commonContractManagerConfig);
         if (System.getSecurityManager() != null) {
-            containerConfig.remove("org.osgi.framework.security");
+            contractManagerConfig.remove("org.osgi.framework.security");
         }
 
-        framework = frameworkFactory.newFramework(containerConfig);
+        framework = frameworkFactory.newFramework(contractManagerConfig);
 
         contractExecutor = new ContractExecutor(framework, contractStore, outputStore, systemProperties);
 
@@ -426,8 +426,7 @@ public class ContractManager {
                         if (contractStore != null) {
                             inject(bundle);
                         }
-                     } catch (Exception e) {
-                        e.printStackTrace();
+                    } catch (Exception e) {
                         bundle.uninstall();
                         throw new RuntimeException(e);
                     }
@@ -477,8 +476,7 @@ public class ContractManager {
             String contractVersion = getContractVersion(tx);
             Bundle bundle = getBundle(contractVersion);
             if (bundle == null) {
-                log.error("ContractManager :: executeTxs : can't find bundle ({})", contractVersion);
-                //return null;
+                throw new NonExistObjectException(contractVersion + " bundle");
             }
 
             serviceMap.put(contractVersion, getService(bundle));

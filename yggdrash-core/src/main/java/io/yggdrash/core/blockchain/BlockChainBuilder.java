@@ -120,9 +120,9 @@ public class BlockChainBuilder {
         if (policyLoader != null) {
             contractManager = ContractManagerBuilder.newInstance()
                     .withFrameworkFactory(policyLoader.getFrameworkFactory())
-                    .withContainerConfig(policyLoader.getContainerConfig())
+                    .withContractManagerConfig(policyLoader.getContractManagerConfig())
                     .withBranchId(branch.getBranchId().toString())
-                    .withStoreContainer(contractStore)
+                    .withContractStore(contractStore)
                     .withConfig(storeBuilder.getConfig())
                     .withSystemProperties(systemProperties)
                     .withOutputStore(outputStores)

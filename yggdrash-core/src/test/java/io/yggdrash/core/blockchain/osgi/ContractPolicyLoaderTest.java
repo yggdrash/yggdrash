@@ -44,7 +44,7 @@ public class ContractPolicyLoaderTest {
         ContractPolicyLoader loader = new ContractPolicyLoader();
 
         FrameworkFactory fa = loader.getFrameworkFactory();
-        Map config = loader.getContainerConfig();
+        Map config = loader.getContractManagerConfig();
 
         if (System.getSecurityManager() != null) {
             config.remove("org.osgi.framework.security");

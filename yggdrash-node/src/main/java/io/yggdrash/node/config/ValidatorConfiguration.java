@@ -6,8 +6,14 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.blockchain.BlockChainBuilder;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.SystemProperties;
+import io.yggdrash.core.blockchain.genesis.GenesisBlock;
+import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
+import io.yggdrash.core.consensus.Consensus;
+import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.service.ValidatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +35,10 @@ public class ValidatorConfiguration {
     private static final Logger log = LoggerFactory.getLogger(ValidatorConfiguration.class);
 
     @Bean
-    public Map<BranchId, List<ValidatorService>> validatorServiceMap(
-            BranchGroup branchGroup, DefaultConfig defaultConfig) {
+    public Map<BranchId, List<ValidatorService>> validatorServiceMap(BranchGroup branchGroup,
+                                                                     DefaultConfig defaultConfig,
+                                                                     SystemProperties systemProperties,
+                                                                     ContractPolicyLoader policyLoader) {
 
         Map<BranchId, List<ValidatorService>> validatorServiceMap = new HashMap<>();
         File validatorPath = new File(defaultConfig.getValidatorPath());
@@ -43,7 +51,10 @@ public class ValidatorConfiguration {
                 log.warn("Not found branch for [{}]", branchPath);
                 continue;
             }
-            List<ValidatorService> validatorServiceList = loadValidatorService(branchPath, branch, defaultConfig);
+            GenesisBlock genesis = GenesisBlock.of(branch.getBranch(), branch.getGenesisBlock());
+            List<ValidatorService> validatorServiceList =
+                    loadValidatorService(branchPath, genesis, branch.getConsensus(), defaultConfig,
+                            systemProperties, policyLoader);
             validatorServiceMap.put(branchId, validatorServiceList);
         }
 
@@ -52,17 +63,17 @@ public class ValidatorConfiguration {
 
     private BranchId parseBranchId(File branchPath) {
 
-        String branchPathName = branchPath.getName();
-        if (branchPathName.length() != Constants.BRANCH_HEX_LENGTH
-                || !branchPathName.matches("^[0-9a-fA-F]+$")) {
+        String branchName = branchPath.getName();
+        if (branchName.length() != Constants.BRANCH_HEX_LENGTH || !branchName.matches("^[0-9a-fA-F]+$")) {
             return null;
         }
 
         return new BranchId(new Sha3Hash(branchPath.getName()));
     }
 
-    private List<ValidatorService> loadValidatorService(File branchPath, BlockChain branch,
-                                                        DefaultConfig defaultConfig) {
+    private List<ValidatorService> loadValidatorService(File branchPath, GenesisBlock genesis, Consensus consensus,
+                                                        DefaultConfig defaultConfig, SystemProperties systemProperties,
+                                                        ContractPolicyLoader policyLoader) {
 
         List<ValidatorService> validatorServiceList = new ArrayList<>();
         for (File validatorServicePath : Objects.requireNonNull(branchPath.listFiles())) {
@@ -74,9 +85,23 @@ public class ValidatorConfiguration {
                     validatorConfig.getString("yggdrash.validator.port"),
                     validatorConfig.getString("yggdrash.validator.key.path"));
             try {
-                validatorServiceList.add(new ValidatorService(validatorConfig, branch));
+
+                StoreBuilder storeBuilder = StoreBuilder.newBuilder()
+                        .setConfig(validatorConfig)
+                        .setConsensusAlgorithm(consensus.getAlgorithm())
+                        .setBlockStoreFactory(ValidatorService.blockStoreFactory());
+
+                BlockChain blockChain = BlockChainBuilder.newBuilder()
+                        .setGenesis(genesis)
+                        .setStoreBuilder(storeBuilder)
+                        .setPolicyLoader(policyLoader)
+                        .setSystemProperties(systemProperties)
+                        .setFactory(ValidatorService.factory())
+                        .build();
+
+                validatorServiceList.add(new ValidatorService(validatorConfig, blockChain));
             } catch (Exception e) {
-                log.warn(e.getMessage());
+                log.warn("Load validatorService conf={}, err={}", validatorServicePath, e.getMessage());
             }
         }
 

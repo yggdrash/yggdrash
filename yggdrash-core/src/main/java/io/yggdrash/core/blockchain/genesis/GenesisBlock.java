@@ -57,7 +57,7 @@ public class GenesisBlock {
             TransactionBuilder builder = new TransactionBuilder();
             builder.setBranchId(branch.getBranchId())
                     .setTimeStamp(branch.getTimestamp())
-                    .addTxBody(c.getContractVersion(), "init", c.getInit(), c.isSystem(), branch.getConsensus());
+                    .setTxBody(c.getContractVersion(), "init", c.getInit(), c.isSystem(), branch.getConsensus());
 
             txs.add(builder.build());
         }

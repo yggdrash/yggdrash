@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class ContractManagerBuilder {
     private FrameworkFactory frameworkFactory;
-    private Map<String, String> containerConfig;
+    private Map<String, String> contractManagerConfig;
     private String branchId;
     private ContractStore contractStore;
     private DefaultConfig config;
@@ -31,8 +31,8 @@ public class ContractManagerBuilder {
         return this;
     }
 
-    public ContractManagerBuilder withContainerConfig(Map<String, String> containerConfig) {
-        this.containerConfig = containerConfig;
+    public ContractManagerBuilder withContractManagerConfig(Map<String, String> contractManagerConfig) {
+        this.contractManagerConfig = contractManagerConfig;
         return this;
     }
 
@@ -41,7 +41,7 @@ public class ContractManagerBuilder {
         return this;
     }
 
-    public ContractManagerBuilder withStoreContainer(ContractStore contractStore) {
+    public ContractManagerBuilder withContractStore(ContractStore contractStore) {
         this.contractStore = contractStore;
         return this;
 
@@ -67,8 +67,8 @@ public class ContractManagerBuilder {
             throw new IllegalStateException("Must set frameworkFactory");
         }
 
-        if (this.containerConfig == null) {
-            throw new IllegalStateException("Must set commonContainerConfig");
+        if (this.contractManagerConfig == null) {
+            throw new IllegalStateException("Must set common contractManagerConfigConfig");
         }
 
         if (this.branchId == null) {
@@ -77,7 +77,7 @@ public class ContractManagerBuilder {
 
         return new ContractManager(
                 this.frameworkFactory,
-                this.containerConfig,
+                this.contractManagerConfig,
                 this.branchId,
                 this.contractStore,
                 this.config,

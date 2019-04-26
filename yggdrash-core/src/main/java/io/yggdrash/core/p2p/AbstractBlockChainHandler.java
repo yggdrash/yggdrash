@@ -92,7 +92,6 @@ public abstract class AbstractBlockChainHandler<T> extends DiscoveryHandler<T> {
 
                     @Override
                     public void onError(Throwable t) {
-                        log.debug("[PeerHandler] Sync Block Failed: {}", Status.fromThrowable(t));
                         husksCompletableFuture.completeExceptionally(t);
                     }
 
