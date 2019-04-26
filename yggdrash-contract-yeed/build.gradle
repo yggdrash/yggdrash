@@ -21,6 +21,7 @@ ext {
                     "io.yggdrash.common.contract" +
                     ",io.yggdrash.common.contract.method" +
                     ",io.yggdrash.common.contract.standard" +
+                    ",io.yggdrash.common.rlp" +
                     ",com.google.common.base" +
                     ",com.google.common.primitives" +
                     ",io.yggdrash.common.contract.vo" +
@@ -32,7 +33,6 @@ ext {
                     ",io.yggdrash.common.store" +
                     ",io.yggdrash.common.store.datasource" +
                     ",io.yggdrash.common.utils" +
-
                     ",org.osgi.framework" +
                     ",org.osgi.util.tracker" +
                     ",com.google.gson" +
