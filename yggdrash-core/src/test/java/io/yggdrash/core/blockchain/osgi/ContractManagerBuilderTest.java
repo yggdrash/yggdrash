@@ -36,16 +36,16 @@ public class ContractManagerBuilderTest {
         ContractPolicyLoader loader = new ContractPolicyLoader();
         Map output = new HashMap();
 
-        ContractManager container = ContractManagerBuilder.newInstance()
+        ContractManager manager = ContractManagerBuilder.newInstance()
                 .withConfig(config)
                 .withFrameworkFactory(loader.getFrameworkFactory())
-                .withContainerConfig(loader.getContainerConfig())
+                .withContractManagerConfig(loader.getContractManagerConfig())
                 .withOutputStore(output)
                 .withBranchId("test")
                 .build();
 
-        assert container != null;
-        assert container.getContractExecutor() != null;
+        assert manager != null;
+        assert manager.getContractExecutor() != null;
 
 
         // Contract File
@@ -55,13 +55,13 @@ public class ContractManagerBuilderTest {
         File contractFile = new File(filePath);
 
         ContractVersion version = ContractVersion.of("TEST".getBytes());
-        if (contractFile.exists() && !container.checkExistContract(
+        if (contractFile.exists() && !manager.checkExistContract(
                 "io.yggdrash.contract.coin.CoinContract","1.0.0")) {
-            long bundle = container.installContract(version, contractFile, true);
+            long bundle = manager.installContract(version, contractFile, true);
             assert bundle > 0L;
         }
 
-        for (ContractStatus cs : container.searchContracts()) {
+        for (ContractStatus cs : manager.searchContracts()) {
             log.debug("Description {}", cs.getDescription());
             log.debug("Location {}", cs.getLocation());
             log.debug("SymbolicName {}", cs.getSymbolicName());
@@ -69,6 +69,6 @@ public class ContractManagerBuilderTest {
             log.debug(Long.toString(cs.getId()));
         }
 
-        ///container.loadUserContract();
+        ///manager.loadUserContract();
     }
 }

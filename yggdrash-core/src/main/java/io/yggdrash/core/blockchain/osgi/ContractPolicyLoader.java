@@ -35,7 +35,7 @@ public class ContractPolicyLoader {
             + ",io.yggdrash.contract.core.store";
 
     private FrameworkFactory frameworkFactory;
-    private Map<String, String> containerConfig;
+    private Map<String, String> contractManagerConfig;
 
     public ContractPolicyLoader() {
         // Allow all
@@ -53,16 +53,16 @@ public class ContractPolicyLoader {
         }
         frameworkFactory = iterator.next();
 
-        containerConfig = new HashMap<>();
-        containerConfig.put("org.osgi.framework.system.packages.extra", EXTRA_PACKAGES);
-        containerConfig.put("org.osgi.framework.security", "osgi");
+        contractManagerConfig = new HashMap<>();
+        contractManagerConfig.put("org.osgi.framework.system.packages.extra", EXTRA_PACKAGES);
+        contractManagerConfig.put("org.osgi.framework.security", "osgi");
     }
 
     public FrameworkFactory getFrameworkFactory() {
         return frameworkFactory;
     }
 
-    public Map<String, String> getContainerConfig() {
-        return containerConfig;
+    public Map<String, String> getContractManagerConfig() {
+        return contractManagerConfig;
     }
 }

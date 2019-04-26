@@ -17,7 +17,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.osgi.framework.BundlePermission;
 import org.osgi.framework.CapabilityPermission;
 import org.osgi.framework.PackagePermission;
@@ -60,7 +59,7 @@ public class ContractManager {
     private Framework framework;
 
     private final FrameworkFactory frameworkFactory;
-    private final Map<String, String> commonContainerConfig;
+    private final Map<String, String> commonContractManagerConfig;
     private final String branchId;
     private final ContractStore contractStore;
     private final DefaultConfig config;
@@ -70,11 +69,11 @@ public class ContractManager {
     private ContractExecutor contractExecutor;
     private Map<OutputType, OutputStore> outputStore;
 
-    ContractManager(FrameworkFactory frameworkFactory, Map<String, String> containerConfig,
+    ContractManager(FrameworkFactory frameworkFactory, Map<String, String> contractManagerConfig,
                     String branchId, ContractStore contractStore, DefaultConfig config,
                     SystemProperties systemProperties, Map<OutputType, OutputStore> outputStore) {
         this.frameworkFactory = frameworkFactory;
-        this.commonContainerConfig = containerConfig;
+        this.commonContractManagerConfig = contractManagerConfig;
         this.branchId = branchId;
         this.contractStore = contractStore;
         this.config = config;
@@ -133,14 +132,14 @@ public class ContractManager {
     void newFramework() {
         String managerPath = String.format("%s/%s", config.getOsgiPath(), branchId);
         log.debug("ContractManager Path : {}", managerPath);
-        Map<String, String> containerConfig = new HashMap<>();
-        containerConfig.put("org.osgi.framework.storage", managerPath);
-        containerConfig.putAll(commonContainerConfig);
+        Map<String, String> contractManagerConfig = new HashMap<>();
+        contractManagerConfig.put("org.osgi.framework.storage", managerPath);
+        contractManagerConfig.putAll(commonContractManagerConfig);
         if (System.getSecurityManager() != null) {
-            containerConfig.remove("org.osgi.framework.security");
+            contractManagerConfig.remove("org.osgi.framework.security");
         }
 
-        framework = frameworkFactory.newFramework(containerConfig);
+        framework = frameworkFactory.newFramework(contractManagerConfig);
 
         contractExecutor = new ContractExecutor(framework, contractStore, outputStore, systemProperties);
 
@@ -429,7 +428,7 @@ public class ContractManager {
                         if (contractStore != null) {
                             inject(bundle);
                         }
-                     } catch (Exception e) {
+                    } catch (Exception e) {
                         bundle.uninstall();
                         throw new RuntimeException(e);
                     }
