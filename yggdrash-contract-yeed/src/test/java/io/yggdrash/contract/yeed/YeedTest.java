@@ -70,6 +70,7 @@ public class YeedTest {
 
         BranchStateStore branchStateStore = new BranchStateStore() {
             ValidatorSet set = new ValidatorSet();
+
             @Override
             public Long getLastExecuteBlockIndex() {
                 return null;
@@ -96,15 +97,18 @@ public class YeedTest {
             }
 
             @Override
+            public boolean isValidator(String address) {
+                return true;
+            }
+
             public void setValidators(ValidatorSet validatorSet) {
                 this.set = validatorSet;
             }
+
         };
-
-        ValidatorSet set = new ValidatorSet();
-        set.getValidatorMap().put("81b7e08f65bdf5648606c89998a9cc8164397647",new Validator("81b7e08f65bdf5648606c89998a9cc8164397647"));
-        branchStateStore.setValidators(set);
-
+        branchStateStore.getValidators().getValidatorMap()
+                .put("81b7e08f65bdf5648606c89998a9cc8164397647",
+                        new Validator("81b7e08f65bdf5648606c89998a9cc8164397647"));
         List<Field> txReceipt = ContractUtils.txReceiptFields(yeedContract);
         if (txReceipt.size() == 1) {
             txReceiptField = txReceipt.get(0);

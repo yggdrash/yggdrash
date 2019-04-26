@@ -196,6 +196,7 @@ public class BranchStore implements ReadWriterStore<String, String>, BranchState
     }
 
     // Get Validator
+    @Override
     public ValidatorSet getValidators() {
         ValidatorSet validatorSet = null;
         JsonObject jsonValidatorSet = getJson(PrefixKeyEnum.VALIDATORS.toValue());
@@ -203,6 +204,11 @@ public class BranchStore implements ReadWriterStore<String, String>, BranchState
             validatorSet = JsonUtil.generateJsonToClass(jsonValidatorSet.toString(), ValidatorSet.class);
         }
         return validatorSet;
+    }
+
+    @Override
+    public boolean isValidator(String address) {
+        return getValidators().getValidatorMap().containsKey(address);
     }
 
     // Set Contracts

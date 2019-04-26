@@ -108,7 +108,7 @@ public class DPoAContract implements BundleActivator {
             ValidatorSet validatorSet = getValidatorSet();
             if (validatorSet != null) {
                 log.error("initial validator is not null");
-                return true;
+                return false;
             }
 
             validatorSet = new ValidatorSet();
@@ -153,6 +153,12 @@ public class DPoAContract implements BundleActivator {
         @ContractQuery
         public ValidatorSet getValidatorSet() {
             return branchStateStore.getValidators();
+        }
+
+        @ContractQuery
+        public boolean isValidator(JsonObject params) {
+            String address = params.get("address").getAsString();
+            return this.branchStateStore.isValidator(address);
         }
 
         @InvokeTransaction

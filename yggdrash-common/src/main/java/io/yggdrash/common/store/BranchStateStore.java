@@ -31,4 +31,6 @@ public interface BranchStateStore {
     public ValidatorSet getValidators();
 
     public void setValidators(ValidatorSet validatorSet);
+
+    public boolean isValidator(String address);
 }
