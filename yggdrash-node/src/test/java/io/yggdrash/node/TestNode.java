@@ -14,6 +14,7 @@ import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.net.BootStrapNode;
 import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.net.DiscoveryServiceConsumer;
+import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.NodeStatusMock;
 import io.yggdrash.core.p2p.BlockChainDialer;
 import io.yggdrash.core.p2p.BlockChainHandlerFactory;
@@ -35,10 +36,13 @@ import java.util.List;
 
 public class TestNode extends BootStrapNode {
     private static final Logger log = LoggerFactory.getLogger(TestNode.class);
-    private final BranchId branchId = TestConstants.yggdrash();
 
-    private BlockChainHandlerFactory factory;
+    private final BranchId branchId = TestConstants.yggdrash();
+    private final BranchGroup branchGroup = new BranchGroup();
+    private final NodeStatus nodeStatus = NodeStatusMock.create();
+
     private boolean enableBranch;
+    private BlockChainHandlerFactory factory;
     private NodeProperties nodeProperties;
 
     final int port;
@@ -79,7 +83,6 @@ public class TestNode extends BootStrapNode {
     }
 
     private void p2pConfiguration() {
-        this.nodeStatus = NodeStatusMock.create();
         this.peerDialer = new BlockChainDialer(factory);
         this.peerTableGroup = PeerTestUtils.createTableGroup(port, peerDialer);
         this.discoveryConsumer = new DiscoveryServiceConsumer(peerTableGroup);
@@ -91,7 +94,6 @@ public class TestNode extends BootStrapNode {
     }
 
     private void branchConfiguration() {
-        this.branchGroup = new BranchGroup();
         if (isSeed()) {
             return;
         } else if (!enableBranch) {
