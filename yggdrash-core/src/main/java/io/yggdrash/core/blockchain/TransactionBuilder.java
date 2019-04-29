@@ -67,8 +67,10 @@ public class TransactionBuilder {
         return addTransactionBody(commonTxBody(contractVersion.toString(), method, params, isSystem));
     }
 
+    @Deprecated
     public TransactionBuilder setTxBody(ContractVersion contractVersion, String method,
                                         JsonObject params, boolean isSystem, JsonObject consensus) {
+        // TODO Consensus information get State Store v0.4.0
         JsonObject txObj = commonTxBody(contractVersion.toString(), method, params, isSystem);
         txObj.add("consensus", consensus);
         return addTransactionBody(txObj);
