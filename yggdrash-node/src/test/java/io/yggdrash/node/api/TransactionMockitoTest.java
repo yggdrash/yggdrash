@@ -66,7 +66,7 @@ public class TransactionMockitoTest {
         txReceiptStore = new HashMap<>();
         txApiImpl = new TransactionApiImpl(branchGroupMock);
 
-        tx = BlockChainTestUtils.createBranchTxHusk();
+        tx = BlockChainTestUtils.createBranchTx();
         branchId = tx.getBranchId();
         txId = tx.getHash().toString();
         List<Transaction> txList = new ArrayList<>();

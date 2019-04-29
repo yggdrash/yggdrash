@@ -30,5 +30,5 @@ public interface BlockChainHandler<T> extends PeerHandler {
 
     void broadcastBlock(ConsensusBlock<T> block);
 
-    void broadcastTx(Transaction txHusk);
+    void broadcastTx(Transaction tx);
 }

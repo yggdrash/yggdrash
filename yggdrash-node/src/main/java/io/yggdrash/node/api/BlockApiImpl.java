@@ -62,7 +62,7 @@ public class BlockApiImpl implements BlockApi {
     @Override
     public BlockDto getLastBlock(String branchId) {
         BranchId id = BranchId.of(branchId);
-        ConsensusBlock blockHusk = branchGroup.getBlockByIndex(id, branchGroup.getLastIndex(id));
-        return BlockDto.createBy(blockHusk);
+        ConsensusBlock block = branchGroup.getBlockByIndex(id, branchGroup.getLastIndex(id));
+        return BlockDto.createBy(block);
     }
 }

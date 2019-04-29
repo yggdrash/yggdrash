@@ -57,7 +57,7 @@ public class StoreBuilderTest {
 
     @Test
     public void buildTxStore() {
-        Transaction tx = BlockChainTestUtils.createTransferTxHusk();
+        Transaction tx = BlockChainTestUtils.createTransferTx();
         TransactionStore store = builder.buildTxStore();
         store.put(tx.getHash(), tx);
         assertThat(store.contains(tx.getHash())).isTrue();

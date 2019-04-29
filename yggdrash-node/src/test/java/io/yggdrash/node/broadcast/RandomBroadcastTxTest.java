@@ -41,7 +41,7 @@ public class RandomBroadcastTxTest extends RandomBroadcastTesting {
 
         // act
         Consumer<TestNode> consumer = (n) ->
-                n.getBranchGroup().addTransaction(BlockChainTestUtils.createTransferTxHusk());
+                n.getBranchGroup().addTransaction(BlockChainTestUtils.createTransferTx());
         broadcastByRandomNode(txCount, consumer);
 
         // assert

@@ -111,7 +111,7 @@ public class ContractApiImplTest {
     }
 
     private void sendTransaction(JsonObject txBody) {
-        Transaction tx = BlockChainTestUtils.createTxHusk(TestConstants.yggdrash(), txBody);
+        Transaction tx = BlockChainTestUtils.createTx(TestConstants.yggdrash(), txBody);
         Assert.assertTrue(tx.verify());
         try {
             TX_API.sendTransaction(TransactionDto.createBy(tx));
