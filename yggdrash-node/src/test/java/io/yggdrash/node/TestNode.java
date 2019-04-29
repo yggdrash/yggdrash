@@ -134,7 +134,7 @@ public class TestNode extends BootStrapNode {
     public void generateBlock() {
         for (BlockChain branch : branchGroup.getAllBranch()) {
             List<Transaction> txs =
-                    branch.getTransactionStore().getUnconfirmedTxsWithLimit(Constants.LIMIT.BLOCK_SYNC_SIZE);
+                    branch.getTransactionStore().getUnconfirmedTxsWithLimit(Constants.Limit.BLOCK_SYNC_SIZE);
             ConsensusBlock block = BlockChainTestUtils.createNextBlock(txs, branch.getLastConfirmedBlock());
 
             PbftBlock newBlock = new PbftBlock(PbftProto.PbftBlock.newBuilder()

@@ -78,8 +78,8 @@ public class RawTransaction  {
 
         long expected = HEADER_LENGTH + SIGNATURE_LENGTH + bodyLength;
         if (this.bodyLength < 0 ||  expected != bytes.length) {
-            throw new FailedOperationException(String.format("Invalid body bytes. HeaderBodyLength=(%d). Expected=(%d), Actual=(%d)",
-                            bodyLength, expected, bytes.length));
+            String format = "Invalid body bytes. HeaderBodyLength=(%d). Expected=(%d), Actual=(%d)";
+            throw new FailedOperationException(String.format(format, bodyLength, expected, bytes.length));
         }
 
         // Signature parse

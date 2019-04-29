@@ -45,7 +45,8 @@ public class BlockServiceConsumerTest {
         TestConstants.SlowTest.apply();
         // arrange
         int height = 110;
-        List<ConsensusBlock<PbftProto.PbftBlock>> blockList = BlockChainTestUtils.createBlockListFilledWithTx(height, 100);
+        List<ConsensusBlock<PbftProto.PbftBlock>> blockList =
+                BlockChainTestUtils.createBlockListFilledWithTx(height, 100);
 
         blockList.forEach(b -> branch.addBlock(b, false));
         Assert.assertEquals(height, branch.getLastIndex());

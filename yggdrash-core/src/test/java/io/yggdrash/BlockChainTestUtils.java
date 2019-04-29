@@ -75,7 +75,8 @@ public class BlockChainTestUtils {
         return createNextBlock(Collections.emptyList(), prevBlock);
     }
 
-    public static ConsensusBlock<PbftProto.PbftBlock> createNextBlock(List<Transaction> blockBody, ConsensusBlock prevBlock) {
+    public static ConsensusBlock<PbftProto.PbftBlock> createNextBlock(List<Transaction> blockBody,
+                                                                      ConsensusBlock prevBlock) {
         return new PbftBlockMock(BlockImpl.nextBlock(TestConstants.wallet(), blockBody, prevBlock));
     }
 
@@ -145,7 +146,7 @@ public class BlockChainTestUtils {
     public static void generateBlock(BranchGroup branchGroup, BranchId branchId) {
         BlockChain branch = branchGroup.getBranch(branchId);
         List<Transaction> txs =
-                branch.getTransactionStore().getUnconfirmedTxsWithLimit(Constants.LIMIT.BLOCK_SYNC_SIZE);
+                branch.getTransactionStore().getUnconfirmedTxsWithLimit(Constants.Limit.BLOCK_SYNC_SIZE);
         branch.addBlock(createNextBlock(txs, branch.getLastConfirmedBlock()));
     }
 
