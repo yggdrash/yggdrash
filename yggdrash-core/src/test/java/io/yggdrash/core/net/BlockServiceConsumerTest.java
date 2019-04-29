@@ -6,6 +6,7 @@ import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.proto.PbftProto;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,7 +17,7 @@ import static org.junit.Assert.assertEquals;
 
 public class BlockServiceConsumerTest {
     private BranchGroup branchGroup;
-    private BlockServiceConsumer blockServiceConsumer;
+    private BlockServiceConsumer<PbftProto.PbftBlock> blockServiceConsumer;
     private static final BranchId branchId = TestConstants.yggdrash();
     private BlockChain branch;
 
@@ -24,7 +25,7 @@ public class BlockServiceConsumerTest {
     public void setUp() {
         this.branchGroup = BlockChainTestUtils.createBranchGroup();
         this.branch = branchGroup.getBranch(branchId);
-        blockServiceConsumer = new BlockServiceConsumer(branchGroup);
+        blockServiceConsumer = new BlockServiceConsumer<>(branchGroup);
     }
 
     @Test
@@ -32,8 +33,8 @@ public class BlockServiceConsumerTest {
         BlockChainTestUtils.generateBlock(branchGroup, branchId);
         Assert.assertEquals(1, branch.getLastIndex());
 
-        blockServiceConsumer.setListener(BlockChainSyncManagerMock.getMockWithBranchGroup(branchGroup));
-        List<ConsensusBlock> blockList = blockServiceConsumer.syncBlock(branchId, 1, 10);
+        blockServiceConsumer.setListener(BlockChainSyncManagerMock.mock);
+        List<ConsensusBlock<PbftProto.PbftBlock>> blockList = blockServiceConsumer.syncBlock(branchId, 1, 10);
 
         Assert.assertEquals(1, blockList.size());
         Assert.assertEquals(1, branch.getLastIndex());
@@ -44,13 +45,13 @@ public class BlockServiceConsumerTest {
         TestConstants.SlowTest.apply();
         // arrange
         int height = 110;
-        List<ConsensusBlock> blockList = BlockChainTestUtils.createBlockListFilledWithTx(height, 100);
+        List<ConsensusBlock<PbftProto.PbftBlock>> blockList = BlockChainTestUtils.createBlockListFilledWithTx(height, 100);
 
         blockList.forEach(b -> branch.addBlock(b, false));
         Assert.assertEquals(height, branch.getLastIndex());
 
         // act
-        List<ConsensusBlock> received = blockServiceConsumer.syncBlock(branchId, 1, height);
+        List<ConsensusBlock<PbftProto.PbftBlock>> received = blockServiceConsumer.syncBlock(branchId, 1, height);
 
         // assert
         Assert.assertTrue(height > received.size());
@@ -60,7 +61,7 @@ public class BlockServiceConsumerTest {
     public void syncBLockRequestingCatchUp() {
         BlockChainTestUtils.setBlockHeightOfBlockChain(branch, 10);
 
-        List<ConsensusBlock> blockList = blockServiceConsumer.syncBlock(branchId, 3, 10);
+        List<ConsensusBlock<PbftProto.PbftBlock>> blockList = blockServiceConsumer.syncBlock(branchId, 3, 10);
 
         Assert.assertEquals(8, blockList.size());
         Assert.assertEquals(10, branch.getLastIndex());

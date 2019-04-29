@@ -56,10 +56,10 @@ public class BlockChainTestUtils {
         }
     }
 
-    private static List<ConsensusBlock> sampleBlockHuskList = createBlockList(
+    private static List<ConsensusBlock<PbftProto.PbftBlock>> sampleBlockHuskList = createBlockList(
             new ArrayList<>(), genesisBlock(), null, 100);
 
-    public static List<ConsensusBlock> getSampleBlockHuskList() {
+    public static List<ConsensusBlock<PbftProto.PbftBlock>> getSampleBlockHuskList() {
         return sampleBlockHuskList;
     }
 
@@ -67,15 +67,15 @@ public class BlockChainTestUtils {
         return new PbftBlockMock(genesis.getBlock());
     }
 
-    public static ConsensusBlock createNextBlock() {
+    public static ConsensusBlock<PbftProto.PbftBlock> createNextBlock() {
         return createNextBlock(new PbftBlockMock(genesis.getBlock()));
     }
 
-    public static ConsensusBlock createNextBlock(ConsensusBlock prevBlock) {
+    public static ConsensusBlock<PbftProto.PbftBlock> createNextBlock(ConsensusBlock prevBlock) {
         return createNextBlock(Collections.emptyList(), prevBlock);
     }
 
-    public static ConsensusBlock createNextBlock(List<Transaction> blockBody, ConsensusBlock prevBlock) {
+    public static ConsensusBlock<PbftProto.PbftBlock> createNextBlock(List<Transaction> blockBody, ConsensusBlock prevBlock) {
         return new PbftBlockMock(BlockImpl.nextBlock(TestConstants.wallet(), blockBody, prevBlock));
     }
 
@@ -150,9 +150,9 @@ public class BlockChainTestUtils {
     }
 
     public static void setBlockHeightOfBlockChain(BlockChain blockChain, int height) {
-        List<ConsensusBlock> blockList = new ArrayList<>();
-        ConsensusBlock curBlock = blockChain.getBlockByIndex(blockChain.getLastIndex());
-        ConsensusBlock nextBlock = createNextBlock(curBlock);
+        List<ConsensusBlock<PbftProto.PbftBlock>> blockList = new ArrayList<>();
+        ConsensusBlock<PbftProto.PbftBlock> curBlock = blockChain.getBlockByIndex(blockChain.getLastIndex());
+        ConsensusBlock<PbftProto.PbftBlock> nextBlock = createNextBlock(curBlock);
         blockList = createBlockList(blockList, nextBlock, null, height);
 
         for (ConsensusBlock block : blockList) {
@@ -160,8 +160,8 @@ public class BlockChainTestUtils {
         }
     }
 
-    public static List<ConsensusBlock> createBlockListFilledWithTx(int height, int txSize) {
-        List<ConsensusBlock> blockList = new ArrayList<>();
+    public static List<ConsensusBlock<PbftProto.PbftBlock>> createBlockListFilledWithTx(int height, int txSize) {
+        List<ConsensusBlock<PbftProto.PbftBlock>> blockList = new ArrayList<>();
         List<Transaction> blockBody = new ArrayList<>();
 
         for (int i = 0; i < txSize; i++) {
@@ -171,8 +171,9 @@ public class BlockChainTestUtils {
         return createBlockList(blockList, createNextBlock(blockBody, genesisBlock()), blockBody, height);
     }
 
-    private static List<ConsensusBlock> createBlockList(List<ConsensusBlock> blockList,
-                                                        ConsensusBlock prevBlock,
+    private static List<ConsensusBlock<PbftProto.PbftBlock>> createBlockList(
+                                                        List<ConsensusBlock<PbftProto.PbftBlock>> blockList,
+                                                        ConsensusBlock<PbftProto.PbftBlock> prevBlock,
                                                         List<Transaction> blockBody,
                                                         int height) {
         while (blockList.size() < height) {
