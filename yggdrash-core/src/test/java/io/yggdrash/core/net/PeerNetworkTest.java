@@ -38,6 +38,6 @@ public class PeerNetworkTest {
 
     @Test
     public void receivedTransaction() {
-        peerNetwork.receivedTransaction(BlockChainTestUtils.createTransferTxHusk());
+        peerNetwork.receivedTransaction(BlockChainTestUtils.createTransferTx());
     }
 }

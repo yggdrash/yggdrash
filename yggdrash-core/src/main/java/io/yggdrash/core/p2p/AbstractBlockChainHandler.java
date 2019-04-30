@@ -77,33 +77,33 @@ public abstract class AbstractBlockChainHandler<T> extends DiscoveryHandler<T> {
 
         log.debug("Requesting sync tx: branchId={}", branchId);
 
-        CompletableFuture<List<Transaction>> husksCompletableFuture = new CompletableFuture<>();
+        CompletableFuture<List<Transaction>> future = new CompletableFuture<>();
 
         transactionAsyncStub.syncTx(syncLimit,
                 new StreamObserver<Proto.TransactionList>() {
                     @Override
-                    public void onNext(Proto.TransactionList txList) {
-                        List<Transaction> txHusks = txList.getTransactionsList().stream()
+                    public void onNext(Proto.TransactionList protoTxList) {
+                        List<Transaction> txList = protoTxList.getTransactionsList().stream()
                                 .map(TransactionImpl::new).collect(Collectors.toList());
-                        log.debug("[PeerHandler] TransactionList(size={}) Received", txHusks.size());
+                        log.debug("[PeerHandler] TransactionList(size={}) Received", txList.size());
 
-                        husksCompletableFuture.complete(txHusks);
+                        future.complete(txList);
                     }
 
                     @Override
                     public void onError(Throwable t) {
-                        husksCompletableFuture.completeExceptionally(t);
+                        future.completeExceptionally(t);
                     }
 
                     @Override
                     public void onCompleted() {
                         log.debug("[PeerHandler] Sync Tx Finished");
-                        husksCompletableFuture.complete(Collections.emptyList());
+                        future.complete(Collections.emptyList());
                     }
                 }
         );
 
-        return husksCompletableFuture;
+        return future;
     }
 
     @Override

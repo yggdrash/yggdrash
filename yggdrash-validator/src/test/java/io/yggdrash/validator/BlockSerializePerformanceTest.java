@@ -84,20 +84,20 @@ public class BlockSerializePerformanceTest extends TestConstants.PerformanceTest
     }
 
     @Test
-    public void testBlockHuskToBinary() throws InvalidProtocolBufferException {
+    public void testBlockToBinary() throws InvalidProtocolBufferException {
         long startTime;
         long endTime;
 
-        PbftBlockMock blockHusk = new PbftBlockMock(genesisBlock.getGenesisBlock());
+        PbftBlockMock block = new PbftBlockMock(genesisBlock.getGenesisBlock());
 
         startTime = System.nanoTime();
         for (long l = 0; l < MAX; l++) {
-            Proto.Block newProtoBlock = Proto.Block.parseFrom(blockHusk.getProtoBlock().toByteArray());
+            Proto.Block newProtoBlock = Proto.Block.parseFrom(block.getProtoBlock().toByteArray());
             assertTrue(verifyProto(newProtoBlock));
         }
         endTime = System.nanoTime();
 
-        log.info("testBlockHuskToBinary {} Time: {} ", MAX, endTime - startTime);
+        log.info("testBlockToBinary {} Time: {} ", MAX, endTime - startTime);
     }
 
     @Test

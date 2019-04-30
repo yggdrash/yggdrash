@@ -56,11 +56,11 @@ public class BlockChainTestUtils {
         }
     }
 
-    private static List<ConsensusBlock<PbftProto.PbftBlock>> sampleBlockHuskList = createBlockList(
+    private static List<ConsensusBlock<PbftProto.PbftBlock>> sampleBlockList = createBlockList(
             new ArrayList<>(), genesisBlock(), null, 100);
 
-    public static List<ConsensusBlock<PbftProto.PbftBlock>> getSampleBlockHuskList() {
-        return sampleBlockHuskList;
+    public static List<ConsensusBlock<PbftProto.PbftBlock>> getSampleBlockList() {
+        return sampleBlockList;
     }
 
     public static ConsensusBlock<PbftProto.PbftBlock> genesisBlock() {
@@ -80,19 +80,19 @@ public class BlockChainTestUtils {
         return new PbftBlockMock(BlockImpl.nextBlock(TestConstants.wallet(), blockBody, prevBlock));
     }
 
-    public static Transaction createBranchTxHusk() {
+    public static Transaction createBranchTx() {
         JsonObject json = ContractTestUtils.createSampleBranchJson();
 
-        return createBranchTxHusk(json);
+        return createBranchTx(json);
     }
 
-    public static Transaction createBranchTxHusk(String description) {
+    public static Transaction createBranchTx(String description) {
         JsonObject json = ContractTestUtils.createSampleBranchJson(description);
 
-        return createBranchTxHusk(json);
+        return createBranchTx(json);
     }
 
-    private static Transaction createBranchTxHusk(JsonObject json) {
+    private static Transaction createBranchTx(JsonObject json) {
         TransactionBuilder builder = new TransactionBuilder();
         return builder.setTxBody(Constants.STEM_CONTRACT_VERSION, "create", json, false)
                 .setWallet(TestConstants.wallet())
@@ -100,8 +100,8 @@ public class BlockChainTestUtils {
                 .build();
     }
 
-    public static Transaction createBranchTxHusk(BranchId branchId, String method,
-                                                 JsonObject branch) {
+    public static Transaction createBranchTx(BranchId branchId, String method,
+                                             JsonObject branch) {
         TransactionBuilder builder = new TransactionBuilder();
 
         return builder.setTxBody(Constants.STEM_CONTRACT_VERSION, method, branch, false)
@@ -110,7 +110,7 @@ public class BlockChainTestUtils {
                 .build();
     }
 
-    public static Transaction createTxHusk(BranchId branchId, JsonObject txBody) {
+    public static Transaction createTx(BranchId branchId, JsonObject txBody) {
         TransactionBuilder builder = new TransactionBuilder();
         return builder.addTransactionBody(txBody)
                 .setWallet(TestConstants.wallet())
@@ -166,7 +166,7 @@ public class BlockChainTestUtils {
         List<Transaction> blockBody = new ArrayList<>();
 
         for (int i = 0; i < txSize; i++) {
-            blockBody.add(createTransferTxHusk());
+            blockBody.add(createTransferTx());
         }
 
         return createBlockList(blockList, createNextBlock(blockBody, genesisBlock()), blockBody, height);
@@ -188,7 +188,7 @@ public class BlockChainTestUtils {
         return blockList.size() > 0 ? blockList : Collections.emptyList();
     }
 
-    public static Transaction createTransferTxHusk() {
+    public static Transaction createTransferTx() {
         return createTransferTx(TestConstants.TRANSFER_TO, 100);
     }
 
