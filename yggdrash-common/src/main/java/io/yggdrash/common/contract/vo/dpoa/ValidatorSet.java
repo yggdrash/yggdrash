@@ -26,6 +26,10 @@ public class ValidatorSet implements Serializable {
         this.validatorMap = validatorMap;
     }
 
+    public boolean contains(String addr) {
+        return validatorMap.containsKey(addr);
+    }
+
     public List<Validator> order(Comparator comparator) {
         List<Validator> validators = new ArrayList<>();
         if (validatorMap != null && validatorMap.size() > 0) {

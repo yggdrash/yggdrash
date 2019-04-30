@@ -153,6 +153,11 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
         return block;
     }
 
+    @Override
+    public boolean isValidator(String addr) {
+        return true;
+    }
+
     private void loggingBlock(EbftBlock block) {
         try {
             log.info("EbftBlock [" + block.getIndex() + "] "

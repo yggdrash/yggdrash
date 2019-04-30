@@ -155,6 +155,11 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
         return block;
     }
 
+    @Override
+    public boolean isValidator(String addr) {
+        return true;
+    }
+
     private void loggingBlock(PbftBlock block) {
         try {
             log.info("PbftBlock "

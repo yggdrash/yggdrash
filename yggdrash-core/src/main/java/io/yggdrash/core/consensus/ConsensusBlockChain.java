@@ -26,4 +26,5 @@ public interface ConsensusBlockChain<T, V> {
 
     ConsensusBlock<T> addBlock(ConsensusBlock<T> block);
 
+    boolean isValidator(String addr);
 }
