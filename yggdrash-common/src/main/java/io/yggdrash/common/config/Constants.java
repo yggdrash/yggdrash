@@ -2,9 +2,7 @@ package io.yggdrash.common.config;
 
 import io.yggdrash.common.contract.ContractVersion;
 
-import java.math.BigInteger;
-
-public class Constants {
+public final class Constants {
 
     private Constants() {
         throw new IllegalStateException("Constants class");
@@ -62,22 +60,15 @@ public class Constants {
     public static final String VALIDATOR_DATABASE_PATH = "yggdrash.validator.database.path";
     public static final String VALIDATOR_PATH = "yggdrash.validator.path";
 
-    public static BigInteger getSECP256K1N() {
-        return SECP256K1N;
-    }
-
-    private static final BigInteger SECP256K1N = new BigInteger("fffffffffffffffffffffffffff"
-            + "ffffebaaedce6af48a03bbfd25e8cd0364141", 16);
-
-    public final class LIMIT {
-        private LIMIT() {
+    public final class Limit {
+        private Limit() {
         }
 
         public static final long BLOCK_SYNC_SIZE = 3 * 1024 * 1024L; // 3MB
     }
 
-    public final class KEY {
-        private KEY() {
+    public final class Key {
+        private Key() {
         }
 
         public static final String HEADER = "header";
@@ -85,16 +76,6 @@ public class Constants {
         public static final String BODY = "body";
         public static final String VALIDATOR = "validator";
     }
-
-    // TODO Contract Version fix
-    /*
-    private static final byte[] STEM_CONTRACT = Hex.encode(STEM.getBytes());
-    public static final ContractVersion STEM_CONTRACT_VERSION = ContractVersion.of(HexUtil.toHexString(STEM_CONTRACT));
-    private static final byte[] YEED_CONTRACT = Hex.encode(YEED.getBytes());
-    public static final ContractVersion YEED_CONTRACT_VERSION = ContractVersion.of(HexUtil.toHexString(YEED_CONTRACT));
-    private static final byte[] VALIDATOR_CONTRACT = Hex.encode(VALIDATOR.getBytes());
-    public static final ContractVersion VALIDATOR_CONTRACT_VERSION = ContractVersion.of(HexUtil.toHexString(VALIDATOR_CONTRACT));
-    */
 
     private static final String STEM_CONTRACT_STR = "74df17611373672371cb3872e8a5d4a2e8733fb1";
     public static final ContractVersion STEM_CONTRACT_VERSION = ContractVersion.of(STEM_CONTRACT_STR);

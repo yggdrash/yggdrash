@@ -18,7 +18,7 @@ public enum ProposeStatus {
     }
 
     public static ProposeStatus fromValue(int value) {
-        for(ProposeStatus ps : values()) {
+        for (ProposeStatus ps : values()) {
             if (ps.toValue() == value) {
                 return ps;
             }

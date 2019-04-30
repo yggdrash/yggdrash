@@ -41,9 +41,9 @@ import java.io.IOException;
 import java.security.SignatureException;
 import java.util.Arrays;
 
-import static io.yggdrash.common.config.Constants.KEY.BODY;
-import static io.yggdrash.common.config.Constants.KEY.HEADER;
-import static io.yggdrash.common.config.Constants.KEY.SIGNATURE;
+import static io.yggdrash.common.config.Constants.Key.BODY;
+import static io.yggdrash.common.config.Constants.Key.HEADER;
+import static io.yggdrash.common.config.Constants.Key.SIGNATURE;
 import static io.yggdrash.common.config.Constants.TIMESTAMP_2018;
 
 public class TransactionImpl implements Transaction {
