@@ -18,7 +18,7 @@ public enum TxConfirmStatus {
     }
 
     public static TxConfirmStatus fromValue(int value) {
-        for(TxConfirmStatus ps : values()) {
+        for (TxConfirmStatus ps : values()) {
             if (ps.toValue() == value) {
                 return ps;
             }

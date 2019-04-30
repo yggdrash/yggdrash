@@ -27,11 +27,10 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.io.IOException;
+
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.Arrays;
 
 public class SwapEthTransactionTest {
     private static final Logger log = LoggerFactory.getLogger(SwapEthTransactionTest.class);
@@ -106,9 +105,6 @@ public class SwapEthTransactionTest {
         Assert.assertEquals("Send Value", "1000000000000000000", ethTransaction.getValue().toString());
     }
 
-
-
-
     @Test
     public void ropstenTransaction() {
         // https://ropsten.etherscan.io/tx/0x5259f3e2269ed193af4400234a4e6e17d0f4302569363e9ef7d180a4af128cbc
@@ -134,7 +130,9 @@ public class SwapEthTransactionTest {
                 "eaf9e2cb3ccebe8c4a301f3d5b643328941f3fb2", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
         Assert.assertEquals("Send Value", "1000000000000000000", ethTransaction.getValue().toString());
 
-        String ropsten2 = "0xf86c808503b9aca00082520894101167aaf090581b91c08480f6e559acdd9a3ddd880de0b6b3a7640000802aa0480412d6afba1296abcf33e529f9f91e50900597eb69387f52da909d48bf5593a02afa99f81ebe96958ccaee9f2d4ba03aaf9de1cda6bcb98ee6e4418110ea3d7f";
+        String ropsten2 = "0xf86c808503b9aca00082520894101167aaf090581b91c08480f6e559acdd9a3ddd880de0b6b3a7640000802aa0"
+                + "480412d6afba1296abcf33e529f9f91e50900597eb69387f52da909d48bf5593a02afa99f81ebe96958ccaee9f2d4ba03aaf"
+                + "9de1cda6bcb98ee6e4418110ea3d7f";
         ethRawEncode = HexUtil.hexStringToBytes(ropsten2);
 
         ethTransaction = new EthTransaction(ethRawEncode);
@@ -273,7 +271,7 @@ public class SwapEthTransactionTest {
     }
 
     @Test
-    public void rawTransactionFromApiCallResult() throws IOException {
+    public void rawTransactionFromApiCallResult() {
         InputStream file = getClass().getResourceAsStream("/mainnet-hash.json");
         Reader json = new InputStreamReader(file, FileUtil.DEFAULT_CHARSET);
         JsonObject obj = JsonUtil.parseJsonObject(json);
@@ -298,7 +296,7 @@ public class SwapEthTransactionTest {
                 + "3602616ce172ca03885e6218dbd7a09fc250ce4eb982114cc25c0974f4adfbd08c4e834f9c74dc3";
         byte[] ethHex = HexUtil.hexStringToBytes(ethHexString);
 
-        Assert.assertTrue("Json rpc Api to rawTransaction", Arrays.equals(ethHex, rawTransaction));
+        Assert.assertArrayEquals("Json rpc Api to rawTransaction", ethHex, rawTransaction);
 
 
 

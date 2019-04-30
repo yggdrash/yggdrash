@@ -42,9 +42,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
-import static io.yggdrash.common.config.Constants.KEY.BODY;
-import static io.yggdrash.common.config.Constants.KEY.HEADER;
-import static io.yggdrash.common.config.Constants.KEY.SIGNATURE;
+import static io.yggdrash.common.config.Constants.Key.BODY;
+import static io.yggdrash.common.config.Constants.Key.HEADER;
+import static io.yggdrash.common.config.Constants.Key.SIGNATURE;
 import static io.yggdrash.common.config.Constants.SIGNATURE_LENGTH;
 import static io.yggdrash.common.config.Constants.TIMESTAMP_2018;
 

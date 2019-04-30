@@ -180,7 +180,6 @@ public class NodeContractDemoClient {
         }
     }
 
-
     private static void sendStemTx() {
         JsonObject branch = getBranch();
         sendStemTx(branch, "create");
@@ -190,7 +189,7 @@ public class NodeContractDemoClient {
         int times = getSendTimes();
         BranchId branchId = BranchId.of(branch);
         for (int i = 0; i < times; i++) {
-            Transaction tx = BlockChainTestUtils.createBranchTxHusk(branchId, method, branch);
+            Transaction tx = BlockChainTestUtils.createBranchTx(branchId, method, branch);
             sendTransaction(tx);
         }
     }
@@ -201,7 +200,7 @@ public class NodeContractDemoClient {
         int amount = 1;
         for (int i = 0; i < times; i++) {
             JsonObject txBody = ContractTestUtils.transferTxBodyJson("", amount);
-            Transaction tx = createTxHusk(BranchId.of(branchId), txBody);
+            Transaction tx = createTx(BranchId.of(branchId), txBody);
             sendTransaction(tx);
         }
     }
@@ -330,7 +329,15 @@ public class NodeContractDemoClient {
                     break;
             }
         }
-        return createTxHusk(BranchId.of(branchId), txBody);
+        return createTx(BranchId.of(branchId), txBody);
+    }
+
+    private static Transaction createTx(BranchId branchId, JsonObject txBody) {
+        TransactionBuilder builder = new TransactionBuilder();
+        return builder.setTxBody(txBody)
+                .setWallet(wallet)
+                .setBranchId(branchId)
+                .build();
     }
 
     private static void sendYeedTx() {
@@ -347,7 +354,7 @@ public class NodeContractDemoClient {
         int times = getSendTimes();
         for (int i = 0; i < times; i++) {
             JsonObject txBody = ContractTestUtils.transferTxBodyJson(address, amount);
-            Transaction tx = createTxHusk(yggdrash, txBody);
+            Transaction tx = createTx(yggdrash, txBody);
             sendTransaction(tx);
         }
     }

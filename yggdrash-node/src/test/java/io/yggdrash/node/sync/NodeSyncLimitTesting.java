@@ -75,7 +75,7 @@ public class NodeSyncLimitTesting extends TcpNodeTesting {
     private void generateTxAndBlock(TestNode node, int blockCount, int txCount) {
         for (int i = 0; i < blockCount; i++) {
             for (int j = 0; j < txCount; j++) {
-                node.getBranchGroup().addTransaction(BlockChainTestUtils.createTransferTxHusk());
+                node.getBranchGroup().addTransaction(BlockChainTestUtils.createTransferTx());
             }
             node.generateBlock();
         }

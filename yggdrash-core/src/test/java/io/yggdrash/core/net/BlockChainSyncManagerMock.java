@@ -17,16 +17,9 @@ import io.yggdrash.core.blockchain.BlockChainSyncManager;
 import io.yggdrash.core.blockchain.BranchGroup;
 
 public class BlockChainSyncManagerMock {
-    private static final BranchGroup branchGroup = BlockChainTestUtils.createBranchGroup();
+    static final BranchGroup branchGroup = BlockChainTestUtils.createBranchGroup();
+    static final NodeStatus nodeStatus = NodeStatusMock.mock;
 
-    public static final BlockChainSyncManager mock = new BlockChainSyncManager(
-            NodeStatusMock.mock, PeerNetworkMock.mock, branchGroup);
-
-    public static BlockChainSyncManager getMockWithBranchGroup(BranchGroup branchGroup) {
-        return new BlockChainSyncManager(NodeStatusMock.mock, PeerNetworkMock.mock, branchGroup);
-    }
-
-    public static BranchGroup getBranchGroup() {
-        return branchGroup;
-    }
+    public static final BlockChainSyncManager mock = new BlockChainSyncManager(nodeStatus,
+            PeerNetworkMock.mock, branchGroup);
 }

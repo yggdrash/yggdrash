@@ -52,7 +52,7 @@ public class TransactionReceiptTest {
 
     @Test
     public void transactionHashTest() {
-        Transaction tx = BlockChainTestUtils.createTransferTxHusk();
+        Transaction tx = BlockChainTestUtils.createTransferTx();
         String txId = tx.getHash().toString();
         txReceipt.setTxId(txId);
         Assert.assertEquals(txId, txReceipt.getTxId());

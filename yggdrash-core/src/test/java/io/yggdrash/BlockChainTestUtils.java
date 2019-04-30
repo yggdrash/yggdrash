@@ -56,42 +56,43 @@ public class BlockChainTestUtils {
         }
     }
 
-    private static List<ConsensusBlock> sampleBlockHuskList = createBlockList(
+    private static List<ConsensusBlock<PbftProto.PbftBlock>> sampleBlockList = createBlockList(
             new ArrayList<>(), genesisBlock(), null, 100);
 
-    public static List<ConsensusBlock> getSampleBlockHuskList() {
-        return sampleBlockHuskList;
+    public static List<ConsensusBlock<PbftProto.PbftBlock>> getSampleBlockList() {
+        return sampleBlockList;
     }
 
     public static ConsensusBlock<PbftProto.PbftBlock> genesisBlock() {
         return new PbftBlockMock(genesis.getBlock());
     }
 
-    public static ConsensusBlock createNextBlock() {
+    public static ConsensusBlock<PbftProto.PbftBlock> createNextBlock() {
         return createNextBlock(new PbftBlockMock(genesis.getBlock()));
     }
 
-    public static ConsensusBlock createNextBlock(ConsensusBlock prevBlock) {
+    public static ConsensusBlock<PbftProto.PbftBlock> createNextBlock(ConsensusBlock prevBlock) {
         return createNextBlock(Collections.emptyList(), prevBlock);
     }
 
-    public static ConsensusBlock createNextBlock(List<Transaction> blockBody, ConsensusBlock prevBlock) {
+    public static ConsensusBlock<PbftProto.PbftBlock> createNextBlock(List<Transaction> blockBody,
+                                                                      ConsensusBlock prevBlock) {
         return new PbftBlockMock(BlockImpl.nextBlock(TestConstants.wallet(), blockBody, prevBlock));
     }
 
-    public static Transaction createBranchTxHusk() {
+    public static Transaction createBranchTx() {
         JsonObject json = ContractTestUtils.createSampleBranchJson();
 
-        return createBranchTxHusk(json);
+        return createBranchTx(json);
     }
 
-    public static Transaction createBranchTxHusk(String description) {
+    public static Transaction createBranchTx(String description) {
         JsonObject json = ContractTestUtils.createSampleBranchJson(description);
 
-        return createBranchTxHusk(json);
+        return createBranchTx(json);
     }
 
-    private static Transaction createBranchTxHusk(JsonObject json) {
+    private static Transaction createBranchTx(JsonObject json) {
         TransactionBuilder builder = new TransactionBuilder();
         return builder.setTxBody(Constants.STEM_CONTRACT_VERSION, "create", json, false)
                 .setWallet(TestConstants.wallet())
@@ -99,8 +100,8 @@ public class BlockChainTestUtils {
                 .build();
     }
 
-    public static Transaction createBranchTxHusk(BranchId branchId, String method,
-                                                 JsonObject branch) {
+    public static Transaction createBranchTx(BranchId branchId, String method,
+                                             JsonObject branch) {
         TransactionBuilder builder = new TransactionBuilder();
 
         return builder.setTxBody(Constants.STEM_CONTRACT_VERSION, method, branch, false)
@@ -109,7 +110,7 @@ public class BlockChainTestUtils {
                 .build();
     }
 
-    public static Transaction createTxHusk(BranchId branchId, JsonObject txBody) {
+    public static Transaction createTx(BranchId branchId, JsonObject txBody) {
         TransactionBuilder builder = new TransactionBuilder();
         return builder.setTxBody(txBody)
                 .setWallet(TestConstants.wallet())
@@ -145,14 +146,14 @@ public class BlockChainTestUtils {
     public static void generateBlock(BranchGroup branchGroup, BranchId branchId) {
         BlockChain branch = branchGroup.getBranch(branchId);
         List<Transaction> txs =
-                branch.getTransactionStore().getUnconfirmedTxsWithLimit(Constants.LIMIT.BLOCK_SYNC_SIZE);
+                branch.getTransactionStore().getUnconfirmedTxsWithLimit(Constants.Limit.BLOCK_SYNC_SIZE);
         branch.addBlock(createNextBlock(txs, branch.getLastConfirmedBlock()));
     }
 
     public static void setBlockHeightOfBlockChain(BlockChain blockChain, int height) {
-        List<ConsensusBlock> blockList = new ArrayList<>();
-        ConsensusBlock curBlock = blockChain.getBlockByIndex(blockChain.getLastIndex());
-        ConsensusBlock nextBlock = createNextBlock(curBlock);
+        List<ConsensusBlock<PbftProto.PbftBlock>> blockList = new ArrayList<>();
+        ConsensusBlock<PbftProto.PbftBlock> curBlock = blockChain.getBlockByIndex(blockChain.getLastIndex());
+        ConsensusBlock<PbftProto.PbftBlock> nextBlock = createNextBlock(curBlock);
         blockList = createBlockList(blockList, nextBlock, null, height);
 
         for (ConsensusBlock block : blockList) {
@@ -160,19 +161,20 @@ public class BlockChainTestUtils {
         }
     }
 
-    public static List<ConsensusBlock> createBlockListFilledWithTx(int height, int txSize) {
-        List<ConsensusBlock> blockList = new ArrayList<>();
+    public static List<ConsensusBlock<PbftProto.PbftBlock>> createBlockListFilledWithTx(int height, int txSize) {
+        List<ConsensusBlock<PbftProto.PbftBlock>> blockList = new ArrayList<>();
         List<Transaction> blockBody = new ArrayList<>();
 
         for (int i = 0; i < txSize; i++) {
-            blockBody.add(createTransferTxHusk());
+            blockBody.add(createTransferTx());
         }
 
         return createBlockList(blockList, createNextBlock(blockBody, genesisBlock()), blockBody, height);
     }
 
-    private static List<ConsensusBlock> createBlockList(List<ConsensusBlock> blockList,
-                                                        ConsensusBlock prevBlock,
+    private static List<ConsensusBlock<PbftProto.PbftBlock>> createBlockList(
+                                                        List<ConsensusBlock<PbftProto.PbftBlock>> blockList,
+                                                        ConsensusBlock<PbftProto.PbftBlock> prevBlock,
                                                         List<Transaction> blockBody,
                                                         int height) {
         while (blockList.size() < height) {
@@ -186,7 +188,7 @@ public class BlockChainTestUtils {
         return blockList.size() > 0 ? blockList : Collections.emptyList();
     }
 
-    public static Transaction createTransferTxHusk() {
+    public static Transaction createTransferTx() {
         return createTransferTx(TestConstants.TRANSFER_TO, 100);
     }
 

@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.pqc.math.linearalgebra.ByteUtils;
+
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.regex.Matcher;
@@ -97,7 +98,7 @@ public class SwapEthTransactionTokenTest {
         Pattern p = Pattern.compile(proposeIssueIdPatten);
 
         Matcher matcher = p.matcher(proposeIssue);
-        if(matcher.find()) {
+        if (matcher.find()) {
             log.debug(matcher.group());
         }
 

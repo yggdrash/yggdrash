@@ -21,7 +21,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
-import io.yggdrash.common.config.Constants.KEY;
+import io.yggdrash.common.config.Constants.Key;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.utils.ContractUtils;
@@ -97,7 +97,7 @@ public class StemContractTest {
         JsonObject validatorParams = createValidatorParams();
         if (stemContract.getBranchIdByValidator(validatorParams) != null) {
             Set<String> branchIdSet = stemContract.getBranchIdByValidator(validatorParams);
-            String validator = validatorParams.get(KEY.VALIDATOR).getAsString();
+            String validator = validatorParams.get(Key.VALIDATOR).getAsString();
 
             branchIdSet.forEach(bId -> {
                 JsonObject saved = stateStore.get(bId);
@@ -183,7 +183,7 @@ public class StemContractTest {
 
     private JsonObject createValidatorParams() {
         Optional<String> v = stateValue.getValidators().stream().findFirst();
-        return ContractTestUtils.createParams(KEY.VALIDATOR, v.get());
+        return ContractTestUtils.createParams(Key.VALIDATOR, v.get());
     }
 
     private JsonObject createUpdateParams() {

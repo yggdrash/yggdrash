@@ -199,6 +199,6 @@ public class TransactionApiImplTest {
     }
 
     private Transaction createTx() {
-        return BlockChainTestUtils.createTransferTxHusk();
+        return BlockChainTestUtils.createTransferTx();
     }
 }

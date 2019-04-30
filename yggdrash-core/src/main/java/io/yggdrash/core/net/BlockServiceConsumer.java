@@ -16,7 +16,7 @@
 
 package io.yggdrash.core.net;
 
-import io.yggdrash.common.config.Constants.LIMIT;
+import io.yggdrash.common.config.Constants.Limit;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
@@ -109,7 +109,7 @@ public class BlockServiceConsumer<T> implements BlockConsumer<T> {
                 return;
             }
             bodyLengthSum += block.getHeader().getBodyLength();
-            if (bodyLengthSum > LIMIT.BLOCK_SYNC_SIZE) {
+            if (bodyLengthSum > Limit.BLOCK_SYNC_SIZE) {
                 return;
             }
             blockList.add(block);
