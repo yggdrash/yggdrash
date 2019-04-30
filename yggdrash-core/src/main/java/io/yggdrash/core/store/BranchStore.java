@@ -208,7 +208,7 @@ public class BranchStore implements ReadWriterStore<String, String>, BranchState
 
     @Override
     public boolean isValidator(String address) {
-        return getValidators().getValidatorMap().containsKey(address);
+        return getValidators().contains(address);
     }
 
     // Set Contracts
