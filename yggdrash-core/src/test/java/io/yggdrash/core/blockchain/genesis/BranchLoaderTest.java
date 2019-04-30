@@ -18,6 +18,7 @@ package io.yggdrash.core.blockchain.genesis;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.core.blockchain.Branch;
@@ -26,7 +27,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,9 +36,7 @@ public class BranchLoaderTest {
 
     @Before
     public void setUpBranch() throws IOException {
-        File genesisFile = new File(
-                getClass().getClassLoader().getResource("./branch-yggdrash.json").getFile());
-        String genesisString = FileUtil.readFileToString(genesisFile, FileUtil.DEFAULT_CHARSET);
+        String genesisString = FileUtil.readFileToString(TestConstants.BRANCH_FILE, FileUtil.DEFAULT_CHARSET);
         JsonObject branchJson = new JsonParser().parse(genesisString).getAsJsonObject();
         this.branch = Branch.of(branchJson);
     }

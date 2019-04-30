@@ -26,6 +26,8 @@ import io.yggdrash.core.wallet.Wallet;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -36,6 +38,7 @@ public class TestConstants {
     static ContractVersion STEM_CONTRACT;
     public static ContractVersion YEED_CONTRACT;
     public static Branch TEST_BRANCH;
+    public static final File BRANCH_FILE;
 
     public static final String TRANSFER_TO = "e1980adeafbb9ac6c9be60955484ab1547ab0b76";
 
@@ -52,37 +55,35 @@ public class TestConstants {
     static {
         try {
             wallet = new Wallet(new DefaultConfig(), "Password1234!");
+            BRANCH_FILE = new File("../yggdrash-core/src/main/resources", "branch-yggdrash.json");
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
         }
     }
 
     public static BranchId yggdrash() {
-        if (YGGDRASH_BRANCH_ID == null) {
+        if (YGGDRASH_BRANCH_ID != null) {
+            return YGGDRASH_BRANCH_ID;
+        }
 
-            ClassLoader loader = TestConstants.class.getClassLoader();
-            InputStream is = loader.getResourceAsStream("branch-yggdrash.json");
-            Branch yggdrashBranch;
-            try {
-                yggdrashBranch = Branch.of(is);
-                TEST_BRANCH = yggdrashBranch;
-                YGGDRASH_BRANCH_ID = yggdrashBranch.getBranchId();
-                for (BranchContract bc : yggdrashBranch.getBranchContracts()) {
-                    if ("STEM".equals(bc.getName())) {
-                        STEM_CONTRACT = bc.getContractVersion();
-                    }
-                    if ("YEED".equals(bc.getName())) {
-                        YEED_CONTRACT = bc.getContractVersion();
-                    }
+        try (InputStream is = new FileInputStream(BRANCH_FILE)) {
+            Branch yggdrashBranch = Branch.of(is);
+            TEST_BRANCH = yggdrashBranch;
+            YGGDRASH_BRANCH_ID = yggdrashBranch.getBranchId();
+            for (BranchContract bc : yggdrashBranch.getBranchContracts()) {
+                if ("STEM".equals(bc.getName())) {
+                    STEM_CONTRACT = bc.getContractVersion();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-                YGGDRASH_BRANCH_ID = null;
+                if ("YEED".equals(bc.getName())) {
+                    YEED_CONTRACT = bc.getContractVersion();
+                }
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+            YGGDRASH_BRANCH_ID = null;
         }
         return YGGDRASH_BRANCH_ID;
     }
-
 
     public static Wallet wallet() {
         return wallet;
