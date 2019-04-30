@@ -28,7 +28,6 @@ public class NodeSyncTest extends AbstractNodeTesting {
     public void catchUpBlockSyncTest() {
         // arrange
         int node1 = 1;
-        int node2 = 2;
         bootstrapBlockSyncTest();
 
         // act
@@ -41,6 +40,7 @@ public class NodeSyncTest extends AbstractNodeTesting {
         Utils.sleep(500); // wait for broadcast
 
         // assert
+        int node2 = 2;
         Assert.assertEquals(nodeList.get(node1).getDefaultBranch().getLastIndex(),
                 nodeList.get(node2).getDefaultBranch().getLastIndex());
     }

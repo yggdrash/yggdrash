@@ -20,7 +20,7 @@ public enum ProposeType {
     }
 
     public static ProposeType fromValue(int x) {
-        switch(x) {
+        switch (x) {
             case 1:
                 return YEED_TO_ETHER;
             case 2:
