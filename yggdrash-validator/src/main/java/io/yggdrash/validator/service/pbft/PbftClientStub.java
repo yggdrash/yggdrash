@@ -113,10 +113,6 @@ public class PbftClientStub {
         return addr;
     }
 
-    public String getAddress() {
-        return this.addr;
-    }
-
     public String getHost() {
         return host;
     }
