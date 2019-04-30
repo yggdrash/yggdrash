@@ -291,7 +291,7 @@ public class TransactionTest extends SlowTest {
         TransactionBuilder builder = new TransactionBuilder();
         return builder.setWallet(wallet)
                 .setBranchId(TestConstants.yggdrash())
-                .addTransactionBody(txBody)
+                .setTxBody(txBody)
                 .build();
     }
 }

@@ -54,7 +54,7 @@ public class TransactionSpeedTest extends PerformanceTest {
         params.addProperty("amount", "10000000");
 
         JsonObject txObjBody = ContractTestUtils.txBodyJson(Constants.STEM_CONTRACT_VERSION,
-                "transfer", params);
+                "transfer", params, false);
 
         txBody = new TransactionBody(txObjBody);
 

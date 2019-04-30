@@ -295,7 +295,7 @@ public class NodeContractDemoClient {
             System.out.println("=> ");
             JsonObject params = JsonUtil.parseJsonObject(scan.nextLine());
 
-            txBody = ContractTestUtils.txBodyJson(Constants.YEED_CONTRACT_VERSION, method, params);
+            txBody = ContractTestUtils.txBodyJson(Constants.YEED_CONTRACT_VERSION, method, params, true);
         } else {
             switch (method) {
                 case "approve":
@@ -521,7 +521,7 @@ public class NodeContractDemoClient {
 
     private static Transaction createTxHusk(BranchId branchId, JsonObject txBody) {
         TransactionBuilder builder = new TransactionBuilder();
-        return builder.addTransactionBody(txBody)
+        return builder.setTxBody(txBody)
                 .setWallet(wallet)
                 .setBranchId(branchId)
                 .build();

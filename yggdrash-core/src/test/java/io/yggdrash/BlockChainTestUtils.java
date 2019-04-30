@@ -111,7 +111,7 @@ public class BlockChainTestUtils {
 
     public static Transaction createTxHusk(BranchId branchId, JsonObject txBody) {
         TransactionBuilder builder = new TransactionBuilder();
-        return builder.addTransactionBody(txBody)
+        return builder.setTxBody(txBody)
                 .setWallet(TestConstants.wallet())
                 .setBranchId(branchId)
                 .build();
@@ -193,7 +193,7 @@ public class BlockChainTestUtils {
     private static Transaction createTransferTx(String to, int amount) {
         JsonObject txBody = ContractTestUtils.transferTxBodyJson(to, amount);
         TransactionBuilder builder = new TransactionBuilder();
-        return builder.addTransactionBody(txBody)
+        return builder.setTxBody(txBody)
                 .setWallet(TestConstants.wallet())
                 .setBranchId(TestConstants.yggdrash())
                 .build();

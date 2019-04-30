@@ -40,10 +40,24 @@ public class ContractTestUtils {
         params.addProperty("to", to);
         params.addProperty("amount", amount);
         TestConstants.yggdrash();
-        return txBodyJson(TestConstants.YEED_CONTRACT,"transfer", params);
+        return txBodyJson(TestConstants.YEED_CONTRACT, "transfer", params, true);
     }
 
-    public static JsonObject txBodyJson(ContractVersion contractVersion, String method, JsonObject params) {
+    public static JsonObject createTxBodyJson(JsonObject branch) {
+        return stemTxBodyJson("create", branch);
+    }
+
+    public static JsonObject updateTxBodyJson(JsonObject branch) {
+        return stemTxBodyJson("update", branch);
+    }
+
+    private static JsonObject stemTxBodyJson(String method, JsonObject branch) {
+        TestConstants.yggdrash();
+        return txBodyJson(TestConstants.STEM_CONTRACT, method, branch, false);
+    }
+
+    public static JsonObject txBodyJson(
+            ContractVersion contractVersion, String method, JsonObject params, boolean isSystem) {
         JsonObject txBody = new JsonObject();
         txBody.addProperty("contractVersion", contractVersion.toString());
         txBody.addProperty("method", method);
