@@ -36,6 +36,7 @@ import io.yggdrash.core.store.PbftBlockStoreMock;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.proto.PbftProto;
 
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,8 +49,7 @@ public class BlockChainTestUtils {
     }
 
     static {
-        ClassLoader loader = BlockChainTestUtils.class.getClassLoader();
-        try (InputStream is = loader.getResourceAsStream("branch-yggdrash.json")) {
+        try (InputStream is = new FileInputStream(TestConstants.BRANCH_FILE)) {
             genesis = GenesisBlock.of(is);
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
@@ -82,12 +82,6 @@ public class BlockChainTestUtils {
 
     public static Transaction createBranchTx() {
         JsonObject json = ContractTestUtils.createSampleBranchJson();
-
-        return createBranchTx(json);
-    }
-
-    public static Transaction createBranchTx(String description) {
-        JsonObject json = ContractTestUtils.createSampleBranchJson(description);
 
         return createBranchTx(json);
     }

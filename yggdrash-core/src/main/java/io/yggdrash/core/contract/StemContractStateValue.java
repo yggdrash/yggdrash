@@ -1,6 +1,5 @@
 package io.yggdrash.core.contract;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.blockchain.Branch;
 
@@ -15,7 +14,7 @@ public class StemContractStateValue extends Branch {
     private static BigDecimal fee;
     private static Long blockHeight;
 
-    public StemContractStateValue(JsonObject json) {
+    StemContractStateValue(JsonObject json) {
         super(json);
     }
 
@@ -40,19 +39,6 @@ public class StemContractStateValue extends Branch {
     public void setBlockHeight(Long blockHeight) {
         this.blockHeight = blockHeight;
         getJson().addProperty("blockHeight", blockHeight);
-    }
-
-    public void updateValidatorSet(String validator) {
-        String key = "updateValidators";
-        if (getJson().has(key)) {
-            //TODO if validator array
-            JsonArray v = getJson().get(key).getAsJsonArray();
-            v.add(validator);
-        } else {
-            JsonArray updateValidator = new JsonArray();
-            updateValidator.add(validator);
-            getJson().add(key, updateValidator);
-        }
     }
 
     public static StemContractStateValue of(JsonObject json) {
