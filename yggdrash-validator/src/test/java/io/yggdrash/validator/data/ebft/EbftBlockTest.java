@@ -1,9 +1,10 @@
 package io.yggdrash.validator.data.ebft;
 
+import com.google.protobuf.ByteString;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.validator.util.TestUtils;
+import io.yggdrash.validator.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.spongycastle.crypto.InvalidCipherTextException;
@@ -26,10 +27,10 @@ public class EbftBlockTest {
     private Block block2;
     private Block block3;
 
-    private List<String> consensusList0 = new ArrayList<>();
-    private List<String> consensusList1 = new ArrayList<>();
-    private List<String> consensusList2 = new ArrayList<>();
-    private List<String> consensusList3 = new ArrayList<>();
+    private List<ByteString> consensusList0 = new ArrayList<>();
+    private List<ByteString> consensusList1 = new ArrayList<>();
+    private List<ByteString> consensusList2 = new ArrayList<>();
+    private List<ByteString> consensusList3 = new ArrayList<>();
 
     private EbftBlock ebftBlock0;
     private EbftBlock ebftBlock1;
@@ -52,25 +53,25 @@ public class EbftBlockTest {
         block2 = new TestUtils(wallet2).sampleBlock(block1.getIndex() + 1, block1.getHash());
         block3 = new TestUtils(wallet3).sampleBlock(block2.getIndex() + 1, block2.getHash());
 
-        consensusList0.add(wallet0.signHex(block0.getHash(), true));
-        consensusList0.add(wallet1.signHex(block0.getHash(), true));
-        consensusList0.add(wallet2.signHex(block0.getHash(), true));
-        consensusList0.add(wallet3.signHex(block0.getHash(), true));
+        consensusList0.add(wallet0.signByteString(block0.getHash().getBytes(), true));
+        consensusList0.add(wallet1.signByteString(block0.getHash().getBytes(), true));
+        consensusList0.add(wallet2.signByteString(block0.getHash().getBytes(), true));
+        consensusList0.add(wallet3.signByteString(block0.getHash().getBytes(), true));
 
-        consensusList1.add(wallet0.signHex(block1.getHash(), true));
-        consensusList1.add(wallet1.signHex(block1.getHash(), true));
-        consensusList1.add(wallet2.signHex(block1.getHash(), true));
-        consensusList1.add(wallet3.signHex(block1.getHash(), true));
+        consensusList1.add(wallet0.signByteString(block1.getHash().getBytes(), true));
+        consensusList1.add(wallet1.signByteString(block1.getHash().getBytes(), true));
+        consensusList1.add(wallet2.signByteString(block1.getHash().getBytes(), true));
+        consensusList1.add(wallet3.signByteString(block1.getHash().getBytes(), true));
 
-        consensusList2.add(wallet0.signHex(block2.getHash(), true));
-        consensusList2.add(wallet1.signHex(block2.getHash(), true));
-        consensusList2.add(wallet2.signHex(block2.getHash(), true));
-        consensusList2.add(wallet3.signHex(block2.getHash(), true));
+        consensusList2.add(wallet0.signByteString(block2.getHash().getBytes(), true));
+        consensusList2.add(wallet1.signByteString(block2.getHash().getBytes(), true));
+        consensusList2.add(wallet2.signByteString(block2.getHash().getBytes(), true));
+        consensusList2.add(wallet3.signByteString(block2.getHash().getBytes(), true));
 
-        consensusList3.add(wallet0.signHex(block3.getHash(), true));
-        consensusList3.add(wallet1.signHex(block3.getHash(), true));
-        consensusList3.add(wallet2.signHex(block3.getHash(), true));
-        consensusList3.add(wallet3.signHex(block3.getHash(), true));
+        consensusList3.add(wallet0.signByteString(block3.getHash().getBytes(), true));
+        consensusList3.add(wallet1.signByteString(block3.getHash().getBytes(), true));
+        consensusList3.add(wallet2.signByteString(block3.getHash().getBytes(), true));
+        consensusList3.add(wallet3.signByteString(block3.getHash().getBytes(), true));
 
         ebftBlock0 = new EbftBlock(block0, consensusList0);
         ebftBlock1 = new EbftBlock(block1, consensusList1);
@@ -90,22 +91,19 @@ public class EbftBlockTest {
         EbftBlock testEbftBlock2 = new EbftBlock(block);
         assertEquals(testEbftBlock1, testEbftBlock2);
 
-        EbftBlock testEbftBlock3 = new EbftBlock(testEbftBlock1.toJsonObject());
-        assertEquals(testEbftBlock1, testEbftBlock3);
-
-        EbftBlock testEbftBlock4 = new EbftBlock(testEbftBlock1.getData());
+        EbftBlock testEbftBlock4 = new EbftBlock(testEbftBlock1.toBinary());
         assertEquals(testEbftBlock1, testEbftBlock4);
 
         EbftBlock testEbftBlock5 = new EbftBlock(testEbftBlock1.getInstance());
         assertEquals(testEbftBlock1, testEbftBlock5);
 
-        EbftBlock testEbftBlock6 = new EbftBlock(testEbftBlock1.getData());
+        EbftBlock testEbftBlock6 = new EbftBlock(testEbftBlock1.toBinary());
         assertEquals(testEbftBlock1, testEbftBlock6);
     }
 
     @Test
     public void cloneTest() {
-        EbftBlock newEbftBlock = new EbftBlock(ebftBlock0.getData());
+        EbftBlock newEbftBlock = new EbftBlock(ebftBlock0.toBinary());
         assertEquals(newEbftBlock, this.ebftBlock0);
 
         newEbftBlock.clear();

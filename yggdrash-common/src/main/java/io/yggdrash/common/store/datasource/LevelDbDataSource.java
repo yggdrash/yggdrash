@@ -53,36 +53,15 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
     }
 
     public DbSource<byte[], byte[]> init() {
-        resetDbLock.writeLock().lock();
-        try {
-            log.info("Initialize db: {}", name);
-
-            if (isAlive()) {
-                log.warn("DbSource is alive.");
-            }
-
-            if (name == null) {
-                throw new NullPointerException("no name set to the dbStore");
-            }
-
-            // TODO resource path set by profile or setting file
-            Options options = new Options();
-            options.createIfMissing(true);
-            openDb(options);
-            alive = true;
-        } catch (IOException e) {
-            throw new FailedOperationException("Can't initialize db");
-        } finally {
-            resetDbLock.writeLock().unlock();
-        }
-
-        return this;
+        Options options = new Options();
+        options.createIfMissing(true);
+        return init(options);
     }
 
     public DbSource<byte[], byte[]> init(Options options) {
         resetDbLock.writeLock().lock();
         try {
-            log.info("Initialize db: {}", name);
+            log.info("Initialize db: {}", getDbPath());
 
             if (isAlive()) {
                 log.warn("DbSource is alive.");

@@ -56,7 +56,7 @@ public class PeerTableGroupBuilder {
     public PeerTableGroup build() {
         PeerTableGroup peerTableGroup;
         if ("dht".equals(type)) {
-            throw new FailedOperationException("not implemented");
+            throw new FailedOperationException("Not implemented");
         } else {
             peerTableGroup = new KademliaPeerTableGroup(owner, storeBuilder, peerDialer);
         }

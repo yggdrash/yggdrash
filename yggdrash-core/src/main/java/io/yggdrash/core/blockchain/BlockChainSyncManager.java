@@ -12,12 +12,11 @@
 
 package io.yggdrash.core.blockchain;
 
-import io.yggdrash.core.consensus.Block;
-import io.yggdrash.core.net.CatchUpSyncEventListener;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerNetwork;
+import io.yggdrash.core.p2p.BlockChainHandler;
 import io.yggdrash.core.p2p.Peer;
-import io.yggdrash.core.p2p.PeerHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +24,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListener {
+public class BlockChainSyncManager implements SyncManager {
     private static final Logger log = LoggerFactory.getLogger(BlockChainSyncManager.class);
 
     private NodeStatus nodeStatus;
@@ -36,6 +35,91 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
         this.nodeStatus = nodeStatus;
         this.branchGroup = branchGroup;
         this.peerNetwork = peerNetwork;
+    }
+
+    @Override
+    public void fullSync() {
+        nodeStatus.sync();
+        for (BlockChain blockChain : branchGroup.getAllBranch()) {
+            List<BlockChainHandler> peerHandlerList = peerNetwork.getHandlerList(blockChain.getBranchId());
+
+            fullSyncBlock(blockChain, peerHandlerList);
+
+            syncTransaction(blockChain, peerHandlerList);
+        }
+        nodeStatus.up();
+
+    }
+
+    @Override
+    public boolean syncBlock(BlockChainHandler peerHandler, BlockChain blockChain) {
+        long offset = blockChain.getLastIndex() + 1;
+
+        BranchId branchId = blockChain.getBranchId();
+        Future<List<ConsensusBlock>> futureBlockList = peerHandler.syncBlock(branchId, offset);
+
+        try {
+            List<ConsensusBlock> blockList = futureBlockList.get();
+            if (blockList.isEmpty()) {
+                return true;
+            }
+            log.info("[SyncManager] Synchronize block offset={} receivedSize={}, from={}",
+                    offset, blockList.size(), peerHandler.getPeer().getYnodeUri());
+
+            for (ConsensusBlock block : blockList) {
+                blockChain.addBlock(block, false);
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            log.debug("[SyncManager] Sync Block ERR occurred: {}", e.getMessage(), e);
+            Thread.currentThread().interrupt();
+        }
+
+        return false;
+    }
+
+    private void fullSyncBlock(BlockChain blockChain, List<BlockChainHandler> peerHandlerList) {
+        boolean retry = true;
+
+        while (retry) {
+            retry = false;
+            for (BlockChainHandler peerHandler : peerHandlerList) {
+                try {
+                    boolean syncFinish = syncBlock(peerHandler, blockChain);
+                    if (!syncFinish) {
+                        retry = true;
+                    }
+                } catch (Exception e) {
+                    log.warn("[SyncManager] Sync Block ERR occurred: {}", e.getCause().getMessage());
+                }
+            }
+        }
+    }
+
+    @Override
+    public void syncTransaction(BlockChainHandler peerHandler, BlockChain blockChain) {
+        Future<List<Transaction>> futureTxList = peerHandler.syncTx(blockChain.getBranchId());
+
+        try {
+            List<Transaction> txList = futureTxList.get();
+            log.info("[SyncManager] Synchronize Tx receivedSize={}, from={}",
+                    txList.size(), peerHandler.getPeer().getYnodeUri());
+            addTransaction(blockChain, txList);
+
+        } catch (InterruptedException | ExecutionException e) {
+            log.debug("[SyncManager] Sync Tx ERR occurred: {}", e.getMessage());
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private void syncTransaction(BlockChain blockChain, List<BlockChainHandler> peerHandlerList) {
+
+        for (BlockChainHandler peerHandler : peerHandlerList) {
+            try {
+                syncTransaction(peerHandler, blockChain);
+            } catch (Exception e) {
+                log.warn("[SyncManager] Sync Tx ERR occurred: {}", e.getCause().getMessage());
+            }
+        }
     }
 
     /*
@@ -69,9 +153,9 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
     the node isn't connected to the network.
     */
 
-    // When broadcastBlock is called (BlockChainServiceConsumer)
+    // When broadcastBlock is called (BlockServiceConsumer)
     @Override
-    public void catchUpRequest(Block block) {
+    public void catchUpRequest(ConsensusBlock block) {
         BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
         if (blockChain == null) {
             return;
@@ -86,7 +170,7 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
         }
     }
 
-    // When syncBlock is called (BlockChainServiceConsumer)
+    // When syncBlock is called (BlockServiceConsumer)
     @Override
     public void catchUpRequest(BranchId branchId, long offset) {
         BlockChain blockChain = branchGroup.getBranch(branchId);
@@ -115,52 +199,10 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
         reqSyncBlockToHandlers(blockChain);
     }
 
-    @Override
-    public boolean syncBlock(PeerHandler peerHandler, BlockChain blockChain) {
-        long offset = blockChain.getLastIndex() + 1;
-
-        BranchId branchId = blockChain.getBranchId();
-        Future<List<Block>> futureBlockList = peerHandler.syncBlock(branchId, offset);
-
-        try {
-            List<Block> blockList = futureBlockList.get();
-            if (blockList.isEmpty()) {
-                return true;
-            }
-            log.info("[SyncManager] Synchronize block offset={} receivedSize={}, from={}",
-                    offset, blockList.size(), peerHandler.getPeer().getYnodeUri());
-
-            for (Block block : blockList) {
-                blockChain.addBlock(block, false);
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            log.debug("[SyncManager] Sync Block ERR occurred: {}", e.getMessage(), e);
-            Thread.currentThread().interrupt();
-        }
-
-        return false;
-    }
-
-    @Override
-    public void syncTransaction(PeerHandler peerHandler, BlockChain blockChain) {
-        Future<List<TransactionHusk>> futureHusks = peerHandler.syncTx(blockChain.getBranchId());
-
-        try {
-            List<TransactionHusk> txHusks = futureHusks.get();
-            log.info("[SyncManager] Synchronize Tx receivedSize={}, from={}",
-                    txHusks.size(), peerHandler.getPeer().getYnodeUri());
-            addTransaction(blockChain, txHusks);
-
-        } catch (InterruptedException | ExecutionException e) {
-            log.debug("[SyncManager] Sync Tx ERR occurred: {}", e.getMessage(), e);
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    private void addTransaction(BlockChain blockChain, List<TransactionHusk> txHusks) {
-        for (TransactionHusk txHusk : txHusks) {
+    private void addTransaction(BlockChain blockChain, List<Transaction> txList) {
+        for (Transaction tx : txList) {
             try {
-                blockChain.addTransaction(txHusk);
+                blockChain.addTransaction(tx);
             } catch (Exception e) {
                 log.warn("[SyncManager] Add Tx ERR occurred: {}", e.getMessage());
             }
@@ -173,7 +215,7 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
         }
         BranchId branchId = blockChain.getBranchId();
         nodeStatus.sync();
-        for (PeerHandler peerHandler : peerNetwork.getHandlerList(branchId)) {
+        for (BlockChainHandler peerHandler : peerNetwork.getHandlerList(branchId)) {
             syncBlock(peerHandler, blockChain);
         }
         nodeStatus.up();

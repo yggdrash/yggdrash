@@ -69,8 +69,8 @@ public class TransactionControllerTest extends TestConstants.CiTest {
         mockMvc.perform(get(basePath))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.countOfTotal", is(1)))
-                .andExpect(jsonPath("$.txs", hasSize(1)))
+                .andExpect(jsonPath("$.countOfTotal", is(3)))
+                .andExpect(jsonPath("$.txs", hasSize(3)))
                 .andExpect(jsonPath("$.txs[0].branchId", is(yggdrashBranch.toString())));
     }
 
@@ -79,7 +79,7 @@ public class TransactionControllerTest extends TestConstants.CiTest {
 
         // 트랜잭션 풀에 있는 트랜잭션을 조회 후 블록 내 트랜잭션 조회 로직 추가 필요.
         TransactionDto req =
-                TransactionDto.createBy(BlockChainTestUtils.createBranchTxHusk());
+                TransactionDto.createBy(BlockChainTestUtils.createBranchTx());
 
         MockHttpServletResponse postResponse = mockMvc.perform(post(basePath)
                 .contentType(MediaType.APPLICATION_JSON).content(json.write(req).getJson()))

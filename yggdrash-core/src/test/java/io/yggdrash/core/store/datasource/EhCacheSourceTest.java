@@ -17,7 +17,7 @@
 package io.yggdrash.core.store.datasource;
 
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
@@ -33,14 +33,14 @@ public class EhCacheSourceTest {
     public void shouldPutAndGetTx() {
 
         CacheManager cacheManager = CacheManagerBuilder.newCacheManagerBuilder().build(true);
-        Cache<String, TransactionHusk> cache = cacheManager.createCache("txCache",
+        Cache<String, Transaction> cache = cacheManager.createCache("txCache",
                 CacheConfigurationBuilder
-                        .newCacheConfigurationBuilder(String.class, TransactionHusk.class,
+                        .newCacheConfigurationBuilder(String.class, Transaction.class,
                                 ResourcePoolsBuilder.heap(10)));
         assertThat(cache).isNotNull();
-        TransactionHusk txHusk = BlockChainTestUtils.createTransferTxHusk();
-        cache.put(txHusk.getHash().toString(), txHusk);
-        TransactionHusk foundTx = cache.get(txHusk.getHash().toString());
-        assertThat(foundTx).isEqualTo(txHusk);
+        Transaction tx = BlockChainTestUtils.createTransferTx();
+        cache.put(tx.getHash().toString(), tx);
+        Transaction foundTx = cache.get(tx.getHash().toString());
+        assertThat(foundTx).isEqualTo(tx);
     }
 }

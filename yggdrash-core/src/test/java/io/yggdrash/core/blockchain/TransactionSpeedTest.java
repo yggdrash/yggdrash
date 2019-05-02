@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.blockchain;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants.PerformanceTest;
@@ -44,7 +43,6 @@ public class TransactionSpeedTest extends PerformanceTest {
     private TransactionBody txBody;
     private TransactionHeader txHeader;
     private Wallet wallet;
-    private TransactionSignature txSig;
     private Transaction tx1;
     private byte[] txBytes1;
 
@@ -55,10 +53,10 @@ public class TransactionSpeedTest extends PerformanceTest {
         params.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
         params.addProperty("amount", "10000000");
 
-        JsonArray txArrayBody = ContractTestUtils.txBodyJson(Constants.STEM_CONTRACT_VERSION,
+        JsonObject txObjBody = ContractTestUtils.txBodyJson(Constants.STEM_CONTRACT_VERSION,
                 "transfer", params);
 
-        txBody = new TransactionBody(txArrayBody);
+        txBody = new TransactionBody(txObjBody);
 
         byte[] chain = Constants.EMPTY_BRANCH;
         byte[] version = Constants.EMPTY_BYTE8;
@@ -69,8 +67,7 @@ public class TransactionSpeedTest extends PerformanceTest {
 
         wallet = new Wallet(new DefaultConfig(), "Password1234!");
 
-        txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
-        tx1 = new Transaction(txHeader, txSig.getSignature(), txBody);
+        tx1 = new TransactionImpl(txHeader, wallet, txBody);
         assertTrue(tx1.verify());
 
         txBytes1 = tx1.toBinary();
@@ -87,7 +84,7 @@ public class TransactionSpeedTest extends PerformanceTest {
             startTime = System.nanoTime();
 
             // Test method
-            new Transaction(txHeader, txSig.getSignature(), txBody);
+            new TransactionImpl(txHeader, wallet, txBody);
 
             endTime = System.nanoTime();
             Arrays.fill(timeList,endTime - startTime);
@@ -113,7 +110,7 @@ public class TransactionSpeedTest extends PerformanceTest {
             startTime = System.nanoTime();
 
             // Test method
-            new Transaction(txHeader, wallet, txBody);
+            new TransactionImpl(txHeader, wallet, txBody);
 
             endTime = System.nanoTime();
             Arrays.fill(timeList,endTime - startTime);
@@ -139,7 +136,7 @@ public class TransactionSpeedTest extends PerformanceTest {
             startTime = System.nanoTime();
 
             // Test method
-            new Transaction(tx1.toJsonObject());
+            new TransactionImpl(tx1.toJsonObject());
 
             endTime = System.nanoTime();
             Arrays.fill(timeList,endTime - startTime);
@@ -165,7 +162,7 @@ public class TransactionSpeedTest extends PerformanceTest {
             startTime = System.nanoTime();
 
             // Test method
-            new Transaction(txBytes1);
+            new TransactionImpl(txBytes1);
 
             endTime = System.nanoTime();
             Arrays.fill(timeList,endTime - startTime);

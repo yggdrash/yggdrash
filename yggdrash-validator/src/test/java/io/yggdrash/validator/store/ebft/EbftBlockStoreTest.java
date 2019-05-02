@@ -1,18 +1,18 @@
 package io.yggdrash.validator.store.ebft;
 
+import com.google.protobuf.ByteString;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.validator.TestUtils;
 import io.yggdrash.validator.data.ebft.EbftBlock;
-import io.yggdrash.validator.util.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
-import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,8 +36,8 @@ public class EbftBlockStoreTest {
                 new LevelDbDataSource(StoreTestUtils.getTestPath(), "block-con-store-test");
         EbftBlockStore ebftBlockStore = new EbftBlockStore(ds);
         Block block = new TestUtils(wallet).sampleBlock();
-        List<String> consensusList = new ArrayList<>();
-        consensusList.add(Hex.toHexString(wallet.sign(block.getHash())));
+        List<ByteString> consensusList = new ArrayList<>();
+        consensusList.add(wallet.signByteString(block.getHash().getBytes(), true));
 
         EbftBlock ebftBlock = new EbftBlock(block, consensusList);
 
@@ -47,8 +47,8 @@ public class EbftBlockStoreTest {
         assert (ebftBlock.equals(foundEbftBlock));
         assert (ebftBlockStore.contains(ebftBlock.getHash()));
 
-        log.debug("size: " + ebftBlockStore.size());
-        assertEquals(ebftBlockStore.size(), 1);
+        log.debug("size: {}", ebftBlockStore.size());
+        assertEquals(1, ebftBlockStore.size());
 
         StoreTestUtils.clearTestDb();
     }

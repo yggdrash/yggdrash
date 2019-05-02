@@ -15,8 +15,7 @@ package io.yggdrash.core.net;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainSyncManager;
-import io.yggdrash.core.p2p.Peer;
-import io.yggdrash.core.p2p.PeerHandler;
+import io.yggdrash.core.p2p.BlockChainHandler;
 import io.yggdrash.core.p2p.PeerHandlerMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,8 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class BlockChainSyncManagerTest {
 
-    private static final Peer OWNER = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
-    private final PeerHandler handler = PeerHandlerMock.dummy(OWNER);
+    private final BlockChainHandler handler = PeerHandlerMock.dummy();
     private BlockChainSyncManager syncManager;
     private BlockChain blockChain;
 
@@ -48,7 +46,7 @@ public class BlockChainSyncManagerTest {
     @Test
     public void syncTransaction() {
         syncManager.syncTransaction(handler, blockChain);
-        assertThat(blockChain.countOfTxs()).isEqualTo(1);
+        assertThat(blockChain.countOfTxs()).isEqualTo(3);
     }
 
 }

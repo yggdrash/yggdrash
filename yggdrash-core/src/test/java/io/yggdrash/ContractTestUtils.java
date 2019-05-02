@@ -35,7 +35,7 @@ public class ContractTestUtils {
         return params;
     }
 
-    public static JsonArray transferTxBodyJson(String to, long amount) {
+    public static JsonObject transferTxBodyJson(String to, long amount) {
         JsonObject params = new JsonObject();
         params.addProperty("to", to);
         params.addProperty("amount", amount);
@@ -43,24 +43,16 @@ public class ContractTestUtils {
         return txBodyJson(TestConstants.YEED_CONTRACT,"transfer", params);
     }
 
-    public static JsonArray txBodyJson(ContractVersion contractVersion, String method, JsonObject params) {
-        JsonObject txObj = new JsonObject();
-        txObj.addProperty("contractVersion", contractVersion.toString());
-        txObj.addProperty("method", method);
-        txObj.add("params", params);
-
-        JsonArray txBody = new JsonArray();
-        txBody.add(txObj);
+    public static JsonObject txBodyJson(ContractVersion contractVersion, String method, JsonObject params) {
+        JsonObject txBody = new JsonObject();
+        txBody.addProperty("contractVersion", contractVersion.toString());
+        txBody.addProperty("method", method);
+        txBody.add("params", params);
 
         return txBody;
     }
 
     public static JsonObject createSampleBranchJson() {
-        String validator = TestConstants.wallet().getHexAddress();
-        return createSampleBranchJson(validator);
-    }
-
-    static JsonObject createSampleBranchJson(String validator) {
         TestConstants.yggdrash();
 
         final String name = "STEM";
@@ -82,14 +74,13 @@ public class ContractTestUtils {
         contracts.add(contractSample);
 
 
-        return createBranchJson(name, symbol, property, description, validator, contracts, fee, null);
+        return createBranchJson(name, symbol, property, description, contracts, fee, null);
     }
 
     private static JsonObject createBranchJson(String name,
                                               String symbol,
                                               String property,
                                               String description,
-                                              String validator,
                                               JsonArray contracts,
                                               BigDecimal fee,
                                               String timestamp) {
@@ -105,23 +96,11 @@ public class ContractTestUtils {
             branch.addProperty("timestamp", timestamp);
         }
 
-        JsonArray validators = new JsonArray();
-        validators.add(validator);
-        branch.add("validator", validators);
-
         String consensusString = new StringBuilder()
                 .append("{\"consensus\": {\n")
                 .append("    \"algorithm\": \"pbft\",\n")
-                .append("    \"period\": \"* * * * * *\",\n")
-                .append("    \"validator\": [\n")
-                .append("      \"77283a04b3410fe21ba5ed04c7bd3ba89e70b78c\",\n")
-                .append("      \"9911fb4663637706811a53a0e0b4bcedeee38686\",\n")
-                .append("      \"2ee2eb80c93d031147c21ba8e2e0f0f4a33f5312\",\n")
-                .append("      \"51e2128e8deb622c2ec6dc38f9d895f0be044eb4\",\n")
-                .append("      \"047269a50640ed2b0d45d461488c13abad1e0fac\",\n")
-                .append("      \"21640f2116389a3e37462fd6b68b969e490b6a50\",\n")
-                .append("      \"63fef4912dc8b0781351b18eb9be450638ea2c17\"\n")
-                .append("    ]\n}")
+                .append("    \"period\": \"* * * * * *\"\n")
+                .append("    \n}")
                 .append("  }").toString();
 
         JsonObject consensus = new Gson().fromJson(consensusString, JsonObject.class);
@@ -132,9 +111,6 @@ public class ContractTestUtils {
     }
 
     public static JsonObject signBranch(Wallet wallet, JsonObject raw) {
-        JsonArray validators = new JsonArray();
-        validators.add(wallet.getHexAddress());
-        raw.addProperty("validator", wallet.getHexAddress());
         if (!raw.has("signature")) {
 
             Sha3Hash hashForSign = new Sha3Hash(SerializationUtil.serializeJson(raw));

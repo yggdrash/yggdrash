@@ -2,7 +2,7 @@ package io.yggdrash.common.trie;
 
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.common.config.Constants;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -20,14 +20,14 @@ public class TrieTests {
 
     private static final Logger log = LoggerFactory.getLogger(TrieTests.class);
 
-    private TransactionHusk tx1;
-    private TransactionHusk tx2;
+    private Transaction tx1;
+    private Transaction tx2;
 
     @Before
     public void setUp() {
         // create sample tx
-        this.tx1 = BlockChainTestUtils.createTransferTxHusk();
-        this.tx2 = BlockChainTestUtils.createTransferTxHusk();
+        this.tx1 = BlockChainTestUtils.createTransferTx();
+        this.tx2 = BlockChainTestUtils.createTransferTx();
     }
 
     @Test
@@ -35,7 +35,7 @@ public class TrieTests {
 
         // 1. test merkle root with tx 7
         // create transactions
-        List<TransactionHusk> txsList;
+        List<Transaction> txsList;
         txsList = new ArrayList<>();
         txsList.add(this.tx1);
         txsList.add(this.tx2);
@@ -46,7 +46,7 @@ public class TrieTests {
         txsList.add(this.tx2);
 
         byte[] merkleRoot;
-        merkleRoot = Trie.getMerkleRootHusk(txsList);
+        merkleRoot = Trie.getMerkleRoot(txsList);
         assertThat(merkleRoot).isNotEqualTo(Constants.EMPTY_HASH);
 
         log.debug("MerkleRoot with tx 7=" + Hex.toHexString(merkleRoot));
@@ -54,27 +54,27 @@ public class TrieTests {
         // 2. test with tx 1
         txsList = new ArrayList<>();
         txsList.add(this.tx1);
-        merkleRoot = Trie.getMerkleRootHusk(txsList);
+        merkleRoot = Trie.getMerkleRoot(txsList);
         assertThat(merkleRoot).isNotEqualTo(Constants.EMPTY_HASH);
 
         log.debug("MerkleRoot with tx 1=" + Hex.toHexString(merkleRoot));
 
         // 3. test with tx 0
         txsList = new ArrayList<>();
-        merkleRoot = Trie.getMerkleRootHusk(txsList);
+        merkleRoot = Trie.getMerkleRoot(txsList);
         assertArrayEquals(Constants.EMPTY_HASH, merkleRoot);
 
         log.debug("MerkleRoot with tx 0 = null");
 
         // 4. test with tx null
-        merkleRoot = Trie.getMerkleRootHusk(null);
+        merkleRoot = Trie.getMerkleRoot(null);
         assertArrayEquals(Constants.EMPTY_HASH, merkleRoot);
 
         log.debug("MerkleRoot with tx null = null");
 
         // 5. null list Test
         txsList.add(null);
-        merkleRoot = Trie.getMerkleRootHusk(txsList);
+        merkleRoot = Trie.getMerkleRoot(txsList);
         assertArrayEquals(Constants.EMPTY_HASH, merkleRoot);
     }
 

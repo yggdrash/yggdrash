@@ -16,6 +16,7 @@
 
 package io.yggdrash.node.config;
 
+import io.grpc.BindableService;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainSyncManager;
 import io.yggdrash.core.blockchain.BranchGroup;
@@ -27,10 +28,15 @@ import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
 import io.yggdrash.core.p2p.PeerTableGroup;
 import io.yggdrash.node.PeerTask;
+import io.yggdrash.node.service.BlockServiceFactory;
+import io.yggdrash.node.springboot.grpc.GrpcServerBuilderConfigurer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.Collections;
@@ -41,6 +47,7 @@ import java.util.stream.Collectors;
 @EnableScheduling
 @DependsOn("branchLoader")
 public class NetworkConfiguration {
+    private static final Logger log = LoggerFactory.getLogger(NetworkConfiguration.class);
 
     private final List<Peer> validatorList;
 
@@ -62,7 +69,7 @@ public class NetworkConfiguration {
         KademliaPeerNetwork peerNetwork = new KademliaPeerNetwork(peerTableGroup, peerDialer);
         for (BlockChain blockChain : branchGroup.getAllBranch()) {
             blockChain.addListener(peerNetwork);
-            peerNetwork.addNetwork(blockChain.getBranchId());
+            peerNetwork.addNetwork(blockChain.getBranchId(), blockChain.getConsensus().getAlgorithm());
             peerNetwork.setValidator(blockChain.getBranchId(), validatorList);
         }
         return peerNetwork;
@@ -79,5 +86,20 @@ public class NetworkConfiguration {
     @Bean
     public SyncManager syncManager(NodeStatus nodeStatus, PeerNetwork peerNetwork, BranchGroup branchGroup) {
         return new BlockChainSyncManager(nodeStatus, peerNetwork, branchGroup);
+    }
+
+    @Bean
+    @Primary
+    public GrpcServerBuilderConfigurer configurer(BranchGroup branchGroup, SyncManager syncManager) {
+        return serverBuilder -> {
+            for (BlockChain blockChain : branchGroup.getAllBranch()) {
+                BindableService service = BlockServiceFactory.create(
+                        blockChain.getConsensus().getAlgorithm(),
+                        branchGroup,
+                        syncManager);
+                serverBuilder.addService(service);
+                log.info("'{}' service has been registered.", service.getClass().getName());
+            }
+        };
     }
 }

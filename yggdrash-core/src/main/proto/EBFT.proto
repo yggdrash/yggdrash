@@ -1,14 +1,13 @@
 syntax = "proto3";
 
-import "Yggdrash.proto";
-import "BlockChain.proto";
-import "Common.proto";
-
 option java_package = "io.yggdrash.proto";
 option java_outer_classname = "EbftProto";
 
+import "Common.proto";
+import "Yggdrash.proto";
+
 message ConsensusList {
-    repeated string consensus = 1;
+    repeated bytes consensus = 1;
 }
 
 message EbftBlock {

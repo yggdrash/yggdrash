@@ -2,7 +2,6 @@ package io.yggdrash.validator;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
@@ -12,9 +11,11 @@ import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
+import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBody;
 import io.yggdrash.core.blockchain.TransactionHeader;
+import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
 import org.spongycastle.crypto.InvalidCipherTextException;
@@ -42,10 +43,7 @@ class GenesisBlock {
         JsonObject nodeListObject = getJsonObjectFromFile("./genesis/consensus.json");
         genesisObject.add("consensus", nodeListObject.get("consensus"));
 
-        JsonArray jsonArrayTxBody = new JsonArray();
-        jsonArrayTxBody.add(genesisObject);
-
-        TransactionBody txBody = new TransactionBody(jsonArrayTxBody);
+        TransactionBody txBody = new TransactionBody(genesisObject);
 
         long timestamp = TimeUtils.time();
 
@@ -69,7 +67,7 @@ class GenesisBlock {
 
         DefaultConfig defaultConfig = new DefaultConfig();
         Wallet wallet = new Wallet(defaultConfig, "Password1234!");
-        Transaction tx = new Transaction(txHeader, wallet, txBody);
+        Transaction tx = new TransactionImpl(txHeader, wallet, txBody);
         List<Transaction> txList = new ArrayList<>();
         txList.add(tx);
 
@@ -84,9 +82,9 @@ class GenesisBlock {
                 0L,
                 timestamp,
                 blockBody.getMerkleRoot(),
-                blockBody.length());
+                blockBody.getLength());
 
-        genesisBlock = new Block(blockHeader, wallet, blockBody);
+        genesisBlock = new BlockImpl(blockHeader, wallet, blockBody);
 
     }
 

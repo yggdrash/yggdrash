@@ -8,10 +8,10 @@ import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.validator.TestUtils;
 import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftMessage;
 import io.yggdrash.validator.data.pbft.PbftMessageSet;
-import io.yggdrash.validator.util.TestUtils;
 import junit.framework.TestCase;
 import org.junit.After;
 import org.junit.Before;
@@ -124,7 +124,7 @@ public class PbftBlockKeyStoreTest {
         assertTrue(blockKeyStore.contains(this.pbftBlock0.getIndex()));
         assertFalse(blockKeyStore.contains(this.pbftBlock0.getIndex() + 1));
         assertFalse(blockKeyStore.contains(-1L));
-        assertEquals(blockKeyStore.size(), 1);
+        assertEquals(1, blockKeyStore.size());
     }
 
     @Test

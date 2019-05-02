@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.blockchain;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
@@ -45,34 +44,23 @@ public class BlockHeaderTest {
     @Test
     public void testBlockHeader() {
 
-        JsonObject jsonParam1 = new JsonObject();
-        jsonParam1.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
-        jsonParam1.addProperty("amount", "10000000");
+        JsonObject jsonParam = new JsonObject();
+        jsonParam.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
+        jsonParam.addProperty("amount", "10000000");
 
-        JsonObject jsonObject1 = new JsonObject();
-        jsonObject1.addProperty("method", "transfer");
-        jsonObject1.add("params", jsonParam1);
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("method", "transfer");
+        jsonObject.add("params", jsonParam);
 
-        JsonObject jsonParam2 = new JsonObject();
-        jsonParam2.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2001");
-        jsonParam2.addProperty("amount", "5000000");
+        TransactionBody txBody = new TransactionBody(jsonObject);
 
-        JsonObject jsonObject2 = new JsonObject();
-        jsonObject2.addProperty("method", "transfer");
-        jsonObject2.add("params", jsonParam2);
-
-        JsonArray jsonArray = new JsonArray();
-        jsonArray.add(jsonObject1);
-        jsonArray.add(jsonObject2);
-
-        TransactionBody txBody = new TransactionBody(jsonArray);
         TransactionHeader txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
 
         TransactionSignature txSig =
                 new TransactionSignature(TestConstants.wallet(), txHeader.getHashForSigning());
 
-        Transaction tx1 = new Transaction(txHeader, txSig.getSignature(), txBody);
-        Transaction tx2 = new Transaction(tx1.toBinary());
+        Transaction tx1 = new TransactionImpl(txHeader, txSig.getSignature(), txBody);
+        Transaction tx2 = new TransactionImpl(tx1.toBinary());
 
         List<Transaction> txs1 = new ArrayList<>();
         txs1.add(tx1);
@@ -81,17 +69,24 @@ public class BlockHeaderTest {
         log.debug("txs=" + txs1.toString());
 
         BlockBody blockBody1 = new BlockBody(txs1);
-        BlockHeader blockHeader1 = new BlockHeader(
-                chain, version, type, prevBlockHash, index, timestamp,
-                blockBody1.getMerkleRoot(), blockBody1.length());
 
-        BlockHeader blockHeader2 = new BlockHeader(blockHeader1.toBinary());
-        assertEquals(blockHeader1.toJsonObject(), blockHeader2.toJsonObject());
-        assertArrayEquals(blockHeader1.getHashForSigning(), blockHeader2.getHashForSigning());
+        BlockHeader blockHeader1 = new BlockHeader(
+                chain, version, type, prevBlockHash, Long.MAX_VALUE, Long.MAX_VALUE,
+                blockBody1.getMerkleRoot(), Long.MAX_VALUE);
+        assertEquals(BlockHeader.LENGTH, blockHeader1.getBinaryForSigning().length);
+
+        BlockHeader blockHeader2 = new BlockHeader(
+                chain, version, type, prevBlockHash, index, timestamp,
+                blockBody1.getMerkleRoot(), blockBody1.getLength());
+        assertEquals(BlockHeader.LENGTH, blockHeader2.getBinaryForSigning().length);
 
         BlockHeader blockHeader3 = new BlockHeader(blockHeader1.toBinary());
         assertEquals(blockHeader1.toJsonObject(), blockHeader3.toJsonObject());
         assertArrayEquals(blockHeader1.getHashForSigning(), blockHeader3.getHashForSigning());
+
+        BlockHeader blockHeader4 = new BlockHeader(blockHeader1.toBinary());
+        assertEquals(blockHeader1.toJsonObject(), blockHeader4.toJsonObject());
+        assertArrayEquals(blockHeader1.getHashForSigning(), blockHeader4.getHashForSigning());
     }
 
 }

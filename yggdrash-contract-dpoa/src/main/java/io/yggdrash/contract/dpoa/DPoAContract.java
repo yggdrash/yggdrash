@@ -55,6 +55,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static io.yggdrash.common.contract.vo.dpoa.ProposeValidatorSet.Votable.VoteStatus.AGREE;
+import static io.yggdrash.common.contract.vo.dpoa.ProposeValidatorSet.Votable.VoteStatus.NOT_YET;
+
 public class DPoAContract implements BundleActivator {
     private static final Logger log = LoggerFactory.getLogger(DPoAContract.class);
 
@@ -74,8 +77,8 @@ public class DPoAContract implements BundleActivator {
     }
 
     public static class DPoAService {
-        private final String validatorSchemeName = "validator";
-        private final String proposedValidatorSchemeName = "proposedValidator";
+        private static final String validatorSchemeName = "validator";
+        private static final String proposedValidatorSchemeName = "proposedValidator";
 
         @InjectOutputStore
         Map<OutputType, OutputStore> outputStore;
@@ -104,11 +107,11 @@ public class DPoAContract implements BundleActivator {
         }
 
         public boolean saveInitValidator(JsonArray validators) {
-            log.debug("saveInitValidator {}", validators.toString());
+            log.debug("saveInitValidator {}", validators);
             ValidatorSet validatorSet = getValidatorSet();
             if (validatorSet != null) {
                 log.error("initial validator is not null");
-                return true;
+                return false;
             }
 
             validatorSet = new ValidatorSet();
@@ -155,10 +158,16 @@ public class DPoAContract implements BundleActivator {
             return branchStateStore.getValidators();
         }
 
+        @ContractQuery
+        public boolean isValidator(JsonObject params) {
+            String address = params.get("address").getAsString();
+            return this.branchStateStore.isValidator(address);
+        }
+
         @InvokeTransaction
         public TransactionReceipt proposeValidator(JsonObject params) {
             txReceipt.setStatus(ExecuteStatus.FALSE);
-            log.debug("proposeValidator {}", params.toString());
+            log.debug("proposeValidator {}", params);
             //Check validation
             TxValidatorPropose txValidatorPropose = JsonUtil.generateJsonToClass(params.toString(),
                     TxValidatorPropose.class);
@@ -170,8 +179,7 @@ public class DPoAContract implements BundleActivator {
             ValidatorSet validatorSet = getValidatorSet();
             if (validatorSet == null || validatorSet.getValidatorMap() == null
                     || validatorSet.getValidatorMap().get(txReceipt.getIssuer()) == null) {
-                log.error("ISSUER IS NOT validator {} {}", txReceipt.getIssuer(),
-                        validatorSet.getValidatorMap().size());
+                log.error("ISSUER IS NOT validator {}", txReceipt.getIssuer());
                 return txReceipt;
             }
 
@@ -259,24 +267,19 @@ public class DPoAContract implements BundleActivator {
                 for (Iterator<Map.Entry<String, ProposeValidatorSet.Votable>> it = proposeValidatorSet
                         .getValidatorMap().entrySet().iterator(); it.hasNext(); ) {
                     Map.Entry<String, ProposeValidatorSet.Votable> entry = it.next();
-                    switch (entry.getValue().status()) {
-                        case AGREE:
-                            if (validatorSet.getValidatorMap().get(entry.getKey()) == null) {
-                                isUpdateValidator = true;
-                                Validator validator = new Validator(entry.getKey(), entry.getValue());
-                                validatorSet.getValidatorMap().put(entry.getKey(), validator);
-                            }
-                        case DISAGREE:
-                            it.remove();
-                            isUpdateProposedValidator = true;
-                            break;
-                        default:
-                            break;
+                    if (AGREE == entry.getValue().status()
+                            && validatorSet.getValidatorMap().get(entry.getKey()) == null) {
+                        isUpdateValidator = true;
+                        Validator validator = new Validator(entry.getKey(), entry.getValue());
+                        validatorSet.getValidatorMap().put(entry.getKey(), validator);
+                    }
+                    if (entry.getValue().status() != NOT_YET) {
+                        it.remove();
+                        isUpdateProposedValidator = true;
                     }
                 }
             }
 
-            JsonObject jsonValidator = JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet));
             if (isUpdateValidator) {
                 // Save
                 branchStateStore.setValidators(validatorSet);
@@ -289,6 +292,12 @@ public class DPoAContract implements BundleActivator {
                 state.put(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue(), proposedValidator);
             }
 
+            return getValidators(params, validatorSet, proposedValidator);
+        }
+
+        private List<Validator> getValidators(JsonObject params, ValidatorSet validatorSet,
+                                              JsonObject proposedValidator) {
+            JsonObject jsonValidator = JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet));
             List<Validator> validators = validatorSet.order(null);
             if (params != null) {
                 if (jsonValidator != null) {

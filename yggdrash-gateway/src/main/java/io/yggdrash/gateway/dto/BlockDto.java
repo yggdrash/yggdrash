@@ -17,9 +17,9 @@
 package io.yggdrash.gateway.dto;
 
 import com.google.protobuf.util.Timestamps;
-import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.consensus.Block;
-import io.yggdrash.proto.Proto;
+import io.yggdrash.core.blockchain.BlockHeader;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import org.spongycastle.util.encoders.Hex;
 
 import java.util.List;
@@ -33,7 +33,7 @@ public class BlockDto {
     public String type;
     public String prevBlockId;
     public long index;
-    public String timestamp;
+    public long timestamp;
     public String merkleRoot;
     public long bodyLength;
     public long txSize;
@@ -42,32 +42,28 @@ public class BlockDto {
     public String author;
     public String blockId;
 
-    public static BlockDto createBy(Block block) {
-        return createBy(block, block.getBodyCount() < MAX_TX_BODY);
+    public static BlockDto createBy(ConsensusBlock block) {
+        return createBy(block, block.getBody().getCount() < MAX_TX_BODY);
     }
 
-    private static BlockDto createBy(Block block, boolean withBody) {
+    private static BlockDto createBy(ConsensusBlock block, boolean withBody) {
         BlockDto blockDto = new BlockDto();
-        Proto.Block.Header header = block.getProtoBlock().getHeader();
-        blockDto.branchId = Hex.toHexString(header.getChain().toByteArray());
-        blockDto.version = Hex.toHexString(header.getVersion().toByteArray());
-        blockDto.type = Hex.toHexString(header.getType().toByteArray());
-        blockDto.prevBlockId = Hex.toHexString(block.getPrevBlockHash().getBytes());
+        BlockHeader header = block.getBlock().getHeader();
+        blockDto.branchId = block.getBranchId().toString();
+        blockDto.version = Hex.toHexString(header.getVersion());
+        blockDto.type = Hex.toHexString(header.getType());
+        blockDto.prevBlockId = block.getPrevBlockHash().toString();
         blockDto.index = block.getIndex();
-        blockDto.timestamp = Timestamps.toString(header.getTimestamp());
-        blockDto.merkleRoot = Hex.toHexString(header.getMerkleRoot().toByteArray());
+        blockDto.timestamp = header.getTimestamp();
+        blockDto.merkleRoot = Hex.toHexString(header.getMerkleRoot());
         blockDto.bodyLength = header.getBodyLength();
         blockDto.signature = Hex.toHexString(block.getSignature());
-        blockDto.txSize = block.getBodyCount();
+        blockDto.txSize = block.getBody().getCount();
         if (withBody) {
-            List<TransactionHusk> txList = block.getBody();
-            blockDto.body = txList.stream().map(TransactionDto::createBy)
-                    .collect(Collectors.toList());
+            List<Transaction> txList = block.getBody().getTransactionList();
+            blockDto.body = txList.stream().map(TransactionDto::createBy).collect(Collectors.toList());
         }
-        if (block.getIndex() != 0) {
-            // Genesis Block has no author
-            blockDto.author = block.getAddress() == null ? null : block.getAddress().toString();
-        }
+        blockDto.author = block.getBlock().getAddress().toString();
         blockDto.blockId = block.getHash().toString();
         return blockDto;
     }

@@ -92,9 +92,15 @@ public class DPoAContractTest {
             }
 
             @Override
-            public void setValidators(ValidatorSet validators) {
-                this.validators = validators;
+            public void setValidators(ValidatorSet validatorSet) {
+                this.validators = validatorSet;
             }
+
+            @Override
+            public boolean isValidator(String address) {
+                return validators.getValidatorMap().containsKey(address);
+            }
+
         };
 
         dPoAService = new DPoAContract.DPoAService();
@@ -126,12 +132,20 @@ public class DPoAContractTest {
     @Test
     public void saveInitValidator() {
         log.debug("saveInitValidator");
-        String validators = "{\"validator\": [\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\"]}";
-        JsonObject genesis = JsonUtil.parseJsonObject(validators);
+        String validator = "d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95";
+        JsonArray validators = new JsonArray();
+        validators.add(validator);
 
-        boolean isSuccess = dPoAService.saveInitValidator(genesis.getAsJsonArray("validator"));
+        // Did not save init
+        boolean isSuccess = dPoAService.saveInitValidator(validators);
 
-        assertTrue(isSuccess);
+        assertFalse(isSuccess);
+        JsonObject query = new JsonObject();
+
+        query.addProperty("address", validator);
+        assertTrue(dPoAService.isValidator(query));
+        query.addProperty("address", "1234");
+        assertFalse(dPoAService.isValidator(query));
     }
 
     @Test

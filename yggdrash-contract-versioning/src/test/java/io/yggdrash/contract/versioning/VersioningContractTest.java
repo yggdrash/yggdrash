@@ -113,8 +113,6 @@ public class VersioningContractTest {
         String issuer3 = "d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95";
         preReceipt.setIssuer(issuer3);
         TransactionReceipt receipt = service.vote(createVoteParams(false));
-
-//            assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
     }
 
     @Test

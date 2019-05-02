@@ -23,6 +23,7 @@ import com.google.gson.JsonParser;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
+import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.common.utils.SerializationUtil;
@@ -30,12 +31,12 @@ import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BranchStore implements ReadWriterStore<String, String> {
+public class BranchStore implements ReadWriterStore<String, String>, BranchStateStore {
 
     private final DbSource<byte[], byte[]> db;
 
@@ -82,7 +83,7 @@ public class BranchStore implements ReadWriterStore<String, String> {
         return reStoreToLong(BlockchainMetaInfo.BEST_BLOCK_INDEX.toString(), -1);
     }
 
-    public void setBestBlock(Block block) {
+    public void setBestBlock(ConsensusBlock block) {
         setBestBlockHash(block.getHash());
         setBestBlock(block.getIndex());
     }
@@ -118,7 +119,7 @@ public class BranchStore implements ReadWriterStore<String, String> {
         return lastBlockHash;
     }
 
-    public  void setLastExecuteBlock(Block block) {
+    public void setLastExecuteBlock(ConsensusBlock block) {
         storeLongValue(BlockchainMetaInfo.LAST_EXECUTE_BLOCK_INDEX.toString(), block.getIndex());
         Sha3Hash executeBlockHash = block.getHash();
         db.put(BlockchainMetaInfo.LAST_EXECUTE_BLOCK.toString().getBytes(), executeBlockHash.getBytes());
@@ -163,7 +164,7 @@ public class BranchStore implements ReadWriterStore<String, String> {
         return new BranchId(getBranchIdHash());
     }
 
-    private Sha3Hash getBranchIdHash() {
+    public Sha3Hash getBranchIdHash() {
         byte[] branchIdBytes = db.get(BlockchainMetaInfo.BRANCH_ID.toString().getBytes());
         return new Sha3Hash(branchIdBytes, true);
     }
@@ -195,6 +196,7 @@ public class BranchStore implements ReadWriterStore<String, String> {
     }
 
     // Get Validator
+    @Override
     public ValidatorSet getValidators() {
         ValidatorSet validatorSet = null;
         JsonObject jsonValidatorSet = getJson(PrefixKeyEnum.VALIDATORS.toValue());
@@ -202,6 +204,11 @@ public class BranchStore implements ReadWriterStore<String, String> {
             validatorSet = JsonUtil.generateJsonToClass(jsonValidatorSet.toString(), ValidatorSet.class);
         }
         return validatorSet;
+    }
+
+    @Override
+    public boolean isValidator(String address) {
+        return getValidators().contains(address);
     }
 
     // Set Contracts

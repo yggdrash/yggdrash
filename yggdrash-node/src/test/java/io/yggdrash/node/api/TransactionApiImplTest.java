@@ -19,7 +19,9 @@ package io.yggdrash.node.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.common.crypto.HexUtil;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.gateway.dto.TransactionDto;
 import org.junit.Assert;
 import org.junit.Before;
@@ -33,6 +35,7 @@ import java.text.ParseException;
 import static io.yggdrash.node.api.JsonRpcConfig.BLOCK_API;
 import static io.yggdrash.node.api.JsonRpcConfig.TX_API;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class TransactionApiImplTest {
@@ -124,14 +127,14 @@ public class TransactionApiImplTest {
 
     @Test
     public void checkTransactionJsonFormat() throws IOException {
-        TransactionHusk tx = createTx();
+        Transaction tx = createTx();
         String txString = new ObjectMapper().writeValueAsString(TransactionDto.createBy(tx));
         assertTrue(txString.contains(tx.getBranchId().toString()));
     }
 
     @Test
     public void sendTransactionTest() {
-        TransactionHusk tx = createTx();
+        Transaction tx = createTx();
 
         // Request Transaction with jsonStr
         try {
@@ -145,13 +148,31 @@ public class TransactionApiImplTest {
     public void sendRawTransactionTest() {
         // Request Transaction with byteArr
         try {
-            byte[] input = createTx().toBinary();
+            byte[] input = ((TransactionImpl)createTx()).toRawTransaction();
             // Convert byteArray to Transaction
             assertThat(TX_API.sendRawTransaction(input)).isNotEmpty();
         } catch (Exception e) {
             log.debug(e.getMessage());
         }
     }
+
+    @Test
+    public void sendRawTransactionTest2() {
+        String byteArr = "a5f436a66ce5ca5b7dbd6bbf8460701b8cbf0485000000000000000000000000000000000000016a532b2a9e02"
+                + "362d30120a01b00120cbc6d86d522a29dde9b05c2ebb3d3b93fb9b36e540cb000000000000009c1c06171d4e1ccb924af0c"
+                + "e22086e059e9ab2d02f1d7f93bb62226df134c5e9664c26ba6b695eaba5c9f941f7370a39d2683dc407f326594895bde87e"
+                + "061959e3e87b22636f6e747261637456657273696f6e223a223036656431386439653865373839376165326165313130383"
+                + "5646339353436366534363162306536222c226d6574686f64223a227472616e73666572222c22706172616d223a7b22746f"
+                + "223a2232646265353838646137306361666539386264313739373131396539363136356138653734313931222c22616d6f7"
+                + "56e74223a2231303030227d7d";
+
+        byte[] input = HexUtil.hexStringToBytes(byteArr);
+        Transaction tx = TransactionImpl.parseFromRaw(input);
+        log.debug(tx.getHeader().toString());
+        log.debug(tx.toJsonObject().toString());
+        assertEquals("c51635a15fbd2fb85bb05aff2992eaa7d87d938799221bf654af10538401e8e9", tx.getHash().toString());
+    }
+
 
     @Test
     public void newPendingTransactionFilterTest() {
@@ -166,7 +187,7 @@ public class TransactionApiImplTest {
     @Test
     public void txSigValidateTest() throws IOException, ParseException {
         // Create Transaction
-        TransactionHusk tx = createTx();
+        Transaction tx = createTx();
 
         ObjectMapper mapper = new ObjectMapper();
         String jsonStr = mapper.writeValueAsString(TransactionDto.createBy(tx));
@@ -178,7 +199,7 @@ public class TransactionApiImplTest {
         assertTrue(TransactionDto.of(resDto).verify());
     }
 
-    private TransactionHusk createTx() {
-        return BlockChainTestUtils.createTransferTxHusk();
+    private Transaction createTx() {
+        return BlockChainTestUtils.createTransferTx();
     }
 }

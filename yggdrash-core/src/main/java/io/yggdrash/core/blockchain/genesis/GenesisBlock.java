@@ -4,6 +4,7 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
+import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.blockchain.Transaction;
@@ -11,7 +12,7 @@ import io.yggdrash.core.blockchain.TransactionBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 public class GenesisBlock {
@@ -42,36 +43,29 @@ public class GenesisBlock {
     }
 
     private Block toBlock() {
-        // Divided Branch Transaction
-        // TODO Save Branch Genesis Transaction
-        TransactionBuilder builder = new TransactionBuilder();
-        // Contract init Transaction
-        contractTransaction(builder);
-        // Save Validator Transaction
-        //validatorTransaction(builder);
-        Transaction tx = builder.buildTransaction();
-
-        // Make Genesis Block
-        return generatorGenesisBlock(tx);
+        return generatorGenesisBlock(contractTransactions());
     }
 
     // Contract initial value
-    private TransactionBuilder contractTransaction(TransactionBuilder builder) {
+    private List<Transaction> contractTransactions() {
+        // Divided Branch Transaction
+        // TODO Save Branch Genesis Transaction
+        List<Transaction> txs = new ArrayList<>();
         List<BranchContract> contracts = branch.getBranchContracts();
-        builder.setBranchId(branch.getBranchId())
-                .setTimeStamp(branch.getTimestamp());
 
         for (BranchContract c : contracts) {
-            builder.addTxBody(c.getContractVersion(), "init", c.getInit(), c.isSystem(),
-                    branch.getConsensus());
+            TransactionBuilder builder = new TransactionBuilder();
+            builder.setBranchId(branch.getBranchId())
+                    .setTimeStamp(branch.getTimestamp())
+                    .setTxBody(c.getContractVersion(), "init", c.getInit(), c.isSystem(), branch.getConsensus());
+
+            txs.add(builder.build());
         }
-        return builder;
+        return txs;
     }
 
-    private Block generatorGenesisBlock(Transaction tx) {
-
-        BlockBody blockBody = new BlockBody(Collections.singletonList(tx));
-
+    private Block generatorGenesisBlock(List<Transaction> txs) {
+        BlockBody blockBody = new BlockBody(txs);
         BlockHeader blockHeader = new BlockHeader(
                 branch.getBranchId().getBytes(),
                 Constants.EMPTY_BYTE8,
@@ -79,9 +73,9 @@ public class GenesisBlock {
                 Constants.EMPTY_HASH,
                 0L,
                 branch.getTimestamp(),
-                blockBody.getMerkleRoot(),
-                blockBody.length());
-        return new Block(blockHeader, Constants.EMPTY_SIGNATURE, blockBody);
+                blockBody);
+
+        return new BlockImpl(blockHeader, Constants.EMPTY_SIGNATURE, blockBody);
     }
 
     public static GenesisBlock of(InputStream is) throws IOException {

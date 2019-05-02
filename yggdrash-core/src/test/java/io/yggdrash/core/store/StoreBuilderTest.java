@@ -19,8 +19,8 @@ package io.yggdrash.core.store;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.p2p.Peer;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,7 +39,7 @@ public class StoreBuilderTest {
 
     @Test
     public void shouldBeBuiltMetaStore() {
-        Block block = BlockChainTestUtils.genesisBlock();
+        ConsensusBlock block = BlockChainTestUtils.genesisBlock();
         BranchStore store = builder.buildBranchStore();
         store.setBestBlock(block);
 
@@ -48,8 +48,8 @@ public class StoreBuilderTest {
 
     @Test
     public void buildBlockStore() {
-        Block block = BlockChainTestUtils.genesisBlock();
-        ConsensusBlockStore store = builder.buildBlockStore();
+        ConsensusBlock block = BlockChainTestUtils.genesisBlock();
+        ConsensusBlockStore store = builder.setBlockStoreFactory(PbftBlockStoreMock::new).buildBlockStore();
         store.put(block.getHash(), block);
         assertThat(store.contains(block.getHash())).isTrue();
         assertThat(store.get(block.getHash())).isEqualTo(block);
@@ -57,7 +57,7 @@ public class StoreBuilderTest {
 
     @Test
     public void buildTxStore() {
-        TransactionHusk tx = BlockChainTestUtils.createTransferTxHusk();
+        Transaction tx = BlockChainTestUtils.createTransferTx();
         TransactionStore store = builder.buildTxStore();
         store.put(tx.getHash(), tx);
         assertThat(store.contains(tx.getHash())).isTrue();

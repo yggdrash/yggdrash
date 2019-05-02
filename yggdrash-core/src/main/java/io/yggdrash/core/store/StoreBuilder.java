@@ -56,9 +56,6 @@ public class StoreBuilder {
 
     public ConsensusBlockStore buildBlockStore() {
         DbSource dbSource = getDbSource(branchId + "/blocks");
-        if (blockStoreFactory == null) {
-            return new BlockHuskStore(dbSource);
-        }
         return blockStoreFactory.create(consensusAlgorithm, dbSource);
     }
 

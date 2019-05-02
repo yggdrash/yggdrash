@@ -17,18 +17,18 @@
 package io.yggdrash.common.util;
 
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 public class TestUtilsTest {
     @Test
     public void shouldBeCreatedDifferentKeyTx() {
-        TransactionHusk transferTxHusk = BlockChainTestUtils.createTransferTxHusk();
-        TransactionHusk transferTxHusk1 = BlockChainTestUtils.createTransferTxHusk();
-        TransactionHusk transferTxHusk2 = BlockChainTestUtils.createTransferTxHusk();
-        Assertions.assertThat(transferTxHusk.getHash()).isNotEqualTo(transferTxHusk1.getHash());
-        Assertions.assertThat(transferTxHusk.getHash()).isNotEqualTo(transferTxHusk2.getHash());
-        Assertions.assertThat(transferTxHusk1.getHash()).isNotEqualTo(transferTxHusk2.getHash());
+        Transaction transferTx = BlockChainTestUtils.createTransferTx();
+        Transaction transferTx1 = BlockChainTestUtils.createTransferTx();
+        Transaction transferTx2 = BlockChainTestUtils.createTransferTx();
+        Assertions.assertThat(transferTx.getHash()).isNotEqualTo(transferTx1.getHash());
+        Assertions.assertThat(transferTx.getHash()).isNotEqualTo(transferTx2.getHash());
+        Assertions.assertThat(transferTx1.getHash()).isNotEqualTo(transferTx2.getHash());
     }
 }

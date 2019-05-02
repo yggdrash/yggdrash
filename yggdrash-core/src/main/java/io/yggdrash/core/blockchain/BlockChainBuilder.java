@@ -22,13 +22,13 @@ import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
-import io.yggdrash.core.blockchain.osgi.ContractContainer;
-import io.yggdrash.core.blockchain.osgi.ContractContainerBuilder;
+import io.yggdrash.core.blockchain.osgi.ContractManager;
+import io.yggdrash.core.blockchain.osgi.ContractManagerBuilder;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.store.BranchStore;
 import io.yggdrash.core.store.ConsensusBlockStore;
+import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.StoreBuilder;
-import io.yggdrash.core.store.StoreContainer;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 
@@ -96,24 +96,23 @@ public class BlockChainBuilder {
             transactionReceiptStore = storeBuilder.buildTransactionReceiptStore();
         }
 
-        StoreContainer storeContainer = new StoreContainer(branch, branchStore, stateStore, blockStore,
-                transactionStore, transactionReceiptStore);
+        ContractStore contractStore = new ContractStore(branchStore, stateStore, transactionReceiptStore);
 
-        ContractContainer contractContainer = null;
-
+        ContractManager contractManager = null;
         if (policyLoader != null) {
-            contractContainer = ContractContainerBuilder.newInstance()
+            contractManager = ContractManagerBuilder.newInstance()
                     .withFrameworkFactory(policyLoader.getFrameworkFactory())
-                    .withContainerConfig(policyLoader.getContainerConfig())
+                    .withContractManagerConfig(policyLoader.getContractManagerConfig())
                     .withBranchId(branch.getBranchId().toString())
-                    .withStoreContainer(storeContainer)
+                    .withContractStore(contractStore)
                     .withConfig(storeBuilder.getConfig())
                     .build();
         }
 
-        // TODO used storeContainer
+        // TODO interface => BlockChainStore & ContractStore
+        //      i.e. new BlockChain(BlockChainManager, ContractManager);
         return factory.create(branch, genesis.getBlock(), blockStore,
-                transactionStore, branchStore, stateStore, transactionReceiptStore, contractContainer, outputStores);
+                transactionStore, branchStore, stateStore, transactionReceiptStore, contractManager, outputStores);
     }
 
     private Map<ContractVersion, Contract> defaultContract() {
@@ -138,7 +137,7 @@ public class BlockChainBuilder {
                           BranchStore branchStore,
                           StateStore stateStore,
                           TransactionReceiptStore transactionReceiptStore,
-                          ContractContainer contractContainer,
+                          ContractManager contractManager,
                           Map<OutputType, OutputStore> outputStores);
     }
 }

@@ -64,6 +64,7 @@ public class ContractVersion {
     }
 
     public static ContractVersion of(byte[] contractBytes) {
+        //TODO SHA1 hash function is now completely unsafe.
         return new ContractVersion(HashUtil.sha1(contractBytes));
     }
 

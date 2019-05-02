@@ -26,9 +26,11 @@ public interface PeerDialer {
 
     void destroyAll();
 
+    void addConsensus(BranchId branchId, String consensus);
+
     boolean healthCheck(BranchId branchId, Peer owner, Peer to);
 
-    void removeHandler(PeerHandler peerHandler);
+    void removeHandler(BlockChainHandler peerHandler);
 
     int handlerCount();
 
@@ -36,7 +38,7 @@ public interface PeerDialer {
 
     List<String> getActiveAddressList();
 
-    List<PeerHandler> getHandlerList(List<Peer> peerList);
+    List<BlockChainHandler> getHandlerList(BranchId branchId, List<Peer> peerList);
 
-    PeerHandler getPeerHandler(Peer peer);
+    BlockChainHandler getPeerHandler(BranchId branchId, Peer peer);
 }

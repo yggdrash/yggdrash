@@ -69,7 +69,7 @@ subprojects {
         sourceCompatibility = 1.8  // can be switched to 11 for testing
         targetCompatibility = 1.8
         options.encoding = "UTF-8"
-        options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+        // options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
     }
 
     test {

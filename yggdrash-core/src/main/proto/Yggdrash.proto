@@ -3,12 +3,21 @@ syntax = "proto3";
 option java_package = "io.yggdrash.proto";
 option java_outer_classname = "Proto";
 
-import "google/protobuf/timestamp.proto";
+import "Common.proto";
 
-service Peer {
+service PeerService {
     rpc findPeers (TargetPeer) returns (PeerList) {
     }
     rpc ping (Ping) returns (Pong) {
+    }
+}
+
+service TransactionService {
+    // Client to server simple RPC
+    rpc syncTx (SyncLimit) returns (TransactionList) {
+    }
+    // Client to server streaming RPC.
+    rpc broadcastTx (stream Transaction) returns (Empty) {
     }
 }
 
@@ -27,7 +36,7 @@ message Block {
         bytes type = 3;
         bytes prevBlockHash = 4;    // The hash of the previous block header
         uint64 index = 5;            // The index in the blockchain
-        google.protobuf.Timestamp timestamp = 6;        // google.protobuf.Timestamp timestamp ?
+        int64 timestamp = 6;        // google.protobuf.Timestamp timestamp ?
         bytes merkleRoot = 7;       // The hash of the BlockBody, by MerkleTree
         uint64 bodyLength = 8;
     }
@@ -42,13 +51,13 @@ message Transaction {
         bytes chain = 1;
         bytes version = 2;
         bytes type = 3;
-        google.protobuf.Timestamp timestamp = 4;
+        int64 timestamp = 4;
         bytes bodyHash = 5;
         uint64 bodyLength = 6;
     }
     Header header = 1;
     bytes signature = 2;
-    bytes body = 3;
+    string body = 3;
 }
 
 message TargetPeer {

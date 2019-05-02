@@ -2,9 +2,11 @@ package io.yggdrash.validator.config;
 
 import com.typesafe.config.ConfigFactory;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.validator.service.ValidatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +31,9 @@ public class ValidatorConfiguration {
     public void makeValidatorService() throws IOException, InvalidCipherTextException {
 
         File validatorPath = new File(new DefaultConfig().getString("yggdrash.validator.path"));
-
+        if (!validatorPath.exists() || validatorPath.listFiles() == null) {
+            throw new FailedOperationException("Can't read validatorPath=" + validatorPath.getAbsolutePath());
+        }
         for (File validatorDir : Objects.requireNonNull(validatorPath.listFiles())) {
             File validatorConfFile = new File(validatorDir, "validator.conf");
             DefaultConfig validatorConfig = new DefaultConfig(ConfigFactory.parseFile(validatorConfFile));
@@ -37,8 +41,8 @@ public class ValidatorConfiguration {
 
             File genesisFile = new File(validatorDir, "genesis.json");
             String genesisString = FileUtil.readFileToString(genesisFile, FileUtil.DEFAULT_CHARSET);
-            Block genesisBlock = new Block(JsonUtil.parseJsonObject(genesisString));
-            log.debug(genesisBlock.getChainHex());
+            Block genesisBlock = new BlockImpl(JsonUtil.parseJsonObject(genesisString));
+            log.debug("{}", genesisBlock.getBranchId());
 
             validatorServiceList.add(new ValidatorService(validatorConfig, genesisBlock));
         }

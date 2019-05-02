@@ -3,6 +3,7 @@ package io.yggdrash.contract.coin;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.contract.standard.CoinStandard;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.common.contract.vo.dpoa.Validator;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
@@ -25,7 +26,6 @@ import org.osgi.framework.ServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
-
 import java.math.BigInteger;
 import java.util.Hashtable;
 import java.util.Map;

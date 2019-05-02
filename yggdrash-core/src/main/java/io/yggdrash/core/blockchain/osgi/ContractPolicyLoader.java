@@ -13,7 +13,9 @@ import java.util.ServiceLoader;
 public class ContractPolicyLoader {
     private static final String EXTRA_PACKAGES = "io.yggdrash.common.contract"
             + ",io.yggdrash.common.contract.method"
+            + ",io.yggdrash.common.contract.standard"
             + ",io.yggdrash.common.contract.vo"
+            + ",io.yggdrash.common.rlp"
             + ",io.yggdrash.common.contract.vo.dpoa"
             + ",io.yggdrash.common.contract.vo.dpoa.tx"
             + ",io.yggdrash.common.crypto"
@@ -24,6 +26,8 @@ public class ContractPolicyLoader {
             + ",io.yggdrash.common.utils"
             + ",org.osgi.util.tracker"
             + ",com.google.gson"
+            + ",com.google.common.base"
+            + ",com.google.common.primitives"
             + ",org.w3c.dom"
             + ",org.slf4j"
             + ",java.math"
@@ -32,7 +36,7 @@ public class ContractPolicyLoader {
             + ",io.yggdrash.contract.core.store";
 
     private FrameworkFactory frameworkFactory;
-    private Map<String, String> containerConfig;
+    private Map<String, String> contractManagerConfig;
 
     public ContractPolicyLoader() {
         // Allow all
@@ -50,16 +54,16 @@ public class ContractPolicyLoader {
         }
         frameworkFactory = iterator.next();
 
-        containerConfig = new HashMap<>();
-        containerConfig.put("org.osgi.framework.system.packages.extra", EXTRA_PACKAGES);
-        containerConfig.put("org.osgi.framework.security", "osgi");
+        contractManagerConfig = new HashMap<>();
+        contractManagerConfig.put("org.osgi.framework.system.packages.extra", EXTRA_PACKAGES);
+        contractManagerConfig.put("org.osgi.framework.security", "osgi");
     }
 
     public FrameworkFactory getFrameworkFactory() {
         return frameworkFactory;
     }
 
-    public Map<String, String> getContainerConfig() {
-        return containerConfig;
+    public Map<String, String> getContractManagerConfig() {
+        return contractManagerConfig;
     }
 }

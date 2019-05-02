@@ -34,6 +34,7 @@ import static io.yggdrash.common.config.Constants.TX_ID;
 
 public class StemContract implements BundleActivator, ServiceListener {
     private static final Logger log = LoggerFactory.getLogger(StemContract.class);
+    //private ServiceRegistration registration;
 
     @Override
     public void start(BundleContext context) {
@@ -43,16 +44,20 @@ public class StemContract implements BundleActivator, ServiceListener {
         Hashtable<String, String> props = new Hashtable<>();
         props.put("YGGDRASH", "Stem");
         context.registerService(StemService.class.getName(), new StemService(), props);
+        //Register our service in the bundle context using the name.
+        //registration = context.registerService(StemService.class.getName(), new StemService(), props);
     }
 
     @Override
     public void stop(BundleContext context) {
         log.info("⚫ Stop stem contract");
+        //TODO Why don't unregister the service?
+        //registration.unregister();
     }
 
     @Override
     public void serviceChanged(ServiceEvent event) {
-
+        // Not implemented.
     }
 
     public static class StemService implements Contract {
@@ -70,7 +75,7 @@ public class StemContract implements BundleActivator, ServiceListener {
         @InvokeTransaction // TODO remove InvokeTransaction
         public TransactionReceipt init(JsonObject param) {
             txReceipt = create(param);
-            log.info("[StemContract | genesis] SUCCESS! param => " + param);
+            log.info("[StemContract | genesis] SUCCESS! param => {}", param);
             return txReceipt;
         }
 
@@ -86,8 +91,7 @@ public class StemContract implements BundleActivator, ServiceListener {
                 stateValue = StemContractStateValue.of(params);
                 BranchId branchId = stateValue.getBranchId();
                 if (!isBranchExist(branchId.toString())
-                        && isBranchIdValid(branchId, stateValue)
-                        && certificateAuthority(params)) {
+                        && isBranchIdValid(branchId, stateValue)) {
                     try {
                         stateValue.init();
                         setStateValue(stateValue, params);
@@ -96,8 +100,8 @@ public class StemContract implements BundleActivator, ServiceListener {
                         addTxId(branchId);
 
                         txReceipt.setStatus(ExecuteStatus.SUCCESS);
-                        log.info("[StemContract | create] branchId => " + branchId);
-                        log.info("[StemContract | create] branch => " + stateValue.getJson());
+                        log.info("[StemContract | create] branchId => {}", branchId);
+                        log.info("[StemContract | create] branch => {}", stateValue.getJson());
                     } catch (Exception e) {
                         txReceipt.setStatus(ExecuteStatus.FALSE);
                     }
@@ -123,17 +127,16 @@ public class StemContract implements BundleActivator, ServiceListener {
                 stateValue = StemContractStateValue.of(preBranchJson);
                 BranchId branchId = stateValue.getBranchId();
 
-                if (certificateAuthority(preBranchJson) && stateValue != null
-                        && isBranchExist(branchId.toString())) {
+                if (isBranchExist(branchId.toString())) {
                     try {
-                        updateValue(stateValue, params);
+                        setStateValue(stateValue, params);
                         addBranchId(branchId);
                         state.put(branchId.toString(), stateValue.getJson());
                         addTxId(branchId);
 
                         txReceipt.setStatus(ExecuteStatus.SUCCESS);
-                        log.info("[StemContract | update] branchId => " + branchId);
-                        log.info("[StemContract | update] branch => " + stateValue.getJson());
+                        log.info("[StemContract | update] branchId => {}", branchId);
+                        log.info("[StemContract | update] branch => {}", stateValue.getJson());
                     } catch (Exception e) {
                         txReceipt.setStatus(ExecuteStatus.FALSE);
                     }
@@ -163,13 +166,6 @@ public class StemContract implements BundleActivator, ServiceListener {
                 if (remainFee.longValue() > 0) {
                     stateValue.setFee(resultFee.add(remainFee));
                 }
-            }
-        }
-
-        private void updateValue(StemContractStateValue stateValue, JsonObject params) {
-            setStateValue(stateValue, params);
-            if (params.has("validator")) {
-                stateValue.updateValidatorSet(params.get("validator").getAsString());
             }
         }
 
@@ -241,7 +237,7 @@ public class StemContract implements BundleActivator, ServiceListener {
                     return branchIdJson.get("branchId").getAsString();
                 }
             }
-            return new String();
+            return "";
         }
 
         /**
@@ -263,51 +259,6 @@ public class StemContract implements BundleActivator, ServiceListener {
                 }
             }
             return contractSet;
-        }
-
-        /**
-         * @param params branch id
-         *
-         * @return validator set
-         */
-        @ContractQuery
-        public Set<String> getValidator(JsonObject params) {
-            log.debug(params.toString());
-            String branchId = params.get(BRANCH_ID).getAsString();
-            Set<String> validatorSet = new HashSet<>();
-            StemContractStateValue stateValue = getBranchStateValue(branchId);
-
-            if (isBranchExist(branchId) && isEnoughFee(stateValue)) {
-                JsonArray validators = getBranchStateValue(branchId).getJson()
-                        .getAsJsonArray("validator");
-                for (JsonElement v : validators) {
-                    validatorSet.add(v.getAsString());
-                }
-            }
-            return validatorSet;
-        }
-
-        /**
-         * @param params branch id
-         *
-         * @return branch id set
-         */
-        @ContractQuery
-        public Set<String> getBranchIdByValidator(JsonObject params) {
-            String validator = params.get("validator").getAsString();
-            Set<String> branchIdSet = new HashSet<>();
-
-            getBranchIdList().stream().forEach(id -> {
-                StemContractStateValue stateValue = getBranchStateValue(id);
-                if (isEnoughFee(stateValue)) {
-                    getBranchStateValue(id).getValidators().stream().forEach(v -> {
-                        if (validator.equals(v)) {
-                            branchIdSet.add(id);
-                        }
-                    });
-                }
-            });
-            return branchIdSet;
         }
 
         /**
@@ -343,10 +294,7 @@ public class StemContract implements BundleActivator, ServiceListener {
         }
 
         private Boolean isEnoughFee(StemContractStateValue stateValue) {
-            if (feeState(stateValue).longValue() > 0) {
-                return true;
-            }
-            return false;
+            return feeState(stateValue).longValue() > 0;
         }
 
         private boolean isBranchExist(String branchId) {
@@ -374,26 +322,6 @@ public class StemContract implements BundleActivator, ServiceListener {
                 bid.addProperty("branchId", branchId.toString());
                 state.put(txReceipt.getTxId(), bid);
             }
-        }
-
-        private Boolean certificateAuthority(JsonObject params) {
-            String sender = this.txReceipt.getIssuer();
-            JsonArray validators = params.get("validator").getAsJsonArray();
-            for (JsonElement v : validators) {
-                if (params.has("updateValidators")) {
-                    JsonArray uvs = params.get("updateValidators").getAsJsonArray();
-                    for (JsonElement uv : uvs) {
-                        if (sender != null && sender.equals(uv.getAsString())) {
-                            return true;
-                        }
-                    }
-                }
-                if (sender != null && sender.equals(v.getAsString())) {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private boolean isBranchIdValid(BranchId branchId, Branch branch) {

@@ -21,7 +21,7 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.utils.ByteUtil;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.NotValidateException;
 import org.iq80.leveldb.CompressionType;
@@ -60,21 +60,21 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
             throw new NotValidateException("Store is not valid.");
         }
         // get Transaction Size
-        transactionSize = getBlockchainTransactionSize();
+        transactionSize = getBlockChainTransactionSize();
     }
 
     @Override
-    public void put(Sha3Hash key, Block<T> value) {
-        if (key == null || value == null || value.getData().length > Constants.MAX_MEMORY) {
-            log.debug("Key or value are not valild.");
+    public void put(Sha3Hash key, ConsensusBlock<T> value) {
+        byte[] bytes = value.toBinary();
+        if (bytes.length > Constants.MAX_MEMORY) {
+            log.debug("block binary {} > {}", bytes.length, Constants.MAX_MEMORY);
             return;
         }
-
         lock.lock();
         try {
             if (!contains(key)) {
-                log.trace("put (key: {})(blockHash {})", key, value.getHashHex());
-                db.put(key.getBytes(), value.getData());
+                log.trace("put (key: {})(blockHash {})", key, value.getHash());
+                db.put(key.getBytes(), bytes);
                 blockSize++;
             }
         } catch (Exception e) {
@@ -82,8 +82,6 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
         } finally {
             lock.unlock();
         }
-
-        db.put(key.getBytes(), value.getData());
     }
 
     @Override
@@ -112,7 +110,7 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
     }
 
     @Override
-    public void addBlock(Block<T> block) {
+    public void addBlock(ConsensusBlock<T> block) {
         // Add BlockIndex and Add Block Data
         long index = block.getIndex();
         byte[] indexKey = blockIndexKey(index);
@@ -120,15 +118,15 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
         lock.lock();
         db.put(indexKey, block.getHash().getBytes());
         // store block data
-        db.put(block.getHash().getBytes(), block.getData());
+        put(block.getHash(), block);
         // add block Transaction size
-        transactionSize += block.getBodyCount();
+        transactionSize += block.getBody().getCount();
         db.put("TRANSACTION_SIZE".getBytes(), ByteUtil.longToBytes(transactionSize));
         lock.unlock();
     }
 
     @Override
-    public Block<T> getBlockByIndex(long index) {
+    public ConsensusBlock<T> getBlockByIndex(long index) {
         byte[] indexKey = blockIndexKey(index);
         lock.lock();
         byte[] blockHash = db.get(indexKey);
@@ -141,7 +139,7 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
     }
 
     @Override
-    public long getBlockchainTransactionSize() {
+    public long getBlockChainTransactionSize() {
         // loading db is just first
         if (transactionSize == 0L) {
             lock.lock();

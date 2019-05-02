@@ -21,7 +21,7 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,7 +52,7 @@ public class TransactionReceiptTest {
 
     @Test
     public void transactionHashTest() {
-        TransactionHusk tx = BlockChainTestUtils.createTransferTxHusk();
+        Transaction tx = BlockChainTestUtils.createTransferTx();
         String txId = tx.getHash().toString();
         txReceipt.setTxId(txId);
         Assert.assertEquals(txId, txReceipt.getTxId());

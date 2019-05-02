@@ -17,7 +17,7 @@ import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftMessageSet;
 import io.yggdrash.validator.service.ebft.EbftServerStub;
 import io.yggdrash.validator.service.ebft.EbftService;
-import io.yggdrash.validator.service.node.NodeServerStub;
+import io.yggdrash.validator.service.node.TransactionServiceStub;
 import io.yggdrash.validator.service.pbft.PbftServerStub;
 import io.yggdrash.validator.service.pbft.PbftService;
 import io.yggdrash.validator.store.ebft.EbftBlockStore;
@@ -29,7 +29,7 @@ import org.springframework.scheduling.support.CronTrigger;
 import java.io.IOException;
 
 public class ValidatorService {
-
+    private static final String NOT_VALID_MSG = "Algorithm is not valid.";
     private final String host;
     private final int port;
     private final Wallet wallet;
@@ -54,7 +54,7 @@ public class ValidatorService {
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
                             .addService(new PbftServerStub(pbftService))
-                            .addService(new NodeServerStub(blockChain))
+                            .addService(new TransactionServiceStub(blockChain))
                             .build()
                             .start();
                 } catch (IOException e) {
@@ -67,7 +67,7 @@ public class ValidatorService {
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
                             .addService(new EbftServerStub(ebftService))
-                            .addService(new NodeServerStub(blockChain))
+                            .addService(new TransactionServiceStub(blockChain))
                             .build()
                             .start();
                 } catch (IOException e) {
@@ -75,7 +75,7 @@ public class ValidatorService {
                 }
                 break;
             default:
-                throw new NotValidateException("Algorithm is not valid.");
+                throw new NotValidateException(NOT_VALID_MSG);
         }
     }
 
@@ -89,7 +89,7 @@ public class ValidatorService {
 
     public static BlockChainBuilder.Factory factory() {
         return (branch, genesisBlock, blockStore, transactionStore, branchStore, stateStore, transactionReceiptStore,
-                contractContainer, outputStores) -> {
+                contractManager, outputStores) -> {
 
             Consensus consensus = new Consensus(branch.getConsensus());
 
@@ -98,15 +98,15 @@ public class ValidatorService {
                     PbftBlock pbftBlock = new PbftBlock(genesisBlock, PbftMessageSet.forGenesis());
                     return new BlockChainImpl<PbftProto.PbftBlock, PbftMessageSet>(branch, pbftBlock,
                             blockStore, transactionStore, branchStore, stateStore, transactionReceiptStore,
-                            contractContainer, outputStores);
+                            contractManager, outputStores);
                 case "ebft":
                     EbftBlock ebftBlock = new EbftBlock(genesisBlock);
-                    return new BlockChainImpl<EbftProto.EbftBlock, PbftMessageSet>(branch, ebftBlock,
+                    return new BlockChainImpl<EbftProto.EbftBlock, EbftBlock>(branch, ebftBlock,
                             blockStore, transactionStore, branchStore, stateStore, transactionReceiptStore,
-                            contractContainer, outputStores);
+                            contractManager, outputStores);
                 default:
             }
-            throw new NotValidateException("Algorithm is not valid.");
+            throw new NotValidateException(NOT_VALID_MSG);
         };
     }
 
@@ -120,7 +120,7 @@ public class ValidatorService {
                     return new EbftBlockStore(dbSource);
                 default:
             }
-            throw new NotValidateException("Algorithm is not valid.");
+            throw new NotValidateException(NOT_VALID_MSG);
         };
     }
 

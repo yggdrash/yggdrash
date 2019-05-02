@@ -19,8 +19,8 @@ package io.yggdrash.core.blockchain;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.core.blockchain.osgi.ContractContainer;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.blockchain.osgi.ContractManager;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.core.store.TransactionReceiptStore;
 
@@ -31,29 +31,29 @@ public interface BlockChain<T, V> extends ConsensusBlockChain<T, V> {
 
     Branch getBranch();
 
-    Block<T> addBlock(Block<T> block, boolean broadcast);
+    ConsensusBlock<T> addBlock(ConsensusBlock<T> block, boolean broadcast);
 
-    TransactionHusk addTransaction(TransactionHusk tx);
+    Transaction addTransaction(Transaction tx);
 
     long getLastIndex();
 
-    Collection<TransactionHusk> getRecentTxs();
+    Collection<Transaction> getRecentTxs();
 
-    TransactionHusk getTxByHash(Sha3Hash hash);
+    Transaction getTxByHash(Sha3Hash hash);
 
-    Block<T> getBlockByIndex(long index);
+    ConsensusBlock<T> getBlockByIndex(long index);
 
-    Block<T> getBlockByHash(Sha3Hash hash);
+    ConsensusBlock<T> getBlockByHash(Sha3Hash hash);
 
     StateStore getStateStore();
 
     TransactionReceiptStore getTransactionReceiptStore();
 
+    ContractManager getContractManager();
+
     TransactionReceipt getTransactionReceipt(String transactionId);
 
-    List<TransactionHusk> getUnconfirmedTxs();
-
-    ContractContainer getContractContainer();
+    List<Transaction> getUnconfirmedTxs();
 
     long countOfTxs();
 

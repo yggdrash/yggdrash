@@ -47,14 +47,14 @@ public class DiscoveryServiceConsumerTest extends TestConstants.SlowTest {
         from.setBestBlock(1);
         Peer to = Peer.valueOf("ynode://aaaaaaaa@127.0.0.1:32920");
 
-        long lastIndex = BlockChainSyncManagerMock.getBranchGroup().getBranch(yggdrash).getLastIndex();
+        long lastIndex = BlockChainSyncManagerMock.branchGroup.getBranch(yggdrash).getLastIndex();
         assertEquals(0, lastIndex);
 
         // catchUpRequest event fired
         discoveryConsumer.ping(yggdrash, from, to, "Ping");
 
         //assert
-        lastIndex = BlockChainSyncManagerMock.getBranchGroup().getBranch(yggdrash).getLastIndex();
+        lastIndex = BlockChainSyncManagerMock.branchGroup.getBranch(yggdrash).getLastIndex();
         assertEquals(99, lastIndex);
     }
 }

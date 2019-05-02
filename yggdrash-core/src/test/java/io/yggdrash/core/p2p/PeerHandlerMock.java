@@ -18,8 +18,8 @@ package io.yggdrash.core.p2p;
 
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,12 +29,12 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
-public class PeerHandlerMock implements PeerHandler {
+public class PeerHandlerMock implements BlockChainHandler {
     private static final Logger log = LoggerFactory.getLogger(PeerHandlerMock.class);
     private static final String NODE_URI_PREFIX = "ynode://75bff16c@127.0.0.1:";
     private static final Peer OWNER = Peer.valueOf(NODE_URI_PREFIX + 32920);
 
-    public static final PeerHandlerFactory factory = PeerHandlerMock::dummy;
+    public static final BlockChainHandlerFactory factory = PeerHandlerMock::dummy;
 
     private final Peer peer;
     private boolean pongResponse = true;
@@ -79,45 +79,45 @@ public class PeerHandlerMock implements PeerHandler {
     }
 
     @Override
-    public Future<List<Block>> syncBlock(BranchId branchId, long offset) {
+    public Future<List<ConsensusBlock>> syncBlock(BranchId branchId, long offset) {
         log.debug("[PeerHandlerMock] SyncBlock branchId={}, offset={}", branchId, offset);
 
-        CompletableFuture<List<Block>> husksCompletableFuture = new CompletableFuture<>();
+        CompletableFuture<List<ConsensusBlock>> future = new CompletableFuture<>();
 
-        List<Block> tmp = new ArrayList<>();
-        for (int i = (int) offset; i < (int) offset + 33; i++) {
-            tmp.add(BlockChainTestUtils.getSampleBlockHuskList().get(i));
+        List<ConsensusBlock> tmp = new ArrayList<>();
+        if (offset < 33) {
+            for (int i = (int) offset; i < (int) offset + 33; i++) {
+                tmp.add(BlockChainTestUtils.getSampleBlockList().get(i));
+            }
         }
-        husksCompletableFuture.complete(tmp);
-        return husksCompletableFuture;
+        future.complete(tmp);
+        return future;
     }
 
     @Override
-    public Future<List<TransactionHusk>> syncTx(BranchId branchId) {
+    public Future<List<Transaction>> syncTx(BranchId branchId) {
         log.debug("[PeerHandlerMock] SyncTx branchId={}", branchId);
 
-        CompletableFuture<List<TransactionHusk>> husksCompletableFuture = new CompletableFuture<>();
-        husksCompletableFuture.complete(
-                Collections.singletonList(BlockChainTestUtils.createTransferTxHusk()));
+        CompletableFuture<List<Transaction>> future = new CompletableFuture<>();
+        future.complete(Collections.singletonList(BlockChainTestUtils.createTransferTx()));
 
-        return husksCompletableFuture;
+        return future;
     }
 
     @Override
-    public void broadcastBlock(Block blockHusk) {
+    public void broadcastBlock(ConsensusBlock block) {
 
     }
 
     @Override
-    public void broadcastTx(TransactionHusk txHusk) {
-
+    public void broadcastTx(Transaction tx) {
     }
 
-    public static PeerHandler dummy() {
-        return dummy(OWNER);
+    public static BlockChainHandler dummy() {
+        return dummy(null, OWNER);
     }
 
-    public static PeerHandler dummy(Peer peer) {
+    public static BlockChainHandler dummy(String consensus, Peer peer) {
         return new PeerHandlerMock(peer.getYnodeUri());
     }
 

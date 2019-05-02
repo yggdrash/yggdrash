@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.blockchain;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.utils.SerializationUtil;
 import org.junit.Test;
@@ -34,59 +33,45 @@ public class TransactionBodyTest {
 
     @Test
     public void testTransactionBody() {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("test", "00");
 
-        JsonObject jsonObject1 = new JsonObject();
-        jsonObject1.addProperty("test1", "01");
+        log.debug("JsonObject=" + jsonObject.toString());
+        log.debug("JsonObjectSize=" + jsonObject.size());
+        log.debug("JsonObjectStringSize=" + jsonObject.toString().length());
 
-        JsonObject jsonObject2 = new JsonObject();
-        jsonObject2.addProperty("test2", "02");
+        TransactionBody txBody1 = new TransactionBody(jsonObject);
 
-        JsonArray jsonArray = new JsonArray();
-        jsonArray.add(jsonObject1);
-        jsonArray.add(jsonObject2);
+        log.debug("txBody={}", txBody1.getBody());
+        assertEquals(jsonObject.toString(), txBody1.getBody().toString());
 
-        log.debug("JsonObject1=" + jsonObject1.toString());
-        log.debug("JsonObject1Size=" + jsonObject1.size());
-        log.debug("JsonObject1StringSize=" + jsonObject1.toString().length());
+        log.debug("txBody length={}", txBody1.getLength());
+        assertEquals(txBody1.toBinary().length, txBody1.getLength());
 
-        log.debug("JsonObject2=" + jsonObject2.toString());
-        log.debug("JsonObject1Size=" + jsonObject2.size());
-        log.debug("JsonObject1StringSize=" + jsonObject2.toString().length());
+        log.debug("txBody Binary={}", Hex.toHexString(txBody1.toBinary()));
 
-        log.debug("JsonArray=" + jsonArray.toString());
-        log.debug("JsonArraySize=" + jsonArray.size());
-        log.debug("JsonArrayStringSize=" + jsonArray.toString().length());
+        assertArrayEquals(SerializationUtil.serializeString(txBody1.toString()), txBody1.toBinary());
 
-        TransactionBody txBody = new TransactionBody(jsonArray);
+        log.debug("txBody count={}", txBody1.getCount());
 
-        log.debug("txBody=" + txBody.getBody().toString());
-        assertEquals(jsonArray.toString(), txBody.getBody().toString());
+        assertEquals(1, txBody1.getCount());
 
-        log.debug("txBody length=" + txBody.length());
-        assertEquals(jsonArray.toString().length(), txBody.length());
+        TransactionBody txBody2 = new TransactionBody(txBody1.getBody());
 
-        log.debug("txBody Binary=" + Hex.toHexString(txBody.toBinary()));
+        assertEquals(txBody1, txBody2);
 
-        assertArrayEquals(jsonArray.toString().getBytes(), txBody.toBinary());
+        assertEquals(txBody1.toString(), txBody2.toString());
 
-        log.debug("txBody count=" + txBody.getBodyCount());
+        TransactionBody txBody3 = new TransactionBody(txBody1.toString());
+        log.debug("txBody1 String={}", txBody1);
+        log.debug("txBody3 String={}", txBody3);
+        assertEquals(txBody1.toString(), txBody3.toString());
 
-        assertEquals(2, txBody.getBodyCount());
-
-        TransactionBody txBody2 = new TransactionBody(jsonArray);
-
-        assertEquals(txBody, txBody2);
-
-        TransactionBody txBody3 = new TransactionBody(jsonArray.toString().getBytes());
-        log.debug("txBody1 Hex String=" + txBody.toString());
-        log.debug("txBody3 Hex String=" + txBody3.toString());
-        assertEquals(txBody.toString(), txBody3.toString());
-
-        byte[] data = SerializationUtil.serializeString(jsonArray.toString());
-        TransactionBody txBody4 = new TransactionBody(data);
-        log.debug("txBody1 Hex String=" + txBody.toString());
-        log.debug("txBody4 Hex String=" + txBody3.toString());
-        assertEquals(txBody.toString(), txBody4.toString());
+        byte[] data = SerializationUtil.serializeString(jsonObject.toString());
+        TransactionBody txBody4 = new TransactionBody(SerializationUtil.deserializeString(data));
+        log.debug("txBody1 String={}", txBody1);
+        log.debug("txBody4 String={}", txBody4);
+        assertEquals(txBody1, txBody4);
     }
 
 }

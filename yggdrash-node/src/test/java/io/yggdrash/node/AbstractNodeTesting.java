@@ -18,14 +18,18 @@ package io.yggdrash.node;
 
 import ch.qos.logback.classic.Level;
 import io.grpc.ManagedChannel;
+import io.grpc.ServerBuilder;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.testing.GrpcCleanupRule;
 import io.yggdrash.PeerTestUtils;
+import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.p2p.BlockChainHandlerFactory;
+import io.yggdrash.core.p2p.DiscoveryHandler;
 import io.yggdrash.core.p2p.Peer;
-import io.yggdrash.core.p2p.PeerHandlerFactory;
-import io.yggdrash.node.service.BlockChainService;
+import io.yggdrash.node.service.BlockServiceFactory;
 import io.yggdrash.node.service.DiscoveryService;
+import io.yggdrash.node.service.PeerHandlerProvider;
 import org.junit.Before;
 import org.junit.Rule;
 import org.slf4j.Logger;
@@ -40,7 +44,7 @@ public class AbstractNodeTesting {
     protected static final ch.qos.logback.classic.Logger rootLogger =
             (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
-    protected PeerHandlerFactory factory;
+    protected BlockChainHandlerFactory factory;
 
     protected List<TestNode> nodeList;
 
@@ -53,16 +57,8 @@ public class AbstractNodeTesting {
 
     @Before
     public void setUp() {
-        nodeList = Collections.synchronizedList(new ArrayList<>());
-        setPeerHandlerFactory();
-    }
-
-    private void setPeerHandlerFactory() {
-        this.factory = peer -> {
-            ManagedChannel managedChannel = createChannel(peer);
-            grpcCleanup.register(managedChannel);
-            return new GRpcPeerHandler(managedChannel, peer);
-        };
+        this.nodeList = Collections.synchronizedList(new ArrayList<>());
+        this.factory = mockFactory();
     }
 
     protected TestNode createAndStartNode(int port, boolean enableBranch) {
@@ -79,17 +75,24 @@ public class AbstractNodeTesting {
 
     protected void createAndStartServer(TestNode node) {
         String ynodeUri = node.getPeer().getYnodeUri();
-        InProcessServerBuilder serverBuilder = InProcessServerBuilder.forName(ynodeUri).directExecutor().addService(
-                new DiscoveryService(node.discoveryConsumer));
-
-        if (node.blockChainConsumer != null) {
-            serverBuilder.addService(new BlockChainService(node.blockChainConsumer));
-        }
+        InProcessServerBuilder serverBuilder = InProcessServerBuilder.forName(ynodeUri).directExecutor();
+        addService(node, serverBuilder);
         node.server = serverBuilder.build();
         try {
             node.server.start();
         } catch (Exception e) {
             log.debug(e.getMessage());
+        }
+    }
+
+    void addService(TestNode node, ServerBuilder builder) {
+        builder.addService(new DiscoveryService(node.discoveryConsumer));
+        if (node.transactionService != null) {
+            builder.addService(node.transactionService);
+            for (BlockChain blockChain : node.getBranchGroup().getAllBranch()) {
+                builder.addService(BlockServiceFactory.create(blockChain.getConsensus().getAlgorithm(),
+                        node.getBranchGroup(), node.getSyncManger()));
+            }
         }
     }
 
@@ -113,6 +116,23 @@ public class AbstractNodeTesting {
         node.shutdown();
         log.info("Stop nodePort={}", node.port);
         nodeList.remove(node);
+    }
+
+    private BlockChainHandlerFactory mockFactory() {
+        return (consensusAlgorithm, peer) -> {
+            ManagedChannel managedChannel = createChannel(peer);
+            grpcCleanup.register(managedChannel);
+
+            switch (consensusAlgorithm) {
+                case "pbft":
+                    return new PeerHandlerProvider.PbftPeerHandler(managedChannel, peer);
+                case "ebft":
+                    return new PeerHandlerProvider.EbftPeerHandler(managedChannel, peer);
+                default:
+                    // BS Node only
+                    return new DiscoveryHandler(managedChannel, peer);
+            }
+        };
     }
 
 }

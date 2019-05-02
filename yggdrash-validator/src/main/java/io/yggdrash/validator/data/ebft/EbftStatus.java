@@ -1,7 +1,6 @@
 package io.yggdrash.validator.data.ebft;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.crypto.HashUtil;
@@ -32,18 +31,6 @@ public class EbftStatus {
         }
         this.timestamp = TimeUtils.time();
         this.signature = wallet.sign(getHashForSigning(), true);
-    }
-
-    public EbftStatus(JsonObject jsonObject) {
-        this.index = jsonObject.get("index").getAsLong();
-        if (jsonObject.get("unConfirmedList") != null) {
-            for (JsonElement pbftMessageJsonElement : jsonObject.get("unConfirmedList").getAsJsonArray()) {
-                EbftBlock ebftBlock = new EbftBlock(pbftMessageJsonElement.getAsJsonObject());
-                this.unConfirmedEbftBlockList.add(ebftBlock);
-            }
-        }
-        this.timestamp = jsonObject.get("timestamp").getAsLong();
-        this.signature = Hex.decode(jsonObject.get("signature").getAsString());
     }
 
     public EbftStatus(EbftProto.EbftStatus nodeStatus) {
@@ -138,11 +125,22 @@ public class EbftStatus {
         return SerializationUtil.serializeJson(toJsonObject());
     }
 
-    public boolean equals(EbftStatus newStatus) {
-        if (newStatus == null) {
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        return Arrays.equals(this.toBinary(), newStatus.toBinary());
+
+        EbftStatus other = (EbftStatus) o;
+        return Arrays.equals(toBinary(), other.toBinary());
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(toBinary());
     }
 
     public void clear() {

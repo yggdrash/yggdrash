@@ -58,8 +58,8 @@ public class BranchConfiguration {
     // TODO Remove Default Branch Load
     @Bean
     @ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
-    BlockChain yggdrash(BranchGroup branchGroup, ContractPolicyLoader contractPolicyLoader) throws IOException {
-        BlockChain yggdrash = createBranch(yggdrashResource.getInputStream(), contractPolicyLoader);
+    BlockChain yggdrash(BranchGroup branchGroup, ContractPolicyLoader policyLoader) throws IOException {
+        BlockChain yggdrash = createBranch(yggdrashResource.getInputStream(), policyLoader);
         branchGroup.addBranch(yggdrash);
         return yggdrash;
     }
@@ -70,7 +70,7 @@ public class BranchConfiguration {
     }
 
     @Bean
-    ContractPolicyLoader contractPolicyLoader() {
+    ContractPolicyLoader policyLoader() {
         return new ContractPolicyLoader();
     }
 

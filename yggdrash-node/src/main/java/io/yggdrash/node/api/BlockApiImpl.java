@@ -3,7 +3,7 @@ package io.yggdrash.node.api;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.gateway.dto.BlockDto;
@@ -33,7 +33,7 @@ public class BlockApiImpl implements BlockApi {
     @Override
     public BlockDto getBlockByHash(String branchId, String blockId, Boolean bool) {
         try {
-            Block block = branchGroup.getBlockByHash(BranchId.of(branchId), blockId);
+            ConsensusBlock block = branchGroup.getBlockByHash(BranchId.of(branchId), blockId);
             return BlockDto.createBy(block);
         } catch (Exception exception) {
             throw new NonExistObjectException("block");
@@ -43,7 +43,7 @@ public class BlockApiImpl implements BlockApi {
     @Override
     public BlockDto getBlockByNumber(String branchId, long numOfBlock, Boolean bool) {
         try {
-            Block block = branchGroup.getBlockByIndex(BranchId.of(branchId), numOfBlock);
+            ConsensusBlock block = branchGroup.getBlockByIndex(BranchId.of(branchId), numOfBlock);
             return BlockDto.createBy(block);
         } catch (Exception exception) {
             throw new NonExistObjectException("block");
@@ -62,7 +62,7 @@ public class BlockApiImpl implements BlockApi {
     @Override
     public BlockDto getLastBlock(String branchId) {
         BranchId id = BranchId.of(branchId);
-        Block blockHusk = branchGroup.getBlockByIndex(id, branchGroup.getLastIndex(id));
-        return BlockDto.createBy(blockHusk);
+        ConsensusBlock block = branchGroup.getBlockByIndex(id, branchGroup.getLastIndex(id));
+        return BlockDto.createBy(block);
     }
 }

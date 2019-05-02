@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.blockchain;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.util.TimeUtils;
@@ -44,28 +43,24 @@ public class TransactionHeaderTest {
 
     private TransactionBody txBody;
 
-
     @Before
     public void init() {
 
-        JsonObject jsonObject1 = new JsonObject();
-        jsonObject1.addProperty("test1", "01");
-
-        JsonObject jsonObject2 = new JsonObject();
-        jsonObject2.addProperty("test2", "02");
-
-        JsonArray jsonArray = new JsonArray();
-        jsonArray.add(jsonObject1);
-        jsonArray.add(jsonObject2);
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("test1", "01");
 
         timestamp = TimeUtils.time();
-        txBody = new TransactionBody(jsonArray);
-        bodyHash = txBody.getBodyHash();
-        bodyLength = txBody.length();
+        txBody = new TransactionBody(jsonObject);
+        bodyHash = txBody.getHash();
+        bodyLength = txBody.getLength();
     }
 
     @Test
     public void testTransactionHeader() {
+
+        TransactionHeader txHeader =
+                new TransactionHeader(chain, version, type, Long.MAX_VALUE, bodyHash, Long.MAX_VALUE);
+        assertEquals(TransactionHeader.LENGTH, txHeader.getBinaryForSigning().length);
 
         TransactionHeader txHeader1 =
                 new TransactionHeader(chain, version, type, timestamp, bodyHash, bodyLength);

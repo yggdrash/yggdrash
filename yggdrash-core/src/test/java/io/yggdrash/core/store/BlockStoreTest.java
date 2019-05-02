@@ -19,7 +19,8 @@ package io.yggdrash.core.store;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
-import io.yggdrash.core.consensus.Block;
+import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.proto.PbftProto;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Test;
@@ -34,11 +35,11 @@ public class BlockStoreTest {
     @Test
     public void shouldBeGotBlock() {
         LevelDbDataSource ds = new LevelDbDataSource(StoreTestUtils.getTestPath(), "block-store-test");
-        BlockHuskStore blockStore = new BlockHuskStore(ds);
-        Block blockHuskFixture = BlockChainTestUtils.genesisBlock();
-        blockStore.put(blockHuskFixture.getHash(), blockHuskFixture);
-        Block foundBlockHusk = blockStore.get(blockHuskFixture.getHash());
-        Assertions.assertThat(foundBlockHusk).isEqualTo(blockHuskFixture);
-        Assertions.assertThat(blockStore.get(foundBlockHusk.getHash())).isEqualTo(foundBlockHusk);
+        PbftBlockStoreMock blockStore = new PbftBlockStoreMock(ds);
+        ConsensusBlock<PbftProto.PbftBlock> block = BlockChainTestUtils.genesisBlock();
+        blockStore.put(block.getHash(), block);
+        ConsensusBlock<PbftProto.PbftBlock> foundBlock = blockStore.get(block.getHash());
+        Assertions.assertThat(foundBlock).isEqualTo(block);
+        Assertions.assertThat(blockStore.get(foundBlock.getHash())).isEqualTo(foundBlock);
     }
 }

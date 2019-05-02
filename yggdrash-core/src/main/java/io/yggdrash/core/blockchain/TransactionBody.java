@@ -16,7 +16,7 @@
 
 package io.yggdrash.core.blockchain;
 
-import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.common.utils.SerializationUtil;
@@ -25,35 +25,31 @@ import java.util.Arrays;
 
 public class TransactionBody {
 
-    private final JsonArray body = new JsonArray();
+    private JsonObject body; //TODO Change modifier to final
 
     private byte[] binary;
 
-    public TransactionBody(JsonArray body) {
-        this.body.addAll(body);
-    }
-
-    public TransactionBody(byte[] bodyBytes) {
-        this(SerializationUtil.deserializeString(bodyBytes));
-    }
-
     public TransactionBody(String body) {
-        this.body.addAll(JsonUtil.parseJsonArray(body));
+        this.body = JsonUtil.parseJsonObject(body);
     }
 
-    public JsonArray getBody() {
+    public TransactionBody(JsonObject body) {
+        this.body = body;
+    }
+
+    public JsonObject getBody() {
         return this.body;
     }
 
-    long getBodyCount() {
+    long getCount() {
         return this.body.size();
     }
 
-    public long length() {
+    public long getLength() {
         return toBinary().length;
     }
 
-    public byte[] getBodyHash() {
+    public byte[] getHash() {
         return HashUtil.sha3(toBinary());
     }
 
@@ -73,12 +69,18 @@ public class TransactionBody {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        TransactionBody that = (TransactionBody) o;
-        return Arrays.equals(toBinary(), that.toBinary());
+
+        TransactionBody other = (TransactionBody) o;
+        return Arrays.equals(toBinary(), other.toBinary());
     }
 
     @Override
     public int hashCode() {
         return Arrays.hashCode(toBinary());
+    }
+
+    @Override
+    public String toString() {
+        return body.toString();
     }
 }

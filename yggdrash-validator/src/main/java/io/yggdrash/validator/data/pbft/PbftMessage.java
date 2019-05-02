@@ -3,11 +3,13 @@ package io.yggdrash.validator.data.pbft;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
@@ -32,14 +34,14 @@ public class PbftMessage {
     public PbftMessage(String type,
                        long viewNumber,
                        long seqNumber,
-                       byte[] hash,
+                       Sha3Hash hash,
                        byte[] result,
                        byte[] signature,
                        Block block) {
         this.type = type;
         this.viewNumber = viewNumber;
         this.seqNumber = seqNumber;
-        this.hash = hash;
+        this.hash = hash.getBytes();
         this.result = result;
         this.signature = signature;
         this.block = block; // todo: whether check PrePrepare message
@@ -48,14 +50,14 @@ public class PbftMessage {
     public PbftMessage(String type,
                        long viewNumber,
                        long seqNumber,
-                       byte[] hash,
+                       Sha3Hash hash,
                        byte[] result,
                        Wallet wallet,
                        Block block) {
         this.type = type;
         this.viewNumber = viewNumber;
         this.seqNumber = seqNumber;
-        this.hash = hash;
+        this.hash = hash.getBytes();
         this.result = result;
         this.signature = this.sign(wallet);
         this.block = block; // todo: whether check PrePrepare message
@@ -69,11 +71,12 @@ public class PbftMessage {
         this(protoPbftMessage.getType(),
                 protoPbftMessage.getViewNumber(),
                 protoPbftMessage.getSeqNumber(),
-                protoPbftMessage.getHash().toByteArray(),
+                Sha3Hash.createByHashed(protoPbftMessage.getHash().toByteArray()),
                 protoPbftMessage.getResult().toByteArray().length == 0
                         ? null : protoPbftMessage.getResult().toByteArray(),
                 protoPbftMessage.getSignature().toByteArray(),
-                Block.toBlock(protoPbftMessage.getBlock()));
+                protoPbftMessage.getBlock().getSerializedSize() == 0 ? null :
+                        new BlockImpl(protoPbftMessage.getBlock()));
     }
 
     public PbftMessage(JsonObject jsonObject) {
@@ -92,7 +95,7 @@ public class PbftMessage {
 
         JsonElement blockJsonElement = jsonObject.get("block");
         if (blockJsonElement != null) {
-            this.block = new Block(blockJsonElement.getAsJsonObject());
+            this.block = new BlockImpl(blockJsonElement.getAsJsonObject());
         } else {
             this.block = null;
         }
@@ -182,7 +185,7 @@ public class PbftMessage {
                 return false;
             }
 
-            return Arrays.equals(pbftMessage.getHash(), pbftMessage.getBlock().getHash())
+            return Arrays.equals(pbftMessage.getHash(), pbftMessage.getBlock().getHash().getBytes())
                     && pbftMessage.getBlock().verify();
         }
 
@@ -233,7 +236,7 @@ public class PbftMessage {
             protoPbftMessageBuilder.setSignature(ByteString.copyFrom(pbftMessage.getSignature()));
         }
         if (pbftMessage.getBlock() != null) {
-            protoPbftMessageBuilder.setBlock(Block.toProtoBlock(pbftMessage.getBlock()));
+            protoPbftMessageBuilder.setBlock(pbftMessage.getBlock().getProtoBlock());
         }
         return protoPbftMessageBuilder.build();
     }
@@ -250,11 +253,22 @@ public class PbftMessage {
         return protoPbftMessageListBuilder.build();
     }
 
-    public boolean equals(PbftMessage newPbftMessage) {
-        if (newPbftMessage == null) {
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        return Arrays.equals(this.toBinary(), newPbftMessage.toBinary());
+
+        PbftMessage other = (PbftMessage) o;
+        return Arrays.equals(toBinary(), other.toBinary());
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(toBinary());
     }
 
     public void clear() {

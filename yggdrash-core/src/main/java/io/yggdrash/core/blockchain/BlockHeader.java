@@ -17,11 +17,11 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
-import com.google.protobuf.util.Timestamps;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.utils.ByteUtil;
-import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.Proto;
 import org.spongycastle.util.encoders.Hex;
@@ -29,33 +29,25 @@ import org.spongycastle.util.encoders.Hex;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Objects;
 
-
-public class BlockHeader {
+public class BlockHeader implements ProtoObject<Proto.Block.Header> {
 
     static final int LENGTH = 124;
 
-    static final int CHAIN_LENGTH = 20;
     static final int VERSION_LENGTH = 8;
     static final int TYPE_LENGTH = 8;
-    static final int PREVBLOCKHASH_LENGTH = 32;
-    static final int INDEX_LENGTH = 8;
-    static final int TIMESTAMP_LENGTH = 8;
-    static final int MERKLEROOT_LENGTH = 32;
-    static final int BODYLENGTH_LENGTH = 8;
 
-    // Data format v0.0.3
-    private final byte[] chain;           // 20 Bytes
-    private final byte[] version;         // 8 Bytes
-    private final byte[] type;            // 8 Bytes
-    private final byte[] prevBlockHash;   // 32 Bytes
-    private final long index;             // 8 Bytes
-    private final long timestamp;         // 8 Bytes
-    private final byte[] merkleRoot;      // 32 Bytes
-    private final long bodyLength;        // 8 Bytes
+    private final Proto.Block.Header protoHeader;
 
-    private byte[] binary;
+    private byte[] binaryForSigning;
+
+    public BlockHeader(byte[] bytes) {
+        this(toProto(bytes));
+    }
+
+    public BlockHeader(Proto.Block.Header protoBlockHeader) {
+        this.protoHeader = protoBlockHeader;
+    }
 
     public BlockHeader(
             byte[] chain,
@@ -66,14 +58,17 @@ public class BlockHeader {
             long timestamp,
             byte[] merkleRoot,
             long bodyLength) {
-        this.chain = chain;
-        this.version = version;
-        this.type = type;
-        this.prevBlockHash = prevBlockHash;
-        this.index = index;
-        this.timestamp = timestamp;
-        this.merkleRoot = merkleRoot;
-        this.bodyLength = bodyLength;
+
+        this.protoHeader = Proto.Block.Header.newBuilder()
+                .setChain(ByteString.copyFrom(chain))
+                .setVersion(ByteString.copyFrom(version))
+                .setType(ByteString.copyFrom(type))
+                .setPrevBlockHash(ByteString.copyFrom(prevBlockHash))
+                .setIndex(index)
+                .setTimestamp(timestamp)
+                .setMerkleRoot(ByteString.copyFrom(merkleRoot))
+                .setBodyLength(bodyLength)
+                .build();
     }
 
     public BlockHeader(
@@ -84,147 +79,120 @@ public class BlockHeader {
             long index,
             long timestamp,
             BlockBody blockBody) {
-        this(chain, version, type, prevBlockHash, index, timestamp,
-                blockBody.getMerkleRoot(), blockBody.length());
+        this(chain, version, type, prevBlockHash, index, timestamp, blockBody.getMerkleRoot(), blockBody.getLength());
     }
 
     public BlockHeader(JsonObject jsonObject) {
-        this.chain = Hex.decode(jsonObject.get("chain").getAsString());
-        this.version = Hex.decode(jsonObject.get("version").getAsString());
-        this.type = Hex.decode(jsonObject.get("type").getAsString());
-        this.prevBlockHash = Hex.decode(jsonObject.get("prevBlockHash").getAsString());
-        this.index = HexUtil.hexStringToLong(jsonObject.get("index").getAsString());
-        this.timestamp = HexUtil.hexStringToLong(jsonObject.get("timestamp").getAsString());
-        this.merkleRoot = Hex.decode(jsonObject.get("merkleRoot").getAsString());
-        this.bodyLength = HexUtil.hexStringToLong(jsonObject.get("bodyLength").getAsString());
-    }
-
-    public BlockHeader(byte[] blockHeaderBytes) {
-        int pos = 0;
-
-        this.chain = new byte[CHAIN_LENGTH];
-        System.arraycopy(blockHeaderBytes, pos, this.chain, 0, this.chain.length);
-        pos += this.chain.length;
-
-        this.version = new byte[VERSION_LENGTH];
-        System.arraycopy(blockHeaderBytes, pos, this.version, 0, this.version.length);
-        pos += this.version.length;
-
-        this.type = new byte[TYPE_LENGTH];
-        System.arraycopy(blockHeaderBytes, pos, this.type, 0, this.type.length);
-        pos += this.type.length;
-
-        this.prevBlockHash = new byte[PREVBLOCKHASH_LENGTH];
-        System.arraycopy(blockHeaderBytes, pos, this.prevBlockHash, 0, this.prevBlockHash.length);
-        pos += this.prevBlockHash.length;
-
-        byte[] indexBytes = new byte[INDEX_LENGTH];
-        System.arraycopy(blockHeaderBytes, pos, indexBytes, 0, indexBytes.length);
-        pos += indexBytes.length;
-        this.index = ByteUtil.byteArrayToLong(indexBytes);
-
-        byte[] timestampBytes = new byte[TIMESTAMP_LENGTH];
-        System.arraycopy(blockHeaderBytes, pos, timestampBytes, 0, timestampBytes.length);
-        pos += timestampBytes.length;
-        this.timestamp = ByteUtil.byteArrayToLong(timestampBytes);
-
-        this.merkleRoot = new byte[MERKLEROOT_LENGTH];
-        System.arraycopy(blockHeaderBytes, pos, this.merkleRoot, 0, this.merkleRoot.length);
-        pos += this.merkleRoot.length;
-
-        byte[] bodyLengthBytes = new byte[BODYLENGTH_LENGTH];
-        System.arraycopy(blockHeaderBytes, pos, bodyLengthBytes, 0, bodyLengthBytes.length);
-        pos += bodyLengthBytes.length;
-        this.bodyLength = ByteUtil.byteArrayToLong(bodyLengthBytes);
-
-        if (pos != blockHeaderBytes.length) {
-            throw new NotValidateException();
-        }
+        this(Hex.decode(jsonObject.get("chain").getAsString()),
+                Hex.decode(jsonObject.get("version").getAsString()),
+                Hex.decode(jsonObject.get("type").getAsString()),
+                Hex.decode(jsonObject.get("prevBlockHash").getAsString()),
+                HexUtil.hexStringToLong(jsonObject.get("index").getAsString()),
+                HexUtil.hexStringToLong(jsonObject.get("timestamp").getAsString()),
+                Hex.decode(jsonObject.get("merkleRoot").getAsString()),
+                HexUtil.hexStringToLong(jsonObject.get("bodyLength").getAsString()));
     }
 
     public byte[] getChain() {
-        return chain;
+        return protoHeader.getChain().toByteArray();
     }
 
     public byte[] getVersion() {
-        return version;
+        return protoHeader.getVersion().toByteArray();
     }
 
     public byte[] getType() {
-        return type;
+        return protoHeader.getType().toByteArray();
     }
 
     public byte[] getPrevBlockHash() {
-        return prevBlockHash;
+        return protoHeader.getPrevBlockHash().toByteArray();
     }
 
     public long getIndex() {
-        return index;
+        return protoHeader.getIndex();
     }
 
     public long getTimestamp() {
-        return timestamp;
+        return protoHeader.getTimestamp();
     }
 
     public byte[] getMerkleRoot() {
-        return merkleRoot;
+        return protoHeader.getMerkleRoot().toByteArray();
     }
 
     public long getBodyLength() {
-        return bodyLength;
+        return protoHeader.getBodyLength();
     }
 
-    public byte[] toBinary() {
-        if (binary != null) {
-            return binary;
+    /**
+     * Get the headerHash for signing.
+     *
+     * @return hash of header
+     */
+    public byte[] getHashForSigning() {
+        return HashUtil.sha3(getBinaryForSigning());
+    }
+
+    /**
+     * Get the binary data of BlockHeader (120Byte)
+     *
+     * @return the binary data
+     */
+    public byte[] getBinaryForSigning() {
+        if (binaryForSigning == null) {
+            setBinaryForSigning();
         }
 
+        return binaryForSigning;
+    }
+
+    private void setBinaryForSigning() {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
         try {
-            bao.write(chain);
-            bao.write(version);
-            bao.write(type);
-            bao.write(prevBlockHash);
-            bao.write(ByteUtil.longToBytes(index));
-            bao.write(ByteUtil.longToBytes(timestamp));
-            bao.write(merkleRoot);
-            bao.write(ByteUtil.longToBytes(bodyLength));
-
-            binary = bao.toByteArray();
-            return binary;
+            bao.write(getChain());
+            bao.write(getVersion());
+            bao.write(getType());
+            bao.write(getPrevBlockHash());
+            bao.write(ByteUtil.longToBytes(getIndex()));
+            bao.write(ByteUtil.longToBytes(getTimestamp()));
+            bao.write(getMerkleRoot());
+            bao.write(ByteUtil.longToBytes(getBodyLength()));
         } catch (IOException e) {
-            throw new InternalErrorException("toBinary error");
+            throw new NotValidateException();
         }
+
+        this.binaryForSigning = bao.toByteArray();
     }
 
-    public long length() {
-        return this.toBinary().length;
+    @Override
+    public byte[] toBinary() {
+        return protoHeader.toByteArray();
     }
 
-    public byte[] getHashForSigning() {
-        return HashUtil.sha3(this.toBinary());
+    @Override
+    public Proto.Block.Header getInstance() {
+        return protoHeader;
     }
 
+    /**
+     * Convert from BlockHeader to JsonObject.
+     *
+     * @return jsonObject of block header
+     */
     public JsonObject toJsonObject() {
-
         JsonObject jsonObject = new JsonObject();
 
-        jsonObject.addProperty("chain", Hex.toHexString(this.chain));
-        jsonObject.addProperty("version", Hex.toHexString(this.version));
-        jsonObject.addProperty("type", Hex.toHexString(this.type));
-        jsonObject.addProperty("prevBlockHash", Hex.toHexString(this.prevBlockHash));
-        jsonObject.addProperty("index", Hex.toHexString(ByteUtil.longToBytes(this.index)));
-        jsonObject.addProperty("timestamp",
-                Hex.toHexString(ByteUtil.longToBytes(this.timestamp)));
-        jsonObject.addProperty("merkleRoot", Hex.toHexString(this.merkleRoot));
-        jsonObject.addProperty("bodyLength",
-                Hex.toHexString(ByteUtil.longToBytes(this.bodyLength)));
+        jsonObject.addProperty("chain", Hex.toHexString(getChain()));
+        jsonObject.addProperty("version", Hex.toHexString(getVersion()));
+        jsonObject.addProperty("type", Hex.toHexString(getType()));
+        jsonObject.addProperty("prevBlockHash", Hex.toHexString(getPrevBlockHash()));
+        jsonObject.addProperty("index", Hex.toHexString(ByteUtil.longToBytes(getIndex())));
+        jsonObject.addProperty("timestamp", Hex.toHexString(ByteUtil.longToBytes(getTimestamp())));
+        jsonObject.addProperty("merkleRoot", Hex.toHexString(getMerkleRoot()));
+        jsonObject.addProperty("bodyLength", Hex.toHexString(ByteUtil.longToBytes(getBodyLength())));
 
         return jsonObject;
-    }
-
-    public String toString() {
-        return this.toJsonObject().toString();
     }
 
     @Override
@@ -242,20 +210,19 @@ public class BlockHeader {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(toBinary());
+        return Arrays.hashCode(toBinary());
     }
 
-    static BlockHeader toBlockHeader(Proto.Block.Header protoBlockHeader) {
+    @Override
+    public String toString() {
+        return toJsonObject().toString();
+    }
 
-        return new BlockHeader(
-                protoBlockHeader.getChain().toByteArray(),
-                protoBlockHeader.getVersion().toByteArray(),
-                protoBlockHeader.getType().toByteArray(),
-                protoBlockHeader.getPrevBlockHash().toByteArray(),
-                protoBlockHeader.getIndex(),
-                Timestamps.toMillis(protoBlockHeader.getTimestamp()),
-                protoBlockHeader.getMerkleRoot().toByteArray(),
-                protoBlockHeader.getBodyLength()
-        );
+    private static Proto.Block.Header toProto(byte[] bytes) {
+        try {
+            return Proto.Block.Header.parseFrom(bytes);
+        } catch (InvalidProtocolBufferException e) {
+            throw new NotValidateException(e);
+        }
     }
 }
