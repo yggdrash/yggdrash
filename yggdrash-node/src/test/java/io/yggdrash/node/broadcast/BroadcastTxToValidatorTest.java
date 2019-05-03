@@ -40,7 +40,7 @@ public class BroadcastTxToValidatorTest extends TcpNodeTesting {
         proxyNode.bootstrapping();
 
         // act
-        proxyNode.getDefaultBranch().addTransaction(BlockChainTestUtils.createTransferTxHusk());
+        proxyNode.getDefaultBranch().addTransaction(BlockChainTestUtils.createTransferTx());
         Utils.sleep(500);
 
         // assert

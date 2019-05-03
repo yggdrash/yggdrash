@@ -43,7 +43,6 @@ public class BranchDto {
     // TODO Change Contract Ids (as List)
     public List<Map<String,Object>> contracts;
     public String timestamp;
-    public List<String> validator;
 
     public Map<String, Object> consensus;
 

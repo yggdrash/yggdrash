@@ -255,6 +255,11 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         return addBlock(block, true);
     }
 
+    @Override
+    public boolean isValidator(String addr) {
+        return branchStore.isValidator(addr);
+    }
+
     private boolean isValidNewBlock(ConsensusBlock<T> prevBlock, ConsensusBlock<T> nextBlock) {
         if (prevBlock == null) {
             return true;

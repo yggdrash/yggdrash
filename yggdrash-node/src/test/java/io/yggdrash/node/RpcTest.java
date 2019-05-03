@@ -50,23 +50,23 @@ public class RpcTest extends TcpNodeTesting {
         ManagedChannel channel = createChannel(peer);
         handler = new PeerHandlerProvider.PbftPeerHandler(channel, peer);
 
-        setBlockHuskList();
-        setTxHuskList();
+        setBlockList();
+        setTxList();
 
         log.debug("{} nodes bootstrapped", NODE_CNT);
-        log.debug("BlockHuskList and TxHuskList are set: size of BlockHuskList={}, TxHuskList={}",
+        log.debug("BlockList and TxList are set: size of BlockList={}, TxList={}",
                 blockList.size(), txList.size());
     }
 
-    private void setBlockHuskList() {
+    private void setBlockList() {
         blockList = new ArrayList<>();
         createBlockList(BlockChainTestUtils.createNextBlock());
     }
 
-    private void createBlockList(ConsensusBlock blockHusk) {
+    private void createBlockList(ConsensusBlock block) {
         while (blockList.size() < 10) {
-            blockList.add(blockHusk);
-            createBlockList(BlockChainTestUtils.createNextBlock(blockHusk));
+            blockList.add(block);
+            createBlockList(BlockChainTestUtils.createNextBlock(block));
         }
     }
 
@@ -75,11 +75,10 @@ public class RpcTest extends TcpNodeTesting {
         BlockChainTestUtils.setBlockHeightOfBlockChain(branch, 10);
     }
 
-    private void setTxHuskList() {
+    private void setTxList() {
         txList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            String description = "TEST" + i;
-            txList.add(BlockChainTestUtils.createBranchTxHusk(description));
+            txList.add(BlockChainTestUtils.createTransferTx());
         }
     }
 
@@ -113,8 +112,8 @@ public class RpcTest extends TcpNodeTesting {
         Future<List<ConsensusBlock>> futureBlockList = handler.syncBlock(branch.getBranchId(), 5);
 
         List<ConsensusBlock> blockList = futureBlockList.get();
-        for (ConsensusBlock blockHusk : blockList) {
-            Assert.assertEquals(branch.getBlockByIndex(blockHusk.getIndex()), blockHusk);
+        for (ConsensusBlock block : blockList) {
+            Assert.assertEquals(branch.getBlockByIndex(block.getIndex()), block);
         }
     }
 
@@ -137,7 +136,7 @@ public class RpcTest extends TcpNodeTesting {
     private List<Transaction> getTmpTxList() {
         List<Transaction> txList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            txList.add(BlockChainTestUtils.createTransferTxHusk());
+            txList.add(BlockChainTestUtils.createTransferTx());
         }
         return txList;
     }

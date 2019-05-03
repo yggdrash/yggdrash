@@ -20,17 +20,17 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 
 public interface BranchStateStore {
-    public Long getLastExecuteBlockIndex();
+    Long getLastExecuteBlockIndex();
 
-    public Sha3Hash getLastExecuteBlockHash();
+    Sha3Hash getLastExecuteBlockHash();
 
-    public Sha3Hash getGenesisBlockHash();
+    Sha3Hash getGenesisBlockHash();
 
-    public Sha3Hash getBranchIdHash();
+    Sha3Hash getBranchIdHash();
 
-    public ValidatorSet getValidators();
+    ValidatorSet getValidators();
 
-    public void setValidators(ValidatorSet validatorSet);
+    void setValidators(ValidatorSet validatorSet);
 
-    public boolean isValidator(String address);
+    boolean isValidator(String address);
 }

@@ -38,9 +38,9 @@ public class EhCacheSourceTest {
                         .newCacheConfigurationBuilder(String.class, Transaction.class,
                                 ResourcePoolsBuilder.heap(10)));
         assertThat(cache).isNotNull();
-        Transaction txHusk = BlockChainTestUtils.createTransferTxHusk();
-        cache.put(txHusk.getHash().toString(), txHusk);
-        Transaction foundTx = cache.get(txHusk.getHash().toString());
-        assertThat(foundTx).isEqualTo(txHusk);
+        Transaction tx = BlockChainTestUtils.createTransferTx();
+        cache.put(tx.getHash().toString(), tx);
+        Transaction foundTx = cache.get(tx.getHash().toString());
+        assertThat(foundTx).isEqualTo(tx);
     }
 }

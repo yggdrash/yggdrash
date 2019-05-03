@@ -46,7 +46,7 @@ public class SimpleTxBroadcastTest extends AbstractNodeTesting {
         // act
         for (int i = 1; i < nodeCount; i++) {
             // broadcast 100 nodes (inProcess=300ms, tcp=700ms)
-            Transaction tx = BlockChainTestUtils.createTransferTxHusk();
+            Transaction tx = BlockChainTestUtils.createTransferTx();
             nodeList.get(i).getBranchGroup().addTransaction(tx);
             log.info("broadcast finish={}", i);
         }

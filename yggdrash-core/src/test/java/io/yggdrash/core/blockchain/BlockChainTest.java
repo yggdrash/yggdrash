@@ -131,7 +131,7 @@ public class BlockChainTest extends CiTest {
         long nextIndex = blockChain.getLastIndex() + 1;
         ConsensusBlock testBlock = getBlockFixture(nextIndex, block.getHash());
         blockChain.addBlock(testBlock, false);
-        blockChain.addTransaction(BlockChainTestUtils.createTransferTxHusk());
+        blockChain.addTransaction(BlockChainTestUtils.createTransferTx());
     }
 
     private static BlockChain generateTestBlockChain(boolean isProductionMode) {

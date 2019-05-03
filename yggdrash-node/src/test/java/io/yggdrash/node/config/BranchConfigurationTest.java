@@ -93,7 +93,7 @@ public class BranchConfigurationTest {
     }
 
     private JsonObject getBranchJson() throws IOException {
-        Resource resource = resourceLoader.getResource("classpath:/branch/branch-yggdrash.json");
+        Resource resource = resourceLoader.getResource("classpath:/branch-yggdrash.json");
         Reader json = new InputStreamReader(resource.getInputStream(), FileUtil.DEFAULT_CHARSET);
         return JsonUtil.parseJsonObject(json);
     }

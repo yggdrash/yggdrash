@@ -43,7 +43,7 @@ public class BranchGroupTest {
     @Before
     public void setUp() {
         branchGroup = BlockChainTestUtils.createBranchGroup();
-        tx = BlockChainTestUtils.createBranchTxHusk();
+        tx = BlockChainTestUtils.createBranchTx();
         assertThat(branchGroup.getBranchSize()).isEqualTo(1);
         BlockChain bc = branchGroup.getBranch(tx.getBranchId());
         //block = newBlock(Collections.singletonList(tx), bc.getPrevBlock());
@@ -126,8 +126,8 @@ public class BranchGroupTest {
         while (blockChain.getLastIndex() < 10) {
             log.debug("Last Index : {}", blockChain.getLastIndex());
             branchGroup.addBlock(block);
-            ConsensusBlock nextBlockHusk = BlockChainTestUtils.createNextBlock(Collections.emptyList(), block);
-            addMultipleBlock(nextBlockHusk);
+            ConsensusBlock nextBlock = BlockChainTestUtils.createNextBlock(Collections.emptyList(), block);
+            addMultipleBlock(nextBlock);
         }
     }
 
@@ -143,6 +143,6 @@ public class BranchGroupTest {
 
     private Transaction createTx(int amount) {
         JsonObject txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, amount);
-        return BlockChainTestUtils.createTxHusk(yggdrash(), txBody);
+        return BlockChainTestUtils.createTx(yggdrash(), txBody);
     }
 }

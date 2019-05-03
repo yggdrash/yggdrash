@@ -105,7 +105,7 @@ public class DiscoveryHandler<T> implements BlockChainHandler<T> {
     }
 
     @Override
-    public void broadcastTx(Transaction txHusk) {
+    public void broadcastTx(Transaction tx) {
         throw NOT_IMPLEMENTED;
     }
 }

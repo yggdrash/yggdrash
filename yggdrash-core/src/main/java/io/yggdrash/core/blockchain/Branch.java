@@ -29,9 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 
 public class Branch {
@@ -44,9 +42,6 @@ public class Branch {
     private final JsonObject json;
     private final List<BranchContract> contracts;
     protected String description;
-
-    // TODO change ACL Validators
-    private final Set<String> validators;
 
     private final JsonObject consensus;
 
@@ -69,8 +64,6 @@ public class Branch {
             }
         }
         this.description = json.get("description").getAsString();
-        this.validators = JsonUtil.convertJsonArrayToSet(
-                json.get("validator").getAsJsonArray());
         this.consensus = json.get("consensus").getAsJsonObject();
         this.branchId = BranchId.of(toJsonObject());
     }
@@ -102,19 +95,6 @@ public class Branch {
     public String getDescription() {
         return description;
     }
-
-    public Set<String> getValidators() {
-        return new HashSet<>(this.validators);
-    }
-
-    public boolean addValidator(String validator) {
-        return this.validators.add(validator);
-    }
-
-    public boolean removeValidator(String validator) {
-        return this.validators.remove(validator);
-    }
-
 
     public long getTimestamp() {
         return timestamp;
@@ -167,9 +147,6 @@ public class Branch {
         JsonArray contractJson = new JsonArray();
         contracts.forEach(c -> contractJson.add(c.getJson()));
         branchJson.add("contracts", contractJson);
-        JsonArray validatorArray = new JsonArray();
-        validators.forEach(validatorArray::add);
-        branchJson.add("validator", validatorArray);
         branchJson.add("consensus", consensus);
         return branchJson;
     }

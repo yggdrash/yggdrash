@@ -26,8 +26,8 @@ public class TrieTests {
     @Before
     public void setUp() {
         // create sample tx
-        this.tx1 = BlockChainTestUtils.createTransferTxHusk();
-        this.tx2 = BlockChainTestUtils.createTransferTxHusk();
+        this.tx1 = BlockChainTestUtils.createTransferTx();
+        this.tx2 = BlockChainTestUtils.createTransferTx();
     }
 
     @Test

@@ -82,30 +82,30 @@ public class PeerHandlerMock implements BlockChainHandler {
     public Future<List<ConsensusBlock>> syncBlock(BranchId branchId, long offset) {
         log.debug("[PeerHandlerMock] SyncBlock branchId={}, offset={}", branchId, offset);
 
-        CompletableFuture<List<ConsensusBlock>> husksCompletableFuture = new CompletableFuture<>();
+        CompletableFuture<List<ConsensusBlock>> future = new CompletableFuture<>();
 
         List<ConsensusBlock> tmp = new ArrayList<>();
         if (offset < 33) {
             for (int i = (int) offset; i < (int) offset + 33; i++) {
-                tmp.add(BlockChainTestUtils.getSampleBlockHuskList().get(i));
+                tmp.add(BlockChainTestUtils.getSampleBlockList().get(i));
             }
         }
-        husksCompletableFuture.complete(tmp);
-        return husksCompletableFuture;
+        future.complete(tmp);
+        return future;
     }
 
     @Override
     public Future<List<Transaction>> syncTx(BranchId branchId) {
         log.debug("[PeerHandlerMock] SyncTx branchId={}", branchId);
 
-        CompletableFuture<List<Transaction>> husksCompletableFuture = new CompletableFuture<>();
-        husksCompletableFuture.complete(Collections.singletonList(BlockChainTestUtils.createTransferTxHusk()));
+        CompletableFuture<List<Transaction>> future = new CompletableFuture<>();
+        future.complete(Collections.singletonList(BlockChainTestUtils.createTransferTx()));
 
-        return husksCompletableFuture;
+        return future;
     }
 
     @Override
-    public void broadcastBlock(ConsensusBlock blockHusk) {
+    public void broadcastBlock(ConsensusBlock block) {
 
     }
 

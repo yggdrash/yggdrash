@@ -58,7 +58,7 @@ public class GrpcTransactionServiceTest {
     public void setUp() {
         grpcServerRule.getServiceRegistry().addService(new TransactionService(branchGroupMock));
 
-        tx = BlockChainTestUtils.createTransferTxHusk();
+        tx = BlockChainTestUtils.createTransferTx();
         block = BlockChainTestUtils.genesisBlock();
         branchId = block.getBranchId();
     }
@@ -88,7 +88,7 @@ public class GrpcTransactionServiceTest {
                     }
                 }
         );
-        requestObserver.onNext(BlockChainTestUtils.createTransferTxHusk().getInstance());
+        requestObserver.onNext(BlockChainTestUtils.createTransferTx().getInstance());
         requestObserver.onCompleted();
 
         if (future.isDone()) {

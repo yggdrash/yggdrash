@@ -38,7 +38,7 @@ public class TransactionStoreTest {
     public void setUp() {
         ts = new TransactionStore(new HashMapDbSource());
         assertThat(ts).isNotNull();
-        tx = BlockChainTestUtils.createTransferTxHusk();
+        tx = BlockChainTestUtils.createTransferTx();
     }
 
     @Test
@@ -48,7 +48,7 @@ public class TransactionStoreTest {
 
         // 캐시 사이즈보다 하나 더 입력
         for (int i = 0; i < cacheSize + 1; i++) {
-            tx = BlockChainTestUtils.createTransferTxHusk();
+            tx = BlockChainTestUtils.createTransferTx();
             ts.put(tx.getHash(), tx);
         }
 
