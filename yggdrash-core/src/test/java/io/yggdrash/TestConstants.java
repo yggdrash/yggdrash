@@ -38,7 +38,7 @@ public class TestConstants {
     static ContractVersion STEM_CONTRACT;
     public static ContractVersion YEED_CONTRACT;
     public static Branch TEST_BRANCH;
-    public static final File BRANCH_FILE;
+    public static File BRANCH_FILE;
 
     public static final String TRANSFER_TO = "e1980adeafbb9ac6c9be60955484ab1547ab0b76";
 
@@ -56,6 +56,9 @@ public class TestConstants {
         try {
             wallet = new Wallet(new DefaultConfig(), "Password1234!");
             BRANCH_FILE = new File("../yggdrash-core/src/main/resources", "branch-yggdrash.json");
+            if (!BRANCH_FILE.exists()) {
+                BRANCH_FILE = new File("yggdrash-core/src/main/resources", "branch-yggdrash.json");
+            }
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
         }

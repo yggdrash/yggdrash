@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.protobuf.util.Timestamps;
 import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchEventListener;
@@ -70,13 +71,16 @@ public class BlockChainCollector implements BranchEventListener {
 
         if (block.getBlock().getBody().getLength() > 0) {
             Map<String, JsonObject> transactionMap = new HashMap<>();
-            List<Transaction> txs = (List<Transaction>) block.getBody();
+            List<Transaction> txs = block.getBody().getTransactionList();
             String txHash;
             for (Transaction tx : txs) {
                 try {
                     txHash = tx.getHash().toString();
                     json = mapper.writeValueAsString(TransactionDto.createBy(tx));
                     jsonObject = new JsonParser().parse(json).getAsJsonObject();
+                    long t = jsonObject.get("timestamp").getAsLong();
+                    jsonObject.addProperty("timestamp",
+                            Timestamps.toString(Timestamps.fromMillis(t)));
                     transactionMap.put(txHash, jsonObject);
                 } catch (JsonProcessingException e) {
                     log.warn(e.getMessage());
