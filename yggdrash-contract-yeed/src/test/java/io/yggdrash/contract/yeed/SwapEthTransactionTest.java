@@ -303,5 +303,3 @@ public class SwapEthTransactionTest {
     }
 
 }
-
-
