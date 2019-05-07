@@ -83,9 +83,9 @@ project(':yggdrash-core') {
 
     dependencies {
         compile project(':yggdrash-common')
-        implementation project(':yggdrash-contract-coin')
-        implementation project(':yggdrash-contract-dpoa')
-        implementation project(':yggdrash-contract-versioning')
+        implementation project(':contracts:coin')
+        implementation project(':contracts:dpoa')
+        implementation project(':contracts:versioning')
 
         compile "io.grpc:grpc-services:${grpcVersion}"
         compile "io.grpc:grpc-netty:${grpcVersion}"
@@ -160,13 +160,13 @@ project(':yggdrash-node') {
 
     dependencies {
         compile(project(':yggdrash-core')) {
-            exclude module: 'yggdrash-contract-dpoa'
+            exclude module: 'contracts'
         }
         compile(project(':yggdrash-validator')) {
-            exclude module: 'yggdrash-contract-dpoa'
+            exclude module: 'contracts'
         }
         compile(project(':yggdrash-gateway')) {
-            exclude module: 'yggdrash-contract-dpoa'
+            exclude module: 'contracts'
         }
         compile "org.springframework.boot:spring-boot-starter-web"
         compile "org.springframework.boot:spring-boot-starter-undertow"
@@ -282,5 +282,6 @@ task cleanConfig(type: Delete) {
     delete '.yggdrash'
     delete 'yggdrash-core/.yggdrash'
     delete 'yggdrash-node/.yggdrash'
+    delete 'contracts/.yggdrash'
     delete 'yggdrash-validator/.yggdrash'
 }

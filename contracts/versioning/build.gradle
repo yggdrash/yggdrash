@@ -18,7 +18,7 @@ import java.security.MessageDigest
 
 ext {
     importPackage =
-                    "io.yggdrash.common.contract" +
+            "io.yggdrash.common.contract" +
                     ",io.yggdrash.common.contract.method" +
                     ",io.yggdrash.common.contract.vo" +
                     ",io.yggdrash.common.contract.vo.dpoa" +
@@ -40,9 +40,13 @@ ext {
                     ",io.yggdrash.contract.core.annotation" +
                     ",io.yggdrash.contract.core.store"
 
-
     excludeList = ["META-INF/LICENSE", "META-INF/NOTICE", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/NOTICE"]
 }
+
+// project directory setup
+def rootPath = file('.').absolutePath
+def buildContract = rootPath + '/build/contract'
+def projectContractPath = rootPath + '/../../resources/contract'
 
 
 task contractsPackage(type: Jar) {
@@ -52,48 +56,22 @@ task contractsPackage(type: Jar) {
         exclude(["system-contracts"])
     }
 
-
     manifest {
         attributes(
                 'Bundle-ManifestVersion': '2',
-                'Bundle-Name': 'DPoA Contract',
-                'Bundle-Description': 'DPoA Contract',
+                'Bundle-Name': 'Versioning Contract',
+                'Bundle-Description': 'Versioning Contract',
                 'Bundle-Vendor': 'YGGDRASH',
-                'Bundle-SymbolicName': 'io.yggdrash.contract.dpoa.DPoAContract',
+                'Bundle-SymbolicName': 'io.yggdrash.contract.versioning.VersioningContract',
                 'Bundle-Version': '1.0.0',
-                'Bundle-Activator': 'io.yggdrash.contract.dpoa.DPoAContract',
-                'Export-Package': "io.yggdrash.contract.dpoa",
+                'Bundle-Activator': 'io.yggdrash.contract.versioning.VersioningContract',
+                'Export-Package': "io.yggdrash.contract.versioning",
                 'Import-Package': "${importPackage}"
         )
     }
     exclude(excludeList)
     preserveFileTimestamps = false
-    archiveName "system-dpoa-contract-${manifest.attributes.get('Bundle-Version')}.jar"
-}
-
-task contractsClientPackage(type: Jar) {
-    //Add current module source
-    from(sourceSets.main.output) {
-        include "**"
-        exclude(["system-contracts"])
-    }
-
-    manifest {
-        attributes(
-                'Bundle-ManifestVersion': '2',
-                'Bundle-Name': 'DPoA Client Contract',
-                'Bundle-Description': 'DPoA Client Contract',
-                'Bundle-Vendor': 'YGGDRASH',
-                'Bundle-SymbolicName': 'io.yggdrash.contract.dpoa.DPoAClientContract',
-                'Bundle-Version': '1.0.0',
-                'Bundle-Activator': 'io.yggdrash.contract.dpoa.DPoAClientContract',
-                'Import-Package': "${importPackage},io.yggdrash.contract.dpoa"
-        )
-    }
-    exclude(excludeList)
-    preserveFileTimestamps = false
-    archiveName "system-dpoa-client-contract-${manifest.attributes.get('Bundle-Version')}.jar"
-
+    archiveName "system-versioning-contract-${manifest.attributes.get('Bundle-Version')}.jar"
 }
 
 def generateSha1(File file) {
@@ -112,21 +90,19 @@ task deleteOutputContract(type: Delete) {
 task copyContractToResrouce(type: Copy) {
     dependsOn deleteOutputContract
     dependsOn contractsPackage
-    //dependsOn signJar
 
-    def copyPath = file('build/libs').absolutePath + '/../contract'
-    file("${copyPath}").mkdirs()
+    file("${buildContract}").mkdirs()
 
     // Copy Contract File
     from file('build/libs')
-    into file("${copyPath}")
+    into file("${buildContract}")
     exclude "${project.name}*"
 
     doLast {
-        def libFiles = file("${copyPath}").listFiles()
+        def libFiles = file("${buildContract}").listFiles()
         libFiles.each {
             def sha1Name = generateSha1(it)+'.jar'
-            def sha1File = file("${copyPath}/"+sha1Name)
+            def sha1File = file("${buildContract}/"+sha1Name)
             if (it.getName().endsWith('.jar') && it.getName() != sha1Name) {
                 println it.getName() + ' -> ' + sha1Name
                 it.renameTo(sha1File)
@@ -137,29 +113,24 @@ task copyContractToResrouce(type: Copy) {
 task copyContractToProject(type: Copy) {
     dependsOn copyContractToResrouce
 
-    def copyPath = file('build/libs').absolutePath + '/../contract'
-    def projectContractPath = file('build/libs').absolutePath + '/../../../resources/contract'
-    from file("${copyPath}")
+    from file("${buildContract}")
     into file("${projectContractPath}")
 }
 
 task copyProjectContractToCoreProject(type: Copy) {
-    def projectContractPath = file('build/libs').absolutePath + '/../../../resources/contract'
 
-    def coreContractPath = file('build/libs').absolutePath + '/../../../yggdrash-core/.yggdrash/contract'
-
-    from file("${projectContractPath}")
+    def coreContractPath = rootPath + '/../../yggdrash-core/.yggdrash/contract'
+    from file("${buildContract}")
     into file("${coreContractPath}")
 }
 
 task copyProjectContractToNodeProject(type: Copy) {
     dependsOn copyContractToProject
 
-    def projectContractPath = file('build/libs').absolutePath + '/../../../resources/contract'
-    def nodeContractPath = file('build/libs').absolutePath + '/../../../yggdrash-node/.yggdrash/contract'
+    def nodeContractPath = rootPath + '/../../yggdrash-node/.yggdrash/contract'
     file(nodeContractPath).mkdirs()
 
-    from file("${projectContractPath}")
+    from file("${buildContract}")
     into file("${nodeContractPath}")
 }
 
@@ -172,5 +143,4 @@ jar {
 
 dependencies {
     compile project(':yggdrash-common')
-    compile project(':yggdrash-contract-core')
 }

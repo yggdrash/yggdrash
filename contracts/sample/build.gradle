@@ -1,24 +1,8 @@
-/*
- * Copyright 2019 Akashic Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import java.security.MessageDigest
 
 ext {
     importPackage =
-            "io.yggdrash.common.contract" +
+                    "io.yggdrash.common.contract" +
                     ",io.yggdrash.common.contract.method" +
                     ",io.yggdrash.common.contract.vo" +
                     ",io.yggdrash.common.contract.vo.dpoa" +
@@ -40,8 +24,15 @@ ext {
                     ",io.yggdrash.contract.core.annotation" +
                     ",io.yggdrash.contract.core.store"
 
+
     excludeList = ["META-INF/LICENSE", "META-INF/NOTICE", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/NOTICE"]
 }
+
+// project directory setup
+def rootPath = file('.').absolutePath
+def buildContract = rootPath + '/build/contract'
+def projectContractPath = rootPath + '/../../resources/contract'
+
 
 task contractsPackage(type: Jar) {
     //Add current module source
@@ -53,24 +44,21 @@ task contractsPackage(type: Jar) {
     manifest {
         attributes(
                 'Bundle-ManifestVersion': '2',
-                'Bundle-Name': 'Versioning Contract',
-                'Bundle-Description': 'Versioning Contract',
+                'Bundle-Name': 'None Contract',
+                'Bundle-Description': 'None Contract',
                 'Bundle-Vendor': 'YGGDRASH',
-                'Bundle-SymbolicName': 'io.yggdrash.contract.versioning.VersioningContract',
+                'Bundle-SymbolicName': 'io.yggdrash.contract.NoneContract',
                 'Bundle-Version': '1.0.0',
-                'Bundle-Activator': 'io.yggdrash.contract.versioning.VersioningContract',
-                'Export-Package': "io.yggdrash.contract.versioning",
+                'Bundle-Activator': 'io.yggdrash.contract.NoneContract',
                 'Import-Package': "${importPackage}"
         )
     }
     exclude(excludeList)
     preserveFileTimestamps = false
-    archiveName "system-versioning-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+    archiveName "system-none-contract-${manifest.attributes.get('Bundle-Version')}.jar"
 }
 
-task removeContract(type: Delete) {
-    delete fileTree(file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts').include('*')
-}
+
 
 def generateSha1(File file) {
     MessageDigest md = MessageDigest.getInstance("SHA-1");
@@ -81,27 +69,25 @@ def generateSha1(File file) {
 }
 
 task deleteOutputContract(type: Delete) {
-    def copyPath = file('build/libs').absolutePath + '/../contract'
-    delete copyPath
+    delete buildContract
 }
 
 task copyContractToResrouce(type: Copy) {
     dependsOn deleteOutputContract
     dependsOn contractsPackage
 
-    def copyPath = file('build/libs').absolutePath + '/../contract'
-    file("${copyPath}").mkdirs()
+    file("${buildContract}").mkdirs()
 
     // Copy Contract File
     from file('build/libs')
-    into file("${copyPath}")
+    into file("${buildContract}")
     exclude "${project.name}*"
 
     doLast {
-        def libFiles = file("${copyPath}").listFiles()
+        def libFiles = file("${buildContract}").listFiles()
         libFiles.each {
             def sha1Name = generateSha1(it)+'.jar'
-            def sha1File = file("${copyPath}/"+sha1Name)
+            def sha1File = file("${buildContract}/"+sha1Name)
             if (it.getName().endsWith('.jar') && it.getName() != sha1Name) {
                 println it.getName() + ' -> ' + sha1Name
                 it.renameTo(sha1File)
@@ -112,29 +98,24 @@ task copyContractToResrouce(type: Copy) {
 task copyContractToProject(type: Copy) {
     dependsOn copyContractToResrouce
 
-    def copyPath = file('build/libs').absolutePath + '/../contract'
-    def projectContractPath = file('build/libs').absolutePath + '/../../../resources/contract'
-    from file("${copyPath}")
+    from file("${buildContract}")
     into file("${projectContractPath}")
 }
 
 task copyProjectContractToCoreProject(type: Copy) {
-    def projectContractPath = file('build/libs').absolutePath + '/../../../resources/contract'
+    def coreContractPath = rootPath + '/../../yggdrash-core/.yggdrash/contract'
 
-    def coreContractPath = file('build/libs').absolutePath + '/../../../yggdrash-core/.yggdrash/contract'
-
-    from file("${projectContractPath}")
+    from file("${buildContract}")
     into file("${coreContractPath}")
 }
 
 task copyProjectContractToNodeProject(type: Copy) {
     dependsOn copyContractToProject
 
-    def projectContractPath = file('build/libs').absolutePath + '/../../../resources/contract'
-    def nodeContractPath = file('build/libs').absolutePath + '/../../../yggdrash-node/.yggdrash/contract'
+    def nodeContractPath = rootPath + '/../../yggdrash-node/.yggdrash/contract'
     file(nodeContractPath).mkdirs()
 
-    from file("${projectContractPath}")
+    from file("${buildContract}")
     into file("${nodeContractPath}")
 }
 
