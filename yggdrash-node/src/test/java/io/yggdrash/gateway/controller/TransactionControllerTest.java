@@ -58,7 +58,8 @@ public class TransactionControllerTest extends TestConstants.CiTest {
     private BranchId yggdrashBranch;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
+        // TODO mock branch get main-src branch source
         JacksonTester.initFields(this, new ObjectMapper());
         yggdrashBranch = TestConstants.yggdrash();
         basePath = String.format("/branches/%s/txs", yggdrashBranch);

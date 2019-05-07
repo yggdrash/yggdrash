@@ -55,6 +55,7 @@ public class GenesisBlock {
 
         for (BranchContract c : contracts) {
             TransactionBuilder builder = new TransactionBuilder();
+            // TODO remove consensus in transaction
             builder.setBranchId(branch.getBranchId())
                     .setTimeStamp(branch.getTimestamp())
                     .setTxBody(c.getContractVersion(), "init", c.getInit(), c.isSystem(), branch.getConsensus());
