@@ -95,8 +95,9 @@ public class StemContract implements BundleActivator, ServiceListener {
             // params
 
             JsonObject branch = params.getAsJsonObject("branch");
+            // TODO calculation branch Id
             // get branch id
-
+            log.debug("branch Id {}");
 
             // check fee
             // check fee govonence
@@ -120,8 +121,12 @@ public class StemContract implements BundleActivator, ServiceListener {
             // TODO update branch meta information
 
             // get branch id
+            String branchId = params.get("branchId").getAsString();
 
             // check branch validator
+            // TODO getValidator
+            ValidatorSet validatorSet = getValidator(branchId);
+
 
             // save branch meta information
 
@@ -132,8 +137,9 @@ public class StemContract implements BundleActivator, ServiceListener {
             // TODO update branch meta information
 
             // get branch id
+            String branchId = params.get("branchId").getAsString();
 
-            // check branch validator vote
+            // check branch validator vote[]
 
             // save branch validator set information
 

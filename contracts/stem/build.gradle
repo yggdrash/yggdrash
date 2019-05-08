@@ -43,7 +43,7 @@ task contractsPackage(type: Jar) {
     manifest {
         attributes(
                 'Bundle-ManifestVersion': '2',
-                'Bundle-Name': 'Stem Contract',
+                'Bundle-Name': 'StemContract',
                 'Bundle-Description': 'Stem Contract',
                 'Bundle-Vendor': 'YGGDRASH',
                 'Bundle-SymbolicName': 'io.yggdrash.contract.StemContract',
@@ -54,7 +54,10 @@ task contractsPackage(type: Jar) {
     }
     exclude(excludeList)
     preserveFileTimestamps = false
-    archiveName "system-none-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+
+    // [archiveBaseName]-[archiveAppendix]-[archiveVersion]-[archiveClassifier].[archiveExtension]
+    project.archivesBaseName = manifest.attributes.get('Bundle-Name')
+    project.version = manifest.attributes.get('Bundle-Version')
 }
 
 

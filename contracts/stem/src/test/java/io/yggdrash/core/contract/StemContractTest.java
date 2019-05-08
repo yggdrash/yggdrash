@@ -17,16 +17,26 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.utils.ContractUtils;
+import io.yggdrash.common.utils.FileUtil;
+import io.yggdrash.common.utils.JsonUtil;
+import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.List;
@@ -37,11 +47,15 @@ public class StemContractTest {
     private static final Logger log = LoggerFactory.getLogger(StemContractTest.class);
     private static final StemContract.StemService stemContract = new StemContract.StemService();
 
+    private static final File branchFile = new File("../../yggdrash-core/src/main/resources/branch-yggdrash.json");
+
     private Field txReceiptField;
     TestYeed testYeed = new TestYeed();
 
+    JsonObject branchSample;
+
     @Before
-    public void setUp() throws IllegalAccessException {
+    public void setUp() throws IllegalAccessException, IOException {
         // Steup StemContract
         StateStore stateStore = new StateStore(new HashMapDbSource());
 
@@ -56,7 +70,16 @@ public class StemContractTest {
         // 1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e
         JsonObject obj = new JsonObject();
         obj.addProperty("address", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");
-        assertTrue("setup", BigInteger.ZERO.compareTo(testYeed.balanceOf(obj)) < 0 );
+        assertTrue("setup", BigInteger.ZERO.compareTo(testYeed.balanceOf(obj)) < 0);
+
+        try (InputStream is = new FileInputStream(branchFile)) {
+            String branchString = IOUtils.toString(is, FileUtil.DEFAULT_CHARSET);
+            branchSample = JsonUtil.parseJsonObject(branchString);
+        }
+        log.debug(branchSample.toString());
+        byte[] serializeByte = SerializationUtil.serializeString(branchSample.toString());
+        byte[] sha3omit12 = HashUtil.sha3omit12(serializeByte);
+        log.debug(HexUtil.toHexString(sha3omit12));
     }
 
     @Test
@@ -70,8 +93,14 @@ public class StemContractTest {
         // TODO param add branch and fee
         // Get Branch sample in resources
 
+        param.add("branch", branchSample);
+        param.addProperty("fee", BigInteger.valueOf(1000000));
 
+        log.debug(JsonUtil.prettyFormat(param));
 
+        stemContract.create(param);
+
+        log.debug(receipt.getStatus().toString());
 
     }
 
