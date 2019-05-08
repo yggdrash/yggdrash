@@ -32,8 +32,7 @@ import org.springframework.stereotype.Component;
 @Component
 @DependsOn("yggdrash")
 @ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
-//TODO
-// @ConditionalOnProperty("es.host")
+
 public class WebsocketSender implements BranchEventListener {
     private final SimpMessagingTemplate template;
 

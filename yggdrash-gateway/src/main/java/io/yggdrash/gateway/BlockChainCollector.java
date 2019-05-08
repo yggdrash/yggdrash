@@ -35,9 +35,9 @@ import java.util.Map;
 public class BlockChainCollector implements BranchEventListener {
     private static final Logger log = LoggerFactory.getLogger(BlockChainCollector.class);
 
-    @Value("${es.host:#{null}}")
+    @Value("${es.host")
     private String esHost;
-    @Value("${es.transport:#{null}}")
+    @Value("${es.transport")
     private String esTransport;
     @Value("${event.store:#{null}}")
     private String[] eventStore;
