@@ -1,0 +1,111 @@
+import java.security.MessageDigest
+
+ext {
+    importPackage =
+                    "io.yggdrash.common.contract" +
+                    ",io.yggdrash.common.contract.method" +
+                    ",io.yggdrash.common.contract.vo" +
+                    ",io.yggdrash.common.contract.vo.dpoa" +
+                    ",io.yggdrash.common.contract.vo.dpoa.tx" +
+                    ",io.yggdrash.common.crypto" +
+                    ",io.yggdrash.common.crypto.jce" +
+                    ",io.yggdrash.common.exception" +
+                    ",io.yggdrash.common.store" +
+                    ",io.yggdrash.common.store.datasource" +
+                    ",io.yggdrash.common.utils" +
+                    ",org.osgi.framework" +
+                    ",org.osgi.util.tracker" +
+                    ",com.google.gson" +
+                    ",org.w3c.dom" +
+                    ",org.slf4j" +
+                    ",java.math" +
+                    ",io.yggdrash.contract.core" +
+                    ",io.yggdrash.contract.core.annotation" +
+                    ",io.yggdrash.contract.core.store"
+
+
+    excludeList = ["META-INF/LICENSE", "META-INF/NOTICE", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/NOTICE"]
+}
+
+// project directory setup
+def rootPath = file('.').absolutePath
+def buildContract = rootPath + '/build/contract'
+def projectContractPath = rootPath + '/../../resources/contract'
+
+
+task contractsPackage(type: Jar) {
+    //Add current module source
+    from(sourceSets.main.output) {
+        include "**"
+        exclude(["system-contracts"])
+    }
+
+    manifest {
+        attributes(
+                'Bundle-ManifestVersion': '2',
+                'Bundle-Name': 'Stem Contract',
+                'Bundle-Description': 'Stem Contract',
+                'Bundle-Vendor': 'YGGDRASH',
+                'Bundle-SymbolicName': 'io.yggdrash.contract.StemContract',
+                'Bundle-Version': '1.0.0',
+                'Bundle-Activator': 'io.yggdrash.contract.StemContract',
+                'Import-Package': "${importPackage}"
+        )
+    }
+    exclude(excludeList)
+    preserveFileTimestamps = false
+    archiveName "system-none-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+}
+
+
+
+def generateSha1(File file) {
+    MessageDigest md = MessageDigest.getInstance("SHA-1");
+    file.eachByte 4096, {bytes, size ->
+        md.update(bytes, 0, size);
+    }
+    return md.digest().collect {String.format "%02x", it}.join();
+}
+
+task deleteOutputContract(type: Delete) {
+    delete buildContract
+}
+
+task copyContractToResrouce(type: Copy) {
+    dependsOn deleteOutputContract
+    dependsOn contractsPackage
+
+    file("${buildContract}").mkdirs()
+
+    // Copy Contract File
+    from file('build/libs')
+    into file("${buildContract}")
+    exclude "${project.name}*"
+
+    doLast {
+        def libFiles = file("${buildContract}").listFiles()
+        libFiles.each {
+            def sha1Name = generateSha1(it)+'.jar'
+            def sha1File = file("${buildContract}/"+sha1Name)
+            if (it.getName().endsWith('.jar') && it.getName() != sha1Name) {
+                println it.getName() + ' -> ' + sha1Name
+                it.renameTo(sha1File)
+            }
+        }
+    }
+}
+task copyContractToProject(type: Copy) {
+    dependsOn copyContractToResrouce
+
+    from file("${buildContract}")
+    into file("${projectContractPath}")
+}
+
+jar {
+    dependsOn copyContractToProject
+}
+
+dependencies {
+    compile project(':yggdrash-common')
+    compile project(':yggdrash-contract-core')
+}
