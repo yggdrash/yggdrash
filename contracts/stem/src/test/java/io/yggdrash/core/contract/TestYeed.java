@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.standard.CoinStandard;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.contract.core.TransactionReceiptImpl;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;

@@ -6,6 +6,9 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.Contract;
 import io.yggdrash.common.contract.standard.CoinStandard;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
+import io.yggdrash.common.crypto.HexUtil;
+import io.yggdrash.common.utils.BranchUtil;
+import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
@@ -95,9 +98,25 @@ public class StemContract implements BundleActivator, ServiceListener {
             // params
 
             JsonObject branch = params.getAsJsonObject("branch");
-            // TODO calculation branch Id
-            // get branch id
-            log.debug("branch Id {}");
+            // calculation branch Id
+
+            String branchId = HexUtil.toHexString(BranchUtil.branchIdGenerator(branch));
+            log.debug("branchId : {}", branchId);
+            // prefix Branch_id
+
+            branchId = "BRANCH_ID_PREFIX" + branchId;
+
+            if (!this.state.contains(branchId)) {
+                // save Branch
+                this.state.put(branchId, branch);
+            } else {
+                this.txReceipt.setStatus(ExecuteStatus.FALSE);
+                txReceipt.addLog("Branch is exist");
+            }
+
+
+
+
 
             // check fee
             // check fee govonence

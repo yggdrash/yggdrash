@@ -21,6 +21,7 @@ import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
+import io.yggdrash.common.utils.BranchUtil;
 import io.yggdrash.common.utils.ContractUtils;
 import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
@@ -53,6 +54,7 @@ public class StemContractTest {
     TestYeed testYeed = new TestYeed();
 
     JsonObject branchSample;
+    String branchId;
 
     @Before
     public void setUp() throws IllegalAccessException, IOException {
@@ -76,10 +78,10 @@ public class StemContractTest {
             String branchString = IOUtils.toString(is, FileUtil.DEFAULT_CHARSET);
             branchSample = JsonUtil.parseJsonObject(branchString);
         }
-        log.debug(branchSample.toString());
-        byte[] serializeByte = SerializationUtil.serializeString(branchSample.toString());
-        byte[] sha3omit12 = HashUtil.sha3omit12(serializeByte);
-        log.debug(HexUtil.toHexString(sha3omit12));
+        // branch Id generator to util
+        byte[] rawBranchId = BranchUtil.branchIdGenerator(branchSample);
+        branchId = HexUtil.toHexString(rawBranchId);
+        log.debug("Branch Id : {}", branchId);
     }
 
     @Test
@@ -96,7 +98,6 @@ public class StemContractTest {
         param.add("branch", branchSample);
         param.addProperty("fee", BigInteger.valueOf(1000000));
 
-        log.debug(JsonUtil.prettyFormat(param));
 
         stemContract.create(param);
 
