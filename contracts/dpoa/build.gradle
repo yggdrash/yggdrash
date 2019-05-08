@@ -143,29 +143,8 @@ task copyContractToProject(type: Copy) {
     into file("${projectContractPath}")
 }
 
-task copyProjectContractToCoreProject(type: Copy) {
-
-    def coreContractPath = rootPath + '/../../yggdrash-core/.yggdrash/contract'
-
-    from file("${buildContract}")
-    into file("${coreContractPath}")
-}
-
-task copyProjectContractToNodeProject(type: Copy) {
-    dependsOn copyContractToProject
-
-    def nodeContractPath = rootPath + '/../../yggdrash-node/.yggdrash/contract'
-    file(nodeContractPath).mkdirs()
-
-    from file("${buildContract}")
-    into file("${nodeContractPath}")
-}
-
-
-
 jar {
-    dependsOn copyProjectContractToCoreProject
-    dependsOn copyProjectContractToNodeProject
+    dependsOn copyContractToProject
 }
 
 dependencies {

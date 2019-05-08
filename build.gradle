@@ -78,14 +78,31 @@ subprojects {
     }
 }
 
+def resourceContractPath = rootProject.file('resources/contract')
+
+
+task copyContractToCore(type: Copy) {
+     def coreContractPath = file('yggdrash-core/.yggdrash/contract')
+    coreContractPath.mkdirs()
+
+    from resourceContractPath
+    into coreContractPath
+}
+
+task copyContractToNode(type: Copy) {
+    def nodeContractPath = file('yggdrash-node/.yggdrash/contract')
+    nodeContractPath.mkdirs()
+
+    from resourceContractPath
+    into nodeContractPath
+}
+
+
 project(':yggdrash-core') {
     apply plugin: 'com.google.protobuf'
 
     dependencies {
         compile project(':yggdrash-common')
-        implementation project(':contracts:coin')
-        implementation project(':contracts:dpoa')
-        implementation project(':contracts:versioning')
 
         compile "io.grpc:grpc-services:${grpcVersion}"
         compile "io.grpc:grpc-netty:${grpcVersion}"
@@ -123,6 +140,10 @@ project(':yggdrash-core') {
                 srcDirs 'build/generated/source/proto/main/java'
             }
         }
+    }
+
+    test {
+        dependsOn copyContractToCore
     }
 }
 
@@ -211,6 +232,10 @@ project(':yggdrash-node') {
         with bootJar
     }
     bootJar.dependsOn customJar
+
+    test {
+        dependsOn copyContractToNode
+    }
 }
 
 project(':yggdrash-gateway') {
