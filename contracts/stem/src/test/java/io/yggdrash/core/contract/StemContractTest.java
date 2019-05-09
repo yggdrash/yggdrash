@@ -203,36 +203,39 @@ public class StemContractTest {
 
     }
 
-//
-//    private static JsonObject getEthToYeedBranch(String description) {
-//        // TODO get branch from resource
-//
-//        String name = "Ethereum TO YEED";
-//        String symbol = "ETH TO YEED";
-//        String property = "exchange";
-//        String timeStamp = "00000166c837f0c9";
-//
-//        String consensusString = new StringBuilder()
-//                .append("{\"consensus\": {\n")
-//                .append("    \"algorithm\": \"pbft\",\n")
-//                .append("    \"period\": \"* * * * * *\"\n")
-//                .append("   \n}")
-//                .append("  }").toString();
-//        JsonObject consensus = new Gson().fromJson(consensusString, JsonObject.class);
-//
-//        JsonObject branchJson = BranchBuilder.builder()
-//                                .setName(name)
-//                                .setDescription(description)
-//                                .setSymbol(symbol)
-//                                .setProperty(property)
-//                                .setTimeStamp(timeStamp)
-//                                .setConsensus(consensus)
-//                                .buildJson();
-//
-//        branchJson.addProperty("fee", BigInteger.valueOf(100));
-//        return branchJson;
-//    }
-//
+    @Test
+    public void otherBranchCreate() {
+        createStemBranch();
+
+        TransactionReceipt receipt = createReceipt();
+        setUpReceipt(receipt);
+
+        JsonObject otherBranch = branchSample.deepCopy();
+        otherBranch.addProperty("name", "ETH TO YEED Branch");
+        otherBranch.addProperty("symbol", "ETY");
+        otherBranch.addProperty("property", "exchange");
+        otherBranch.addProperty("timeStamp", "00000166c837f0c9");
+
+
+        JsonObject param = new JsonObject();
+        param.add("branch", otherBranch);
+        param.addProperty("fee", BigInteger.valueOf(10000));
+
+        byte[] rawBranchId = BranchUtil.branchIdGenerator(otherBranch);
+        String otherBranchId = HexUtil.toHexString(rawBranchId);
+
+        JsonObject queryParam = new JsonObject();
+        queryParam.addProperty("branchId", otherBranchId);
+
+        stemContract.create(param);
+
+        assertEquals("otherBranch Create", receipt.getStatus(), ExecuteStatus.SUCCESS);
+
+        JsonObject queryMeta = stemContract.getBranchMeta(queryParam);
+
+        assertEquals("otehr branch symbol", "ETY", queryMeta.get("symbol").getAsString());
+    }
+    
     private TransactionReceipt createReceipt() {
         TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setIssuer("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
