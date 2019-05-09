@@ -1,6 +1,7 @@
 
 package io.yggdrash.core.contract;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
@@ -103,12 +104,20 @@ public class StemContract implements BundleActivator, ServiceListener {
             // params
 
             JsonObject branch = params.getAsJsonObject("branch");
-            // calculation branch Id
 
-            // TODO branch verify (validate)
+
+            // branch verify
+            if (!branchVerify(branch)) {
+                this.txReceipt.setStatus(ExecuteStatus.FALSE);
+                this.txReceipt.addLog("Branch had not verified");
+                return;
+            }
+
+            // calculation branch Id
             String branchId = HexUtil.toHexString(BranchUtil.branchIdGenerator(branch));
             log.debug("branchId : {}", branchId);
             // prefix Branch_id
+
 
             boolean save = saveBranch(branchId, branch);
 
@@ -129,6 +138,7 @@ public class StemContract implements BundleActivator, ServiceListener {
 
             if (save) {
                 this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
+                this.txReceipt.addLog(String.format("Branch %s is created", branchId));
             } else {
                 this.txReceipt.setStatus(ExecuteStatus.FALSE);
             }
@@ -275,44 +285,22 @@ public class StemContract implements BundleActivator, ServiceListener {
 
 
         /**
-         * @param params transaction id
-         *
-         * @return branch id
-         */
-        @ContractQuery
-        public String getBranchIdByTxId(JsonObject params) {
-            // TODO remove
-            String txId = params.get(TX_ID).getAsString();
-            JsonObject branchIdJson = state.get(txId);
-//            if (branchIdJson != null && branchIdJson.has("branchId")) {
-//                String branchId = branchIdJson.get("branchId").getAsString();
-//                StemContractStateValue stateValue = getBranchStateValue(branchId);
-//                if (isBranchExist(branchId) && isEnoughFee(stateValue)) {
-//                    return branchIdJson.get("branchId").getAsString();
-//                }
-//            }
-            return "";
-        }
-
-        /**
          * @param params branch id
          *
          * @return contract json object
          */
         @ContractQuery
         public Set<JsonElement> getContract(JsonObject params) {
-            // TODO remove
             String branchId = params.get(BRANCH_ID).getAsString();
             Set<JsonElement> contractSet = new HashSet<>();
-//            StemContractStateValue stateValue = getBranchStateValue(branchId);
-//
-//            if (isBranchExist(branchId) && isEnoughFee(stateValue)) {
-//                JsonArray contracts = getBranchStateValue(branchId).getJson()
-//                        .getAsJsonArray("contracts");
-//                for (JsonElement c : contracts) {
-//                    contractSet.add(c);
-//                }
-//            }
+
+            JsonObject branch = getBranch(branchId);
+            if (branch != null) {
+                JsonArray contracts = branch.get("contracts").getAsJsonArray();
+                for (JsonElement c : contracts) {
+                    contractSet.add(c);
+                }
+            }
             return contractSet;
         }
 
@@ -358,32 +346,17 @@ public class StemContract implements BundleActivator, ServiceListener {
             return state.contains(branchId);
         }
 
-//        private void addBranchId(String newBranchId) {
-//            if (!isBranchExist(newBranchId.toString())) {
-//                JsonArray branchIds = new JsonArray();
-//                for (String branchId : getBranchIdList()) {
-//                    branchIds.add(branchId);
-//                }
-//                JsonObject obj = new JsonObject();
-//                branchIds.add(newBranchId.toString());
-//                obj.add("branchIds", branchIds);
-//                state.put(branchIdListKey, obj);
-//
-//            }
-//        }
-//
-//        private void addTxId(String branchId) {
-//            if (isBranchExist(branchId.toString())
-//                    && txReceipt.getTxId() != null) {
-//                JsonObject bid = new JsonObject();
-//                bid.addProperty("branchId", branchId.toString());
-//                state.put(txReceipt.getTxId(), bid);
-//            }
-//        }
-//
-//        private boolean isBranchIdValid(String branchId, Branch branch) {
-//            return branchId.equals(branch.getBranchId());
-//        }
+        private boolean branchVerify(JsonObject branch) {
+            // check property
+            boolean verify = true;
+            List<String> existProperty = Arrays.asList(new String[]{"name", "symbol", "property", "contracts"});
+
+            for (String perpertyKey :existProperty) {
+                verify &= branch.get(perpertyKey).isJsonNull() != true;
+            }
+
+            return verify;
+        }
 //
 //        private StemContractStateValue getBranchStateValue(String branchId) {
 //            JsonObject json = state.get(branchId);

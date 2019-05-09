@@ -16,9 +16,9 @@
 
 package io.yggdrash.core.contract;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
-import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
@@ -26,7 +26,6 @@ import io.yggdrash.common.utils.BranchUtil;
 import io.yggdrash.common.utils.ContractUtils;
 import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
-import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
@@ -43,6 +42,7 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -107,9 +107,9 @@ public class StemContractTest {
 
         String branchKey = String.format("%s%s", PrefixKeyEnum.STEM_BRANCH, branchId);
         String branchMetaKey = String.format("%s%s", PrefixKeyEnum.STEM_META, branchId);
+        assertTrue("Branch Create Success", receipt.isSuccess());
         assertTrue("Branch Stored", stateStore.contains(branchKey));
         assertTrue("Branch Meta Stored", stateStore.contains(branchMetaKey));
-        assertTrue("Branch Create Success", receipt.isSuccess());
     }
 
     @Test
@@ -125,6 +125,19 @@ public class StemContractTest {
         byte[] rawBranchId = BranchUtil.branchIdGenerator(branch);
         String queryBranchId = HexUtil.toHexString(rawBranchId);
         assertEquals("branch Id check", branchId, queryBranchId);
+    }
+
+    @Test
+    public void getContractQuery() {
+        createStemBranch();
+
+        JsonObject param = new JsonObject();
+        param.addProperty("branchId", branchId);
+
+        Set<JsonElement> contracts = stemContract.getContract(param);
+        contracts.stream()
+                .forEach(c -> log.debug(c.getAsJsonObject().get("contractVersion").getAsString()));
+        assertTrue("Contract Size", contracts.size() == 3);
     }
 
     @Test
@@ -150,8 +163,8 @@ public class StemContractTest {
 
         JsonObject metaInfo = stemContract.getBranchMeta(param);
 
-        assertEquals("", metaInfo.get("name").getAsString(), "YGGDRASH");
-        assertEquals("", metaInfo.get("description").getAsString(), "UPDATE DESCRIPTION");
+        assertEquals("name did not update meta information", metaInfo.get("name").getAsString(), "YGGDRASH");
+        assertEquals("description is updated", metaInfo.get("description").getAsString(), "UPDATE DESCRIPTION");
     }
 
     @Test
@@ -235,7 +248,7 @@ public class StemContractTest {
 
         assertEquals("otehr branch symbol", "ETY", queryMeta.get("symbol").getAsString());
     }
-    
+
     private TransactionReceipt createReceipt() {
         TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setIssuer("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
