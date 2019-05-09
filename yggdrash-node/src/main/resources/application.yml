@@ -52,7 +52,7 @@ spring.profiles: prod
 yggdrash:
   node:
     seed-peer-list:
-      - "ynode://8dfce06ba4681d70fa0adf9a39d1f1092e62ae46@52.79.188.79:32918"
+      - "ynode://8dfce06ba4681d70fa0adf9a39d1f1092e62ae46@54.180.186.118:32918"
 
 
 ---
@@ -64,7 +64,6 @@ yggdrash:
     seed: true
     chain.enabled: false
 
-
 ---
 
 spring.profiles: master
@@ -73,7 +72,6 @@ yggdrash:
   node:
     chain.gen: true
 
-
 ---
 
 spring.profiles: validator
@@ -81,4 +79,3 @@ spring.profiles: validator
 yggdrash:
   node:
     validator: true
-
