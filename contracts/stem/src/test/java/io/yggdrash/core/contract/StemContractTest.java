@@ -105,7 +105,6 @@ public class StemContractTest {
 
         stemContract.create(param);
 
-
         String branchKey = String.format("%s%s", PrefixKeyEnum.STEM_BRANCH, branchId);
         String branchMetaKey = String.format("%s%s", PrefixKeyEnum.STEM_META, branchId);
         assertTrue("Branch Stored", stateStore.contains(branchKey));
@@ -113,6 +112,20 @@ public class StemContractTest {
         assertTrue("Branch Create Success", receipt.isSuccess());
     }
 
+    @Test
+    public void getBranchQuery() {
+        createStemBranch();
+
+        JsonObject param = new JsonObject();
+        param.addProperty("branchId", branchId);
+
+
+        JsonObject branch = stemContract.getBranch(param);
+
+        byte[] rawBranchId = BranchUtil.branchIdGenerator(branch);
+        String queryBranchId = HexUtil.toHexString(rawBranchId);
+        assertEquals("branch Id check", branchId, queryBranchId);
+    }
 
     @Test
     public void updateBranchMetaInformation() {
@@ -130,6 +143,7 @@ public class StemContractTest {
         JsonObject param = new JsonObject();
         param.addProperty("branchId", branchId);
         param.add("branch", branchUpdate);
+        param.addProperty("fee", BigInteger.valueOf(1000000));
 
         stemContract.update(param);
 
@@ -141,7 +155,7 @@ public class StemContractTest {
     }
 
     @Test
-    public void updateNoteExistBranch() {
+    public void updateNotExistBranch() {
         TransactionReceipt receipt = createReceipt();
         setUpReceipt(receipt);
         JsonObject branchUpdate = new JsonObject();
@@ -152,6 +166,7 @@ public class StemContractTest {
         JsonObject param = new JsonObject();
         param.addProperty("branchId", branchId);
         param.add("branch", branchUpdate);
+        param.addProperty("fee", BigInteger.valueOf(1000000));
 
         stemContract.update(param);
 
@@ -188,102 +203,6 @@ public class StemContractTest {
 
     }
 
-//    private StemContractStateValue stateValue;
-//
-//    @Before
-//    public void setUp() throws IllegalAccessException {
-//        stateStore = new StateStore(new HashMapDbSource());
-//
-//        JsonObject params = ContractTestUtils.createSampleBranchJson();
-//        stateValue = StemContractStateValue.of(params);
-//        TransactionReceipt receipt = createReceipt();
-//        List<Field> txReceipt = ContractUtils.txReceiptFields(stemContract);
-//        if (txReceipt.size() == 1) {
-//            txReceiptField = txReceipt.get(0);
-//        }
-//        for (Field f : ContractUtils.contractFields(stemContract, ContractStateStore.class)) {
-//            f.setAccessible(true);
-//            f.set(stemContract, stateStore);
-//        }
-//
-//        try {
-//            txReceiptField.set(stemContract, receipt);
-//            stemContract.init(params);
-//        } catch (IllegalAccessException e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-//    @Test
-//    public void getBranchListTest() {
-//        Set<String> branchIdList = stemContract.getBranchIdList();
-//        if (!branchIdList.isEmpty()) {
-//            Assertions.assertThat(branchIdList).containsOnly(stateValue.getBranchId().toString());
-//        }
-//    }
-//
-//    @Test
-//    public void createTest() {
-//        String description = "ETH TO YEED";
-//        JsonObject params = getEthToYeedBranch(description);
-//        TransactionReceipt receipt = createReceipt();
-//
-//        try {
-//            txReceiptField.set(stemContract, receipt);
-//            stemContract.create(params);
-//        } catch (IllegalAccessException e) {
-//            e.printStackTrace();
-//        }
-//
-//        Assertions.assertThat(receipt.isSuccess()).isTrue();
-//
-//        BranchId branchId = Branch.of(params).getBranchId();
-//        JsonObject saved = stateStore.get(branchId.toString());
-//        Assertions.assertThat(saved).isNotNull();
-//        Assertions.assertThat(saved.get("description").getAsString()).isEqualTo(description);
-//    }
-//
-//    @Test
-//    public void updateTest() {
-//        JsonObject params = createUpdateParams();
-//        TransactionReceipt receipt = createReceipt();
-//
-//        try {
-//            txReceiptField.set(stemContract, receipt);
-//            receipt = stemContract.update(params);
-//        } catch (IllegalAccessException e) {
-//            e.printStackTrace();
-//        }
-//
-//        assertTrue(receipt.isSuccess());
-//        /* ========================================================= */
-//
-//        JsonObject params2 = createUpdateParams2();
-//        TransactionReceipt receipt2 = createReceipt();
-//
-//        try {
-//            txReceiptField.set(stemContract, receipt);
-//            receipt2 = stemContract.update(params2);
-//        } catch (IllegalAccessException e) {
-//            e.printStackTrace();
-//        }
-//
-//        assertTrue(receipt2.isSuccess());
-//    }
-//
-//    private JsonObject createUpdateParams() {
-//        JsonObject params = new JsonObject();
-//        params.addProperty(BRANCH_ID, stateValue.getBranchId().toString());
-//        params.addProperty("fee", BigDecimal.valueOf(1000));
-//        return params;
-//    }
-//
-//    private JsonObject createUpdateParams2() {
-//        JsonObject params = new JsonObject();
-//        params.addProperty(BRANCH_ID, stateValue.getBranchId().toString());
-//        params.addProperty("fee", BigDecimal.valueOf(2000));
-//        return params;
-//    }
 //
 //    private static JsonObject getEthToYeedBranch(String description) {
 //        // TODO get branch from resource

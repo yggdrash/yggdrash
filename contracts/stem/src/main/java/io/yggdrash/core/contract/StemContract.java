@@ -123,7 +123,6 @@ public class StemContract implements BundleActivator, ServiceListener {
             // get branch Meta information
             branchCopy.remove("contracts");
             branchCopy.remove("consensus");
-            log.debug(JsonUtil.prettyFormat(branchCopy));
 
             // save Meta information
             saveBranchMeta(branchId, branchCopy);
@@ -261,15 +260,10 @@ public class StemContract implements BundleActivator, ServiceListener {
         public JsonObject getBranch(JsonObject params) {
             // TODO get branch information
             String branchId = params.get(BRANCH_ID).getAsString();
-//            StemContractStateValue stateValue = getBranchStateValue(branchId);
-//
-//            if (isBranchExist(branchId) && isEnoughFee(stateValue)) {
-//                stateValue.setFee(feeState(stateValue));
-//                stateValue.setBlockHeight(txReceipt.getBlockHeight());
-//                return stateValue.getJson();
-//            }
+            JsonObject branch = getBranch(branchId);
+
             // TODO fee not enough mesaage
-            return new JsonObject();
+            return branch;
         }
 
         @ContractQuery
