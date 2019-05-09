@@ -2,6 +2,7 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.Contract;
 import io.yggdrash.common.contract.standard.CoinStandard;
@@ -25,8 +26,10 @@ import org.osgi.framework.ServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Set;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
@@ -156,13 +159,26 @@ public class StemContract implements BundleActivator, ServiceListener {
             // get branch id
             String branchId = params.get("branchId").getAsString();
 
+            // check branchId Exist
+
+
             // check branch validator
             // TODO getValidator
             ValidatorSet validatorSet = getValidator(branchId);
 
+            JsonObject updateBranch = params.get("branch").getAsJsonObject();
 
-            // save branch meta information
+            JsonObject originBranchMeta = getBranchMeta(branchId);
 
+            if (originBranchMeta == null) {
+                txReceipt.setStatus(ExecuteStatus.FALSE);
+                txReceipt.addLog("branch is not exist");
+            } else {
+                originBranchMeta = metaMerge(originBranchMeta, updateBranch);
+                // save branch meta information
+                saveBranchMeta(branchId, originBranchMeta);
+                txReceipt.setStatus(ExecuteStatus.SUCCESS);
+            }
         }
 
         @InvokeTransaction
@@ -214,6 +230,18 @@ public class StemContract implements BundleActivator, ServiceListener {
             return this.state.get(branchMetaKey);
         }
 
+        public JsonObject metaMerge(JsonObject branchMeta, JsonObject branchMetaUpdate) {
+            // update 가능 항목
+            List<String> keyList = Arrays.asList(new String[]{"description"});
+            keyList.stream().forEach(key -> {
+                if (branchMeta.has(key) && branchMetaUpdate.has(key)) {
+                    branchMeta.addProperty(key, branchMetaUpdate.get(key).getAsString());
+                }
+            });
+
+            return branchMeta;
+        }
+
         /**
          * Returns boolean
          *
@@ -243,6 +271,14 @@ public class StemContract implements BundleActivator, ServiceListener {
             // TODO fee not enough mesaage
             return new JsonObject();
         }
+
+        @ContractQuery
+        public JsonObject getBranchMeta(JsonObject param) {
+            String branchId = param.get(BRANCH_ID).getAsString();
+
+            return getBranchMeta(branchId);
+        }
+
 
         /**
          * @param params transaction id

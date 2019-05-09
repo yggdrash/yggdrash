@@ -85,5 +85,6 @@
   "consensus": {
     "algorithm": "pbft",
     "period": "* * * * * *"
-  }
+  },
+  "governanceContract": "DPoA"
 }

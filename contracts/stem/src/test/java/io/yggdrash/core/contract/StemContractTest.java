@@ -27,6 +27,7 @@ import io.yggdrash.common.utils.ContractUtils;
 import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.common.utils.SerializationUtil;
+import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
@@ -43,6 +44,7 @@ import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class StemContractTest {
@@ -115,8 +117,76 @@ public class StemContractTest {
     @Test
     public void updateBranchMetaInformation() {
         // all meta information is not delete by transaction
+        createStemBranch();
+        // Set new Receipt
+        TransactionReceipt receipt = createReceipt();
+        setUpReceipt(receipt);
+
+        JsonObject branchUpdate = new JsonObject();
+        branchUpdate.addProperty("name", "NOT UPDATE");
+        branchUpdate.addProperty("description", "UPDATE DESCRIPTION");
+
+
+        JsonObject param = new JsonObject();
+        param.addProperty("branchId", branchId);
+        param.add("branch", branchUpdate);
+
+        stemContract.update(param);
+
+
+        JsonObject metaInfo = stemContract.getBranchMeta(param);
+
+        assertEquals("", metaInfo.get("name").getAsString(), "YGGDRASH");
+        assertEquals("", metaInfo.get("description").getAsString(), "UPDATE DESCRIPTION");
     }
 
+    @Test
+    public void updateNoteExistBranch() {
+        TransactionReceipt receipt = createReceipt();
+        setUpReceipt(receipt);
+        JsonObject branchUpdate = new JsonObject();
+        branchUpdate.addProperty("name", "NOT UPDATE");
+        branchUpdate.addProperty("description", "UPDATE DESCRIPTION");
+
+
+        JsonObject param = new JsonObject();
+        param.addProperty("branchId", branchId);
+        param.add("branch", branchUpdate);
+
+        stemContract.update(param);
+
+        assertEquals("transaction update is False", receipt.getStatus(), ExecuteStatus.FALSE);
+    }
+
+    @Test
+    public void metaDataMerge() {
+
+        JsonObject metaSample = new JsonObject();
+        metaSample.addProperty("name", "YGGDRASH");
+        metaSample.addProperty("symbol", "YGGDRASH");
+        metaSample.addProperty("property", "platform");
+        metaSample.addProperty("description", "TRUST-based Multi-dimensional Blockchains");
+
+
+        JsonObject metaUpdate = new JsonObject();
+        metaUpdate.addProperty("name", "NOT UPDATE");
+        metaUpdate.addProperty("symbol", "NOT UPDATE");
+        metaUpdate.addProperty("description", "UPDATE DESCRIPTION");
+
+        JsonObject metaUpdated = stemContract.metaMerge(metaSample, metaUpdate);
+
+
+        assertEquals("Name is not update",
+                metaUpdated.get("name").getAsString(), "YGGDRASH");
+        assertEquals("Symbol is not update",
+                metaUpdated.get("symbol").getAsString(), "YGGDRASH");
+        assertEquals("Property is not update",
+                metaUpdated.get("property").getAsString(), "platform");
+        assertEquals("description is Update",
+                metaUpdated.get("description").getAsString(), "UPDATE DESCRIPTION");
+
+
+    }
 
 //    private StemContractStateValue stateValue;
 //
