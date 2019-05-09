@@ -77,7 +77,7 @@ public class BranchConfigurationTest {
     }
 
     private void assertTransaction(BlockChain branch) throws IOException {
-        ConsensusBlock genesis = branch.getBlockByIndex(0);
+        ConsensusBlock genesis = branch.getBlockChainManager().getBlockByIndex(0);
         log.debug(genesis.toJsonObject().toString());
         Transaction genesisTx = genesis.getBody().getTransactionList().get(0);
         String txSignature = Hex.toHexString(genesisTx.getSignature());

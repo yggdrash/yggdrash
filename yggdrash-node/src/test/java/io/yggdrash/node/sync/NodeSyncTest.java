@@ -41,8 +41,8 @@ public class NodeSyncTest extends AbstractNodeTesting {
 
         // assert
         int node2 = 2;
-        Assert.assertEquals(nodeList.get(node1).getDefaultBranch().getLastIndex(),
-                nodeList.get(node2).getDefaultBranch().getLastIndex());
+        Assert.assertEquals(nodeList.get(node1).getDefaultBranch().getBlockChainManager().getLastIndex(),
+                nodeList.get(node2).getDefaultBranch().getBlockChainManager().getLastIndex());
     }
 
     private void bootstrapBlockSyncTest() {
@@ -55,8 +55,8 @@ public class NodeSyncTest extends AbstractNodeTesting {
         bootstrapNodesByIndex(node2);
 
         // assert
-        Assert.assertEquals(nodeList.get(node1).getDefaultBranch().getLastIndex(),
-                nodeList.get(node2).getDefaultBranch().getLastIndex());
+        Assert.assertEquals(nodeList.get(node1).getDefaultBranch().getBlockChainManager().getLastIndex(),
+                nodeList.get(node2).getDefaultBranch().getBlockChainManager().getLastIndex());
     }
 
     private void arrangeForSync(int node1, int generateBlockCount) {
@@ -72,7 +72,8 @@ public class NodeSyncTest extends AbstractNodeTesting {
 
         // 4) node1 > generate Block
         generateBlock(node1, generateBlockCount);
-        Assert.assertEquals(generateBlockCount, nodeList.get(node1).getDefaultBranch().getLastIndex());
+        Assert.assertEquals(generateBlockCount,
+                nodeList.get(node1).getDefaultBranch().getBlockChainManager().getLastIndex());
     }
 
     private void bootstrapNodesByIndex(int nodeIdx) {

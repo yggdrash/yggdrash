@@ -20,6 +20,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
+import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.consensus.AbstractConsensusBlock;
@@ -91,7 +92,7 @@ public class EbftBlock extends AbstractConsensusBlock<EbftProto.EbftBlock> {
             return false;
         }
         // todo: check consensuses whether validator's signatures or not
-        return ebftBlock.getBlock().verify();
+        return VerifierUtils.verify(ebftBlock.getBlock());
     }
 
     private static EbftProto.EbftBlock toProto(byte[] bytes) {

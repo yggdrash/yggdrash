@@ -8,9 +8,11 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.proto.EbftProto;
 import io.yggdrash.validator.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,6 +45,7 @@ public class EbftBlockChainTest {
     private Block block3;
 
     private EbftBlockChain ebftBlockChain;
+    private BlockChainManager<EbftProto.EbftBlock> blockChainManager;
 
     private EbftBlock ebftBlock0;
     private EbftBlock ebftBlock1;
@@ -73,7 +76,7 @@ public class EbftBlockChainTest {
                 "/ebftKey",
                 "/ebftBlock",
                 "/ebftTx");
-
+        this.blockChainManager = ebftBlockChain.getBlockChainManager();
         this.ebftBlock0 = new EbftBlock(this.block0);
 
         List<ByteString> consensusList1 = new ArrayList<>();
@@ -116,31 +119,29 @@ public class EbftBlockChainTest {
     @Test
     public void constuctorTest() {
         assertNotNull(this.ebftBlockChain);
-        assertEquals(0L, this.ebftBlockChain.getLastConfirmedBlock().getIndex());
+        assertEquals(0L, this.blockChainManager.getLastIndex());
     }
 
     @Test
     public void getterTest() {
         assertNotNull(this.ebftBlockChain.getBranchId());
         assertNotNull(this.ebftBlockChain.getBlockKeyStore());
-        assertNotNull(this.ebftBlockChain.getBlockStore());
         assertNotNull(this.ebftBlockChain.getGenesisBlock());
         assertNotNull(this.ebftBlockChain.getGenesisBlock());
         assertEquals(0, this.ebftBlockChain.getUnConfirmedData().size());
-        assertNotNull(this.ebftBlockChain.getTransactionStore());
-        assertNotNull(this.ebftBlockChain.getLastConfirmedBlock());
+        assertNotNull(this.blockChainManager.getLastConfirmedBlock());
     }
 
     @Test
     public void addBlockTest() {
         this.ebftBlockChain.addBlock(ebftBlock1);
-        assertEquals(1L, this.ebftBlockChain.getLastConfirmedBlock().getIndex());
+        assertEquals(1L, this.blockChainManager.getLastIndex());
 
         this.ebftBlockChain.addBlock(ebftBlock2);
-        assertEquals(2L, this.ebftBlockChain.getLastConfirmedBlock().getIndex());
+        assertEquals(2L, this.blockChainManager.getLastIndex());
 
         this.ebftBlockChain.addBlock(ebftBlock3);
-        assertEquals(3L, this.ebftBlockChain.getLastConfirmedBlock().getIndex());
+        assertEquals(3L, this.blockChainManager.getLastIndex());
     }
 
 }

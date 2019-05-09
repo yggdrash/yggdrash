@@ -9,6 +9,7 @@ import io.yggdrash.proto.PbftServiceGrpc;
 import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftMessage;
 import io.yggdrash.validator.data.pbft.PbftStatus;
+import io.yggdrash.validator.data.pbft.PbftVerifier;
 import org.slf4j.LoggerFactory;
 
 public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
@@ -57,7 +58,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
         PbftMessage pbftMessage = new PbftMessage(request);
         try {
 
-            if (!PbftMessage.verify(pbftMessage)) {
+            if (!PbftVerifier.INSTANCE.verify(pbftMessage)) {
                 log.warn("Verify Fail");
                 pbftMessage.clear();
                 responseObserver.onNext(EMPTY);
@@ -65,7 +66,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
                 return;
             }
 
-            long lastIndex = this.blockChain.getLastConfirmedBlock().getIndex();
+            long lastIndex = this.blockChain.getBlockChainManager().getLastIndex();
             if (pbftMessage.getSeqNumber() <= lastIndex) {
                 pbftMessage.clear();
                 responseObserver.onNext(EMPTY);
@@ -90,7 +91,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
         PbftBlock newPbftBlock = new PbftBlock(request);
         try {
             log.debug("Received BroadcastPbftBlock [{}] {} ", newPbftBlock.getIndex(), newPbftBlock.getHash());
-            if (!PbftBlock.verify(newPbftBlock)) {
+            if (!PbftVerifier.INSTANCE.verify(newPbftBlock)) {
                 log.warn("Verify Fail");
                 responseObserver.onNext(EMPTY);
                 responseObserver.onCompleted();
@@ -101,7 +102,8 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
             responseObserver.onCompleted();
 
             pbftService.getLock().lock();
-            ConsensusBlock<PbftProto.PbftBlock> lastPbftBlock = this.blockChain.getLastConfirmedBlock();
+            ConsensusBlock<PbftProto.PbftBlock> lastPbftBlock
+                    = this.blockChain.getBlockChainManager().getLastConfirmedBlock();
             if (lastPbftBlock.getIndex() == newPbftBlock.getIndex() - 1
                     && lastPbftBlock.getHash().equals(newPbftBlock.getPrevBlockHash())) {
                 this.blockChain.addBlock(newPbftBlock);
@@ -117,7 +119,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
                                  io.grpc.stub.StreamObserver<PbftProto.PbftBlockList> responseObserver) {
         long start = request.getIndex();
         long count = request.getCount();
-        long end = Math.min(start - 1 + count, this.blockChain.getLastConfirmedBlock().getIndex());
+        long end = Math.min(start - 1 + count, this.blockChain.getBlockChainManager().getLastIndex());
 
         log.trace("start: {}", start);
         log.trace("end: {}", end);
@@ -127,7 +129,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
             for (long l = start; l <= end; l++) {
                 try {
                     // todo: check efficiency
-                    ConsensusBlock<PbftProto.PbftBlock> block = blockChain.getBlockStore().getBlockByIndex(l);
+                    ConsensusBlock<PbftProto.PbftBlock> block = blockChain.getBlockChainManager().getBlockByIndex(l);
                     builder.addPbftBlock(block.getInstance());
                 } catch (Exception e) {
                     break;
@@ -146,7 +148,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
         }
 
         if (status.getIndex()
-                <= this.blockChain.getLastConfirmedBlock().getIndex()) {
+                <= this.blockChain.getBlockChainManager().getLastIndex()) {
             return;
         }
 

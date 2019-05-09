@@ -19,12 +19,18 @@ package io.yggdrash.node.config;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
+import io.yggdrash.core.blockchain.BlockChainManager;
+import io.yggdrash.core.blockchain.BlockChainManagerImpl;
 import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
+import io.yggdrash.core.blockchain.osgi.ContractManager;
+import io.yggdrash.core.blockchain.osgi.ContractManagerBuilder;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.consensus.Consensus;
+import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.ChainTask;
 import io.yggdrash.node.service.ValidatorService;
@@ -120,14 +126,29 @@ public class BranchConfiguration {
 
         try {
             Consensus consensus = new Consensus(genesis.getBranch().getConsensus());
-            storeBuilder.setConsensusAlgorithm(consensus.getAlgorithm())
+            BranchId branchId = genesis.getBranch().getBranchId();
+            storeBuilder.setBranchId(branchId)
+                    .setConsensusAlgorithm(consensus.getAlgorithm())
                     .setBlockStoreFactory(ValidatorService.blockStoreFactory());
 
+            ContractStore contractStore = storeBuilder.buildContractStore();
+            BlockChainManager blockChainManager = new BlockChainManagerImpl(
+                    storeBuilder.buildBlockStore(),
+                    storeBuilder.buildTransactionStore(),
+                    contractStore.getTransactionReceiptStore());
+            ContractManager contractManager = ContractManagerBuilder.newInstance()
+                    .withFrameworkFactory(policyLoader.getFrameworkFactory())
+                    .withContractManagerConfig(policyLoader.getContractManagerConfig())
+                    .withBranchId(branchId.toString())
+                    .withContractStore(contractStore)
+                    .withConfig(storeBuilder.getConfig())
+                    .withSystemProperties(systemProperties)
+                    .build();
             BlockChain bc = BlockChainBuilder.newBuilder()
                     .setGenesis(genesis)
-                    .setStoreBuilder(storeBuilder)
-                    .setPolicyLoader(policyLoader)
-                    .setSystemProperties(systemProperties)
+                    .setBranchStore(contractStore.getBranchStore())
+                    .setBlockChainManager(blockChainManager)
+                    .setContractManager(contractManager)
                     .setFactory(ValidatorService.factory())
                     .build();
 

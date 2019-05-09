@@ -20,6 +20,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.wallet.Wallet;
 import org.junit.Before;
@@ -94,7 +95,8 @@ public class BlockTest {
                 blockBody.getMerkleRoot(), blockBody.getLength());
         BlockSignature blockSig = new BlockSignature(wallet, blockHeader.getHashForSigning());
         Block emptyBlock = new BlockImpl(blockHeader, blockSig.getSignature(), blockBody);
-        assertThat(emptyBlock.verify()).isTrue();
+
+        assertThat(VerifierUtils.verify(emptyBlock)).isTrue();
     }
 
     @Test
@@ -113,21 +115,19 @@ public class BlockTest {
         BlockBody blockBody2 = new BlockBody(block1.getBody().toBinary());
         BlockSignature blockSig2 = new BlockSignature(wallet, blockHeader2.getHashForSigning());
         Block block2 = new BlockImpl(blockHeader2, blockSig2.getSignature(), blockBody2);
-
-        assertThat(block2.verify()).isTrue();
+        assertThat(VerifierUtils.verify(block2)).isTrue();
         assertThat(block1.toJsonObject()).isEqualTo(block2.toJsonObject());
 
         Block block3 = new BlockImpl(blockHeader2, wallet, block2.getBody());
-
-        assertThat(block3.verify()).isTrue();
+        assertThat(VerifierUtils.verify(block3)).isTrue();
         assertThat(block1.toJsonObject()).isEqualTo(block3.toJsonObject());
 
         Block block4 = new BlockImpl(block1.toJsonObject());
-        assertThat(block4.verify()).isTrue();
+        assertThat(VerifierUtils.verify(block4)).isTrue();
         assertThat(block1.toJsonObject().toString()).isEqualTo(block4.toJsonObject().toString());
 
         Block block5 = new BlockImpl(block1.getProtoBlock().toByteArray());
-        assertThat(block5.verify()).isTrue();
+        assertThat(VerifierUtils.verify(block5)).isTrue();
         assertThat(block1.toJsonObject().toString()).isEqualTo(block5.toJsonObject().toString());
     }
 
@@ -154,7 +154,7 @@ public class BlockTest {
         log.debug("wallet address={}", wallet.getHexAddress());
         assertThat(block1.getAddress()).isEqualTo(block2.getAddress());
         assertThat(block1.getAddress().toString()).isEqualTo(wallet.getHexAddress());
-        assertThat(block1.verify()).isTrue();
-        assertThat(block2.verify()).isTrue();
+        assertThat(VerifierUtils.verify(block1)).isTrue();
+        assertThat(VerifierUtils.verify(block2)).isTrue();
     }
 }

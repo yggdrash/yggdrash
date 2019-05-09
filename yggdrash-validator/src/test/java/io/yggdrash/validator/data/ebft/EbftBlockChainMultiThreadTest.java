@@ -11,6 +11,7 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
@@ -47,6 +48,7 @@ public class EbftBlockChainMultiThreadTest {
     private Block block3;
 
     private EbftBlockChain ebftBlockChain;
+    private BlockChainManager blockChainManager;
 
     private EbftBlock ebftBlock0;
     private EbftBlock ebftBlock1;
@@ -77,7 +79,7 @@ public class EbftBlockChainMultiThreadTest {
                 "/ebftKey",
                 "/ebftBlock",
                 "/ebftTx");
-
+        this.blockChainManager = ebftBlockChain.getBlockChainManager();
         this.ebftBlock0 = new EbftBlock(this.block0);
 
         List<ByteString> consensusList1 = new ArrayList<>();
@@ -146,15 +148,15 @@ public class EbftBlockChainMultiThreadTest {
 
         long testCount = 2000;
         for (long l = 0; l < testCount; l++) {
-            long index = this.ebftBlockChain.getLastConfirmedBlock().getIndex() + 1;
-            byte[] prevHash = this.ebftBlockChain.getLastConfirmedBlock().getHash().getBytes();
+            long index = this.blockChainManager.getLastIndex() + 1;
+            byte[] prevHash = this.blockChainManager.getLastHash().getBytes();
 
             EbftBlock ebftBlock = makeEbftBlock(index, prevHash);
             this.ebftBlockChain.addBlock(ebftBlock);
         }
 
         log.debug("BlockKeyStore size: {}", this.ebftBlockChain.getBlockKeyStore().size());
-        log.debug("BlockStore size: {}", this.ebftBlockChain.getBlockStore().size());
+        log.debug("BlockStore size: {}", this.blockChainManager.countOfBlocks());
 
         System.gc();
         sleep(3000000);

@@ -19,6 +19,7 @@ package io.yggdrash.node.sync;
 import ch.qos.logback.classic.Level;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.node.TcpNodeTesting;
 import io.yggdrash.node.TestNode;
 
@@ -35,7 +36,7 @@ public class NodeSyncLimitTesting extends TcpNodeTesting {
         TestNode node1 = createAndStartNode(8888, true);
         int blockCount = 23;
         generateTxAndBlock(node1, blockCount, 500);
-        assert node1.getDefaultBranch().getLastIndex() == blockCount;
+        assert node1.getDefaultBranch().getBlockChainManager().getLastIndex() == blockCount;
         // Node2 : start -> add route node2 -> node1
         TestNode node2 = createAndStartNode(8889, true);
         node2.peerTableGroup.addPeer(TestConstants.yggdrash(), node1.peerTableGroup.getOwner());
@@ -44,7 +45,7 @@ public class NodeSyncLimitTesting extends TcpNodeTesting {
         node2.bootstrapping();
 
         // assert
-        assertThat(node2.getDefaultBranch().getLastIndex()).isEqualTo(21);
+        assertThat(node2.getDefaultBranch().getBlockChainManager().getLastIndex()).isEqualTo(21);
     }
 
     //@Test
@@ -54,11 +55,13 @@ public class NodeSyncLimitTesting extends TcpNodeTesting {
         // arrange
         // Node1 : start -> generate tx -> generate block
         TestNode node1 = createAndStartNode(8888, true);
+        BlockChainManager node1BlockChainManager = node1.getDefaultBranch().getBlockChainManager();
         int blockCount = 1;
         generateTxAndBlock(node1, blockCount, 16000);
-        assert node1.getDefaultBranch().getLastIndex() == blockCount;
+        assert node1BlockChainManager.getLastIndex() == blockCount;
         // Node2 : start -> add route node2 -> node1
         TestNode node2 = createAndStartNode(8889, true);
+        BlockChainManager node2BlockChainManager = node2.getDefaultBranch().getBlockChainManager();
         node2.peerTableGroup.addPeer(TestConstants.yggdrash(), node1.peerTableGroup.getOwner());
 
         // act sync block
@@ -68,8 +71,9 @@ public class NodeSyncLimitTesting extends TcpNodeTesting {
         node2.shutdown();
 
         // assert
-        assertThat(node2.getDefaultBranch().getLastIndex()).isEqualTo(node1.getDefaultBranch().getLastIndex());
-        assertThat(node2.getDefaultBranch().countOfTxs()).isEqualTo(node1.getDefaultBranch().countOfTxs());
+
+        assertThat(node2BlockChainManager.getLastIndex()).isEqualTo(node1BlockChainManager.getLastIndex());
+        assertThat(node2BlockChainManager.countOfTxs()).isEqualTo(node1BlockChainManager.countOfTxs());
     }
 
     private void generateTxAndBlock(TestNode node, int blockCount, int txCount) {

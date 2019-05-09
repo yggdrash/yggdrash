@@ -114,7 +114,7 @@ public class RpcTest extends TcpNodeTesting {
 
         List<ConsensusBlock> blockList = futureBlockList.get();
         for (ConsensusBlock block : blockList) {
-            Assert.assertEquals(branch.getBlockByIndex(block.getIndex()), block);
+            Assert.assertEquals(branch.getBlockChainManager().getBlockByIndex(block.getIndex()), block);
         }
     }
 

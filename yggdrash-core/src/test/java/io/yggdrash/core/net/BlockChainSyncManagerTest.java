@@ -14,6 +14,7 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BlockChainSyncManager;
 import io.yggdrash.core.p2p.BlockChainHandler;
 import io.yggdrash.core.p2p.PeerHandlerMock;
@@ -27,26 +28,28 @@ public class BlockChainSyncManagerTest {
     private final BlockChainHandler handler = PeerHandlerMock.dummy();
     private BlockChainSyncManager syncManager;
     private BlockChain blockChain;
+    private BlockChainManager blockChainManager;
 
     @Before
     public void setUp() {
         syncManager = BlockChainSyncManagerMock.mock;
         blockChain = BlockChainTestUtils.createBlockChain(false);
+        blockChainManager = blockChain.getBlockChainManager();
     }
 
     @Test
     public void syncBlock() {
-        assertThat(blockChain.getLastIndex()).isEqualTo(0);
+        assertThat(blockChainManager.getLastIndex()).isEqualTo(0);
 
         syncManager.syncBlock(handler, blockChain);
 
-        assertThat(blockChain.getLastIndex()).isEqualTo(33);
+        assertThat(blockChainManager.getLastIndex()).isEqualTo(33);
     }
 
     @Test
     public void syncTransaction() {
         syncManager.syncTransaction(handler, blockChain);
-        assertThat(blockChain.countOfTxs()).isEqualTo(3);
+        assertThat(blockChainManager.countOfTxs()).isEqualTo(3);
     }
 
 }

@@ -19,6 +19,7 @@ package io.yggdrash.node.api;
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.gateway.dto.TransactionDto;
@@ -112,7 +113,7 @@ public class ContractApiImplTest {
 
     private void sendTransaction(JsonObject txBody) {
         Transaction tx = BlockChainTestUtils.createTx(TestConstants.yggdrash(), txBody);
-        Assert.assertTrue(tx.verify());
+        Assert.assertTrue(VerifierUtils.verify(tx));
         try {
             TX_API.sendTransaction(TransactionDto.createBy(tx));
         } catch (Exception e) {

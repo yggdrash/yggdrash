@@ -84,6 +84,10 @@ public class ContractManager {
         newFramework();
     }
 
+    public Long getStateSize() { // TODO for BranchController -> remove this
+        return contractStore.getStateStore().getStateSize();
+    }
+
     public ContractExecutor getContractExecutor() {
         return contractExecutor;
     }

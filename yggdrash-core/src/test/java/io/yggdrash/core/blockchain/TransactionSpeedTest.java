@@ -22,6 +22,7 @@ import io.yggdrash.TestConstants.PerformanceTest;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.wallet.Wallet;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,7 +69,7 @@ public class TransactionSpeedTest extends PerformanceTest {
         wallet = new Wallet(new DefaultConfig(), "Password1234!");
 
         tx1 = new TransactionImpl(txHeader, wallet, txBody);
-        assertTrue(tx1.verify());
+        assertTrue(VerifierUtils.verify(tx1));
 
         txBytes1 = tx1.toBinary();
     }
@@ -188,7 +189,7 @@ public class TransactionSpeedTest extends PerformanceTest {
             startTime = System.nanoTime();
 
             // Test method
-            tx1.verify();
+            VerifierUtils.verify(tx1);
 
             endTime = System.nanoTime();
             Arrays.fill(timeList,endTime - startTime);

@@ -2,6 +2,7 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.PeerTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerTableGroup;
@@ -47,14 +48,15 @@ public class DiscoveryServiceConsumerTest extends TestConstants.SlowTest {
         from.setBestBlock(1);
         Peer to = Peer.valueOf("ynode://aaaaaaaa@127.0.0.1:32920");
 
-        long lastIndex = BlockChainSyncManagerMock.branchGroup.getBranch(yggdrash).getLastIndex();
-        assertEquals(0, lastIndex);
+        BlockChainManager blockChainManager
+                = BlockChainSyncManagerMock.branchGroup.getBranch(yggdrash).getBlockChainManager();
+
+        assertEquals(0, blockChainManager.getLastIndex());
 
         // catchUpRequest event fired
         discoveryConsumer.ping(yggdrash, from, to, "Ping");
 
         //assert
-        lastIndex = BlockChainSyncManagerMock.branchGroup.getBranch(yggdrash).getLastIndex();
-        assertEquals(99, lastIndex);
+        assertEquals(99, blockChainManager.getLastIndex());
     }
 }

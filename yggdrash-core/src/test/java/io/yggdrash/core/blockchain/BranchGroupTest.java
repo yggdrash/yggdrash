@@ -46,8 +46,7 @@ public class BranchGroupTest {
         tx = BlockChainTestUtils.createBranchTx();
         assertThat(branchGroup.getBranchSize()).isEqualTo(1);
         BlockChain bc = branchGroup.getBranch(tx.getBranchId());
-        //block = newBlock(Collections.singletonList(tx), bc.getPrevBlock());
-        block = BlockChainTestUtils.createNextBlock(bc.getLastConfirmedBlock());
+        block = BlockChainTestUtils.createNextBlock(bc.getBlockChainManager().getLastConfirmedBlock());
     }
 
     @Test(expected = DuplicatedException.class)
@@ -97,7 +96,7 @@ public class BranchGroupTest {
         }
 
         BlockChainTestUtils.generateBlock(branchGroup, blockChain.getBranchId());
-        assertThat(blockChain.countOfTxs()).isEqualTo(101); // include genesis tx
+        assertThat(blockChain.getBlockChainManager().countOfTxs()).isEqualTo(101); // include genesis tx
     }
 
     @Test
@@ -118,27 +117,17 @@ public class BranchGroupTest {
     public void specificBlockHeightOfBlockChain() {
         addMultipleBlock(block);
         BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
-        assertThat(blockChain.getLastIndex()).isEqualTo(10);
+        assertThat(blockChain.getBlockChainManager().getLastIndex()).isEqualTo(10);
     }
 
     private void addMultipleBlock(ConsensusBlock block) {
         BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
-        while (blockChain.getLastIndex() < 10) {
-            log.debug("Last Index : {}", blockChain.getLastIndex());
+        while (blockChain.getBlockChainManager().getLastIndex() < 10) {
+            log.debug("Last Index : {}", blockChain.getBlockChainManager().getLastIndex());
             branchGroup.addBlock(block);
             ConsensusBlock nextBlock = BlockChainTestUtils.createNextBlock(Collections.emptyList(), block);
             addMultipleBlock(nextBlock);
         }
-    }
-
-    @Test
-    public void getStateStore() {
-        assertThat(branchGroup.getStateStore(block.getBranchId())).isNotNull();
-    }
-
-    @Test
-    public void getTransactionReceiptStore() {
-        assertThat(branchGroup.getTransactionReceiptStore(tx.getBranchId())).isNotNull();
     }
 
     private Transaction createTx(int amount) {

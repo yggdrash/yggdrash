@@ -23,7 +23,6 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.ECKey;
-import io.yggdrash.common.trie.Trie;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.InvalidSignatureException;
@@ -45,8 +44,6 @@ import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
 import static io.yggdrash.common.config.Constants.Key.BODY;
 import static io.yggdrash.common.config.Constants.Key.HEADER;
 import static io.yggdrash.common.config.Constants.Key.SIGNATURE;
-import static io.yggdrash.common.config.Constants.SIGNATURE_LENGTH;
-import static io.yggdrash.common.config.Constants.TIMESTAMP_2018;
 
 public class BlockImpl implements Block, ProtoObject<Proto.Block> {
     private static final Logger log = LoggerFactory.getLogger(BlockImpl.class);
@@ -207,74 +204,6 @@ public class BlockImpl implements Block, ProtoObject<Proto.Block> {
     @Override
     public Proto.Block getInstance() {
         return getProtoBlock();
-    }
-
-    @Override
-    public boolean verify() {
-
-        if (!this.verifyData()) {
-            return false;
-        }
-
-        if (this.header.getIndex() == 0) { // Genesis
-            // TODO Genesis Block Check
-            return true;
-        }
-
-        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(getSignature());
-        byte[] hashedHeader = this.header.getHashForSigning();
-        ECKey ecKeyPub;
-
-        try {
-            ecKeyPub = ECKey.signatureToKey(hashedHeader, ecdsaSignature);
-        } catch (SignatureException e) {
-            throw new InvalidSignatureException(e);
-        }
-
-        return ecKeyPub.verify(hashedHeader, ecdsaSignature);
-
-    }
-
-    private boolean verifyCheckLengthNotNull(byte[] data, int length, String msg) {
-
-        boolean result = !(data == null || data.length != length);
-
-        if (!result) {
-            log.debug("{} is not valid.", msg);
-        }
-
-        return result;
-    }
-
-    /**
-     * Verify a block about block format.
-     *
-     * @return true(success), false(fail)
-     */
-    private boolean verifyData() {
-        // TODO CheckByValidate By Code
-        boolean check = true;
-
-        check &= verifyCheckLengthNotNull(
-                this.header.getChain(), Constants.BRANCH_LENGTH, "chain");
-        check &= verifyCheckLengthNotNull(
-                this.header.getVersion(), BlockHeader.VERSION_LENGTH, "version");
-        check &= verifyCheckLengthNotNull(header.getType(), BlockHeader.TYPE_LENGTH, "type");
-        check &= verifyCheckLengthNotNull(
-                this.header.getPrevBlockHash(), Constants.HASH_LENGTH, "prevBlockHash");
-        check &= verifyCheckLengthNotNull(
-                this.header.getMerkleRoot(), Constants.HASH_LENGTH, "merkleRootLength");
-        if (header.getIndex() != 0) {
-            // Genesis Block is not check signature
-            check &= verifyCheckLengthNotNull(getSignature(), SIGNATURE_LENGTH, SIGNATURE);
-        }
-        check &= this.header.getIndex() >= 0;
-        check &= this.header.getTimestamp() > TIMESTAMP_2018;
-        check &= !(this.header.getBodyLength() < 0
-                || this.header.getBodyLength() != this.getBody().getLength());
-        check &= Arrays.equals(this.header.getMerkleRoot(), Trie.getMerkleRoot(getBody().getTransactionList()));
-
-        return check;
     }
 
     @Override

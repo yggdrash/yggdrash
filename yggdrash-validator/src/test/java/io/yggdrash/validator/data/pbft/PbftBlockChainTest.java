@@ -7,13 +7,13 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.validator.TestUtils;
-import io.yggdrash.validator.store.pbft.PbftBlockStore;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -49,6 +49,8 @@ public class PbftBlockChainTest {
     private Block block3;
 
     private PbftBlockChain pbftBlockChain;
+    private BlockChainManager blockChainManager;
+
     private PbftBlock pbftBlock0;
     private PbftBlock pbftBlock1;
     private PbftBlock pbftBlock2;
@@ -84,7 +86,7 @@ public class PbftBlockChainTest {
                 "/pbftKey",
                 "/pbftBlock",
                 "/pbftTx");
-
+        this.blockChainManager = pbftBlockChain.getBlockChainManager();
         this.pbftMessageSet0 = makePbftMessageSet(block0);
         this.pbftBlock0 = new PbftBlock(this.block0, this.pbftMessageSet0);
 
@@ -148,19 +150,17 @@ public class PbftBlockChainTest {
     @Test
     public void constuctorTest() {
         assertNotNull(this.pbftBlockChain);
-        assertEquals(0L, this.pbftBlockChain.getLastConfirmedBlock().getIndex());
+        assertEquals(0L, this.blockChainManager.getLastIndex());
     }
 
     @Test
     public void getterTest() {
         assertNotNull(this.pbftBlockChain.getBranchId());
         assertNotNull(this.pbftBlockChain.getBlockKeyStore());
-        assertNotNull(this.pbftBlockChain.getBlockStore());
         assertNotNull(this.pbftBlockChain.getGenesisBlock());
         assertNotNull(this.pbftBlockChain.getGenesisBlock());
         assertEquals(0, this.pbftBlockChain.getUnConfirmedData().size());
-        assertNotNull(this.pbftBlockChain.getTransactionStore());
-        assertNotNull(this.pbftBlockChain.getLastConfirmedBlock());
+        assertNotNull(this.blockChainManager.getLastConfirmedBlock());
     }
 
     @Test
@@ -180,23 +180,23 @@ public class PbftBlockChainTest {
             newBlock = new PbftBlock(block, PbftMessageSet.forGenesis());
 
             pbftBlockChain.getBlockKeyStore().put(newBlock.getIndex(), newBlock.getHash().getBytes());
-            pbftBlockChain.getBlockStore().addBlock(newBlock);
+            blockChainManager.addBlock(newBlock);
         }
 
-        List blockList = getBlockList(pbftBlockChain.getBlockStore(), 1, 100);
+        List blockList = getBlockList(1, 100);
         assertEquals(blockList.size(), count);
     }
 
     @Test
     public void addBlockTest() {
         this.pbftBlockChain.addBlock(pbftBlock1);
-        assertEquals(1L, this.pbftBlockChain.getLastConfirmedBlock().getIndex());
+        assertEquals(1L, this.blockChainManager.getLastIndex());
 
         this.pbftBlockChain.addBlock(pbftBlock2);
-        assertEquals(2L, this.pbftBlockChain.getLastConfirmedBlock().getIndex());
+        assertEquals(2L, this.blockChainManager.getLastIndex());
 
         this.pbftBlockChain.addBlock(pbftBlock3);
-        assertEquals(3L, this.pbftBlockChain.getLastConfirmedBlock().getIndex());
+        assertEquals(3L, this.blockChainManager.getLastIndex());
     }
 
     /**
@@ -206,7 +206,7 @@ public class PbftBlockChainTest {
      * @param count count of blocks (1 < count <= 100)
      * @return list of Block
      */
-    private List<ConsensusBlock<PbftProto.PbftBlock>> getBlockList(PbftBlockStore store, long index, long count) {
+    private List<ConsensusBlock<PbftProto.PbftBlock>> getBlockList(long index, long count) {
         List<ConsensusBlock<PbftProto.PbftBlock>> blockList = new ArrayList<>();
         if (index < 0L || count < 1L || count > 100L) {
             log.debug("index or count is not valid");
@@ -215,7 +215,7 @@ public class PbftBlockChainTest {
 
         for (long l = index; l < index + count; l++) {
             try {
-                blockList.add(store.getBlockByIndex(l));
+                blockList.add(blockChainManager.getBlockByIndex(l));
             } catch (Exception e) {
                 break;
             }
