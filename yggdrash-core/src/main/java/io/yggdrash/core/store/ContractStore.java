@@ -29,6 +29,7 @@ public class ContractStore {
         this.branchStore = branchStore;
         this.stateStore = stateStore;
         this.txReceiptStore = txReceiptStore;
+        this.tmpStateStore = new TempStateStore(stateStore);
     }
 
     public BranchStore getBranchStore() {
@@ -40,7 +41,7 @@ public class ContractStore {
     }
 
     public TempStateStore getTmpStateStore() {
-        return new TempStateStore(stateStore);
+        return this.tmpStateStore;
     }
 
     public TransactionReceiptStore getTransactionReceiptStore() {

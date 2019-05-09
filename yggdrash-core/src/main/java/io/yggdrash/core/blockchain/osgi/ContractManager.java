@@ -499,4 +499,8 @@ public class ContractManager {
     public void commitBlockResult(BlockRuntimeResult result) {
         contractExecutor.commitBlockResult(result);
     }
+
+    public void close() {
+        contractStore.close();
+    }
 }

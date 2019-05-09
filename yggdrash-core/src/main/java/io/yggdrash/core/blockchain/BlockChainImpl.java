@@ -251,6 +251,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     public void close() {
         this.branchStore.close();
         this.blockChainManager.close();
+        this.contractManager.close();
     }
 
     @Override
