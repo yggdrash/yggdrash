@@ -45,8 +45,7 @@ public class ValidatorConfiguration {
 
         for (File branchPath : Objects.requireNonNull(validatorPath.listFiles())) {
 
-            BranchId branchId = parseBranchId(branchPath);
-            BlockChain branch = branchGroup.getBranch(branchId);
+            BlockChain branch = getBranch(branchPath, branchGroup);
             if (branch == null) {
                 log.warn("Not found branch for [{}]", branchPath);
                 continue;
@@ -55,20 +54,22 @@ public class ValidatorConfiguration {
             List<ValidatorService> validatorServiceList =
                     loadValidatorService(branchPath, genesis, branch.getConsensus(), defaultConfig,
                             systemProperties, policyLoader);
-            validatorServiceMap.put(branchId, validatorServiceList);
+            validatorServiceMap.put(branch.getBranchId(), validatorServiceList);
         }
 
         return validatorServiceMap;
     }
 
-    private BranchId parseBranchId(File branchPath) {
+    private BlockChain getBranch(File branchPath, BranchGroup branchGroup) {
 
         String branchName = branchPath.getName();
         if (branchName.length() != Constants.BRANCH_HEX_LENGTH || !branchName.matches("^[0-9a-fA-F]+$")) {
             return null;
         }
 
-        return new BranchId(new Sha3Hash(branchPath.getName()));
+        BranchId branchId = new BranchId(new Sha3Hash(branchPath.getName()));
+
+        return branchGroup.getBranch(branchId);
     }
 
     private List<ValidatorService> loadValidatorService(File branchPath, GenesisBlock genesis, Consensus consensus,
