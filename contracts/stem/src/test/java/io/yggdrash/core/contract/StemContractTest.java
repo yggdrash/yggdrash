@@ -107,6 +107,10 @@ public class StemContractTest {
 
         String branchKey = String.format("%s%s", PrefixKeyEnum.STEM_BRANCH, branchId);
         String branchMetaKey = String.format("%s%s", PrefixKeyEnum.STEM_META, branchId);
+
+        receipt.getTxLog().stream().forEach(l -> log.debug(l));
+
+
         assertTrue("Branch Create Success", receipt.isSuccess());
         assertTrue("Branch Stored", stateStore.contains(branchKey));
         assertTrue("Branch Meta Stored", stateStore.contains(branchMetaKey));
@@ -134,7 +138,7 @@ public class StemContractTest {
         JsonObject param = new JsonObject();
         param.addProperty("branchId", branchId);
 
-        Set<JsonElement> contracts = stemContract.getContract(param);
+        Set<JsonObject> contracts = stemContract.getContract(param);
         contracts.stream()
                 .forEach(c -> log.debug(c.getAsJsonObject().get("contractVersion").getAsString()));
         assertTrue("Contract Size", contracts.size() == 3);
@@ -146,6 +150,7 @@ public class StemContractTest {
         createStemBranch();
         // Set new Receipt
         TransactionReceipt receipt = createReceipt();
+        receipt.setIssuer("101167aaf090581b91c08480f6e559acdd9a3ddd");
         setUpReceipt(receipt);
 
         JsonObject branchUpdate = new JsonObject();
@@ -160,7 +165,7 @@ public class StemContractTest {
 
         stemContract.update(param);
 
-
+        assertEquals("update result", receipt.getStatus(), ExecuteStatus.SUCCESS);
         JsonObject metaInfo = stemContract.getBranchMeta(param);
 
         assertEquals("name did not update meta information", metaInfo.get("name").getAsString(), "YGGDRASH");
@@ -169,6 +174,7 @@ public class StemContractTest {
 
     @Test
     public void updateNotExistBranch() {
+
         TransactionReceipt receipt = createReceipt();
         setUpReceipt(receipt);
         JsonObject branchUpdate = new JsonObject();

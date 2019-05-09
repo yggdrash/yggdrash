@@ -11,6 +11,7 @@ import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.utils.BranchUtil;
+import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
@@ -118,13 +119,55 @@ public class StemContract implements BundleActivator, ServiceListener {
             log.debug("branchId : {}", branchId);
             // prefix Branch_id
 
+            String governanceContractName = branch.get("governanceContract").getAsString();
 
             boolean save = saveBranch(branchId, branch);
 
             // get Validator
-            // TODO add contract governance flag
+            Set<JsonObject> branchContracts = getContract(branchId);
+            JsonObject governanceContract = null;
+            for (JsonObject contract: branchContracts) {
+                if (governanceContractName.equals(contract.get("name").getAsString())) {
+                    governanceContract = contract;
+                    break;
+                }
+            }
 
+            if (governanceContract == null) {
+                this.txReceipt.setStatus(ExecuteStatus.FALSE);
+                this.txReceipt.addLog("Branch has no governanceContract");
+                return;
+            }
 
+            JsonArray validators = governanceContract
+                    .get("init")
+                    .getAsJsonObject()
+                    .get("validators")
+                    .getAsJsonArray();
+
+            // validators verify
+            Set<String> validatorSet = new HashSet<>();
+            for (JsonElement validator : validators) {
+                String validatorString = validator.getAsString();
+                validatorSet.add(validatorString);
+                // check validator is address
+                if (HexUtil.addressStringToBytes(validatorString) == ByteUtil.EMPTY_BYTE_ARRAY) {
+                    this.txReceipt.setStatus(ExecuteStatus.FALSE);
+                    this.txReceipt.addLog(String.format("validator %s is not account", validatorString));
+                    return;
+                }
+            }
+
+            if (validatorSet.size() != validators.size()) {
+                this.txReceipt.setStatus(ExecuteStatus.FALSE);
+                this.txReceipt.addLog(String.format("validator list is unique accounts list"));
+                return;
+            }
+
+            JsonObject validatorObject = new JsonObject();
+            validatorObject.add("validators", validators);
+
+            saveValidators(branchId, validatorObject);
 
             // get meta information
             JsonObject branchCopy = branch.deepCopy();
@@ -142,8 +185,6 @@ public class StemContract implements BundleActivator, ServiceListener {
             } else {
                 this.txReceipt.setStatus(ExecuteStatus.FALSE);
             }
-
-
             // check fee
             // check fee govonence
 
@@ -170,13 +211,17 @@ public class StemContract implements BundleActivator, ServiceListener {
 
             // check branchId Exist
 
-
             // check branch validator
-            // TODO getValidator
-            ValidatorSet validatorSet = getValidator(branchId);
+            JsonObject validators = getValidators(branchId);
+            // check issuer
+            if (validators == null || !validators.toString().contains(txReceipt.getIssuer())) {
+                // Transaction Issuer is not validator
+                txReceipt.setStatus(ExecuteStatus.FALSE);
+                txReceipt.addLog("Issuer is not validator");
+                return;
+            }
 
             JsonObject updateBranch = params.get("branch").getAsJsonObject();
-
             JsonObject originBranchMeta = getBranchMeta(branchId);
 
             if (originBranchMeta == null) {
@@ -191,6 +236,17 @@ public class StemContract implements BundleActivator, ServiceListener {
         }
 
         @InvokeTransaction
+        public void transferBranch(JsonObject params) {
+            // TODO transfer Yeed to Branch
+        }
+
+        @InvokeTransaction
+        public void withdrawBranch(JsonObject params) {
+            // TODO withdraw Yeed from Branch
+        }
+
+
+        @InvokeTransaction
         public void updateValidator(JsonObject params) {
             // TODO update branch meta information
 
@@ -203,17 +259,6 @@ public class StemContract implements BundleActivator, ServiceListener {
 
         }
 
-        public ValidatorSet getValidator(String branchId) {
-            // TODO get validator Set
-            // get Validator set
-
-            //
-            //this.state.get()
-            return null;
-        }
-
-
-
         private boolean saveBranch(String branchId, JsonObject branch) {
             String branchIdKey = String.format("%s%s", PrefixKeyEnum.STEM_BRANCH, branchId);
 
@@ -224,7 +269,7 @@ public class StemContract implements BundleActivator, ServiceListener {
             return false;
         }
 
-        private JsonObject getBranch(String branchId) {
+        public JsonObject getBranch(String branchId) {
             String branchIdKey = String.format("%s%s", PrefixKeyEnum.STEM_BRANCH, branchId);
             return this.state.get(branchIdKey);
         }
@@ -234,10 +279,21 @@ public class StemContract implements BundleActivator, ServiceListener {
             this.state.put(branchMetaKey, branchMeta);
         }
 
-        private JsonObject getBranchMeta(String branchId) {
+        public JsonObject getBranchMeta(String branchId) {
             String branchMetaKey = String.format("%s%s", PrefixKeyEnum.STEM_META, branchId);
             return this.state.get(branchMetaKey);
         }
+
+        private void saveValidators(String branchId, JsonObject validators) {
+            String branchValidatorKey = String.format("%s%s", PrefixKeyEnum.STEM_BRANCH_VALIDATOR, branchId);
+            this.state.put(branchValidatorKey, validators);
+        }
+
+        public JsonObject getValidators(String branchId) {
+            String branchValidatorKey = String.format("%s%s", PrefixKeyEnum.STEM_BRANCH_VALIDATOR, branchId);
+            return this.state.get(branchValidatorKey);
+        }
+
 
         public JsonObject metaMerge(JsonObject branchMeta, JsonObject branchMetaUpdate) {
             // update 가능 항목
@@ -290,15 +346,19 @@ public class StemContract implements BundleActivator, ServiceListener {
          * @return contract json object
          */
         @ContractQuery
-        public Set<JsonElement> getContract(JsonObject params) {
+        public Set<JsonObject> getContract(JsonObject params) {
             String branchId = params.get(BRANCH_ID).getAsString();
-            Set<JsonElement> contractSet = new HashSet<>();
+            return getContract(branchId);
+        }
+
+        public Set<JsonObject> getContract(String branchId) {
+            Set<JsonObject> contractSet = new HashSet<>();
 
             JsonObject branch = getBranch(branchId);
             if (branch != null) {
                 JsonArray contracts = branch.get("contracts").getAsJsonArray();
                 for (JsonElement c : contracts) {
-                    contractSet.add(c);
+                    contractSet.add(c.getAsJsonObject());
                 }
             }
             return contractSet;
@@ -349,7 +409,8 @@ public class StemContract implements BundleActivator, ServiceListener {
         private boolean branchVerify(JsonObject branch) {
             // check property
             boolean verify = true;
-            List<String> existProperty = Arrays.asList(new String[]{"name", "symbol", "property", "contracts"});
+            List<String> existProperty = Arrays.asList(
+                    new String[]{"name", "symbol", "property", "contracts", "governanceContract"});
 
             for (String perpertyKey :existProperty) {
                 verify &= branch.get(perpertyKey).isJsonNull() != true;
@@ -357,14 +418,6 @@ public class StemContract implements BundleActivator, ServiceListener {
 
             return verify;
         }
-//
-//        private StemContractStateValue getBranchStateValue(String branchId) {
-//            JsonObject json = state.get(branchId);
-//            if (json == null) {
-//                return null;
-//            } else {
-//                return new StemContractStateValue(json);
-//            }
-//        }
+
     }
 }
