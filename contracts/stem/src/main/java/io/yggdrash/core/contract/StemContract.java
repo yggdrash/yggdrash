@@ -5,9 +5,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.Contract;
 import io.yggdrash.common.contract.standard.CoinStandard;
+import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.utils.BranchUtil;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.annotation.ContractQuery;
@@ -100,22 +102,34 @@ public class StemContract implements BundleActivator, ServiceListener {
             JsonObject branch = params.getAsJsonObject("branch");
             // calculation branch Id
 
+            // TODO branch verify (validate)
             String branchId = HexUtil.toHexString(BranchUtil.branchIdGenerator(branch));
             log.debug("branchId : {}", branchId);
             // prefix Branch_id
 
-            branchId = "BRANCH_ID_PREFIX" + branchId;
+            boolean save = saveBranch(branchId, branch);
 
-            if (!this.state.contains(branchId)) {
-                // save Branch
-                this.state.put(branchId, branch);
+            // get Validator
+            // TODO add contract governance flag
+
+
+
+            // get meta information
+            JsonObject branchCopy = branch.deepCopy();
+
+            // get branch Meta information
+            branchCopy.remove("contracts");
+            branchCopy.remove("consensus");
+            log.debug(JsonUtil.prettyFormat(branchCopy));
+
+            // save Meta information
+            saveBranchMeta(branchId, branchCopy);
+
+            if (save) {
+                this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
             } else {
                 this.txReceipt.setStatus(ExecuteStatus.FALSE);
-                txReceipt.addLog("Branch is exist");
             }
-
-
-
 
 
             // check fee
@@ -124,7 +138,7 @@ public class StemContract implements BundleActivator, ServiceListener {
 
             // get validator
 
-            // get meta infomation
+            // get meta information
 
 
         }
@@ -173,6 +187,32 @@ public class StemContract implements BundleActivator, ServiceListener {
             return null;
         }
 
+
+
+        private boolean saveBranch(String branchId, JsonObject branch) {
+            String branchIdKey = String.format("%s%s", PrefixKeyEnum.STEM_BRANCH, branchId);
+
+            if (!this.state.contains(branchIdKey)) {
+                this.state.put(branchIdKey, branch);
+                return true;
+            }
+            return false;
+        }
+
+        private JsonObject getBranch(String branchId) {
+            String branchIdKey = String.format("%s%s", PrefixKeyEnum.STEM_BRANCH, branchId);
+            return this.state.get(branchIdKey);
+        }
+
+        private void saveBranchMeta(String branchId, JsonObject branchMeta) {
+            String branchMetaKey = String.format("%s%s", PrefixKeyEnum.STEM_META, branchId);
+            this.state.put(branchMetaKey, branchMeta);
+        }
+
+        private JsonObject getBranchMeta(String branchId) {
+            String branchMetaKey = String.format("%s%s", PrefixKeyEnum.STEM_META, branchId);
+            return this.state.get(branchMetaKey);
+        }
 
         /**
          * Returns boolean

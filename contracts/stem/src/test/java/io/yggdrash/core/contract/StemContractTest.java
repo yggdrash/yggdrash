@@ -17,6 +17,7 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.store.StateStore;
@@ -55,11 +56,12 @@ public class StemContractTest {
 
     JsonObject branchSample;
     String branchId;
+    StateStore stateStore;
 
     @Before
     public void setUp() throws IllegalAccessException, IOException {
         // Steup StemContract
-        StateStore stateStore = new StateStore(new HashMapDbSource());
+        stateStore = new StateStore(new HashMapDbSource());
 
         List<Field> txReceipt = ContractUtils.txReceiptFields(stemContract);
         if (txReceipt.size() == 1) {
@@ -101,8 +103,18 @@ public class StemContractTest {
 
         stemContract.create(param);
 
-        log.debug(receipt.getStatus().toString());
 
+        String branchKey = String.format("%s%s", PrefixKeyEnum.STEM_BRANCH, branchId);
+        String branchMetaKey = String.format("%s%s", PrefixKeyEnum.STEM_META, branchId);
+        assertTrue("Branch Stored", stateStore.contains(branchKey));
+        assertTrue("Branch Meta Stored", stateStore.contains(branchMetaKey));
+        assertTrue("Branch Create Success", receipt.isSuccess());
+    }
+
+
+    @Test
+    public void updateBranchMetaInformation() {
+        // all meta information is not delete by transaction
     }
 
 
