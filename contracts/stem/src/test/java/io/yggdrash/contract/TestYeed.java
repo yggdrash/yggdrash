@@ -1,4 +1,4 @@
-package io.yggdrash.core.contract;
+package io.yggdrash.contract;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.standard.CoinStandard;

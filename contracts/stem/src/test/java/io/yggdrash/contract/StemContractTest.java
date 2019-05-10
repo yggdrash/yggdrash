@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.contract;
+package io.yggdrash.contract;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.common.crypto.HexUtil;
@@ -104,15 +103,15 @@ public class StemContractTest {
 
 
         stemContract.create(param);
-
+        assertTrue("Branch Create Success", receipt.isSuccess());
+        
         String branchKey = String.format("%s%s", PrefixKeyEnum.STEM_BRANCH, branchId);
-        String branchMetaKey = String.format("%s%s", PrefixKeyEnum.STEM_META, branchId);
 
         receipt.getTxLog().stream().forEach(l -> log.debug(l));
 
-
-        assertTrue("Branch Create Success", receipt.isSuccess());
         assertTrue("Branch Stored", stateStore.contains(branchKey));
+
+        String branchMetaKey = String.format("%s%s", PrefixKeyEnum.STEM_META, branchId);
         assertTrue("Branch Meta Stored", stateStore.contains(branchMetaKey));
     }
 

@@ -1,18 +1,15 @@
 
-package io.yggdrash.core.contract;
+package io.yggdrash.contract;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.Contract;
 import io.yggdrash.common.contract.standard.CoinStandard;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
-import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.utils.BranchUtil;
 import io.yggdrash.common.utils.ByteUtil;
-import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.annotation.ContractQuery;
@@ -35,7 +32,6 @@ import java.util.List;
 import java.util.Set;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
-import static io.yggdrash.common.config.Constants.TX_ID;
 
 
 public class StemContract implements BundleActivator, ServiceListener {
@@ -88,8 +84,7 @@ public class StemContract implements BundleActivator, ServiceListener {
         @Genesis
         @InvokeTransaction // TODO remove InvokeTransaction
         public TransactionReceipt init(JsonObject param) {
-            //txReceipt = create(param);
-            log.info("[StemContract | genesis] SUCCESS! param => {}", param);
+            log.info("[StemContract | genesis] SUCCESS! param => {}");
             return txReceipt;
         }
 
@@ -122,6 +117,10 @@ public class StemContract implements BundleActivator, ServiceListener {
             String governanceContractName = branch.get("governanceContract").getAsString();
 
             boolean save = saveBranch(branchId, branch);
+            if (!save) {
+                this.txReceipt.setStatus(ExecuteStatus.FALSE);
+                return;
+            }
 
             // get Validator
             Set<JsonObject> branchContracts = getContract(branchId);
@@ -179,19 +178,13 @@ public class StemContract implements BundleActivator, ServiceListener {
             // save Meta information
             saveBranchMeta(branchId, branchCopy);
 
-            if (save) {
-                this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
-                this.txReceipt.addLog(String.format("Branch %s is created", branchId));
-            } else {
-                this.txReceipt.setStatus(ExecuteStatus.FALSE);
-            }
             // check fee
             // check fee govonence
-
-
             // get validator
-
             // get meta information
+
+            this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
+            this.txReceipt.addLog(String.format("Branch %s is created", branchId));
 
 
         }
@@ -212,12 +205,10 @@ public class StemContract implements BundleActivator, ServiceListener {
             // check branchId Exist
 
             // check branch validator
-            JsonObject validators = getValidators(branchId);
-            // check issuer
-            if (validators == null || !validators.toString().contains(txReceipt.getIssuer())) {
+            if (!checkBranchValidators(branchId)) {
                 // Transaction Issuer is not validator
                 txReceipt.setStatus(ExecuteStatus.FALSE);
-                txReceipt.addLog("Issuer is not validator");
+                txReceipt.addLog("Issuer is not branch validator");
                 return;
             }
 
@@ -238,11 +229,22 @@ public class StemContract implements BundleActivator, ServiceListener {
         @InvokeTransaction
         public void transferBranch(JsonObject params) {
             // TODO transfer Yeed to Branch
+            String branchId = params.get(BRANCH_ID).getAsString();
         }
 
         @InvokeTransaction
         public void withdrawBranch(JsonObject params) {
             // TODO withdraw Yeed from Branch
+
+            String branchId = params.get(BRANCH_ID).getAsString();
+            // check branch validator
+            if (!checkBranchValidators(branchId)) {
+                // Transaction Issuer is not validator
+                txReceipt.setStatus(ExecuteStatus.FALSE);
+                txReceipt.addLog("Issuer is not branch validator");
+                return;
+            }
+
         }
 
 
@@ -269,6 +271,21 @@ public class StemContract implements BundleActivator, ServiceListener {
             return false;
         }
 
+        /**
+         * @param params branch id
+         *
+         * @return branch json object
+         */
+        @ContractQuery
+        public JsonObject getBranch(JsonObject params) {
+            // TODO get branch information
+            String branchId = params.get(BRANCH_ID).getAsString();
+            JsonObject branch = getBranch(branchId);
+
+            // TODO fee not enough mesaage
+            return branch;
+        }
+
         public JsonObject getBranch(String branchId) {
             String branchIdKey = String.format("%s%s", PrefixKeyEnum.STEM_BRANCH, branchId);
             return this.state.get(branchIdKey);
@@ -277,6 +294,13 @@ public class StemContract implements BundleActivator, ServiceListener {
         private void saveBranchMeta(String branchId, JsonObject branchMeta) {
             String branchMetaKey = String.format("%s%s", PrefixKeyEnum.STEM_META, branchId);
             this.state.put(branchMetaKey, branchMeta);
+        }
+
+        @ContractQuery
+        public JsonObject getBranchMeta(JsonObject param) {
+            String branchId = param.get(BRANCH_ID).getAsString();
+
+            return getBranchMeta(branchId);
         }
 
         public JsonObject getBranchMeta(String branchId) {
@@ -320,29 +344,6 @@ public class StemContract implements BundleActivator, ServiceListener {
         /**
          * @param params branch id
          *
-         * @return branch json object
-         */
-        @ContractQuery
-        public JsonObject getBranch(JsonObject params) {
-            // TODO get branch information
-            String branchId = params.get(BRANCH_ID).getAsString();
-            JsonObject branch = getBranch(branchId);
-
-            // TODO fee not enough mesaage
-            return branch;
-        }
-
-        @ContractQuery
-        public JsonObject getBranchMeta(JsonObject param) {
-            String branchId = param.get(BRANCH_ID).getAsString();
-
-            return getBranchMeta(branchId);
-        }
-
-
-        /**
-         * @param params branch id
-         *
          * @return contract json object
          */
         @ContractQuery
@@ -371,36 +372,10 @@ public class StemContract implements BundleActivator, ServiceListener {
          */
         public BigInteger feeState(JsonObject params) {
             String branchId = params.get(BRANCH_ID).getAsString();
-//            StemContractStateValue stateValue = getBranchStateValue(branchId);
-//            BigDecimal result = BigDecimal.ZERO;
-//            if (isBranchExist(branchId)) {
-//                Long currentHeight = txReceipt.getBlockHeight();
-//                Long createPointHeight = stateValue.getBlockHeight();
-//                Long height = currentHeight - createPointHeight;
-//
-//                //1block to 1yeed
-//                BigDecimal currentFee = stateValue.getFee();
-//                result = currentFee.subtract(BigDecimal.valueOf(height));
-//            }
-//            return result.longValue() > 0 ? result : BigDecimal.ZERO;
+            // TODO get branch feeState and calculate
             return BigInteger.ZERO;
 
         }
-
-//        private BigInteger feeState(StemContractStateValue stateValue) {
-//            BigInteger currentFee = stateValue.getFee();
-//            if (currentFee.longValue() > 0) {
-//                Long currentHeight = txReceipt.getBlockHeight();
-//                Long createPointHeight = stateValue.getBlockHeight();
-//                Long overTimeHeight = currentHeight - createPointHeight;
-//                return currentFee.subtract(BigDecimal.valueOf(overTimeHeight));
-//            }
-//            return BigInteger.ZERO;
-//        }
-
-//        private Boolean isEnoughFee(StemContractStateValue stateValue) {
-//            return feeState(stateValue).longValue() > 0;
-//        }
 
         private boolean isBranchExist(String branchId) {
             return state.contains(branchId);
@@ -417,6 +392,16 @@ public class StemContract implements BundleActivator, ServiceListener {
             }
 
             return verify;
+        }
+
+        private boolean checkBranchValidators(String branchId) {
+            // check branch validator
+            JsonObject validators = getValidators(branchId);
+            // check issuer
+            if (validators == null || !validators.toString().contains(txReceipt.getIssuer())) {
+                return false;
+            }
+            return true;
         }
 
     }
