@@ -18,6 +18,7 @@ package io.yggdrash.contract;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
+import io.yggdrash.common.contract.vo.dpoa.Validator;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
@@ -28,6 +29,7 @@ import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
+import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -76,6 +78,16 @@ public class StemContractTest {
         JsonObject obj = new JsonObject();
         obj.addProperty("address", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");
         assertTrue("setup", BigInteger.ZERO.compareTo(testYeed.balanceOf(obj)) < 0);
+
+        TestBranchStateStore branchStateStore = new TestBranchStateStore();
+        branchStateStore.getValidators().getValidatorMap()
+                .put("81b7e08f65bdf5648606c89998a9cc8164397647",
+                        new Validator("81b7e08f65bdf5648606c89998a9cc8164397647"));
+
+        for (Field f : ContractUtils.contractFields(stemContract, ContractBranchStateStore.class)) {
+            f.setAccessible(true);
+            f.set(stemContract, branchStateStore);
+        }
 
         try (InputStream is = new FileInputStream(branchFile)) {
             String branchString = IOUtils.toString(is, FileUtil.DEFAULT_CHARSET);

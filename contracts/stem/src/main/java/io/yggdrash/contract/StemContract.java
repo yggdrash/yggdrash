@@ -8,10 +8,12 @@ import io.yggdrash.common.contract.Contract;
 import io.yggdrash.common.contract.standard.CoinStandard;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.common.crypto.HexUtil;
+import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.utils.BranchUtil;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
@@ -40,7 +42,6 @@ public class StemContract implements BundleActivator, ServiceListener {
 
     // Get other Service
     private CoinStandard asset;
-
 
     @Override
     public void start(BundleContext context) {
@@ -71,8 +72,12 @@ public class StemContract implements BundleActivator, ServiceListener {
         this.asset = coinStandard;
     }
 
+
     public static class StemService implements Contract {
         private static final Logger log = LoggerFactory.getLogger(StemContract.class);
+
+        @ContractBranchStateStore
+        BranchStateStore branchStateStore;
 
         @ContractStateStore
         ReadWriterStore<String, JsonObject> state;
@@ -160,6 +165,15 @@ public class StemContract implements BundleActivator, ServiceListener {
             if (validatorSet.size() != validators.size()) {
                 this.txReceipt.setStatus(ExecuteStatus.FALSE);
                 this.txReceipt.addLog(String.format("validator list is unique accounts list"));
+                return;
+            }
+
+            // Check issuer is validator or yggdrash validator
+            if (!(validatorSet.contains(txReceipt.getIssuer())
+                    || branchStateStore.isValidator(txReceipt.getIssuer()))) {
+                // Check issuer is not yggdrash validator
+                this.txReceipt.setStatus(ExecuteStatus.FALSE);
+                this.txReceipt.addLog("Issuer is not branch validator");
                 return;
             }
 
@@ -370,6 +384,7 @@ public class StemContract implements BundleActivator, ServiceListener {
          *
          * @return fee state
          */
+        @ContractQuery
         public BigInteger feeState(JsonObject params) {
             String branchId = params.get(BRANCH_ID).getAsString();
             // TODO get branch feeState and calculate
