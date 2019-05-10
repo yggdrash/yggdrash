@@ -106,7 +106,7 @@ public class PbftVerifier implements ConsensusVerifier<PbftProto.PbftBlock, Pbft
             return false;
         } else {
             return VerifierUtils.verify(pbftBlock.getBlock())
-                    && verify((PbftMessage) pbftBlock.getConsensusMessages());
+                    && verify((PbftMessageSet) pbftBlock.getConsensusMessages());
         }
     }
 }
