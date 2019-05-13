@@ -56,7 +56,7 @@ public class BranchController {
             상태값의 개수만 확인하는 것으로, 전반적인 변경이 필요하며, 블록체인상에서의 모든 상태정보를 출력하는 것은
             본질적으로 가능하지 않다. 노드에서의 영역이 아닌 서비스의 영역에서 해당 내용을 재정립하여, 확인 하여야 한다
          */
-        Long stateSize = branchGroup.getStateStore(BranchId.of(branchId)).getStateSize();
+        Long stateSize = branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getStateSize();
         return ResponseEntity.ok(stateSize);
     }
 

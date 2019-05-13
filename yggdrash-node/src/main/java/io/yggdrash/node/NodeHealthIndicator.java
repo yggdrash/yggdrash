@@ -30,9 +30,9 @@ import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 @Component
 public class NodeHealthIndicator implements HealthIndicator, NodeStatus {
@@ -82,11 +82,12 @@ public class NodeHealthIndicator implements HealthIndicator, NodeStatus {
         builder.withDetail("p2pVersion", defaultConfig.getNetworkP2PVersion());
         builder.withDetail("network", defaultConfig.getNetwork());
         // Add Node BranchIds and block index
-        Map<BranchId, Long> branches = branchGroup.getAllBranch()
-                .stream()
-                .collect(Collectors.toMap(BlockChain::getBranchId, BlockChain::getLastIndex));
-        builder.withDetail("branches", branches);
+        Map<BranchId, Long> branches = new HashMap<>();
+        for (BlockChain blockChain : branchGroup.getAllBranch()) {
+            branches.put(blockChain.getBranchId(), blockChain.getBlockChainManager().getLastIndex());
+        }
 
+        builder.withDetail("branches", branches);
         builder.withDetail("activePeers", peerDialer.handlerCount());
         health.set(builder.build());
     }

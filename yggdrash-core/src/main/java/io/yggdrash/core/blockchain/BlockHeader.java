@@ -32,10 +32,10 @@ import java.util.Arrays;
 
 public class BlockHeader implements ProtoObject<Proto.Block.Header> {
 
-    static final int LENGTH = 124;
+    public static final int VERSION_LENGTH = 8;
+    public static final int TYPE_LENGTH = 8;
 
-    static final int VERSION_LENGTH = 8;
-    static final int TYPE_LENGTH = 8;
+    static final int LENGTH = 124;
 
     private final Proto.Block.Header protoHeader;
 

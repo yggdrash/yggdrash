@@ -143,7 +143,7 @@ public class PbftStatus {
         }
 
         for (PbftMessage pbftMessage : status.unConfirmedPbftMessageMap.values()) {
-            if (!PbftMessage.verify(pbftMessage)) {
+            if (!PbftVerifier.INSTANCE.verify(pbftMessage)) {
                 return false;
             }
         }

@@ -41,23 +41,25 @@ public class BlockChainTest extends CiTest {
     @Test
     public void shouldBeGetBlockByHash() {
         BlockChain blockChain = generateTestBlockChain(false);
-        ConsensusBlock block = blockChain.getLastConfirmedBlock(); // goto Genesis
-        long nextIndex = blockChain.getLastIndex() + 1;
+        BlockChainManager blockChainManager = blockChain.getBlockChainManager();
+        ConsensusBlock block = blockChainManager.getLastConfirmedBlock(); // goto Genesis
+        long nextIndex = blockChainManager.getLastIndex() + 1;
         ConsensusBlock testBlock = getBlockFixture(nextIndex, block.getHash());
         blockChain.addBlock(testBlock, false);
 
-        assertThat(blockChain.getBlockByHash(testBlock.getHash())).isEqualTo(testBlock);
+        assertThat(blockChainManager.getBlockByHash(testBlock.getHash())).isEqualTo(testBlock);
     }
 
     @Test
     public void shouldBeGetBlockByIndex() {
         BlockChain blockChain = generateTestBlockChain();
-        ConsensusBlock block = blockChain.getLastConfirmedBlock(); // goto Genesis
-        long nextIndex = blockChain.getLastIndex() + 1;
+        BlockChainManager blockChainManager = blockChain.getBlockChainManager();
+        ConsensusBlock block = blockChainManager.getLastConfirmedBlock(); // goto Genesis
+        long nextIndex = blockChainManager.getLastIndex() + 1;
         ConsensusBlock testBlock = getBlockFixture(nextIndex, block.getHash());
         blockChain.addBlock(testBlock, false);
 
-        assertThat(blockChain.getBlockByIndex(nextIndex)).isEqualTo(testBlock);
+        assertThat(blockChainManager.getBlockByIndex(nextIndex)).isEqualTo(testBlock);
     }
 
     @Test(expected = NotValidateException.class)
@@ -80,9 +82,11 @@ public class BlockChainTest extends CiTest {
         blockChain1.close();
 
         BlockChain blockChain2 = generateTestBlockChain(true);
-        ConsensusBlock foundBlock = blockChain2.getBlockByHash(testBlock.getHash());
+        BlockChainManager blockChain2Manager = blockChain2.getBlockChainManager();
+        ConsensusBlock foundBlock = blockChain2Manager.getBlockByHash(testBlock.getHash());
         blockChain2.close();
-        long nextIndex = blockChain2.getLastIndex() + 1;
+        long nextIndex = blockChain2Manager.getLastIndex() + 1;
+
         assertThat(nextIndex).isEqualTo(2);
         assertThat(testBlock).isEqualTo(foundBlock);
     }
@@ -90,12 +94,15 @@ public class BlockChainTest extends CiTest {
     @Test
     public void shouldBeStoredGenesisTxs() {
         BlockChain blockChain = generateTestBlockChain(true);
+        BlockChainManager blockChainManager = blockChain.getBlockChainManager();
         ConsensusBlock genesis = blockChain.getGenesisBlock();
         List<Transaction> txList = genesis.getBody().getTransactionList();
+
         for (Transaction tx : txList) {
-            assertThat(blockChain.getTxByHash(tx.getHash())).isNotNull();
+            assertThat(blockChainManager.getTxByHash(tx.getHash())).isNotNull();
         }
-        assertThat(blockChain.countOfTxs()).isEqualTo(genesis.getBody().getCount());
+
+        assertThat(blockChainManager.countOfTxs()).isEqualTo(genesis.getBody().getCount());
         blockChain.close();
     }
 
@@ -106,16 +113,17 @@ public class BlockChainTest extends CiTest {
 
         ConsensusBlock testBlock = getBlockFixture(1L, genesisBlock.getHash());
         newDbBlockChain.addBlock(testBlock, false);
-        assertThat(newDbBlockChain.getLastIndex()).isEqualTo(1);
+        assertThat(newDbBlockChain.getBlockChainManager().getLastIndex()).isEqualTo(1);
         newDbBlockChain.close();
 
         BlockChain loadedDbBlockChain = generateTestBlockChain(true);
-        assertThat(loadedDbBlockChain.getLastIndex()).isEqualTo(1);
+        assertThat(loadedDbBlockChain.getBlockChainManager().getLastIndex()).isEqualTo(1);
     }
 
     @Test
     public void shouldBeCallback() {
         BlockChain blockChain = generateTestBlockChain(false);
+        BlockChainManager blockChainManager = blockChain.getBlockChainManager();
         blockChain.addListener(new BranchEventListener() {
             @Override
             public void chainedBlock(ConsensusBlock block) {
@@ -127,8 +135,9 @@ public class BlockChainTest extends CiTest {
                 assertThat(tx).isNotNull();
             }
         });
-        ConsensusBlock block = blockChain.getLastConfirmedBlock(); // goto Genesis
-        long nextIndex = blockChain.getLastIndex() + 1;
+        ConsensusBlock block = blockChainManager.getLastConfirmedBlock(); // goto Genesis
+        long nextIndex = blockChainManager.getLastIndex() + 1;
+
         ConsensusBlock testBlock = getBlockFixture(nextIndex, block.getHash());
         blockChain.addBlock(testBlock, false);
         blockChain.addTransaction(BlockChainTestUtils.createTransferTx());

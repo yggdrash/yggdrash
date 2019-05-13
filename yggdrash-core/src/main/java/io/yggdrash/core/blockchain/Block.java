@@ -65,13 +65,6 @@ public interface Block extends Comparable<Block> {
      */
     long getLength();
 
-    /**
-     * Verify a block.(data format & signing)
-     *
-     * @return true(success), false(fail)
-     */
-    boolean verify();
-
     JsonObject toJsonObject();
 
     void clear();

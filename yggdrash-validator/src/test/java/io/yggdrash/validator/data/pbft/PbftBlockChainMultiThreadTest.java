@@ -10,6 +10,7 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
@@ -48,6 +49,8 @@ public class PbftBlockChainMultiThreadTest {
     private Block block3;
 
     private PbftBlockChain pbftBlockChain;
+    private BlockChainManager blockChainManager;
+
     private PbftBlock pbftBlock0;
     private PbftBlock pbftBlock1;
     private PbftBlock pbftBlock2;
@@ -83,7 +86,7 @@ public class PbftBlockChainMultiThreadTest {
                 "/pbftKey",
                 "/pbftBlock",
                 "/pbftTx");
-
+        this.blockChainManager = pbftBlockChain.getBlockChainManager();
         this.pbftMessageSet0 = makePbftMessageSet(block0);
         this.pbftBlock0 = new PbftBlock(this.block0, this.pbftMessageSet0);
 
@@ -163,15 +166,15 @@ public class PbftBlockChainMultiThreadTest {
 
         long testCount = 2000;
         for (long l = 0; l < testCount; l++) {
-            long index = this.pbftBlockChain.getLastConfirmedBlock().getIndex() + 1;
-            byte[] prevHash = this.pbftBlockChain.getLastConfirmedBlock().getHash().getBytes();
+            long index = this.blockChainManager.getLastIndex() + 1;
+            byte[] prevHash = this.blockChainManager.getLastHash().getBytes();
 
             PbftBlock pbftBlock = makePbftBlock(index, prevHash);
             this.pbftBlockChain.addBlock(pbftBlock);
         }
 
         log.debug("BlockKeyStore size: {}", this.pbftBlockChain.getBlockKeyStore().size());
-        log.debug("BlockStore size: {}", this.pbftBlockChain.getBlockStore().size());
+        log.debug("BlockStore size: {}", this.blockChainManager.countOfBlocks());
 
         System.gc();
         sleep(3000000);

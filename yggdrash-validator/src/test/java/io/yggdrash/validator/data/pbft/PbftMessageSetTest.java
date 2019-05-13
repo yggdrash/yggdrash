@@ -212,7 +212,7 @@ public class PbftMessageSetTest {
     }
 
     @Test
-    public void constuctorTest_Default() {
+    public void constructorTest_Default() {
         log.debug(pbftMessageSet.toJsonObject().toString());
         assertNotNull(this.pbftMessageSet);
 
@@ -223,7 +223,7 @@ public class PbftMessageSetTest {
 
 
     @Test
-    public void constuctorTest_NullException() {
+    public void constructorTest_NullException() {
         PbftMessageSet pbftMessageSet = new PbftMessageSet(this.prePrepare, null, null, null);
         log.debug(pbftMessageSet.toJsonObject().toString());
         assertNotNull(pbftMessageSet);
@@ -241,7 +241,7 @@ public class PbftMessageSetTest {
     }
 
     @Test
-    public void constuctorTest_JsonObect() {
+    public void constructorTest_JsonObject() {
         {
             PbftMessageSet messageSet = this.pbftMessageSet;
             PbftMessageSet newMessageSet = new PbftMessageSet(messageSet.toJsonObject());
@@ -272,7 +272,7 @@ public class PbftMessageSetTest {
     }
 
     @Test
-    public void constuctorTest_Bytes() {
+    public void constructorTest_Bytes() {
         {
             PbftMessageSet messageSet = new PbftMessageSet(
                     this.prePrepare, null, null, null);
@@ -315,7 +315,7 @@ public class PbftMessageSetTest {
     }
 
     @Test
-    public void constuctorTest_Proto() {
+    public void constructorTest_Proto() {
         {
             PbftMessageSet messageSet = this.pbftMessageSet;
             PbftProto.PbftMessageSet messageSetProto = PbftMessageSet.toProto(messageSet);
@@ -430,10 +430,10 @@ public class PbftMessageSetTest {
 
     @Test
     public void verifyTest() {
-        assertTrue(PbftMessageSet.verify(this.pbftMessageSet));
-        assertTrue(PbftMessageSet.verify(this.pbftMessageSet2));
-        assertTrue(PbftMessageSet.verify(this.pbftMessageSet3));
-        assertTrue(PbftMessageSet.verify(this.pbftMessageSet4));
+        assertTrue(PbftVerifier.INSTANCE.verify(this.pbftMessageSet));
+        assertTrue(PbftVerifier.INSTANCE.verify(this.pbftMessageSet2));
+        assertTrue(PbftVerifier.INSTANCE.verify(this.pbftMessageSet3));
+        assertTrue(PbftVerifier.INSTANCE.verify(this.pbftMessageSet4));
     }
 
     @Test
@@ -441,22 +441,22 @@ public class PbftMessageSetTest {
         PbftMessageSet newPbftMessageSet = this.pbftMessageSet.clone();
         assertTrue(newPbftMessageSet.equals(this.pbftMessageSet));
         newPbftMessageSet.clear();
-        assertTrue(PbftMessageSet.verify(this.pbftMessageSet));
+        assertTrue(PbftVerifier.INSTANCE.verify(this.pbftMessageSet));
 
         newPbftMessageSet = this.pbftMessageSet2.clone();
         assertTrue(newPbftMessageSet.equals(this.pbftMessageSet2));
         newPbftMessageSet.clear();
-        assertTrue(PbftMessageSet.verify(this.pbftMessageSet2));
+        assertTrue(PbftVerifier.INSTANCE.verify(this.pbftMessageSet2));
 
         newPbftMessageSet = this.pbftMessageSet3.clone();
         assertTrue(newPbftMessageSet.equals(this.pbftMessageSet3));
         newPbftMessageSet.clear();
-        assertTrue(PbftMessageSet.verify(this.pbftMessageSet3));
+        assertTrue(PbftVerifier.INSTANCE.verify(this.pbftMessageSet3));
 
         newPbftMessageSet = this.pbftMessageSet4.clone();
         assertTrue(newPbftMessageSet.equals(this.pbftMessageSet4));
         newPbftMessageSet.clear();
-        assertTrue(PbftMessageSet.verify(this.pbftMessageSet4));
+        assertTrue(PbftVerifier.INSTANCE.verify(this.pbftMessageSet4));
     }
 
 }
