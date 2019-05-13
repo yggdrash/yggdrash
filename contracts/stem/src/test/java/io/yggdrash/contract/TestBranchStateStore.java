@@ -34,7 +34,7 @@ public class TestBranchStateStore implements BranchStateStore {
 
     @Override
     public boolean isValidator(String address) {
-        return true;
+        return set.contains(address);
     }
 
     public void setValidators(ValidatorSet validatorSet) {

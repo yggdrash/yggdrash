@@ -162,16 +162,19 @@ public class StemContract implements BundleActivator, ServiceListener {
                 }
             }
 
+            // check validator is unique in list
             if (validatorSet.size() != validators.size()) {
                 this.txReceipt.setStatus(ExecuteStatus.FALSE);
                 this.txReceipt.addLog(String.format("validator list is unique accounts list"));
                 return;
             }
-
+            log.debug(" is validator contain {}",validatorSet.contains(txReceipt.getIssuer()));
+            log.debug(" is branchStateStore contain {}",branchStateStore.isValidator(txReceipt.getIssuer()));
             // Check issuer is validator or yggdrash validator
             if (!(validatorSet.contains(txReceipt.getIssuer())
                     || branchStateStore.isValidator(txReceipt.getIssuer()))) {
                 // Check issuer is not yggdrash validator
+
                 this.txReceipt.setStatus(ExecuteStatus.FALSE);
                 this.txReceipt.addLog("Issuer is not branch validator");
                 return;
