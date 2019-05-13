@@ -53,7 +53,7 @@ public class RandomBroadcastBlockTest extends RandomBroadcastTesting {
             }
             node.logDebugging();
             node.shutdown();
-            Assert.assertEquals(blockCount, node.getDefaultBranch().getLastIndex());
+            Assert.assertEquals(blockCount, node.getDefaultBranch().getBlockChainManager().getLastIndex());
         }
     }
 }

@@ -46,11 +46,6 @@ public class TransactionBuilder {
         return this;
     }
 
-    public TransactionBuilder addTransactionBody(JsonObject txBody) {
-        this.txBody = txBody;
-        return this;
-    }
-
     public TransactionBuilder setVersion(byte[] version) {
         this.version = version;
         return this;
@@ -62,16 +57,23 @@ public class TransactionBuilder {
     }
 
 
-    public TransactionBuilder setTxBody(ContractVersion contractVersion, String method,
-                                        JsonObject params, boolean isSystem) {
-        return addTransactionBody(commonTxBody(contractVersion.toString(), method, params, isSystem));
+    public TransactionBuilder setTxBody(JsonObject txBody) {
+        this.txBody = txBody;
+        return this;
     }
 
     public TransactionBuilder setTxBody(ContractVersion contractVersion, String method,
+                                        JsonObject params, boolean isSystem) {
+        return setTxBody(commonTxBody(contractVersion.toString(), method, params, isSystem));
+    }
+
+    @Deprecated
+    public TransactionBuilder setTxBody(ContractVersion contractVersion, String method,
                                         JsonObject params, boolean isSystem, JsonObject consensus) {
+        // TODO Consensus information get State Store v0.4.0
         JsonObject txObj = commonTxBody(contractVersion.toString(), method, params, isSystem);
         txObj.add("consensus", consensus);
-        return addTransactionBody(txObj);
+        return setTxBody(txObj);
     }
 
     private JsonObject commonTxBody(String contractVersion, String method, JsonObject params, boolean isSystem) {

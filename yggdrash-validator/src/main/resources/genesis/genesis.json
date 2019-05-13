@@ -21,8 +21,7 @@
         "bodyLength": "0000000000000625"
       },
       "signature": "1cea633df036d080a8dcd6176ef3b7e9a29975db31cf55daef446c7cb2943dda131fb2b79ee315a055afd6574f0ac76037d4fda3de87d325ee3f7f7915fb814177",
-      "body": [
-        {
+      "body": {
           "operator": "GENESIS",
           "chainName": "YEED",
           "frontier": {
@@ -78,8 +77,7 @@
               "fc534627231364101088709fdf030d99f1c52d38"
             ]
           }
-        }
-      ]
+      }
     }
   ]
 }

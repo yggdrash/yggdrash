@@ -1,6 +1,7 @@
 package io.yggdrash.validator.data.pbft;
 
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
@@ -329,10 +330,10 @@ public class PbftBlockTest {
 
     @Test
     public void verifyTest() {
-        assertTrue(PbftBlock.verify(this.pbftBlock)
-                && PbftBlock.verify(this.pbftBlock2)
-                && PbftBlock.verify(this.pbftBlock3)
-                && PbftBlock.verify(this.pbftBlock4));
+        assertTrue(VerifierUtils.verify(this.pbftBlock)
+                && VerifierUtils.verify(this.pbftBlock2)
+                && VerifierUtils.verify(this.pbftBlock3)
+                && VerifierUtils.verify(this.pbftBlock4));
     }
 
     @Test
@@ -341,7 +342,7 @@ public class PbftBlockTest {
         assertEquals(newPbftBlock, this.pbftBlock);
 
         newPbftBlock.clear();
-        assertTrue(PbftBlock.verify(this.pbftBlock));
+        assertTrue(VerifierUtils.verify(this.pbftBlock));
     }
 
 }

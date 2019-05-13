@@ -17,6 +17,8 @@
 package io.yggdrash.gateway.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BranchId;
@@ -34,6 +36,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -58,9 +61,17 @@ public class TransactionControllerTest extends TestConstants.CiTest {
     private BranchId yggdrashBranch;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         JacksonTester.initFields(this, new ObjectMapper());
-        yggdrashBranch = TestConstants.yggdrash();
+        String branchApi = "/branches";
+        MvcResult result = mockMvc.perform(get(branchApi))
+                .andReturn();
+        JsonParser parser = new JsonParser();
+        String branch = parser.parse(result.getResponse().getContentAsString())
+                .getAsJsonObject()
+                .keySet().iterator().next();
+        yggdrashBranch = BranchId.of(branch);
+
         basePath = String.format("/branches/%s/txs", yggdrashBranch);
     }
 

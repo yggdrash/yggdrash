@@ -53,7 +53,7 @@ public class BlockChainSyncManager implements SyncManager {
 
     @Override
     public boolean syncBlock(BlockChainHandler peerHandler, BlockChain blockChain) {
-        long offset = blockChain.getLastIndex() + 1;
+        long offset = blockChain.getBlockChainManager().getLastIndex() + 1;
 
         BranchId branchId = blockChain.getBranchId();
         Future<List<ConsensusBlock>> futureBlockList = peerHandler.syncBlock(branchId, offset);
@@ -193,7 +193,7 @@ public class BlockChainSyncManager implements SyncManager {
         }
 
         long bestBlock = from.getBestBlock();
-        long curBestBlock = blockChain.getLastIndex();
+        long curBestBlock = blockChain.getBlockChainManager().getLastIndex();
 
         if (curBestBlock >= bestBlock) {
             return;

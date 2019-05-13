@@ -18,6 +18,7 @@ package io.yggdrash.node.broadcast;
 
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.util.Utils;
+import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.node.TcpNodeTesting;
 import io.yggdrash.node.TestNode;
 import org.junit.Test;
@@ -41,19 +42,22 @@ public class RestartedServerBroadcastTxTest extends TcpNodeTesting {
         // broadcast success
         client.generateBlock();
         Utils.sleep(100);
-        assertThat(server.getDefaultBranch().getLastIndex()).isEqualTo(1);
+
+        BlockChainManager serverBlockChainManager = server.getDefaultBranch().getBlockChainManager();
+        assertThat(serverBlockChainManager.getLastIndex()).isEqualTo(1);
 
         // broadcast fail - server shutdown
         server.shutdown();
         client.generateBlock();
         Utils.sleep(100);
-        assertThat(server.getDefaultBranch().getLastIndex()).isEqualTo(1);
+        assertThat(serverBlockChainManager.getLastIndex()).isEqualTo(1);
         // broadcast fail - server restart
         createAndStartServer(server);
         client.generateBlock();
         Utils.sleep(100);
         server.shutdown();
         // assert
-        assertThat(server.getDefaultBranch().getLastIndex()).isEqualTo(client.getDefaultBranch().getLastIndex());
+        assertThat(serverBlockChainManager.getLastIndex())
+                .isEqualTo(client.getDefaultBranch().getBlockChainManager().getLastIndex());
     }
 }

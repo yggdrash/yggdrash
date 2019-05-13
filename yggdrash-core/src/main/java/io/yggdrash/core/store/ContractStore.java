@@ -25,7 +25,6 @@ public class ContractStore {
     private TransactionReceiptStore txReceiptStore;
     private TempStateStore tmpStateStore;
 
-    //TODO The branchStore and the stateStore will be merged.
     public ContractStore(BranchStore branchStore, StateStore stateStore, TransactionReceiptStore txReceiptStore) {
         this.branchStore = branchStore;
         this.stateStore = stateStore;

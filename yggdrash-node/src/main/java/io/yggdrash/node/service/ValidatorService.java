@@ -88,22 +88,19 @@ public class ValidatorService {
     }
 
     public static BlockChainBuilder.Factory factory() {
-        return (branch, genesisBlock, blockStore, transactionStore, branchStore, stateStore, transactionReceiptStore,
-                contractManager, outputStores) -> {
+        return (branch, genesisBlock, branchStore, blockChainManager, contractManager) -> {
 
             Consensus consensus = new Consensus(branch.getConsensus());
 
             switch (consensus.getAlgorithm()) {
                 case "pbft":
                     PbftBlock pbftBlock = new PbftBlock(genesisBlock, PbftMessageSet.forGenesis());
-                    return new BlockChainImpl<PbftProto.PbftBlock, PbftMessageSet>(branch, pbftBlock,
-                            blockStore, transactionStore, branchStore, stateStore, transactionReceiptStore,
-                            contractManager, outputStores);
+                    return new BlockChainImpl<PbftProto.PbftBlock, PbftMessageSet>(
+                            branch, pbftBlock, branchStore, blockChainManager, contractManager);
                 case "ebft":
                     EbftBlock ebftBlock = new EbftBlock(genesisBlock);
-                    return new BlockChainImpl<EbftProto.EbftBlock, EbftBlock>(branch, ebftBlock,
-                            blockStore, transactionStore, branchStore, stateStore, transactionReceiptStore,
-                            contractManager, outputStores);
+                    return new BlockChainImpl<EbftProto.EbftBlock, EbftBlock>(
+                            branch, ebftBlock, branchStore, blockChainManager, contractManager);
                 default:
             }
             throw new NotValidateException(NOT_VALID_MSG);

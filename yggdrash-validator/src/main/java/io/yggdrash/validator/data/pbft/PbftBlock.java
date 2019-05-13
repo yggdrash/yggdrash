@@ -78,24 +78,6 @@ public class PbftBlock extends AbstractConsensusBlock<PbftProto.PbftBlock> {
         this.pbftMessageSet.clear();
     }
 
-    @Override
-    public boolean verify() {
-        return super.verify() && PbftMessageSet.verify(this.pbftMessageSet);
-    }
-
-    public static boolean verify(PbftBlock block) {
-        if (block == null || block.getBlock() == null) {
-            return false;
-        } else if (block.getIndex() == 0) {
-            return block.getBlock().verify();
-        } else if (block.getConsensusMessages() == null) {
-            return false;
-        } else {
-            return block.getBlock().verify()
-                    && PbftMessageSet.verify(block.getConsensusMessages());
-        }
-    }
-
     private static PbftProto.PbftBlock toProto(byte[] bytes) {
         try {
             return PbftProto.PbftBlock.parseFrom(bytes);

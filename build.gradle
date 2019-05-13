@@ -78,14 +78,31 @@ subprojects {
     }
 }
 
+def resourceContractPath = rootProject.file('resources/contract')
+
+
+task copyContractToCore(type: Copy) {
+     def coreContractPath = file('yggdrash-core/.yggdrash/contract')
+    coreContractPath.mkdirs()
+
+    from resourceContractPath
+    into coreContractPath
+}
+
+task copyContractToNode(type: Copy) {
+    def nodeContractPath = file('yggdrash-node/.yggdrash/contract')
+    nodeContractPath.mkdirs()
+
+    from resourceContractPath
+    into nodeContractPath
+}
+
+
 project(':yggdrash-core') {
     apply plugin: 'com.google.protobuf'
 
     dependencies {
         compile project(':yggdrash-common')
-        implementation project(':yggdrash-contract-coin')
-        implementation project(':yggdrash-contract-dpoa')
-        implementation project(':yggdrash-contract-versioning')
 
         compile "io.grpc:grpc-services:${grpcVersion}"
         compile "io.grpc:grpc-netty:${grpcVersion}"
@@ -124,6 +141,10 @@ project(':yggdrash-core') {
             }
         }
     }
+
+    test {
+        dependsOn copyContractToCore
+    }
 }
 
 project(':yggdrash-validator') {
@@ -160,13 +181,13 @@ project(':yggdrash-node') {
 
     dependencies {
         compile(project(':yggdrash-core')) {
-            exclude module: 'yggdrash-contract-dpoa'
+            exclude module: 'contracts'
         }
         compile(project(':yggdrash-validator')) {
-            exclude module: 'yggdrash-contract-dpoa'
+            exclude module: 'contracts'
         }
         compile(project(':yggdrash-gateway')) {
-            exclude module: 'yggdrash-contract-dpoa'
+            exclude module: 'contracts'
         }
         compile "org.springframework.boot:spring-boot-starter-web"
         compile "org.springframework.boot:spring-boot-starter-undertow"
@@ -211,6 +232,10 @@ project(':yggdrash-node') {
         with bootJar
     }
     bootJar.dependsOn customJar
+
+    test {
+        dependsOn copyContractToNode
+    }
 }
 
 project(':yggdrash-gateway') {
@@ -282,5 +307,6 @@ task cleanConfig(type: Delete) {
     delete '.yggdrash'
     delete 'yggdrash-core/.yggdrash'
     delete 'yggdrash-node/.yggdrash'
+    delete 'contracts/.yggdrash'
     delete 'yggdrash-validator/.yggdrash'
 }

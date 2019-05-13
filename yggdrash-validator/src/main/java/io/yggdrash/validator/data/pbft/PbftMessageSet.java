@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.common.utils.SerializationUtil;
+import io.yggdrash.core.consensus.ConsensusMessageSet;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.PbftProto;
 import org.spongycastle.util.encoders.Hex;
@@ -13,7 +14,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class PbftMessageSet {
+public class PbftMessageSet implements ConsensusMessageSet<PbftMessage> {
 
     private final PbftMessage prePrepare;
 
@@ -95,68 +96,32 @@ public class PbftMessageSet {
         }
     }
 
+    @Override
     public PbftMessage getPrePrepare() {
         return prePrepare;
     }
 
+    @Override
     public Map<String, PbftMessage> getPrepareMap() {
         return prepareMap;
     }
 
+    @Override
     public Map<String, PbftMessage> getCommitMap() {
         return commitMap;
     }
 
+    @Override
     public Map<String, PbftMessage> getViewChangeMap() {
         return viewChangeMap;
     }
 
-    public static boolean verify(PbftMessageSet pbftMessageSet) {
-        PbftMessage prePrepare = pbftMessageSet.getPrePrepare();
-        Map<String, PbftMessage> prepareMap = pbftMessageSet.getPrepareMap();
-        Map<String, PbftMessage> commitMap = pbftMessageSet.getCommitMap();
-
-        if (prePrepare == null || prePrepare.getSignature() == null
-                || prepareMap == null
-                || commitMap == null) {
-            return false;
-        }
-
-        if (!PbftMessage.verify(prePrepare)) {
-            return false;
-        }
-
-        for (String key : prepareMap.keySet()) {
-            PbftMessage pbftMessage = prepareMap.get(key);
-            if (!PbftMessage.verify(pbftMessage)) {
-                return false;
-            }
-        }
-
-        for (String key : commitMap.keySet()) {
-            PbftMessage pbftMessage = commitMap.get(key);
-            if (!PbftMessage.verify(pbftMessage)) {
-                return false;
-            }
-        }
-
-        Map<String, PbftMessage> viewChangeMap = pbftMessageSet.getViewChangeMap();
-        for (String key : viewChangeMap.keySet()) {
-            PbftMessage pbftMessage = viewChangeMap.get(key);
-            if (!PbftMessage.verify(pbftMessage)) {
-                return false;
-            }
-        }
-
-        //todo : check 2f + 1 message count
-
-        return true;
-    }
-
+    @Override
     public byte[] toBinary() {
         return SerializationUtil.serializeJson(toJsonObject());
     }
 
+    @Override
     public JsonObject toJsonObject() {
         if (this.prePrepare == null) {
             return null;
@@ -240,6 +205,7 @@ public class PbftMessageSet {
         return new PbftMessageSet(new PbftMessage(empty), null, null, null);
     }
 
+    @Override
     public void clear() {
         this.prePrepare.clear();
 
@@ -256,14 +222,15 @@ public class PbftMessageSet {
         }
     }
 
+    @Override
+    public PbftMessageSet clone() {
+        return new PbftMessageSet(this.toJsonObject());
+    }
+
     public boolean equals(PbftMessageSet newPbftMessageSet) {
         if (newPbftMessageSet == null) {
             return false;
         }
         return Arrays.equals(this.toBinary(), newPbftMessageSet.toBinary());
-    }
-
-    public PbftMessageSet clone() {
-        return new PbftMessageSet(this.toJsonObject());
     }
 }
