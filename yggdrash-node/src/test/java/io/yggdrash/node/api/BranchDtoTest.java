@@ -34,7 +34,7 @@ public class BranchDtoTest {
 
     @Test
     public void convertBranchDto() throws IOException {
-        String genesisString = FileUtil.readFileToString(TestConstants.BRANCH_FILE, FileUtil.DEFAULT_CHARSET);
+        String genesisString = FileUtil.readFileToString(TestConstants.branchFile, FileUtil.DEFAULT_CHARSET);
         JsonObject branch = JsonUtil.parseJsonObject(genesisString);
 
         BranchDto dto = BranchDto.of(branch);

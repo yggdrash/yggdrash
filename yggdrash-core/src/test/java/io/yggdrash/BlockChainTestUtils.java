@@ -54,7 +54,7 @@ public class BlockChainTestUtils {
     }
 
     static {
-        try (InputStream is = new FileInputStream(TestConstants.BRANCH_FILE)) {
+        try (InputStream is = new FileInputStream(TestConstants.branchFile)) {
             genesis = GenesisBlock.of(is);
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
