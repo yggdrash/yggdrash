@@ -78,8 +78,7 @@ public class RpcTest extends TcpNodeTesting {
     private void setTxList() {
         txList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            String description = "TEST" + i;
-            txList.add(BlockChainTestUtils.createBranchTx(description));
+            txList.add(BlockChainTestUtils.createTransferTx());
         }
     }
 

@@ -13,7 +13,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
@@ -36,16 +35,8 @@ public class BranchTest {
         String consensusString = new StringBuilder()
                 .append("{\"consensus\": {\n")
                 .append("    \"algorithm\": \"pbft\",\n")
-                .append("    \"period\": \"* * * * * *\",\n")
-                .append("    \"validator\": [\n")
-                .append("      \"77283a04b3410fe21ba5ed04c7bd3ba89e70b78c\",\n")
-                .append("      \"9911fb4663637706811a53a0e0b4bcedeee38686\",\n")
-                .append("      \"2ee2eb80c93d031147c21ba8e2e0f0f4a33f5312\",\n")
-                .append("      \"51e2128e8deb622c2ec6dc38f9d895f0be044eb4\",\n")
-                .append("      \"047269a50640ed2b0d45d461488c13abad1e0fac\",\n")
-                .append("      \"21640f2116389a3e37462fd6b68b969e490b6a50\",\n")
-                .append("      \"63fef4912dc8b0781351b18eb9be450638ea2c17\"\n")
-                .append("    ]\n}")
+                .append("    \"period\": \"* * * * * *\"\n")
+                .append("   \n}")
                 .append("  }").toString();
         JsonObject consensus = new Gson().fromJson(consensusString, JsonObject.class);
 
@@ -55,11 +46,8 @@ public class BranchTest {
                 .setProperty(property)
                 .setDescription(description)
                 .setTimeStamp(timestamp)
-                .addValidator(TestConstants.wallet().getHexAddress())
-                .addConsensus(consensus)
+                .setConsensus(consensus)
                 .buildJson();
-
-
 
         Branch branch = Branch.of(branchJson);
         log.debug(branch.getJson().toString());
@@ -82,11 +70,7 @@ public class BranchTest {
 
     @Test
     public void loadTest() throws IOException {
-
-        File genesisFile = new File(
-                getClass().getClassLoader().getResource("./branch-yggdrash.json").getFile());
-
-        String genesisString = FileUtil.readFileToString(genesisFile, FileUtil.DEFAULT_CHARSET);
+        String genesisString = FileUtil.readFileToString(TestConstants.BRANCH_FILE, FileUtil.DEFAULT_CHARSET);
         JsonObject branch = new JsonParser().parse(genesisString).getAsJsonObject();
         Branch yggdrashBranch = Branch.of(branch);
         Assert.assertEquals("YGGDRASH", yggdrashBranch.getName());
@@ -94,14 +78,12 @@ public class BranchTest {
 
     @Test
     public void generatorGenesisBlock() throws IOException {
-        File genesisFile = new File(
-                getClass().getClassLoader().getResource("./branch-yggdrash.json").getFile());
 
-        String genesisString = FileUtil.readFileToString(genesisFile, FileUtil.DEFAULT_CHARSET);
+        String genesisString = FileUtil.readFileToString(TestConstants.BRANCH_FILE, FileUtil.DEFAULT_CHARSET);
         JsonObject branch = new JsonParser().parse(genesisString).getAsJsonObject();
         Branch yggdrashBranch = Branch.of(branch);
 
-        FileInputStream inputBranch = new FileInputStream(genesisFile);
+        FileInputStream inputBranch = new FileInputStream(TestConstants.BRANCH_FILE);
         GenesisBlock block = GenesisBlock.of(inputBranch);
         Assert.assertEquals(0, block.getBlock().getIndex());
         Assert.assertEquals(yggdrashBranch.getName(), block.getBranch().getName());

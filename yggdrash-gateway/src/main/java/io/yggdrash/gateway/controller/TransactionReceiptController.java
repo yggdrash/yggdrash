@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
 
 @RestController
-@RequestMapping("branches/{branchId}/txReceipt")
+@RequestMapping("branches/{branchId}/txr")
 public class TransactionReceiptController {
 
     private final BranchGroup branchGroup;
