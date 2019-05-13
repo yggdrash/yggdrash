@@ -28,6 +28,8 @@ import io.yggdrash.proto.TransactionServiceGrpc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 public class TransactionServiceStub extends TransactionServiceGrpc.TransactionServiceImplBase {
     private static final Logger log = LoggerFactory.getLogger(TransactionServiceStub.class);
     private static final CommonProto.Empty EMPTY = CommonProto.Empty.getDefaultInstance();
@@ -45,7 +47,8 @@ public class TransactionServiceStub extends TransactionServiceGrpc.TransactionSe
 
         Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
         if (branchId.equals(blockChain.getBranchId())) {
-            for (Transaction tx : blockChain.getTransactionStore().getUnconfirmedTxs()) {
+            List<Transaction> txList = blockChain.getBlockChainManager().getUnconfirmedTxs();
+            for (Transaction tx : txList) {
                 builder.addTransactions(tx.getInstance());
             }
         } else {
@@ -64,7 +67,7 @@ public class TransactionServiceStub extends TransactionServiceGrpc.TransactionSe
                 Transaction tx = new TransactionImpl(protoTx);
                 log.debug("Received transaction: hash={}, {}", tx.getHash(), this);
                 if (tx.getBranchId().equals(blockChain.getBranchId())) {
-                    blockChain.getTransactionStore().put(tx.getHash(), tx);
+                    blockChain.getBlockChainManager().addTransaction(tx);
                 }
             }
 

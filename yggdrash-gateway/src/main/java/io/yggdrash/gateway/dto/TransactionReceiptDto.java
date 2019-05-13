@@ -17,6 +17,7 @@
 package io.yggdrash.gateway.dto;
 
 import io.yggdrash.contract.core.TransactionReceipt;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,9 +35,6 @@ public class TransactionReceiptDto {
 
     public static TransactionReceiptDto createBy(TransactionReceipt tx) {
         TransactionReceiptDto transactionDto = new TransactionReceiptDto();
-        if (tx == null) {
-            return null;
-        }
         transactionDto.txLog =  new ArrayList<>();
         if (tx.getTxLog() != null) {
             transactionDto.txLog.addAll(tx.getTxLog());

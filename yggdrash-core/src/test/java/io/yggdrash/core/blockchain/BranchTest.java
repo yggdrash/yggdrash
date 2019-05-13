@@ -70,7 +70,7 @@ public class BranchTest {
 
     @Test
     public void loadTest() throws IOException {
-        String genesisString = FileUtil.readFileToString(TestConstants.BRANCH_FILE, FileUtil.DEFAULT_CHARSET);
+        String genesisString = FileUtil.readFileToString(TestConstants.branchFile, FileUtil.DEFAULT_CHARSET);
         JsonObject branch = new JsonParser().parse(genesisString).getAsJsonObject();
         Branch yggdrashBranch = Branch.of(branch);
         Assert.assertEquals("YGGDRASH", yggdrashBranch.getName());
@@ -79,11 +79,11 @@ public class BranchTest {
     @Test
     public void generatorGenesisBlock() throws IOException {
 
-        String genesisString = FileUtil.readFileToString(TestConstants.BRANCH_FILE, FileUtil.DEFAULT_CHARSET);
+        String genesisString = FileUtil.readFileToString(TestConstants.branchFile, FileUtil.DEFAULT_CHARSET);
         JsonObject branch = new JsonParser().parse(genesisString).getAsJsonObject();
         Branch yggdrashBranch = Branch.of(branch);
 
-        FileInputStream inputBranch = new FileInputStream(TestConstants.BRANCH_FILE);
+        FileInputStream inputBranch = new FileInputStream(TestConstants.branchFile);
         GenesisBlock block = GenesisBlock.of(inputBranch);
         Assert.assertEquals(0, block.getBlock().getIndex());
         Assert.assertEquals(yggdrashBranch.getName(), block.getBranch().getName());

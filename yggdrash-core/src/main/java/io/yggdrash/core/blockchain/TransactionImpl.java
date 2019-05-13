@@ -26,7 +26,6 @@ import io.yggdrash.common.RawTransaction;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.ECKey;
-import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Address;
@@ -44,7 +43,6 @@ import java.util.Arrays;
 import static io.yggdrash.common.config.Constants.Key.BODY;
 import static io.yggdrash.common.config.Constants.Key.HEADER;
 import static io.yggdrash.common.config.Constants.Key.SIGNATURE;
-import static io.yggdrash.common.config.Constants.TIMESTAMP_2018;
 
 public class TransactionImpl implements Transaction {
     private static final Logger log = LoggerFactory.getLogger(TransactionImpl.class);
@@ -190,70 +188,6 @@ public class TransactionImpl implements Transaction {
     @Override
     public Proto.Transaction getInstance() {
         return protoTransaction;
-    }
-
-    @Override
-    public boolean verify() {
-
-        if (!this.verifyData()) {
-            return false;
-        }
-
-        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(getSignature());
-        byte[] hashedHeader = this.header.getHashForSigning();
-        ECKey ecKeyPub;
-
-        try {
-            ecKeyPub = ECKey.signatureToKey(hashedHeader, ecdsaSignature);
-        } catch (SignatureException e) {
-            throw new InvalidSignatureException(e);
-        }
-
-        return ecKeyPub.verify(hashedHeader, ecdsaSignature);
-
-    }
-
-    private boolean verifyCheckLengthNotNull(byte[] data, int length, String msg) {
-
-        boolean result = !(data == null || data.length != length);
-
-        if (!result) {
-            log.debug("{} is not valid.", msg);
-        }
-
-        return result;
-    }
-
-    /**
-     * Verify a transaction about transaction format.
-     *
-     * @return true(success), false(fail)
-     */
-    private boolean verifyData() {
-        // TODO CheckByValidate By Code
-        boolean check = true;
-
-        check &= verifyCheckLengthNotNull(
-                this.header.getChain(), Constants.BRANCH_LENGTH, "chain");
-        check &= verifyCheckLengthNotNull(
-                this.header.getVersion(), TransactionHeader.VERSION_LENGTH, "version");
-        check &= verifyCheckLengthNotNull(
-                this.header.getType(), TransactionHeader.TYPE_LENGTH, "type");
-        check &= this.header.getTimestamp() > TIMESTAMP_2018;
-        check &= verifyCheckLengthNotNull(
-                this.header.getBodyHash(), Constants.HASH_LENGTH, "bodyHash");
-        check &= !(this.header.getBodyLength() <= 0
-                || this.header.getBodyLength() != this.getBody().getLength());
-        check &= verifyCheckLengthNotNull(getSignature(), Constants.SIGNATURE_LENGTH, SIGNATURE);
-
-        // check bodyHash
-        if (!Arrays.equals(this.header.getBodyHash(), HashUtil.sha3(body.toBinary()))) {
-            String bodyHash = Hex.toHexString(header.getBodyHash());
-            log.debug("bodyHash is not equal to body :{}", bodyHash);
-            return false;
-        }
-
-        return check;
     }
 
     @Override

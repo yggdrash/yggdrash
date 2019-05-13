@@ -1,0 +1,159 @@
+/*
+ * Copyright 2019 Akashic Foundation
+ * Licensed under the Apache License, Version 2.0 (the “License”);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an “AS IS” BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
+ */
+
+package io.yggdrash.validator.data;
+
+import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.store.datasource.HashMapDbSource;
+import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.blockchain.BlockChainManager;
+import io.yggdrash.core.blockchain.BlockChainManagerImpl;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.store.ConsensusBlockStore;
+import io.yggdrash.core.store.TransactionReceiptStore;
+import io.yggdrash.core.store.TransactionStore;
+
+import java.util.Collection;
+import java.util.List;
+
+public class BlockChainManagerMock<T> implements BlockChainManager<T> {
+
+    private final BlockChainManager<T> blockChainManager;
+
+    public BlockChainManagerMock(ConsensusBlockStore<T> blockStore, TransactionStore transactionStore) {
+        TransactionReceiptStore transactionReceiptStore = new TransactionReceiptStore(new HashMapDbSource());
+        this.blockChainManager =
+                new BlockChainManagerImpl<>(blockStore, transactionStore, transactionReceiptStore);
+    }
+
+    @Override
+    public void initGenesis(Block genesisBlock) {
+        blockChainManager.initGenesis(genesisBlock);
+    }
+
+    @Override
+    public boolean verifyGenesis(Block block) {
+        return blockChainManager.verifyGenesis(block);
+    }
+
+    @Override
+    public boolean verifyNewBlock(ConsensusBlock<T> nextBlock) {
+        return blockChainManager.verifyNewBlock(nextBlock);
+    }
+
+    @Override
+    public ConsensusBlock<T> addBlock(ConsensusBlock<T> nextBlock) {
+        return blockChainManager.addBlock(nextBlock);
+    }
+
+    @Override
+    public Transaction addTransaction(Transaction tx) {
+        return blockChainManager.addTransaction(tx);
+    }
+
+    @Override
+    public void updateTxCache(Block block) {
+        blockChainManager.updateTxCache(block);
+    }
+
+    @Override
+    public void setLastConfirmedBlock(ConsensusBlock<T> block) {
+        blockChainManager.setLastConfirmedBlock(block);
+    }
+
+    @Override
+    public ConsensusBlock<T> getLastConfirmedBlock() {
+        return blockChainManager.getLastConfirmedBlock();
+    }
+
+    @Override
+    public ConsensusBlock<T> getBlockByHash(Sha3Hash hash) {
+        return blockChainManager.getBlockByHash(hash);
+    }
+
+    @Override
+    public ConsensusBlock<T> getBlockByIndex(long index) {
+        return blockChainManager.getBlockByIndex(index);
+    }
+
+    @Override
+    public Transaction getTxByHash(Sha3Hash hash) {
+        return blockChainManager.getTxByHash(hash);
+    }
+
+    @Override
+    public Collection<Transaction> getRecentTxs() {
+        return blockChainManager.getRecentTxs();
+    }
+
+    @Override
+    public List<Transaction> getUnconfirmedTxsWithLimit(long limit) {
+        return blockChainManager.getUnconfirmedTxsWithLimit(limit);
+    }
+
+    @Override
+    public List<Transaction> getUnconfirmedTxs() {
+        return blockChainManager.getUnconfirmedTxs();
+    }
+
+    @Override
+    public TransactionReceipt getTransactionReceipt(String txId) { //TODO not implemented
+        return blockChainManager.getTransactionReceipt(txId);
+    }
+
+    @Override
+    public long getLastIndex() {
+        return blockChainManager.getLastIndex();
+    }
+
+    @Override
+    public Sha3Hash getLastHash() {
+        return blockChainManager.getLastHash();
+    }
+
+    @Override
+    public long countOfTxs() {
+        return blockChainManager.countOfTxs();
+    }
+
+    @Override
+    public long countOfBlocks() {
+        return blockChainManager.countOfBlocks();
+    }
+
+    @Override
+    public boolean containsBlockHash(Sha3Hash blockHash) {
+        return blockChainManager.containsBlockHash(blockHash);
+    }
+
+    @Override
+    public boolean containsTxHash(Sha3Hash txHash) {
+        return blockChainManager.containsTxHash(txHash);
+    }
+
+    @Override
+    public boolean contains(Block block) {
+        return blockChainManager.contains(block);
+    }
+
+    @Override
+    public boolean contains(Transaction transaction) {
+        return blockChainManager.contains(transaction);
+    }
+
+    @Override
+    public void close() {
+        blockChainManager.close();
+    }
+}

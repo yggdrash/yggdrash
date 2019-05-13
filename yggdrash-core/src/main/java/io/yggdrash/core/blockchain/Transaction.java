@@ -75,13 +75,6 @@ public interface Transaction extends ProtoObject<Proto.Transaction>, Comparable<
     long getLength();
 
     /**
-     * Verify a transaction.(data format & signing)
-     *
-     * @return true(success), false(fail)
-     */
-    boolean verify();
-
-    /**
      * Convert from Transaction.class to JsonObject.
      *
      * @return transaction as JsonObject

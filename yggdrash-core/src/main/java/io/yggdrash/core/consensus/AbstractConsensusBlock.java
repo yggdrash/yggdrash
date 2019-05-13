@@ -101,16 +101,6 @@ public abstract class AbstractConsensusBlock<T extends MessageOrBuilder> impleme
     }
 
     @Override
-    public boolean verify() {
-        if (this.block == null) {
-            return false;
-        }
-
-        // todo: check consensuses whether validator's signatures or not
-        return this.block.verify();
-    }
-
-    @Override
     public JsonObject toJsonObjectByProto() {
         try {
             String print = JsonFormat.printer().includingDefaultValueFields().print(getInstance());

@@ -10,6 +10,7 @@ import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockImpl;
+import io.yggdrash.core.consensus.ConsensusMessage;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
@@ -22,7 +23,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class PbftMessage {
+public class PbftMessage implements ConsensusMessage<PbftMessage> {
     private final String type;
     private final long viewNumber;
     private final long seqNumber;
@@ -101,50 +102,33 @@ public class PbftMessage {
         }
     }
 
+    @Override
     public String getType() {
         return type;
     }
 
+    @Override
     public long getViewNumber() {
         return viewNumber;
     }
 
+    @Override
     public long getSeqNumber() {
         return seqNumber;
     }
 
+    @Override
     public byte[] getHash() {
         return hash;
     }
 
+    @Override
     public String getHashHex() {
         return Hex.toHexString(hash);
     }
 
-    public byte[] getResult() {
-        return result;
-    }
-
-    public byte[] getSignature() {
-        return signature;
-    }
-
-    public String getSignatureHex() {
-        if (signature == null) {
-            return null;
-        }
-        return Hex.toHexString(signature);
-    }
-
-    public Block getBlock() {
-        return block;
-    }
-
-    public byte[] toBinary() {
-        return SerializationUtil.serializeJson(toJsonObject());
-    }
-
-    private byte[] getHashForSigning() {
+    @Override
+    public byte[] getHashForSigning() {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
 
         try {
@@ -159,6 +143,35 @@ public class PbftMessage {
         return HashUtil.sha3(bao.toByteArray());
     }
 
+    @Override
+    public byte[] getResult() {
+        return result;
+    }
+
+    @Override
+    public byte[] getSignature() {
+        return signature;
+    }
+
+    @Override
+    public String getSignatureHex() {
+        if (signature == null) {
+            return null;
+        }
+        return Hex.toHexString(signature);
+    }
+
+    @Override
+    public Block getBlock() {
+        return block;
+    }
+
+    @Override
+    public byte[] toBinary() {
+        return SerializationUtil.serializeJson(toJsonObject());
+    }
+
+    @Override
     public byte[] sign(Wallet wallet) {
         if (wallet == null) {
             throw new NotValidateException("wallet is null");
@@ -167,31 +180,7 @@ public class PbftMessage {
         return wallet.sign(getHashForSigning(), true);
     }
 
-    public static boolean verify(PbftMessage pbftMessage) {
-        if (pbftMessage == null
-                || pbftMessage.getSignature() == null
-                || pbftMessage.getSignature().length == 0) {
-            return false;
-        }
-
-        // todo: check validator
-
-        if (!Wallet.verify(pbftMessage.getHashForSigning(), pbftMessage.getSignature(), true)) {
-            return false;
-        }
-
-        if (pbftMessage.type.equals("PREPREPA")) {
-            if (pbftMessage.getBlock() == null) {
-                return false;
-            }
-
-            return Arrays.equals(pbftMessage.getHash(), pbftMessage.getBlock().getHash().getBytes())
-                    && pbftMessage.getBlock().verify();
-        }
-
-        return true;
-    }
-
+    @Override
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("type", this.type);

@@ -9,8 +9,8 @@ public class TransactionReceiptStore {
     private final DbSource<byte[], byte[]> db;
     private final Gson gson = new Gson();
 
-    public TransactionReceiptStore(DbSource<byte[], byte[]> source) {
-        this.db = source.init();
+    public TransactionReceiptStore(DbSource<byte[], byte[]> db) {
+        this.db = db.init();
     }
 
     public void put(TransactionReceipt txReceipt) {

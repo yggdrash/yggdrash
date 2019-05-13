@@ -25,6 +25,7 @@ import io.yggdrash.common.RawTransaction;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.wallet.Account;
 import io.yggdrash.core.wallet.Wallet;
@@ -75,18 +76,18 @@ public class TransactionTest extends SlowTest {
         log.debug("wallet.pubKey=" + Hex.toHexString(wallet.getPubicKey()));
 
         tx1 = new TransactionImpl(txHeader, wallet, txBody);
-        assertTrue(tx1.verify());
+        assertTrue(VerifierUtils.verify(tx1));
     }
 
     @Test
     public void testTransactionConstructor() {
         Transaction tx2 = new TransactionImpl(tx1.toJsonObject());
-        assertTrue(tx2.verify());
+        assertTrue(VerifierUtils.verify(tx2));
         log.debug("tx2={}", tx2);
         assertEquals(tx1.toJsonObject(), tx2.toJsonObject());
 
         Transaction tx3 = new TransactionImpl(tx1.toBinary());
-        assertTrue(tx3.verify());
+        assertTrue(VerifierUtils.verify(tx3));
 
         log.debug("tx3={}", tx3);
         assertArrayEquals(tx1.toBinary(), tx3.toBinary());
@@ -97,28 +98,28 @@ public class TransactionTest extends SlowTest {
                 Hex.toHexString(ByteUtil.longToBytes(TimeUtils.time() + 1)));
 
         Transaction tx4 = new TransactionImpl(jsonObject);
-        assertTrue(tx4.verify());
+        assertTrue(VerifierUtils.verify(tx4));
 
         log.debug("tx1={}", tx1);
         log.debug("tx4={}", tx4);
         assertNotEquals(tx1.toJsonObject().toString(), tx4.toJsonObject().toString());
 
         Transaction tx5 = new TransactionImpl(tx1.getHeader(), tx1.getSignature(), tx1.getBody());
-        assertTrue(tx5.verify());
+        assertTrue(VerifierUtils.verify(tx5));
 
         log.debug("tx1={}", tx1);
         log.debug("tx5={}", tx5);
         assertEquals(tx1.toJsonObject(), tx5.toJsonObject());
 
         Transaction tx6 = new TransactionImpl(tx1.getHeader(), wallet, tx1.getBody());
-        assertTrue(tx6.verify());
+        assertTrue(VerifierUtils.verify(tx6));
 
         log.debug("tx1={}", tx1);
         log.debug("tx6={}", tx6);
         assertEquals(tx1.toJsonObject(), tx6.toJsonObject());
 
         Transaction tx7 = new TransactionImpl(tx1.getInstance());
-        assertTrue(tx7.verify());
+        assertTrue(VerifierUtils.verify(tx7));
 
         log.debug("tx1={}", tx1);
         log.debug("tx7={}", tx7);
@@ -263,7 +264,7 @@ public class TransactionTest extends SlowTest {
         log.debug("Test Transaction1={}", tx1);
         log.debug("Test Transaction1 Address={}", tx1.getAddress());
 
-        assertThat(tx1.verify()).isTrue();
+        assertThat(VerifierUtils.verify(tx1)).isTrue();
         assertThat(wallet.getAddress()).isEqualTo(account.getAddress());
         assertThat(wallet.getAddress()).isEqualTo(tx1.getAddress().getBytes());
 
@@ -291,7 +292,7 @@ public class TransactionTest extends SlowTest {
         TransactionBuilder builder = new TransactionBuilder();
         return builder.setWallet(wallet)
                 .setBranchId(TestConstants.yggdrash())
-                .addTransactionBody(txBody)
+                .setTxBody(txBody)
                 .build();
     }
 }

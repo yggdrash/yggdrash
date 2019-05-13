@@ -7,6 +7,8 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
+import io.yggdrash.core.blockchain.BlockChainManager;
+import io.yggdrash.core.blockchain.BlockChainManagerImpl;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.SystemProperties;
@@ -87,15 +89,20 @@ public class ValidatorConfiguration {
             try {
 
                 StoreBuilder storeBuilder = StoreBuilder.newBuilder()
+                        .setBranchId(genesis.getBranch().getBranchId())
                         .setConfig(validatorConfig)
                         .setConsensusAlgorithm(consensus.getAlgorithm())
                         .setBlockStoreFactory(ValidatorService.blockStoreFactory());
 
+                BlockChainManager blockChainManager = new BlockChainManagerImpl(
+                        storeBuilder.buildBlockStore(),
+                        storeBuilder.buildTransactionStore(),
+                        storeBuilder.buildTransactionReceiptStore());
+
                 BlockChain blockChain = BlockChainBuilder.newBuilder()
                         .setGenesis(genesis)
-                        .setStoreBuilder(storeBuilder)
-                        .setPolicyLoader(policyLoader)
-                        .setSystemProperties(systemProperties)
+                        .setBranchStore(storeBuilder.buildBranchStore())
+                        .setBlockChainManager(blockChainManager)
                         .setFactory(ValidatorService.factory())
                         .build();
 

@@ -16,6 +16,7 @@
 
 package io.yggdrash.gateway.controller;
 
+import io.yggdrash.core.exception.NonExistObjectException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -27,6 +28,12 @@ class ExceptionControllerAdvice {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(NullPointerException.class)
     public void handleNotFound() {
+        // Nothing to do
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(NonExistObjectException.class)
+    public void handleNonExistObjectException() {
         // Nothing to do
     }
 }
