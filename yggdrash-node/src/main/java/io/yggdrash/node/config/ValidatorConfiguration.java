@@ -6,9 +6,6 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
-import io.yggdrash.core.blockchain.BlockChainBuilder;
-import io.yggdrash.core.blockchain.BlockChainManager;
-import io.yggdrash.core.blockchain.BlockChainManagerImpl;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.SystemProperties;
@@ -88,24 +85,15 @@ public class ValidatorConfiguration {
                     validatorConfig.getString("yggdrash.validator.port"),
                     validatorConfig.getString("yggdrash.validator.key.path"));
             try {
-
+                BranchId branchId = genesis.getBranch().getBranchId();
                 StoreBuilder storeBuilder = StoreBuilder.newBuilder()
                         .setBranchId(genesis.getBranch().getBranchId())
                         .setConfig(validatorConfig)
                         .setConsensusAlgorithm(consensus.getAlgorithm())
                         .setBlockStoreFactory(ValidatorService.blockStoreFactory());
 
-                BlockChainManager blockChainManager = new BlockChainManagerImpl(
-                        storeBuilder.buildBlockStore(),
-                        storeBuilder.buildTransactionStore(),
-                        storeBuilder.buildTransactionReceiptStore());
-
-                BlockChain blockChain = BlockChainBuilder.newBuilder()
-                        .setGenesis(genesis)
-                        .setBranchStore(storeBuilder.buildBranchStore())
-                        .setBlockChainManager(blockChainManager)
-                        .setFactory(ValidatorService.factory())
-                        .build();
+                BlockChain blockChain = BranchConfiguration.getBlockChain(genesis, storeBuilder, policyLoader,
+                        branchId, systemProperties);
 
                 validatorServiceList.add(new ValidatorService(validatorConfig, blockChain));
             } catch (Exception e) {
