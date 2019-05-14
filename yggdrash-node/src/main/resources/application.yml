@@ -43,7 +43,7 @@ spring.profiles: dev
 yggdrash:
   node:
     seed-peer-list:
-      - "ynode://57c6510966903044581c148bb67eb47dbbeebef1@172.16.10.159:32918"
+      - "ynode://75faa5936ee14d7a13bcd0c36873250a0033cee0@172.16.10.159:32918"
 
 ---
 
@@ -52,7 +52,7 @@ spring.profiles: prod
 yggdrash:
   node:
     seed-peer-list:
-      - "ynode://d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95@52.79.188.79:32918"
+      - "ynode://8dfce06ba4681d70fa0adf9a39d1f1092e62ae46@54.180.186.118:32918"
 
 
 ---
@@ -64,7 +64,6 @@ yggdrash:
     seed: true
     chain.enabled: false
 
-
 ---
 
 spring.profiles: master
@@ -73,16 +72,6 @@ yggdrash:
   node:
     chain.gen: true
 
-
----
-
-spring.profiles: proxy
-
-yggdrash:
-  node:
-    validator-list:
-      - "ynode://77283a04b3410fe21ba5ed04c7bd3ba89e70b78c@127.0.0.1:32901"
-
 ---
 
 spring.profiles: validator
@@ -90,4 +79,3 @@ spring.profiles: validator
 yggdrash:
   node:
     validator: true
-

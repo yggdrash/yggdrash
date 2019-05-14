@@ -131,34 +131,41 @@ public class BranchConfiguration {
                     .setConsensusAlgorithm(consensus.getAlgorithm())
                     .setBlockStoreFactory(ValidatorService.blockStoreFactory());
 
-            ContractStore contractStore = storeBuilder.buildContractStore();
-            BlockChainManager blockChainManager = new BlockChainManagerImpl(
-                    storeBuilder.buildBlockStore(),
-                    storeBuilder.buildTransactionStore(),
-                    contractStore.getTransactionReceiptStore());
-            ContractManager contractManager = ContractManagerBuilder.newInstance()
-                    .withFrameworkFactory(policyLoader.getFrameworkFactory())
-                    .withContractManagerConfig(policyLoader.getContractManagerConfig())
-                    .withBranchId(branchId.toString())
-                    .withContractStore(contractStore)
-                    .withConfig(storeBuilder.getConfig())
-                    .withSystemProperties(systemProperties)
-                    .build();
-            BlockChain bc = BlockChainBuilder.newBuilder()
-                    .setGenesis(genesis)
-                    .setBranchStore(contractStore.getBranchStore())
-                    .setBlockChainManager(blockChainManager)
-                    .setContractManager(contractManager)
-                    .setFactory(ValidatorService.factory())
-                    .build();
+            BlockChain blockChain = getBlockChain(genesis, storeBuilder, policyLoader, branchId, systemProperties);
 
-            log.info("Branch is Ready {}", bc.getBranchId());
+            log.info("Branch is Ready {}", blockChain.getBranchId());
 
-            return bc;
+            return blockChain;
         } catch (Exception e) {
             log.warn(e.getMessage(), e);
             return null;
         }
+    }
+
+    static BlockChain getBlockChain(GenesisBlock genesis, StoreBuilder storeBuilder,
+                                     ContractPolicyLoader policyLoader, BranchId branchId,
+                                    SystemProperties systemProperties) {
+        ContractStore contractStore = storeBuilder.buildContractStore();
+        BlockChainManager blockChainManager = new BlockChainManagerImpl(
+                storeBuilder.buildBlockStore(),
+                storeBuilder.buildTransactionStore(),
+                contractStore.getTransactionReceiptStore());
+        ContractManager contractManager = ContractManagerBuilder.newInstance()
+                .withFrameworkFactory(policyLoader.getFrameworkFactory())
+                .withContractManagerConfig(policyLoader.getContractManagerConfig())
+                .withBranchId(branchId.toString())
+                .withContractStore(contractStore)
+                .withConfig(storeBuilder.getConfig())
+                .withSystemProperties(systemProperties)
+                .build();
+
+        return BlockChainBuilder.newBuilder()
+                .setGenesis(genesis)
+                .setBranchStore(contractStore.getBranchStore())
+                .setBlockChainManager(blockChainManager)
+                .setContractManager(contractManager)
+                .setFactory(ValidatorService.factory())
+                .build();
     }
 
     /**
