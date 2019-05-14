@@ -158,48 +158,35 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
     @Override
     public ConsensusBlock<T> addBlock(ConsensusBlock<T> nextBlock, boolean broadcast) {
-        if (blockChainManager.contains(nextBlock) || !blockChainManager.verifyNewBlock(nextBlock)) {
-            return null;
-        }
-
-        // add best Block
-        branchStore.setBestBlock(nextBlock);
-
-        // run Block Transactions
-        // TODO run block execute move to other process (or thread)
-        // TODO last execute block will invoke
-        if (nextBlock.getIndex() > branchStore.getLastExecuteBlockIndex()) {
-            BlockRuntimeResult result = contractManager.executeTxs(nextBlock); //TODO Exception
-            // Save Result
-            contractManager.commitBlockResult(result);
-            branchStore.setLastExecuteBlock(nextBlock);
-
-            /*
-            //Store event //TODO move to gw module
-            if (outputStores != null && outputStores.size() > 0) {
-                Map<String, JsonObject> transactionMap = new HashMap<>();
-                List<Transaction> txList = nextBlock.getBody().getTransactionList();
-                txList.forEach(tx -> {
-                    String txHash = tx.getHash().toString();
-                    transactionMap.put(txHash, tx.toJsonObjectFromProto());
-                });
-
-                outputStores.forEach((storeType, store) -> {
-                    store.put(nextBlock.toJsonObjectByProto());
-                    store.put(nextBlock.getHash().toString(), transactionMap);
-                });
+        try {
+            if (blockChainManager.contains(nextBlock) || !blockChainManager.verifyNewBlock(nextBlock)) {
+                return null;
             }
-            */
-        }
+            lock.lock();
+            // add best Block
+            branchStore.setBestBlock(nextBlock);
 
-        // BlockChainManager add nextBlock to the blockStore, set the lastConfirmedBlock to nextBlock,
-        // and then batch the transactions.
-        blockChainManager.addBlock(nextBlock);
-        if (!listenerList.isEmpty() && broadcast) {
-            listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
+            // run Block Transactions
+            // TODO run block execute move to other process (or thread)
+            // TODO last execute block will invoke
+            if (nextBlock.getIndex() > branchStore.getLastExecuteBlockIndex()) {
+                BlockRuntimeResult result = contractManager.executeTxs(nextBlock); //TODO Exception
+                // Save Result
+                contractManager.commitBlockResult(result);
+                branchStore.setLastExecuteBlock(nextBlock);
+            }
+
+            // BlockChainManager add nextBlock to the blockStore, set the lastConfirmedBlock to nextBlock,
+            // and then batch the transactions.
+            blockChainManager.addBlock(nextBlock);
+            if (!listenerList.isEmpty() && broadcast) {
+                listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
+            }
+            log.debug("Added idx=[{}], tx={}, branch={}, blockHash={}", nextBlock.getIndex(),
+                    nextBlock.getBody().getCount(), getBranchId(), nextBlock.getHash());
+        } finally {
+            lock.unlock();
         }
-        log.debug("Added idx=[{}], tx={}, branch={}, blockHash={}", nextBlock.getIndex(),
-                nextBlock.getBody().getCount(), getBranchId(), nextBlock.getHash());
         return nextBlock;
     }
 
@@ -220,11 +207,8 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
     public Transaction addTransaction(Transaction tx, boolean broadcast) {
         Transaction res = blockChainManager.addTransaction(tx);
-        if (res != null) {
-            if (!listenerList.isEmpty() && broadcast) {
-                listenerList.forEach(listener -> listener.receivedTransaction(tx));
-            }
-
+        if (broadcast && res != null && !listenerList.isEmpty()) {
+            listenerList.forEach(listener -> listener.receivedTransaction(tx));
         }
         return res;
     }
