@@ -159,10 +159,10 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     @Override
     public ConsensusBlock<T> addBlock(ConsensusBlock<T> nextBlock, boolean broadcast) {
         try {
+            lock.lock();
             if (blockChainManager.contains(nextBlock) || !blockChainManager.verifyNewBlock(nextBlock)) {
                 return null;
             }
-            lock.lock();
             // add best Block
             branchStore.setBestBlock(nextBlock);
 
