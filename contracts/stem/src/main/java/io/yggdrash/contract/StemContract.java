@@ -7,10 +7,13 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.Contract;
 import io.yggdrash.common.contract.standard.CoinStandard;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
+import io.yggdrash.common.crypto.ECKey;
+import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.utils.BranchUtil;
 import io.yggdrash.common.utils.ByteUtil;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
@@ -34,6 +37,7 @@ import java.util.List;
 import java.util.Set;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import static java.lang.Math.abs;
 
 
 public class StemContract implements BundleActivator, ServiceListener {
@@ -271,8 +275,118 @@ public class StemContract implements BundleActivator, ServiceListener {
 
             // get branch id
             String branchId = params.get("branchId").getAsString();
+            Long blockHeight = params.get("blockHeight").getAsLong();
+            String proposer = params.get("proposer").getAsString();
+            String targetValidator = params.get("targetValidator").getAsString();
+            StemOperation operatingFlag = StemOperation.fromValue(params.get("operatingFlag").getAsString());
 
-            // check branch validator vote[]
+            // Get Validator Set
+            JsonObject validators = getValidators(branchId);
+
+            if (validators == null) {
+                txReceipt.setStatus(ExecuteStatus.FALSE);
+                txReceipt.addLog("validator is not exist");
+                return;
+            }
+            JsonArray validatorArray = validators.get("validators").getAsJsonArray();
+            Set<String> validatorSet = JsonUtil.convertJsonArrayToSet(validatorArray);
+            // check is branch validator
+            if (!validatorSet.contains(txReceipt.getIssuer())) {
+                txReceipt.setStatus(ExecuteStatus.FALSE);
+                txReceipt.addLog("issuer is not validator");
+                return;
+            }
+
+            byte[] message = ByteUtil.merge(
+                    HexUtil.hexStringToBytes(branchId),
+                    ByteUtil.longToBytes(blockHeight),
+                    HexUtil.hexStringToBytes(proposer),
+                    HexUtil.hexStringToBytes(targetValidator),
+                    operatingFlag.toValue().getBytes()
+            );
+            JsonArray signed = params.get("signed").getAsJsonArray();
+
+            // all message is sha3hashed
+            message = HashUtil.sha3(message);
+
+            int voteCount = (int)Math.ceil(1.0*validatorSet.size()*2/3);
+            int vote = 0;
+            log.debug("vote count {}", voteCount);
+
+            // verify signed
+            List<String> signedList = JsonUtil.convertJsonArrayToStringList(signed);
+            // for check validator set
+            Set<String> checkValidator = new HashSet<>();
+            checkValidator.addAll(validatorSet);
+
+            // check branch validators vote[]
+            for (String sign : signedList) {
+                // TODO move signature to contract core
+                byte[] signatureArray = HexUtil.hexStringToBytes(sign);
+                ECKey.ECDSASignature signature = new ECKey.ECDSASignature(signatureArray);
+                int realV = signatureArray[0] - 27;
+                byte[] address = ECKey.recoverAddressFromSignature(realV, signature, message);
+                String addressHexString = HexUtil.toHexString(address);
+                // check validator set
+                if (checkValidator.contains(addressHexString)) {
+                    vote++;
+                    checkValidator.remove(addressHexString);
+                }
+            }
+            checkValidator.clear();
+
+            if (vote < voteCount) {
+                txReceipt.setStatus(ExecuteStatus.FALSE);
+                txReceipt.addLog("Lack of quorum");
+                return;
+            }
+
+
+            if (operatingFlag == StemOperation.ADD_VALIDATOR) {
+                // add Validator
+                // check validator is exist
+                if (validatorSet.contains(targetValidator)) {
+                    txReceipt.setStatus(ExecuteStatus.FALSE);
+                    txReceipt.addLog("Target validator is exist in validator set");
+                    return;
+                }
+                // add Validator
+                validatorArray.add(targetValidator);
+                JsonObject validatorList = new JsonObject();
+                validatorList.add("validators", validatorArray);
+                saveValidators(branchId, validatorList);
+                txReceipt.setStatus(ExecuteStatus.SUCCESS);
+                txReceipt.addLog("new validator add in branch");
+                return;
+
+            } else if(operatingFlag == StemOperation.REMOVE_VALIDATOR) {
+                // remove validator
+                if (!validatorSet.contains(targetValidator)) {
+                    txReceipt.setStatus(ExecuteStatus.FALSE);
+                    txReceipt.addLog("Target validator is not exist in validator set");
+                    return;
+                }
+                validatorSet.remove(targetValidator);
+                validatorArray = JsonUtil.convertCollectionToJsonArray(validatorSet);
+                JsonObject validatorList = new JsonObject();
+                validatorList.add("validators", validatorArray);
+                saveValidators(branchId, validatorList);
+                txReceipt.setStatus(ExecuteStatus.SUCCESS);
+                txReceipt.addLog("validator remove in branch");
+                return;
+
+            } else if(operatingFlag == StemOperation.REPLACE_VALIDATOR) {
+                // TODO replace validator
+                // param get validator list
+                JsonArray validatorList = params.get("validatorList").getAsJsonArray();
+
+
+
+
+            } else if(operatingFlag == StemOperation.UPDATE_VALIDATOR_SET) {
+                // TODO update all validator set
+            }
+
 
             // save branch validator set information
 
