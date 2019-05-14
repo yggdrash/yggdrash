@@ -690,7 +690,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         PbftBlock pbftBlock;
         long lastConfirmedBlockIndex = this.blockChain.getBlockChainManager().getLastIndex();
         if (client.isRunning()) {
-            List<PbftBlock> pbftBlockList = client.getBlockList(lastConfirmedBlockIndex);
+            List<PbftBlock> pbftBlockList = client.getBlockList(lastConfirmedBlockIndex + 1);
 
             log.debug("node: " + client.getId());
             log.debug("index: " + (!pbftBlockList.isEmpty() ? pbftBlockList.get(0).getIndex() : null));
