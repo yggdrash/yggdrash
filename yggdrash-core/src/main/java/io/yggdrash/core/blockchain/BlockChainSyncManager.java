@@ -92,7 +92,8 @@ public class BlockChainSyncManager implements SyncManager {
                     if (e.getCause() != null) {
                         error = e.getCause().getMessage();
                     }
-                    log.warn("[SyncManager] Full Sync Block ERR occurred: {}", error);
+                    log.warn("[SyncManager] Full Sync Block ERR occurred: {}, from={}", error,
+                            peerHandler.getPeer().getYnodeUri());
                 }
             }
         }
