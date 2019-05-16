@@ -169,9 +169,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
         lock.lock();
         PbftBlock block = confirmFinalBlock();
-        if (block != null) {
-            resetUnConfirmedBlock(block.getIndex());
-        }
         lock.unlock();
         if (block != null) {
             broadcastBlock(block, this.proxyNodeMap);
@@ -577,8 +574,9 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         return viewChangeMsg;
     }
 
-    private void confirmedBlock(PbftBlock block) {
+    public void confirmedBlock(PbftBlock block) {
         this.blockChain.addBlock(block);
+        resetUnConfirmedBlock(block.getIndex());
     }
 
     private void resetUnConfirmedBlock(long index) {
