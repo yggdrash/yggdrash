@@ -34,8 +34,6 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
     private final PbftBlock genesisBlock;
     private final Consensus consensus;
 
-//    private final ReentrantLock lock = new ReentrantLock();
-
     public PbftBlockChain(Block genesisBlock, String dbPath,
                           String blockKeyStorePath, String blockStorePath, String txStorePath) {
         PbftBlockStore blockStore = new PbftBlockStore(new LevelDbDataSource(dbPath, blockStorePath));
