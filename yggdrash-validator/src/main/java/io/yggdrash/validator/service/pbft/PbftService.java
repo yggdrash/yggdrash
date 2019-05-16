@@ -316,26 +316,31 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
     private long getCurrentViewNumber(long seqNumber) {
         Map<String, PbftMessage> viewChangeMsgMap = getMsgMap(seqNumber, "VIEWCHAN");
+        if (viewChangeMsgMap.size() < consensusCount) {
+            return seqNumber;
+        }
 
-        if (viewChangeMsgMap.size() >= consensusCount) {
+        long newViewNumber = this.viewNumber;
+        for (int i = 0; i < viewChangeMsgMap.size(); i++) {
+            if (((PbftMessage) viewChangeMsgMap.values().toArray()[i]).getViewNumber() <= this.viewNumber) {
+                continue;
+            }
 
-            for (int i = 0; i < viewChangeMsgMap.size(); i++) {
-
-                long count = 0;
-                for (int j = 0; j < viewChangeMsgMap.size(); j++) {
-                    if (((PbftMessage) viewChangeMsgMap.values().toArray()[i]).getViewNumber()
-                            == ((PbftMessage) viewChangeMsgMap.values().toArray()[j])
-                            .getViewNumber()) {
-                        count++;
-                    }
+            long count = 0;
+            for (int j = 0; j < viewChangeMsgMap.size(); j++) {
+                if (((PbftMessage) viewChangeMsgMap.values().toArray()[i]).getViewNumber()
+                        == ((PbftMessage) viewChangeMsgMap.values().toArray()[j])
+                        .getViewNumber()) {
+                    count++;
                 }
-                if (count >= consensusCount) {
-                    return ((PbftMessage) viewChangeMsgMap.values().toArray()[i]).getViewNumber();
-                }
+            }
+            if (count >= consensusCount
+                    && newViewNumber < ((PbftMessage) viewChangeMsgMap.values().toArray()[i]).getViewNumber()) {
+                newViewNumber = ((PbftMessage) viewChangeMsgMap.values().toArray()[i]).getViewNumber();
             }
         }
 
-        return seqNumber;
+        return newViewNumber;
     }
 
     private long getNextActiveValidatorIndex(long index) {
@@ -534,15 +539,13 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     private PbftMessage makeViewChangeMsg() {
-        if (this.failCount < FAIL_COUNT
-                || this.isViewChanged) {
+        if (this.failCount < FAIL_COUNT) {
             return null;
         }
 
         Block block = this.blockChain.getBlockChainManager().getLastConfirmedBlock().getBlock();
         log.trace("block" + block.toString());
-        long seqNumber = block.getIndex() + 1;
-        long newViewNumber = getNextActiveValidatorIndex(seqNumber);
+        long newViewNumber = this.viewNumber + 1;
         if (newViewNumber < 0) {
             return null;
         }
@@ -611,7 +614,12 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     private void checkPrimary() {
-        this.viewNumber = getCurrentViewNumber(this.seqNumber);
+        long checkViewNumber = getCurrentViewNumber(this.seqNumber);
+        if (checkViewNumber > this.viewNumber) {
+            this.viewNumber = checkViewNumber;
+            this.failCount = 0;
+        }
+
         int primaryIndex = (int) (this.viewNumber % totalValidatorMap.size());
         currentPrimaryAddr = (String) totalValidatorMap.keySet().toArray()[primaryIndex];
 
