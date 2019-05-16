@@ -16,15 +16,10 @@
 
 package io.yggdrash.core.blockchain;
 
-import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.common.store.StateStore;
-import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
-import io.yggdrash.core.store.TransactionReceiptStore;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface BlockChain<T, V> extends ConsensusBlockChain<T, V> {
@@ -35,27 +30,7 @@ public interface BlockChain<T, V> extends ConsensusBlockChain<T, V> {
 
     Transaction addTransaction(Transaction tx);
 
-    long getLastIndex();
-
-    Collection<Transaction> getRecentTxs();
-
-    Transaction getTxByHash(Sha3Hash hash);
-
-    ConsensusBlock<T> getBlockByIndex(long index);
-
-    ConsensusBlock<T> getBlockByHash(Sha3Hash hash);
-
-    StateStore getStateStore();
-
-    TransactionReceiptStore getTransactionReceiptStore();
-
     ContractManager getContractManager();
-
-    TransactionReceipt getTransactionReceipt(String transactionId);
-
-    List<Transaction> getUnconfirmedTxs();
-
-    long countOfTxs();
 
     List<BranchContract> getBranchContracts();
 

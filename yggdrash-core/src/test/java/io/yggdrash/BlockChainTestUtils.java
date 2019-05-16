@@ -21,6 +21,8 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
+import io.yggdrash.core.blockchain.BlockChainManager;
+import io.yggdrash.core.blockchain.BlockChainManagerImpl;
 import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
@@ -29,9 +31,12 @@ import io.yggdrash.core.blockchain.PbftBlockMock;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
+import io.yggdrash.core.blockchain.osgi.ContractManager;
+import io.yggdrash.core.blockchain.osgi.ContractManagerBuilder;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.InvalidSignatureException;
+import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.PbftBlockStoreMock;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.proto.PbftProto;
@@ -49,7 +54,7 @@ public class BlockChainTestUtils {
     }
 
     static {
-        try (InputStream is = new FileInputStream(TestConstants.BRANCH_FILE)) {
+        try (InputStream is = new FileInputStream(TestConstants.branchFile)) {
             genesis = GenesisBlock.of(is);
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
@@ -106,7 +111,7 @@ public class BlockChainTestUtils {
 
     public static Transaction createTx(BranchId branchId, JsonObject txBody) {
         TransactionBuilder builder = new TransactionBuilder();
-        return builder.addTransactionBody(txBody)
+        return builder.setTxBody(txBody)
                 .setWallet(TestConstants.wallet())
                 .setBranchId(branchId)
                 .build();
@@ -122,10 +127,27 @@ public class BlockChainTestUtils {
         storeBuilder.setBranchId(genesis.getBranch().getBranchId())
                 .setBlockStoreFactory(PbftBlockStoreMock::new);
 
+        ContractStore contractStore = storeBuilder.buildContractStore();
+        ContractPolicyLoader contractPolicyLoader = new ContractPolicyLoader();
+
+        ContractManager contractManager = ContractManagerBuilder.newInstance()
+                .withFrameworkFactory(contractPolicyLoader.getFrameworkFactory())
+                .withContractManagerConfig(contractPolicyLoader.getContractManagerConfig())
+                .withBranchId(genesis.getBranch().getBranchId().toString())
+                .withContractStore(contractStore)
+                .withConfig(new DefaultConfig())
+                .build();
+
+        BlockChainManager blockChainManager = new BlockChainManagerImpl(
+                storeBuilder.buildBlockStore(),
+                storeBuilder.buildTransactionStore(),
+                contractStore.getTransactionReceiptStore());
+
         return BlockChainBuilder.newBuilder()
                 .setGenesis(genesis)
-                .setStoreBuilder(storeBuilder)
-                .setPolicyLoader(new ContractPolicyLoader())
+                .setBranchStore(contractStore.getBranchStore())
+                .setBlockChainManager(blockChainManager)
+                .setContractManager(contractManager)
                 .setFactory(PbftBlockChainMock::new)
                 .build();
     }
@@ -140,13 +162,14 @@ public class BlockChainTestUtils {
     public static void generateBlock(BranchGroup branchGroup, BranchId branchId) {
         BlockChain branch = branchGroup.getBranch(branchId);
         List<Transaction> txs =
-                branch.getTransactionStore().getUnconfirmedTxsWithLimit(Constants.Limit.BLOCK_SYNC_SIZE);
-        branch.addBlock(createNextBlock(txs, branch.getLastConfirmedBlock()));
+                branch.getBlockChainManager().getUnconfirmedTxsWithLimit(Constants.Limit.BLOCK_SYNC_SIZE);
+        branch.addBlock(createNextBlock(txs, branch.getBlockChainManager().getLastConfirmedBlock()));
     }
 
     public static void setBlockHeightOfBlockChain(BlockChain blockChain, int height) {
         List<ConsensusBlock<PbftProto.PbftBlock>> blockList = new ArrayList<>();
-        ConsensusBlock<PbftProto.PbftBlock> curBlock = blockChain.getBlockByIndex(blockChain.getLastIndex());
+        ConsensusBlock<PbftProto.PbftBlock> curBlock
+                = blockChain.getBlockChainManager().getBlockByIndex(blockChain.getBlockChainManager().getLastIndex());
         ConsensusBlock<PbftProto.PbftBlock> nextBlock = createNextBlock(curBlock);
         blockList = createBlockList(blockList, nextBlock, null, height);
 
@@ -189,7 +212,7 @@ public class BlockChainTestUtils {
     private static Transaction createTransferTx(String to, int amount) {
         JsonObject txBody = ContractTestUtils.transferTxBodyJson(to, amount);
         TransactionBuilder builder = new TransactionBuilder();
-        return builder.addTransactionBody(txBody)
+        return builder.setTxBody(txBody)
                 .setWallet(TestConstants.wallet())
                 .setBranchId(TestConstants.yggdrash())
                 .build();

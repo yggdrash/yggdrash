@@ -20,6 +20,7 @@ import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftMessage;
 import io.yggdrash.validator.data.pbft.PbftMessageSet;
 import io.yggdrash.validator.data.pbft.PbftStatus;
+import io.yggdrash.validator.data.pbft.PbftVerifier;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
@@ -89,8 +90,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         this.isViewChanged = false;
         this.failCount = 0;
 
-        this.viewNumber = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
-        this.seqNumber = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
+        this.viewNumber = this.blockChain.getBlockChainManager().getLastIndex() + 1;
+        this.seqNumber = this.blockChain.getBlockChainManager().getLastIndex() + 1;
 
         printInitInfo();
     }
@@ -209,7 +210,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
                     messageCount = consensusCount;
             }
 
-            if (getMsgMap(blockChain.getLastConfirmedBlock().getIndex() + 1, message).size()
+            if (getMsgMap(blockChain.getBlockChainManager().getLastIndex() + 1, message).size()
                     < messageCount) {
                 try {
                     Thread.sleep(100);
@@ -235,7 +236,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
         log.debug("unConfirmedMsgMap size= " + this.blockChain.getUnConfirmedData().size());
         log.debug("TxStore unConfirmed Tx.size= "
-                + this.blockChain.getTransactionStore().getUnconfirmedTxs().size());
+                + this.blockChain.getBlockChainManager().getUnconfirmedTxs().size());
         log.debug("");
     }
 
@@ -281,7 +282,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
             return null;
         }
 
-        byte[] prevBlockHash = this.blockChain.getLastConfirmedBlock().getHash().getBytes();
+        byte[] prevBlockHash = this.blockChain.getBlockChainManager().getLastHash().getBytes();
 
         Block newBlock = makeNewBlock(seqNumber, prevBlockHash);
         log.trace("newBlock" + newBlock.toString());
@@ -360,7 +361,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
-        List<Transaction> txList = new ArrayList<>(blockChain.getTransactionStore().getUnconfirmedTxs());
+        List<Transaction> txList = new ArrayList<>(blockChain.getBlockChainManager().getUnconfirmedTxs());
 
         BlockBody newBlockBody = new BlockBody(txList);
 
@@ -461,7 +462,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
             return null;
         }
 
-        long index = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
+        long index = this.blockChain.getBlockChainManager().getLastIndex() + 1;
         PbftMessage prePrepareMsg = null;
         Map<String, PbftMessage> prepareMessageMap = new TreeMap<>();
         Map<String, PbftMessage> commitMessageMap = new TreeMap<>();
@@ -541,7 +542,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
             return null;
         }
 
-        Block block = this.blockChain.getLastConfirmedBlock().getBlock();
+        Block block = this.blockChain.getBlockChainManager().getLastConfirmedBlock().getBlock();
         log.trace("block" + block.toString());
         long seqNumber = block.getIndex() + 1;
         long newViewNumber = getNextActiveValidatorIndex(seqNumber);
@@ -667,17 +668,15 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         if (PbftStatus.verify(pbftStatus)) {
             client.setIsRunning(true);
 
-            if (pbftStatus.getIndex()
-                    > this.blockChain.getLastConfirmedBlock().getIndex()) {
-                log.debug("this Index: "
-                        + this.blockChain.getLastConfirmedBlock().getIndex());
+            long lastConfirmedBlockIndex = this.blockChain.getBlockChainManager().getLastIndex();
+            if (pbftStatus.getIndex() > lastConfirmedBlockIndex) {
+                log.debug("this Index: " + lastConfirmedBlockIndex);
                 log.debug("client Index: " + pbftStatus.getIndex());
                 log.debug("client : " + client.getId());
 
                 this.isSynced = false;
                 blockSyncing(client.getAddr(), pbftStatus.getIndex());
-            } else if (pbftStatus.getIndex()
-                    == this.blockChain.getLastConfirmedBlock().getIndex()) {
+            } else if (pbftStatus.getIndex() == lastConfirmedBlockIndex) {
                 // update unConfirm pbftMessage
                 updateUnconfirmedMsgMap(pbftStatus.getUnConfirmedPbftMessageMap());
             }
@@ -689,9 +688,9 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     private void blockSyncing(String addr, long index) {
         PbftClientStub client = totalValidatorMap.get(addr);
         PbftBlock pbftBlock;
+        long lastConfirmedBlockIndex = this.blockChain.getBlockChainManager().getLastIndex();
         if (client.isRunning()) {
-            List<PbftBlock> pbftBlockList = client.getBlockList(
-                    this.blockChain.getLastConfirmedBlock().getIndex());
+            List<PbftBlock> pbftBlockList = client.getBlockList(lastConfirmedBlockIndex + 1);
 
             log.debug("node: " + client.getId());
             log.debug("index: " + (!pbftBlockList.isEmpty() ? pbftBlockList.get(0).getIndex() : null));
@@ -707,7 +706,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
             int i = 0;
             for (; i < pbftBlockList.size(); i++) {
                 pbftBlock = pbftBlockList.get(i);
-                if (!PbftBlock.verify(pbftBlock)) {
+                if (!PbftVerifier.INSTANCE.verify(pbftBlock)) {
                     log.warn("Verify Fail");
                     for (PbftBlock pbBlock : pbftBlockList) {
                         pbBlock.clear();
@@ -727,7 +726,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
         }
 
-        if (this.blockChain.getLastConfirmedBlock().getIndex() < index) {
+        if (lastConfirmedBlockIndex < index) {
             blockSyncing(addr, index);
         }
     }
@@ -740,7 +739,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
         if (newPbftMessage.getType().equals("PREPREPA")
                 && newPbftMessage.getSeqNumber()
-                == this.blockChain.getLastConfirmedBlock().getIndex() + 1) {
+                == this.blockChain.getBlockChainManager().getLastIndex() + 1) {
             this.isPrePrepared = true;
         }
     }
@@ -753,7 +752,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     public PbftStatus getMyNodeStatus() {
-        long index = this.blockChain.getLastConfirmedBlock().getIndex();
+        long index = this.blockChain.getBlockChainManager().getLastIndex();
         Map<String, PbftMessage> pbftMessageMap = new TreeMap<>();
         for (String key : this.blockChain.getUnConfirmedData().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedData().get(key);

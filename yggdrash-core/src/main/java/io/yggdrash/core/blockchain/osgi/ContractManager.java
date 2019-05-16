@@ -84,6 +84,10 @@ public class ContractManager {
         newFramework();
     }
 
+    public Long getStateSize() { // TODO for BranchController -> remove this
+        return contractStore.getStateStore().getStateSize();
+    }
+
     public ContractExecutor getContractExecutor() {
         return contractExecutor;
     }
@@ -494,5 +498,9 @@ public class ContractManager {
 
     public void commitBlockResult(BlockRuntimeResult result) {
         contractExecutor.commitBlockResult(result);
+    }
+
+    public void close() {
+        contractStore.close();
     }
 }

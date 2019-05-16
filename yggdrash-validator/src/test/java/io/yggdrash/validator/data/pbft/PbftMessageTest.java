@@ -81,7 +81,7 @@ public class PbftMessageTest {
     }
 
     @Test
-    public void constuctorTest_Wallet() {
+    public void constructorTest_Wallet() {
         assertNotNull(prePrepare);
         assertNotNull(prepare);
         assertNotNull(commit);
@@ -89,7 +89,7 @@ public class PbftMessageTest {
     }
 
     @Test
-    public void constuctorTest_Bytes() {
+    public void constructorTest_Bytes() {
         byte[] prePrepareBytes = this.prePrepare.toBinary();
         PbftMessage prePrepare = new PbftMessage(prePrepareBytes);
         log.debug(prePrepare.toJsonObject().toString());
@@ -112,7 +112,7 @@ public class PbftMessageTest {
     }
 
     @Test
-    public void constuctorTest_JsonObect() {
+    public void constructorTest_JsonObect() {
         JsonObject prePrepareJsonObject = prePrepare.toJsonObject();
         PbftMessage prePrepare = new PbftMessage(prePrepareJsonObject);
         log.debug(prePrepare.toJsonObject().toString());
@@ -135,7 +135,7 @@ public class PbftMessageTest {
     }
 
     @Test
-    public void constuctorTest_Proto() {
+    public void constructorTest_Proto() {
         PbftProto.PbftMessage prePrepare = PbftMessage.toProto(this.prePrepare);
         PbftMessage newPrePrepare = new PbftMessage(prePrepare);
         log.debug(newPrePrepare.toJsonObject().toString());
@@ -226,28 +226,28 @@ public class PbftMessageTest {
             PbftMessage message = this.prePrepare;
             byte[] signValue = message.sign(wallet);
             assertArrayEquals(signValue, message.getSignature());
-            assertTrue(PbftMessage.verify(message));
+            assertTrue(PbftVerifier.INSTANCE.verify(message));
         }
 
         {
             PbftMessage message = this.prepare;
             byte[] signValue = message.sign(wallet);
             assertArrayEquals(signValue, message.getSignature());
-            assertTrue(PbftMessage.verify(message));
+            assertTrue(PbftVerifier.INSTANCE.verify(message));
         }
 
         {
             PbftMessage message = this.commit;
             byte[] signValue = message.sign(wallet);
             assertArrayEquals(signValue, message.getSignature());
-            assertTrue(PbftMessage.verify(message));
+            assertTrue(PbftVerifier.INSTANCE.verify(message));
         }
 
         {
             PbftMessage message = this.viewChange;
             byte[] signValue = message.sign(wallet);
             assertArrayEquals(signValue, message.getSignature());
-            assertTrue(PbftMessage.verify(message));
+            assertTrue(PbftVerifier.INSTANCE.verify(message));
         }
     }
 
@@ -276,24 +276,21 @@ public class PbftMessageTest {
         PbftMessage newPbftMessage = this.prePrepare.clone();
         assertEquals(newPbftMessage, this.prePrepare);
         newPbftMessage.clear();
-        assertTrue(PbftMessage.verify(this.prePrepare));
+        assertTrue(PbftVerifier.INSTANCE.verify(this.prePrepare));
 
         newPbftMessage = this.prepare.clone();
         assertEquals(newPbftMessage, this.prepare);
         newPbftMessage.clear();
-        assertTrue(PbftMessage.verify(this.prepare));
+        assertTrue(PbftVerifier.INSTANCE.verify(this.prepare));
 
         newPbftMessage = this.commit.clone();
         assertEquals(newPbftMessage, this.commit);
         newPbftMessage.clear();
-        assertTrue(PbftMessage.verify(this.commit));
+        assertTrue(PbftVerifier.INSTANCE.verify(this.commit));
 
         newPbftMessage = this.viewChange.clone();
         assertEquals(newPbftMessage, this.viewChange);
         newPbftMessage.clear();
-        assertTrue(PbftMessage.verify(this.viewChange));
+        assertTrue(PbftVerifier.INSTANCE.verify(this.viewChange));
     }
-
-
-
 }

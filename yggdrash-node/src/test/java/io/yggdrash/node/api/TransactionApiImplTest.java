@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.crypto.HexUtil;
+import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.gateway.dto.TransactionDto;
@@ -196,7 +197,7 @@ public class TransactionApiImplTest {
         TransactionDto resDto = mapper.readValue(jsonStr, TransactionDto.class);
 
         // Signature Validation
-        assertTrue(TransactionDto.of(resDto).verify());
+        assertTrue(VerifierUtils.verify(TransactionDto.of(resDto)));
     }
 
     private Transaction createTx() {

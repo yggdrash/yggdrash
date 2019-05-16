@@ -67,10 +67,6 @@ class TransactionController {
                               @PathVariable String id) {
         Transaction tx = branchGroup.getTxByHash(BranchId.of(branchId), id);
 
-        if (tx == null) {
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
-        }
-
         return ResponseEntity.ok(TransactionDto.createBy(tx));
     }
 

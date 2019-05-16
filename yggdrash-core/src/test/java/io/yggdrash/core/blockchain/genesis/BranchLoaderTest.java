@@ -36,7 +36,7 @@ public class BranchLoaderTest {
 
     @Before
     public void setUpBranch() throws IOException {
-        String genesisString = FileUtil.readFileToString(TestConstants.BRANCH_FILE, FileUtil.DEFAULT_CHARSET);
+        String genesisString = FileUtil.readFileToString(TestConstants.branchFile, FileUtil.DEFAULT_CHARSET);
         JsonObject branchJson = new JsonParser().parse(genesisString).getAsJsonObject();
         this.branch = Branch.of(branchJson);
     }

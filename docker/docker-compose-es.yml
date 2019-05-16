@@ -1,9 +1,12 @@
 version: '2.2'
 services:
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:6.6.2
-    container_name: elasticsearch
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.0.1
+    container_name: es01
     environment:
+      - node.name=es01
+      - discovery.seed_hosts=es02
+      - cluster.initial_master_nodes=es01,es02
       - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
@@ -12,24 +15,44 @@ services:
         soft: -1
         hard: -1
     volumes:
-      - esdata1:/usr/share/elasticsearch/data
+      - esdata01:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
       - 9300:9300
     networks:
       - esnet
+  es02:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.0.1
+    container_name: es02
+    environment:
+      - node.name=es02
+      - discovery.seed_hosts=es01
+      - cluster.initial_master_nodes=es01,es02
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata02:/usr/share/elasticsearch/data
+    networks:
+      - esnet
   kibana:
-    image: docker.elastic.co/kibana/kibana:6.6.2
+    image: docker.elastic.co/kibana/kibana:7.0.1
     container_name: es-kibana
     ports:
       - 5601:5601
     environment:
-      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      ELASTICSEARCH_HOSTS: http://es02:9200
     networks:
       - esnet
 
 volumes:
-  esdata1:
+  esdata01:
+    driver: local
+  esdata02:
     driver: local
 
 networks:

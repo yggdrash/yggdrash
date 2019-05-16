@@ -53,7 +53,7 @@ public class BlockChainSyncManager implements SyncManager {
 
     @Override
     public boolean syncBlock(BlockChainHandler peerHandler, BlockChain blockChain) {
-        long offset = blockChain.getLastIndex() + 1;
+        long offset = blockChain.getBlockChainManager().getLastIndex() + 1;
 
         BranchId branchId = blockChain.getBranchId();
         Future<List<ConsensusBlock>> futureBlockList = peerHandler.syncBlock(branchId, offset);
@@ -71,7 +71,6 @@ public class BlockChainSyncManager implements SyncManager {
             }
         } catch (InterruptedException | ExecutionException e) {
             log.debug("[SyncManager] Sync Block ERR occurred: {}", e.getMessage(), e);
-            Thread.currentThread().interrupt();
         }
 
         return false;
@@ -89,7 +88,12 @@ public class BlockChainSyncManager implements SyncManager {
                         retry = true;
                     }
                 } catch (Exception e) {
-                    log.warn("[SyncManager] Sync Block ERR occurred: {}", e.getCause().getMessage());
+                    String error = e.getMessage();
+                    if (e.getCause() != null) {
+                        error = e.getCause().getMessage();
+                    }
+                    log.warn("[SyncManager] Full Sync Block ERR occurred: {}, from={}", error,
+                            peerHandler.getPeer().getYnodeUri());
                 }
             }
         }
@@ -166,7 +170,7 @@ public class BlockChainSyncManager implements SyncManager {
         try {
             blockChain.addBlock(block, true);
         } catch (Exception e) {
-            log.warn("Catch up block error={}", e.getMessage());
+            log.warn("CatchUp block error={}", e.getMessage());
         }
     }
 
@@ -190,7 +194,7 @@ public class BlockChainSyncManager implements SyncManager {
         }
 
         long bestBlock = from.getBestBlock();
-        long curBestBlock = blockChain.getLastIndex();
+        long curBestBlock = blockChain.getBlockChainManager().getLastIndex();
 
         if (curBestBlock >= bestBlock) {
             return;

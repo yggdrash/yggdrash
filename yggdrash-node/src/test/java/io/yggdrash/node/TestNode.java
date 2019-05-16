@@ -6,6 +6,7 @@ import io.yggdrash.PeerTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BlockChainSyncManager;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
@@ -133,9 +134,10 @@ public class TestNode extends BootStrapNode {
 
     public void generateBlock() {
         for (BlockChain branch : branchGroup.getAllBranch()) {
+            BlockChainManager blockChainManager = branch.getBlockChainManager();
             List<Transaction> txs =
-                    branch.getTransactionStore().getUnconfirmedTxsWithLimit(Constants.Limit.BLOCK_SYNC_SIZE);
-            ConsensusBlock block = BlockChainTestUtils.createNextBlock(txs, branch.getLastConfirmedBlock());
+                    blockChainManager.getUnconfirmedTxsWithLimit(Constants.Limit.BLOCK_SYNC_SIZE);
+            ConsensusBlock block = BlockChainTestUtils.createNextBlock(txs, blockChainManager.getLastConfirmedBlock());
 
             PbftBlock newBlock = new PbftBlock(PbftProto.PbftBlock.newBuilder()
                     .setBlock(block.getBlock().getProtoBlock()).build());
@@ -156,8 +158,9 @@ public class TestNode extends BootStrapNode {
         PeerTable peerTable = peerTableGroup.getPeerTable(branchId);
         String branchInfo = "";
         if (getDefaultBranch() != null) {
-            branchInfo = String.format(" bestBlock=%d, txCnt=%d, unConfirmed=%d,", getDefaultBranch().getLastIndex(),
-                    getDefaultBranch().countOfTxs(), branchGroup.getUnconfirmedTxs(branchId).size());
+            BlockChainManager blockChainManager = getDefaultBranch().getBlockChainManager();
+            branchInfo = String.format(" bestBlock=%d, txCnt=%d, unConfirmed=%d,", blockChainManager.getLastIndex(),
+                    blockChainManager.countOfTxs(), branchGroup.getUnconfirmedTxs(branchId).size());
         }
 
         log.info("{} =>{} peer={}, bucket={}, active={}",

@@ -38,7 +38,7 @@ public class TestConstants {
     static ContractVersion STEM_CONTRACT;
     public static ContractVersion YEED_CONTRACT;
     public static Branch TEST_BRANCH;
-    public static File BRANCH_FILE;
+    public static File branchFile;
 
     public static final String TRANSFER_TO = "e1980adeafbb9ac6c9be60955484ab1547ab0b76";
 
@@ -50,14 +50,15 @@ public class TestConstants {
 
     private static final Wallet wallet;
 
-    private TestConstants() {}
+    private TestConstants() {
+    }
 
     static {
         try {
             wallet = new Wallet(new DefaultConfig(), "Password1234!");
-            BRANCH_FILE = new File("../yggdrash-core/src/main/resources", "branch-yggdrash.json");
-            if (!BRANCH_FILE.exists()) {
-                BRANCH_FILE = new File("yggdrash-core/src/main/resources", "branch-yggdrash.json");
+            branchFile = new File("../yggdrash-core/src/main/resources", "branch-yggdrash.json");
+            if (!branchFile.exists()) {
+                branchFile = new File("yggdrash-core/src/main/resources", "branch-yggdrash.json");
             }
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
@@ -69,7 +70,7 @@ public class TestConstants {
             return YGGDRASH_BRANCH_ID;
         }
 
-        try (InputStream is = new FileInputStream(BRANCH_FILE)) {
+        try (InputStream is = new FileInputStream(branchFile)) {
             Branch yggdrashBranch = Branch.of(is);
             TEST_BRANCH = yggdrashBranch;
             YGGDRASH_BRANCH_ID = yggdrashBranch.getBranchId();

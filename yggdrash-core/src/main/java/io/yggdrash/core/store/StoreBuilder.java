@@ -54,13 +54,13 @@ public class StoreBuilder {
         return this;
     }
 
+    public ContractStore buildContractStore() {
+        return new ContractStore(buildBranchStore(), buildStateStore(), buildTransactionReceiptStore());
+    }
+
     public ConsensusBlockStore buildBlockStore() {
         DbSource dbSource = getDbSource(branchId + "/blocks");
         return blockStoreFactory.create(consensusAlgorithm, dbSource);
-    }
-
-    public TransactionStore buildTxStore() {
-        return new TransactionStore(getDbSource(branchId + "/txs"));
     }
 
     public PeerStore buildPeerStore() {
@@ -71,7 +71,11 @@ public class StoreBuilder {
         return new BranchStore(getDbSource(branchId + "/branch"));
     }
 
-    public StateStore buildStateStore() {
+    public TransactionStore buildTransactionStore() {
+        return new TransactionStore(getDbSource(branchId + "/txs"));
+    }
+
+    private StateStore buildStateStore() {
         return new StateStore(getDbSource(branchId + "/state"));
     }
 

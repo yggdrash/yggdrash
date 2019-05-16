@@ -20,12 +20,10 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.exception.FailedOperationException;
-import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.exception.NonExistObjectException;
-import io.yggdrash.core.store.TransactionReceiptStore;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -68,13 +66,13 @@ public class BranchGroup {
 
     public long getLastIndex(BranchId id) {
         if (branches.containsKey(id)) {
-            return branches.get(id).getLastIndex();
+            return branches.get(id).getBlockChainManager().getLastIndex();
         }
         return 0L;
     }
 
     public Collection<Transaction> getRecentTxs(BranchId branchId) {
-        return branches.get(branchId).getRecentTxs();
+        return branches.get(branchId).getBlockChainManager().getRecentTxs();
     }
 
     public Transaction getTxByHash(BranchId branchId, String id) {
@@ -82,7 +80,7 @@ public class BranchGroup {
     }
 
     Transaction getTxByHash(BranchId branchId, Sha3Hash hash) {
-        return branches.get(branchId).getTxByHash(hash);
+        return branches.get(branchId).getBlockChainManager().getTxByHash(hash);
     }
 
     ConsensusBlock addBlock(ConsensusBlock block) {
@@ -97,32 +95,24 @@ public class BranchGroup {
     }
 
     public ConsensusBlock getBlockByIndex(BranchId branchId, long index) {
-        return branches.get(branchId).getBlockByIndex(index);
+        return branches.get(branchId).getBlockChainManager().getBlockByIndex(index);
     }
 
     public ConsensusBlock getBlockByHash(BranchId branchId, String hash) {
-        return branches.get(branchId).getBlockByHash(new Sha3Hash(hash));
+        return branches.get(branchId).getBlockChainManager().getBlockByHash(new Sha3Hash(hash));
     }
 
     int getBranchSize() {
         return branches.size();
     }
 
-    public StateStore getStateStore(BranchId branchId) {
-        return branches.get(branchId).getStateStore();
-    }
-
-    TransactionReceiptStore getTransactionReceiptStore(BranchId branchId) {
-        return branches.get(branchId).getTransactionReceiptStore();
-    }
-
     public TransactionReceipt getTransactionReceipt(BranchId branchId, String transactionId) {
-        return branches.get(branchId).getTransactionReceipt(transactionId);
+        return branches.get(branchId).getBlockChainManager().getTransactionReceipt(transactionId);
     }
 
     public List<Transaction> getUnconfirmedTxs(BranchId branchId) {
         if (branches.containsKey(branchId)) {
-            return branches.get(branchId).getUnconfirmedTxs();
+            return branches.get(branchId).getBlockChainManager().getUnconfirmedTxs();
         } else {
             return Collections.emptyList();
         }
@@ -141,6 +131,6 @@ public class BranchGroup {
     }
 
     public long countOfTxs(BranchId branchId) {
-        return branches.get(branchId).countOfTxs();
+        return branches.get(branchId).getBlockChainManager().countOfTxs();
     }
 }

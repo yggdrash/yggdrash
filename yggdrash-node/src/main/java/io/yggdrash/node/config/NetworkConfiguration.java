@@ -33,6 +33,7 @@ import io.yggdrash.node.springboot.grpc.GrpcServerBuilderConfigurer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -79,6 +80,7 @@ public class NetworkConfiguration {
      * Scheduling Beans
      */
     @Bean
+    @ConditionalOnExpression("'${yggdrash.node.validator:false}' == 'false'")
     PeerTask peerTask() {
         return new PeerTask();
     }

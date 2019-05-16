@@ -1,6 +1,7 @@
 package io.yggdrash.validator.service.ebft;
 
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.proto.CommonProto;
@@ -46,7 +47,7 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
     @Override
     public void multicastEbftBlock(EbftProto.EbftBlock request, StreamObserver<CommonProto.Empty> responseObserver) {
         EbftBlock newEbftBlock = new EbftBlock(request);
-        if (!newEbftBlock.verify() || !ebftService.consensusVerify(newEbftBlock)) {
+        if (!VerifierUtils.verify(newEbftBlock) || !ebftService.consensusVerify(newEbftBlock)) {
             log.warn("multicastEbftBlock Verify Fail");
             responseObserver.onNext(EMPTY);
             responseObserver.onCompleted();
@@ -56,7 +57,7 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
         responseObserver.onNext(EMPTY);
         responseObserver.onCompleted();
 
-        ConsensusBlock<EbftProto.EbftBlock> lastEbftBlock = blockChain.getLastConfirmedBlock();
+        ConsensusBlock<EbftProto.EbftBlock> lastEbftBlock = blockChain.getBlockChainManager().getLastConfirmedBlock();
 
         ebftService.getLock().lock();
         if (newEbftBlock.getIndex() == lastEbftBlock.getIndex() + 1
@@ -82,7 +83,8 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
             responseObserver.onNext(EMPTY);
             responseObserver.onCompleted();
 
-            ConsensusBlock<EbftProto.EbftBlock> lastEbftBlock = this.blockChain.getLastConfirmedBlock();
+            ConsensusBlock<EbftProto.EbftBlock> lastEbftBlock
+                    = this.blockChain.getBlockChainManager().getLastConfirmedBlock();
 
             ebftService.getLock().lock();
             if (newEbftBlock.getIndex() == lastEbftBlock.getIndex() + 1
@@ -99,7 +101,7 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
     public void getEbftBlockList(CommonProto.Offset request, StreamObserver<EbftProto.EbftBlockList> responseObserver) {
         long start = request.getIndex();
         long count = request.getCount();
-        long end = Math.min(start - 1 + count, blockChain.getLastConfirmedBlock().getIndex());
+        long end = Math.min(start - 1 + count, blockChain.getBlockChainManager().getLastIndex());
 
         log.trace("start: {}", start);
         log.trace("end: {}", end);
@@ -109,7 +111,7 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
             for (long l = start; l <= end; l++) {
                 try {
                     // todo: check efficiency
-                    ConsensusBlock<EbftProto.EbftBlock> block = blockChain.getBlockStore().getBlockByIndex(l);
+                    ConsensusBlock<EbftProto.EbftBlock> block = blockChain.getBlockChainManager().getBlockByIndex(l);
                     builder.addEbftBlock(block.getInstance());
                 } catch (Exception e) {
                     break;
@@ -125,7 +127,7 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
         if (EbftStatus.verify(ebftStatus)) {
             ebftService.getLock().lock();
             for (EbftBlock ebftBlock : ebftStatus.getUnConfirmedEbftBlockList()) {
-                if (ebftBlock.getIndex() > blockChain.getLastConfirmedBlock().getIndex()) {
+                if (ebftBlock.getIndex() > blockChain.getBlockChainManager().getLastIndex()) {
                     ebftService.updateUnconfirmedBlock(ebftBlock);
                 }
             }

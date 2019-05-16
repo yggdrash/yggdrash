@@ -29,7 +29,7 @@ public class CoinContractTestUtils {
         params.addProperty("to", to);
         params.addProperty("amount", amount);
 
-        return ContractTestUtils.txBodyJson(TestConstants.YEED_CONTRACT,"transfer", params);
+        return ContractTestUtils.txBodyJson(TestConstants.YEED_CONTRACT, "transfer", params, true);
     }
 
     public static JsonObject createApproveBody(String spender, BigInteger amount) {
@@ -37,7 +37,7 @@ public class CoinContractTestUtils {
         params.addProperty("spender", spender);
         params.addProperty("amount", amount);
 
-        return ContractTestUtils.txBodyJson(TestConstants.YEED_CONTRACT,"approve", params);
+        return ContractTestUtils.txBodyJson(TestConstants.YEED_CONTRACT, "approve", params, true);
     }
 
     public static JsonObject createTransferFromBody(String from, String to, BigInteger amount) {
@@ -46,6 +46,6 @@ public class CoinContractTestUtils {
         params.addProperty("to", to);
         params.addProperty("amount", amount);
 
-        return ContractTestUtils.txBodyJson(TestConstants.YEED_CONTRACT,"transferFrom", params);
+        return ContractTestUtils.txBodyJson(TestConstants.YEED_CONTRACT, "transferFrom", params, true);
     }
 }

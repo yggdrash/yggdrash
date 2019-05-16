@@ -36,7 +36,7 @@ ext {
     logbackEsAppenderVersion  = '1.6'
     logbackJinoVersion  = '3.0.12'
     equinoxVersion = '3.13.0.v20180226-1711'
-    esVersion = '6.6.1'
+    elasticSearchVersion = '7.0.1'
     rxJavaVersion = '2.2.7'
 }
 
@@ -79,14 +79,31 @@ subprojects {
     }
 }
 
+def resourceContractPath = rootProject.file('resources/contract')
+
+
+task copyContractToCore(type: Copy) {
+     def coreContractPath = file('yggdrash-core/.yggdrash/contract')
+    coreContractPath.mkdirs()
+
+    from resourceContractPath
+    into coreContractPath
+}
+
+task copyContractToNode(type: Copy) {
+    def nodeContractPath = file('yggdrash-node/.yggdrash/contract')
+    nodeContractPath.mkdirs()
+
+    from resourceContractPath
+    into nodeContractPath
+}
+
+
 project(':yggdrash-core') {
     apply plugin: 'com.google.protobuf'
 
     dependencies {
         compile project(':yggdrash-common')
-        implementation project(':yggdrash-contract-coin')
-        implementation project(':yggdrash-contract-dpoa')
-        implementation project(':yggdrash-contract-versioning')
 
         compile "io.grpc:grpc-services:${grpcVersion}"
         compile "io.grpc:grpc-netty:${grpcVersion}"
@@ -95,7 +112,7 @@ project(':yggdrash-core') {
         compile "com.google.code.gson:gson:${gsonVersion}"
         compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
         compile "com.typesafe:config:${typesafeVersion}"
-        compile "org.elasticsearch.client:transport:${esVersion}"
+        compile "org.elasticsearch.client:transport:${elasticSearchVersion}"
         compile "io.reactivex.rxjava2:rxjava:${rxJavaVersion}"
         compile 'org.beryx:text-io:3.3.0'
         compileOnly "javax.annotation:javax.annotation-api:${annotationVersion}"
@@ -125,6 +142,10 @@ project(':yggdrash-core') {
                 srcDirs 'build/generated/source/proto/main/java'
             }
         }
+    }
+
+    test {
+        dependsOn copyContractToCore
     }
 }
 
@@ -162,13 +183,13 @@ project(':yggdrash-node') {
 
     dependencies {
         compile(project(':yggdrash-core')) {
-            exclude module: 'yggdrash-contract-dpoa'
+            exclude module: 'contracts'
         }
         compile(project(':yggdrash-validator')) {
-            exclude module: 'yggdrash-contract-dpoa'
+            exclude module: 'contracts'
         }
         compile(project(':yggdrash-gateway')) {
-            exclude module: 'yggdrash-contract-dpoa'
+            exclude module: 'contracts'
         }
         compile "org.springframework.boot:spring-boot-starter-web"
         compile "org.springframework.boot:spring-boot-starter-undertow"
@@ -213,6 +234,10 @@ project(':yggdrash-node') {
         with bootJar
     }
     bootJar.dependsOn customJar
+
+    test {
+        dependsOn copyContractToNode
+    }
 }
 
 project(':yggdrash-gateway') {
@@ -284,5 +309,6 @@ task cleanConfig(type: Delete) {
     delete '.yggdrash'
     delete 'yggdrash-core/.yggdrash'
     delete 'yggdrash-node/.yggdrash'
+    delete 'contracts/.yggdrash'
     delete 'yggdrash-validator/.yggdrash'
 }

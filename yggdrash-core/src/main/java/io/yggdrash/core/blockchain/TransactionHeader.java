@@ -32,10 +32,10 @@ import java.util.Arrays;
 
 public class TransactionHeader implements ProtoObject<Proto.Transaction.Header> {
 
-    static final int LENGTH = 84;
+    public static final int VERSION_LENGTH = 8;
+    public static final int TYPE_LENGTH = 8;
 
-    static final int VERSION_LENGTH = 8;
-    static final int TYPE_LENGTH = 8;
+    static final int LENGTH = 84;
 
     private final Proto.Transaction.Header protoHeader;
 

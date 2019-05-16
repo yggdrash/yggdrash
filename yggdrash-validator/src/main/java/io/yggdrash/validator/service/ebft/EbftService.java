@@ -134,7 +134,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
     private boolean waitingProposedBlock() {
         for (int i = 0; i < consensusCount; i++) {
             if (getUnconfirmedEbftBlockCount(blockChain.getUnConfirmedData(),
-                    blockChain.getLastConfirmedBlock().getIndex() + 1)
+                    blockChain.getBlockChainManager().getLastIndex() + 1)
                     < consensusCount) {
                 try {
                     Thread.sleep(100);
@@ -152,7 +152,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
         for (int i = 0; i < consensusCount; i++) {
             for (EbftBlock unConfirmedEbftBlock : blockChain.getUnConfirmedData().values()) {
                 if (unConfirmedEbftBlock.getIndex()
-                        == blockChain.getLastConfirmedBlock().getIndex() + 1
+                        == blockChain.getBlockChainManager().getLastIndex() + 1
                         && unConfirmedEbftBlock.getConsensusMessages().size() > consensusCount) {
                     return true;
                 }
@@ -199,16 +199,16 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
 
         client.setIsRunning(true);
 
-        if (ebftStatus.getIndex()
-                > this.blockChain.getLastConfirmedBlock().getIndex()) {
-            log.debug("this Index: {}", this.blockChain.getLastConfirmedBlock().getIndex());
+        long lastConfirmedBlock = this.blockChain.getBlockChainManager().getLastIndex();
+
+        if (ebftStatus.getIndex() > lastConfirmedBlock) {
+            log.debug("this Index: {}", lastConfirmedBlock);
             log.debug("client Index: {}", ebftStatus.getIndex());
             log.debug("client : {}", client.getId());
 
             this.isSynced = false;
             blockSyncing(client.getAddr(), ebftStatus.getIndex());
-        } else if (ebftStatus.getIndex()
-                == this.blockChain.getLastConfirmedBlock().getIndex()) {
+        } else if (ebftStatus.getIndex() == lastConfirmedBlock) {
             for (EbftBlock ebftBlock : ebftStatus.getUnConfirmedEbftBlockList()) {
                 updateUnconfirmedBlock(ebftBlock);
             }
@@ -223,8 +223,8 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
             return;
         }
 
-        List<EbftBlock> ebftBlockList = new ArrayList<>(client.getEbftBlockList(
-                this.blockChain.getLastConfirmedBlock().getIndex()));
+        long lastConfirmedBlockIndex = this.blockChain.getBlockChainManager().getLastIndex();
+        List<EbftBlock> ebftBlockList = new ArrayList<>(client.getEbftBlockList(lastConfirmedBlockIndex));
 
         if (ebftBlockList.isEmpty()) {
             return;
@@ -261,7 +261,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
 
         ebftBlockList.clear();
 
-        if (this.blockChain.getLastConfirmedBlock().getIndex() < index) {
+        if (lastConfirmedBlockIndex < index) {
             blockSyncing(addr, index);
         }
     }
@@ -272,8 +272,8 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
             return null;
         }
 
-        long index = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
-        byte[] prevBlockHash = this.blockChain.getLastConfirmedBlock().getHash().getBytes();
+        long index = this.blockChain.getBlockChainManager().getLastIndex() + 1;
+        byte[] prevBlockHash = this.blockChain.getBlockChainManager().getLastHash().getBytes();
 
         Block newBlock = makeNewBlock(index, prevBlockHash);
         log.trace("newBlock{}", newBlock);
@@ -298,7 +298,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
     }
 
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
-        List<Transaction> txList = new ArrayList<>(blockChain.getTransactionStore().getUnconfirmedTxs());
+        List<Transaction> txList = new ArrayList<>(blockChain.getBlockChainManager().getUnconfirmedTxs());
 
         BlockBody newBlockBody = new BlockBody(txList);
         BlockHeader newBlockHeader = new BlockHeader(
@@ -319,9 +319,9 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
 
         Map<String, EbftBlock> unConfirmedEbftBlockMap =
                 this.blockChain.getUnConfirmedData();
+        long lastConfirmedBlockIndex = this.blockChain.getBlockChainManager().getLastIndex();
         int unconfirmedEbftBlockCount = getUnconfirmedEbftBlockCount(
-                unConfirmedEbftBlockMap,
-                this.blockChain.getLastConfirmedBlock().getIndex() + 1);
+                unConfirmedEbftBlockMap, lastConfirmedBlockIndex + 1);
 
         //todo : check active count, active status
         if (unconfirmedEbftBlockCount < getActiveNodeCount()
@@ -338,8 +338,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
         //todo: check efficiency
         String minKey = null;
         for (String key : unConfirmedEbftBlockMap.keySet()) {
-            if (unConfirmedEbftBlockMap.get(key).getIndex()
-                    != this.blockChain.getLastConfirmedBlock().getIndex() + 1) {
+            if (unConfirmedEbftBlockMap.get(key).getIndex() != lastConfirmedBlockIndex + 1) {
                 continue;
             }
             if (minKey == null) {
@@ -375,7 +374,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
     }
 
     private boolean checkReceiveProposedEbftBlock() {
-        long index = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
+        long index = this.blockChain.getBlockChainManager().getLastIndex() + 1;
         List<String> proposedAddr = new ArrayList<>();
         for (EbftBlock proposedEbftBlock : this.blockChain.getUnConfirmedData().values()) {
             if (proposedEbftBlock.getIndex() == index) {
@@ -409,16 +408,16 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
             return null;
         }
 
+        long lastConfirmedBlockIndex = this.blockChain.getBlockChainManager().getLastIndex();
         for (String key : this.blockChain.getUnConfirmedData().keySet()) {
             EbftBlock unconfirmedBlock = this.blockChain.getUnConfirmedData().get(key);
             if (unconfirmedBlock == null) {
                 this.blockChain.getUnConfirmedData().remove(key);
-            } else if (unconfirmedBlock.getIndex()
-                    <= this.blockChain.getLastConfirmedBlock().getIndex()) {
+            } else if (unconfirmedBlock.getIndex() <= lastConfirmedBlockIndex) {
                 unconfirmedBlock.clear();
                 this.blockChain.getUnConfirmedData().remove(key);
             } else if (unconfirmedBlock.getIndex()
-                    == this.blockChain.getLastConfirmedBlock().getIndex() + 1
+                    == lastConfirmedBlockIndex + 1
                     && unconfirmedBlock.getConsensusMessages().size() >= consensusCount) {
                 confirmedBlock(unconfirmedBlock);
                 return unconfirmedBlock;
@@ -449,7 +448,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
 
         try {
             if (log.isDebugEnabled()) {
-                log.debug("map size= {}", this.blockChain.getBlockStore().size());
+                log.debug("map size= {}", this.blockChain.getBlockChainManager().countOfBlocks());
                 log.debug("proposedBlock size= "
                         + this.blockChain.getUnConfirmedData().size());
                 log.debug("isSynced= {}", isSynced);
@@ -546,7 +545,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
     }
 
     EbftStatus getMyNodeStatus() {
-        long index = this.blockChain.getLastConfirmedBlock().getIndex();
+        long index = this.blockChain.getBlockChainManager().getLastIndex();
         List<EbftBlock> unConfirmedBlockList = new ArrayList<>();
         for (EbftBlock ebftBlock : this.blockChain.getUnConfirmedData().values()) {
             if (ebftBlock != null && ebftBlock.getBlock() != null

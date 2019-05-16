@@ -18,19 +18,9 @@ package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.contract.Contract;
 import io.yggdrash.common.contract.ContractVersion;
-import io.yggdrash.common.store.StateStore;
-import io.yggdrash.contract.core.store.OutputStore;
-import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
-import io.yggdrash.core.blockchain.osgi.ContractManagerBuilder;
-import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.store.BranchStore;
-import io.yggdrash.core.store.ConsensusBlockStore;
-import io.yggdrash.core.store.ContractStore;
-import io.yggdrash.core.store.StoreBuilder;
-import io.yggdrash.core.store.TransactionReceiptStore;
-import io.yggdrash.core.store.TransactionStore;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,35 +28,29 @@ import java.util.Map;
 public class BlockChainBuilder {
 
     private GenesisBlock genesis;
-    private StoreBuilder storeBuilder;
     private Branch branch;
-    private TransactionStore transactionStore;
     private BranchStore branchStore;
-    private ConsensusBlockStore blockStore;
-    private StateStore stateStore;
-    private TransactionReceiptStore transactionReceiptStore;
-    private Map<OutputType, OutputStore> outputStores;
+    private BlockChainManager blockChainManager;
+    private ContractManager contractManager;
     private Factory factory;
-
-    private ContractPolicyLoader policyLoader;
 
     public BlockChainBuilder setGenesis(GenesisBlock genesis) {
         this.genesis = genesis;
         return this;
     }
 
-    public BlockChainBuilder setStoreBuilder(StoreBuilder storeBuilder) {
-        this.storeBuilder = storeBuilder;
+    public BlockChainBuilder setBranchStore(BranchStore branchStore) {
+        this.branchStore = branchStore;
         return this;
     }
 
-    public BlockChainBuilder setStateStore(StateStore stateStore) {
-        this.stateStore = stateStore;
+    public BlockChainBuilder setBlockChainManager(BlockChainManager blockChainManager) {
+        this.blockChainManager = blockChainManager;
         return this;
     }
 
-    public BlockChainBuilder setPolicyLoader(ContractPolicyLoader policyLoader) {
-        this.policyLoader = policyLoader;
+    public BlockChainBuilder setContractManager(ContractManager contractManager) {
+        this.contractManager = contractManager;
         return this;
     }
 
@@ -79,40 +63,7 @@ public class BlockChainBuilder {
         if (branch == null) {
             branch = genesis.getBranch();
         }
-        storeBuilder.setBranchId(branch.getBranchId());
-        if (blockStore == null) {
-            blockStore = storeBuilder.buildBlockStore();
-        }
-        if (transactionStore == null) {
-            transactionStore = storeBuilder.buildTxStore();
-        }
-        if (branchStore == null) {
-            branchStore = storeBuilder.buildBranchStore();
-        }
-        if (stateStore == null) {
-            stateStore = storeBuilder.buildStateStore();
-        }
-        if (transactionReceiptStore == null) {
-            transactionReceiptStore = storeBuilder.buildTransactionReceiptStore();
-        }
-
-        ContractStore contractStore = new ContractStore(branchStore, stateStore, transactionReceiptStore);
-
-        ContractManager contractManager = null;
-        if (policyLoader != null) {
-            contractManager = ContractManagerBuilder.newInstance()
-                    .withFrameworkFactory(policyLoader.getFrameworkFactory())
-                    .withContractManagerConfig(policyLoader.getContractManagerConfig())
-                    .withBranchId(branch.getBranchId().toString())
-                    .withContractStore(contractStore)
-                    .withConfig(storeBuilder.getConfig())
-                    .build();
-        }
-
-        // TODO interface => BlockChainStore & ContractStore
-        //      i.e. new BlockChain(BlockChainManager, ContractManager);
-        return factory.create(branch, genesis.getBlock(), blockStore,
-                transactionStore, branchStore, stateStore, transactionReceiptStore, contractManager, outputStores);
+        return factory.create(branch, genesis.getBlock(), branchStore, blockChainManager, contractManager);
     }
 
     private Map<ContractVersion, Contract> defaultContract() {
@@ -131,13 +82,10 @@ public class BlockChainBuilder {
     }
 
     public interface Factory {
-        BlockChain create(Branch branch, Block genesisBlock,
-                          ConsensusBlockStore blockStore,
-                          TransactionStore transactionStore,
+        BlockChain create(Branch branch,
+                          Block genesisBlock,
                           BranchStore branchStore,
-                          StateStore stateStore,
-                          TransactionReceiptStore transactionReceiptStore,
-                          ContractManager contractManager,
-                          Map<OutputType, OutputStore> outputStores);
+                          BlockChainManager blockChainManager,
+                          ContractManager contractManager);
     }
 }
