@@ -77,5 +77,8 @@ public final class Constants {
     public static final ContractVersion STEM_CONTRACT_VERSION = ContractVersion.of(STEM_CONTRACT_STR);
 
     private static final String YEED_CONTRACT_STR = "d79ab8e1d735090d2a7ef4f16d13a910457c0d93";
-    public static final ContractVersion YEED_CONTRACT_VERSION = ContractVersion.ofNonHex(YEED_CONTRACT_STR);
+    public static final ContractVersion YEED_CONTRACT_VERSION = ContractVersion.of(YEED_CONTRACT_STR);
+
+    private static final String VALIDATOR_CONTRACT_STR = "f5f92857982260477387d519f020b6b1fe37b2d5";
+    public static final ContractVersion VALIDATOR_CONTRACT_VERSION = ContractVersion.of(VALIDATOR_CONTRACT_STR);
 }

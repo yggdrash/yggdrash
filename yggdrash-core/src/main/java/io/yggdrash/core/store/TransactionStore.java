@@ -94,6 +94,10 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
         LOCK.unlock();
     }
 
+    public void addTransaction(Transaction tx) {
+        put(tx.getHash(), tx);
+    }
+
     @Override
     public Transaction get(Sha3Hash key) {
         Transaction item = pendingPool.get(key);

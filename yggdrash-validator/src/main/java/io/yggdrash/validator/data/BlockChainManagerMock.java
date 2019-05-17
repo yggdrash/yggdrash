@@ -43,13 +43,13 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     }
 
     @Override
-    public boolean verifyGenesis(Block block) {
-        return blockChainManager.verifyGenesis(block);
+    public int verify(ConsensusBlock<T> block) {
+        return blockChainManager.verify(block);
     }
 
     @Override
-    public boolean verifyNewBlock(ConsensusBlock<T> nextBlock) {
-        return blockChainManager.verifyNewBlock(nextBlock);
+    public int verify(Transaction transaction) {
+        return blockChainManager.verify(transaction);
     }
 
     @Override
@@ -58,8 +58,8 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     }
 
     @Override
-    public Transaction addTransaction(Transaction tx) {
-        return blockChainManager.addTransaction(tx);
+    public int addTransaction(Transaction tx) {
+        return  blockChainManager.addTransaction(tx);
     }
 
     @Override
@@ -108,7 +108,7 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     }
 
     @Override
-    public TransactionReceipt getTransactionReceipt(String txId) { //TODO not implemented
+    public TransactionReceipt getTransactionReceipt(String txId) {
         return blockChainManager.getTransactionReceipt(txId);
     }
 

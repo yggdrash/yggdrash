@@ -46,11 +46,5 @@ public enum ProposeErrorCode {
         }
 
         return errorString;
-
-
-
-
     }
-
-
 }

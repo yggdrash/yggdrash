@@ -19,8 +19,10 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.DuplicatedException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -31,7 +33,7 @@ import java.util.Collections;
 import static io.yggdrash.TestConstants.PerformanceTest;
 import static io.yggdrash.TestConstants.TRANSFER_TO;
 import static io.yggdrash.TestConstants.yggdrash;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 public class BranchGroupTest {
 
@@ -61,7 +63,7 @@ public class BranchGroupTest {
         assertThat(branchGroup.getRecentTxs(tx.getBranchId()).size()).isEqualTo(3);
         assertThat(branchGroup.countOfTxs(tx.getBranchId())).isEqualTo(3);
 
-        branchGroup.addTransaction(tx);
+        Assert.assertEquals(32000, branchGroup.addTransaction(tx));
         Transaction foundTxBySha3 = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
         assertThat(foundTxBySha3.getHash()).isEqualTo(tx.getHash());
 
@@ -69,6 +71,14 @@ public class BranchGroupTest {
         assertThat(foundTxByString.getHash()).isEqualTo(tx.getHash());
 
         assertThat(branchGroup.getUnconfirmedTxs(tx.getBranchId()).size()).isEqualTo(1);
+
+        Transaction invalidTx1 = BlockChainTestUtils
+                .createInvalidTransferTx(BranchId.of("696e76616c6964"), ContractVersion.of("696e76616c696420"));
+        Assert.assertEquals(33001, branchGroup.addTransaction(invalidTx1));
+
+        Transaction invalidTx2 = BlockChainTestUtils
+                .createInvalidTransferTx(ContractVersion.of("696e76616c696420"));
+        Assert.assertEquals(33002, branchGroup.addTransaction(invalidTx2));
     }
 
     @Test

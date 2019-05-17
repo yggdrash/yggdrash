@@ -25,6 +25,7 @@ import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NotValidateException;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
@@ -62,14 +63,16 @@ public class BlockChainTest extends CiTest {
         assertThat(blockChainManager.getBlockByIndex(nextIndex)).isEqualTo(testBlock);
     }
 
-    @Test(expected = NotValidateException.class)
+    @Test
     public void shouldBeExceptedNotValidateException() {
         BlockChain blockChain = generateTestBlockChain(false);
         Sha3Hash prevHash = new Sha3Hash("9358");
         ConsensusBlock block1 = getBlockFixture(1L, prevHash);
         blockChain.addBlock(block1, false);
+        Assert.assertEquals(1, blockChain.getBlockChainManager().countOfBlocks());
         ConsensusBlock block2 = getBlockFixture(2L, prevHash);
         blockChain.addBlock(block2, false);
+        Assert.assertEquals(1, blockChain.getBlockChainManager().countOfBlocks());
     }
 
     @Test

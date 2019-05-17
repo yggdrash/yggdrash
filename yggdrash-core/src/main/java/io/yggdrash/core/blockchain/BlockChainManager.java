@@ -23,13 +23,13 @@ public interface BlockChainManager<T> {
 
     void initGenesis(Block genesisBlock);
 
-    boolean verifyGenesis(Block block);
+    int verify(ConsensusBlock<T> block);
 
-    boolean verifyNewBlock(ConsensusBlock<T> nextBlock);
+    int verify(Transaction transaction);
 
     ConsensusBlock<T> addBlock(ConsensusBlock<T> nextBlock);
 
-    Transaction addTransaction(Transaction tx);
+    int addTransaction(Transaction tx);
 
     void updateTxCache(Block block);
 

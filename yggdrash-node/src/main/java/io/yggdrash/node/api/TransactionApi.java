@@ -9,6 +9,7 @@ import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.RejectedAccessException;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
+import io.yggdrash.gateway.dto.TransactionResponseDto;
 
 import static io.yggdrash.common.config.Constants.BLOCK_ID;
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
@@ -113,7 +114,7 @@ public interface TransactionApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = FailedOperationException.class,
                     code = FailedOperationException.CODE)})
-    String sendTransaction(@JsonRpcParam(value = "tx") TransactionDto tx);
+    TransactionResponseDto sendTransaction(@JsonRpcParam(value = "tx") TransactionDto tx);
 
     /**
      * Creates new message call transaction or a contract creation for signed transactions.

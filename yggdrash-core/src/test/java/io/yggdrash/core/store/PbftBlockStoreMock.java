@@ -15,7 +15,7 @@ public class PbftBlockStoreMock extends AbstractBlockStore<PbftProto.PbftBlock> 
         this(dbSource);
     }
 
-    PbftBlockStoreMock(DbSource<byte[], byte[]> dbSource) {
+    public PbftBlockStoreMock(DbSource<byte[], byte[]> dbSource) {
         super(dbSource);
     }
 

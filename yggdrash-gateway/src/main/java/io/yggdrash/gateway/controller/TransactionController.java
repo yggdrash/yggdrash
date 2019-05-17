@@ -19,6 +19,7 @@ package io.yggdrash.gateway.controller;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.exception.errorcode.BusinessError;
 import io.yggdrash.gateway.dto.TransactionDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -55,8 +56,12 @@ class TransactionController {
                               @RequestBody TransactionDto request) {
         Transaction tx = TransactionDto.of(request);
         if (BranchId.of(branchId).equals(tx.getBranchId())) {
-            Transaction addedTx = branchGroup.addTransaction(tx);
-            return ResponseEntity.ok(TransactionDto.createBy(addedTx));
+            if (branchGroup.addTransaction(tx) == BusinessError.VALID.toValue()) {
+                return ResponseEntity.ok(TransactionDto.createBy(tx));
+            } else {
+                return new ResponseEntity(HttpStatus.BAD_REQUEST);
+            }
+
         } else {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
         }

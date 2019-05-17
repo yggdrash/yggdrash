@@ -24,6 +24,7 @@ import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.gateway.dto.TransactionDto;
+import io.yggdrash.gateway.dto.TransactionResponseDto;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,6 +37,7 @@ import static io.yggdrash.node.api.JsonRpcConfig.BLOCK_API;
 import static io.yggdrash.node.api.JsonRpcConfig.TX_API;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class TransactionApiImplTest {
@@ -135,10 +137,12 @@ public class TransactionApiImplTest {
     @Test
     public void sendTransactionTest() {
         Transaction tx = createTx();
-
-        // Request Transaction with jsonStr
+        Transaction invalidTx = BlockChainTestUtils.createInvalidTransferTx();
         try {
-            assertThat(TX_API.sendTransaction(TransactionDto.createBy(tx))).isNotEmpty();
+            TransactionResponseDto res = TX_API.sendTransaction(TransactionDto.createBy(tx));
+            assertTrue(res.status);
+            TransactionResponseDto invalidRes = TX_API.sendTransaction(TransactionDto.createBy(invalidTx));
+            assertFalse(invalidRes.status);
         } catch (Exception exception) {
             log.debug("\n\nsendTransactionTest :: exception => " + exception);
         }
