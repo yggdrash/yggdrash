@@ -23,6 +23,7 @@ import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.gateway.dto.BranchDto;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
+import io.yggdrash.gateway.dto.TransactionResponseDto;
 import io.yggdrash.node.api.BranchApi;
 import io.yggdrash.node.api.JsonRpcConfig;
 import io.yggdrash.node.api.TransactionApi;
@@ -114,7 +115,7 @@ class ContractDemoClientUtils {
                     //stemContract = ContractVersion.ofNonHex((String) contract.get("contractVersion")); //Todo test
                     stemContract = ContractVersion.of((String) contract.get("contractVersion"));
                 } else if ("YEED".equals(contract.get("name"))) {
-                    yeedContract = ContractVersion.ofNonHex((String) contract.get("contractVersion"));
+                    yeedContract = ContractVersion.of((String) contract.get("contractVersion"));
                 }
             });
         }
@@ -157,7 +158,8 @@ class ContractDemoClientUtils {
                     .build();
 
             TransactionDto txDto = TransactionDto.createBy(tx);
-            lastTxId = rpc.proxyOf(TARGET_SERVER, TransactionApi.class).sendTransaction(txDto);
+            TransactionResponseDto res = rpc.proxyOf(TARGET_SERVER, TransactionApi.class).sendTransaction(txDto);
+            lastTxId = res.txHash;
         }
         return lastTxId;
     }

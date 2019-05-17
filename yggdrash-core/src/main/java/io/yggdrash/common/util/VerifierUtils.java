@@ -23,13 +23,13 @@ import io.yggdrash.core.blockchain.BlockHeader;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBody;
 import io.yggdrash.core.blockchain.TransactionHeader;
-import io.yggdrash.core.exception.InvalidSignatureException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 import java.security.SignatureException;
 import java.util.Arrays;
+import java.util.List;
 
 import static io.yggdrash.common.config.Constants.Key.SIGNATURE;
 import static io.yggdrash.common.config.Constants.SIGNATURE_LENGTH;
@@ -43,16 +43,20 @@ public class VerifierUtils {
 
     private static final Logger log = LoggerFactory.getLogger(VerifierUtils.class);
 
-    public static boolean verifyGenesis(BlockHeader header) {
-        //TODO Genesis Block Check
+    public static boolean isGenesis(BlockHeader header) {
         return header.getIndex() == 0;
     }
 
-    public static boolean verifyGenesis(Block block) {
-        return block.getIndex() != 0 || !block.getPrevBlockHash().equals(Sha3Hash.createByHashed(Constants.EMPTY_HASH));
+    public static boolean verifyGenesisHash(Block block) {
+        return block.getPrevBlockHash().equals(Sha3Hash.createByHashed(Constants.EMPTY_HASH));
     }
 
     public static boolean verify(Transaction transaction) {
+
+        if (!verifyTimestamp(transaction)) {
+            return false;
+        }
+
         if (!verifyDataFormat(transaction)) {
             return false;
         }
@@ -61,21 +65,41 @@ public class VerifierUtils {
     }
 
     public static boolean verify(Block block) {
+
+        if (isGenesis(block.getHeader())) {
+            return true;
+        }
         if (!verifyDataFormat(block)) {
             return false;
         }
 
-        if (verifyGenesis(block.getHeader())) {
-            return true;
+        if (!verifyBlockBodyHash(block)) {
+            return false;
         }
 
         return verifySignature(block);
     }
 
-    public static boolean verifyTimestamp(Long timeStamp) { // The timestamp should be at least 1hour or less.
+    public static boolean verifyBlockBodyHash(Block block) {
+        List<Transaction> txsList = block.getBody().getTransactionList();
+        byte[] merkleRoot = Trie.getMerkleRoot(txsList);
+        return Arrays.equals(merkleRoot, block.getHeader().getMerkleRoot());
+    }
+
+    public static boolean verifyTimestamp(Transaction transaction) {
+        return verifyTimestamp(transaction.getHeader().getTimestamp());
+    }
+
+    /**
+     * The timestamp should be less than 1 hour compared with the current node time.
+     *
+     * @param timeStamp to be verified
+     * @return boolean
+     */
+    private static boolean verifyTimestamp(Long timeStamp) {
         long hour = (1000 * 60 * 60);
-        return timeStamp.compareTo(timeStamp + hour) < 0
-                || timeStamp.compareTo(timeStamp - hour) > 0;
+        long curTime = System.currentTimeMillis();
+        return timeStamp.compareTo(curTime + hour) < 0 && timeStamp.compareTo(curTime - hour) > 0;
     }
 
     public static boolean verifySignature(Transaction tx) {
@@ -93,7 +117,7 @@ public class VerifierUtils {
         try {
             ecKeyPub = ECKey.signatureToKey(hashedHeader, ecdsaSignature);
         } catch (SignatureException e) {
-            throw new InvalidSignatureException(e);
+            return false; // handling exception
         }
 
         return ecKeyPub.verify(hashedHeader, ecdsaSignature);
@@ -154,7 +178,7 @@ public class VerifierUtils {
                 header.getPrevBlockHash(), Constants.HASH_LENGTH, "prevBlockHash");
         check &= verifyCheckLengthNotNull(
                 header.getMerkleRoot(), Constants.HASH_LENGTH, "merkleRootLength");
-        if (verifyGenesis(header)) {
+        if (isGenesis(header)) {
             // Genesis Block is not check signature
             check &= verifyCheckLengthNotNull(block.getSignature(), SIGNATURE_LENGTH, SIGNATURE);
         }

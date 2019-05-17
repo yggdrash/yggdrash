@@ -1,11 +1,14 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.exception.FailedOperationException;
+import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.exception.errorcode.BusinessError;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.store.BlockKeyStore;
 import io.yggdrash.core.store.BranchStore;
@@ -46,7 +49,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         this.blockChainManager = blockChainManager;
         this.contractManager = contractManager;
 
-        if (blockChainManager.verifyGenesis(genesisBlock)) {
+        if (!VerifierUtils.verifyGenesisHash(genesisBlock)) {
             log.error("GenesisBlock is not valid.");
             throw new NotValidateException();
         }
@@ -157,7 +160,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
     @Override
     public ConsensusBlock<T> addBlock(ConsensusBlock<T> nextBlock, boolean broadcast) {
-        if (blockChainManager.contains(nextBlock) || !blockChainManager.verifyNewBlock(nextBlock)) {
+        if (blockChainManager.verify(nextBlock) != BusinessError.VALID.toValue()) {
             return null;
         }
 
@@ -213,17 +216,16 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     }
 
     @Override
-    public Transaction addTransaction(Transaction tx) {
+    public int addTransaction(Transaction tx) {
         return addTransaction(tx, true);
     }
 
-    public Transaction addTransaction(Transaction tx, boolean broadcast) {
-        Transaction res = blockChainManager.addTransaction(tx);
-        if (res != null) {
+    public int addTransaction(Transaction tx, boolean broadcast) {
+        int res = blockChainManager.addTransaction(tx);
+        if (res == BusinessError.VALID.toValue()) {
             if (!listenerList.isEmpty() && broadcast) {
                 listenerList.forEach(listener -> listener.receivedTransaction(tx));
             }
-
         }
         return res;
     }
@@ -245,6 +247,11 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         } else {
             return this.branchStore.getBranchContacts();
         }
+    }
+
+    @Override
+    public boolean containBranchContract(ContractVersion contractVersion) {
+        return getBranchContracts().stream().anyMatch(bc -> bc.getContractVersion().equals(contractVersion));
     }
 
     @Override

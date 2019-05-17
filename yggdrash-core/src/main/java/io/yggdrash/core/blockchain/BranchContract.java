@@ -34,12 +34,7 @@ public class BranchContract {
         this.description = json.get("description").getAsString();
         this.property = json.has("property") ? json.get("property").getAsString() : "";
         this.isSystem = json.has("isSystem") && json.get("isSystem").getAsBoolean();
-
-        if (this.isSystem) {
-            this.contractVersion = ContractVersion.ofNonHex(json.get("contractVersion").getAsString());
-        } else {
-            this.contractVersion = ContractVersion.of(json.get("contractVersion").getAsString());
-        }
+        this.contractVersion = ContractVersion.of(json.get("contractVersion").getAsString());
         this.json = json;
     }
 

@@ -19,6 +19,8 @@ package io.yggdrash;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
 import io.yggdrash.core.blockchain.BlockChainManager;
@@ -29,7 +31,10 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.PbftBlockChainMock;
 import io.yggdrash.core.blockchain.PbftBlockMock;
 import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.TransactionBody;
 import io.yggdrash.core.blockchain.TransactionBuilder;
+import io.yggdrash.core.blockchain.TransactionHeader;
+import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.blockchain.osgi.ContractManagerBuilder;
@@ -216,5 +221,34 @@ public class BlockChainTestUtils {
                 .setWallet(TestConstants.wallet())
                 .setBranchId(TestConstants.yggdrash())
                 .build();
+    }
+
+    public static Transaction createInvalidTransferTx(ContractVersion contractVersion) {
+        JsonObject txBody = ContractTestUtils
+                .invalidTransferTxBodyJson(TestConstants.TRANSFER_TO, 100, contractVersion);
+        return createInvalidTx(TestConstants.yggdrash(), Constants.EMPTY_BYTE8, txBody);
+    }
+
+    public static Transaction createInvalidTransferTx(BranchId branchId, ContractVersion contractVersion) {
+        JsonObject txBody = ContractTestUtils
+                .invalidTransferTxBodyJson(TestConstants.TRANSFER_TO, 100, contractVersion);
+        return createInvalidTx(branchId, Constants.EMPTY_BYTE8, txBody);
+    }
+
+    public static Transaction createInvalidTransferTx() { //(timeout, invalid format, untrusted)
+        JsonObject txBody = ContractTestUtils.transferTxBodyJson(TestConstants.TRANSFER_TO, 100);
+        return createInvalidTx(TestConstants.yggdrash(), "invalid".getBytes(), txBody);
+    }
+
+    // Instead of TransactionBuilder's createTx
+    private static Transaction createInvalidTx(BranchId branchId, byte[] txVersion, JsonObject txBody) {
+        TransactionBody transactionBody = new TransactionBody(txBody);
+        byte[] chain = branchId.getBytes();
+        long hour = (1000 * 60 * 60);
+        long timestamp = TimeUtils.time() + hour * 2;
+        TransactionHeader txHeader = new TransactionHeader(
+                chain, txVersion, Constants.EMPTY_BYTE8, timestamp, transactionBody);
+        byte[] sign = Constants.EMPTY_SIGNATURE;
+        return new TransactionImpl(txHeader, sign, transactionBody);
     }
 }

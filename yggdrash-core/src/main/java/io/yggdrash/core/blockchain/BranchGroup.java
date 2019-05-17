@@ -18,11 +18,13 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.exception.NonExistObjectException;
+import io.yggdrash.core.exception.errorcode.SystemError;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -52,15 +54,35 @@ public class BranchGroup {
         return branches.containsKey(branchId);
     }
 
+    public int verify(BranchId branchId, String contractVersion) {
+        return verify(branchId, ContractVersion.of(contractVersion));
+    }
+
+    private int verify(BranchId branchId, ContractVersion contractVersion) {
+        int check = 0;
+
+        check |= SystemError.addCode(containsBranch(branchId), SystemError.BRANCH_NOT_FOUND);
+        if (containsBranch(branchId)) {
+            check |= SystemError.addCode(
+                    getBranch(branchId).containBranchContract(contractVersion),
+                    SystemError.CONTRACT_VERSION_NOT_FOUND);
+        }
+
+        return check;
+    }
+
+
     public Collection<BlockChain> getAllBranch() {
         return branches.values();
     }
 
-    public Transaction addTransaction(Transaction tx) {
-        if (branches.containsKey(tx.getBranchId())) {
+    public int addTransaction(Transaction tx) {
+        String version = tx.getBody().getBody().get("contractVersion").getAsString();
+        int res = verify(tx.getBranchId(), version);
+        if (res == SystemError.VALID.toValue()) {
             return branches.get(tx.getBranchId()).addTransaction(tx);
         }
-        return tx;
+        return res;
     }
 
     public long getLastIndex(BranchId id) {
@@ -127,6 +149,11 @@ public class BranchGroup {
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }
+    }
+
+    // not yet implemented
+    public Object tmpQuery(BranchId branchId, String contractVersion, String method, JsonObject params) {
+        return branches.get(branchId).getContractManager().query(contractVersion, method, params);
     }
 
     public long countOfTxs(BranchId branchId) {

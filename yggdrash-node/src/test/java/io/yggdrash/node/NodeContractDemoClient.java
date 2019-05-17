@@ -22,6 +22,7 @@ import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.gateway.dto.BranchDto;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
+import io.yggdrash.gateway.dto.TransactionResponseDto;
 import io.yggdrash.node.api.BranchApi;
 import io.yggdrash.node.api.ContractApi;
 import io.yggdrash.node.api.ContractApiImplTest;
@@ -171,9 +172,9 @@ public class NodeContractDemoClient {
             BranchDto branchDto = branch.get().getValue();
             branchDto.contracts.forEach(contract -> {
                 if ("STEM".equals(contract.get("name"))) {
-                    stemContract = ContractVersion.ofNonHex((String) contract.get("contractVersion"));
+                    stemContract = ContractVersion.of((String) contract.get("contractVersion"));
                 } else if ("YEED".equals(contract.get("name"))) {
-                    yeedContract = ContractVersion.ofNonHex((String) contract.get("contractVersion"));
+                    yeedContract = ContractVersion.of((String) contract.get("contractVersion"));
                 }
 
             });
@@ -548,11 +549,10 @@ public class NodeContractDemoClient {
 
     private static void sendTransaction(Transaction tx) {
         TransactionDto txd = TransactionDto.createBy(tx);
-        lastTransactionId = rpc.proxyOf(TARGET_SERVER, TransactionApi.class)
+        TransactionResponseDto res = rpc.proxyOf(TARGET_SERVER, TransactionApi.class)
                 .sendTransaction(txd);
+        lastTransactionId = res.txHash;
     }
-
-
 
 }
 

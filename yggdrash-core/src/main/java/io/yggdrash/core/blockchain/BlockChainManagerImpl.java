@@ -17,8 +17,7 @@ import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.consensus.ConsensusBlock;
-import io.yggdrash.core.exception.InvalidSignatureException;
-import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.exception.errorcode.BusinessError;
 import io.yggdrash.core.store.ConsensusBlockStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
@@ -57,39 +56,69 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     }
 
     @Override
-    public boolean verifyGenesis(Block block) {
-        return VerifierUtils.verifyGenesis(block);
+    public int verify(Transaction transaction) {
+        int check = 0;
+
+        check |= BusinessError.addCode(verifyDuplicated(transaction), BusinessError.DUPLICATED);
+
+        check |= BusinessError.addCode(VerifierUtils.verifyTimestamp(transaction), BusinessError.REQUEST_TIMEOUT);
+
+        check |= BusinessError.addCode(VerifierUtils.verifyDataFormat(transaction), BusinessError.INVALID_DATA_FORMAT);
+
+        check |= BusinessError.addCode(VerifierUtils.verifySignature(transaction), BusinessError.UNTRUSTED);
+
+        return check;
     }
 
     @Override
-    public boolean verifyNewBlock(ConsensusBlock<T> nextBlock) {
-        if (lastConfirmedBlock == null) {
-            return true;
+    public int verify(ConsensusBlock<T> block) {
+        int check = BusinessError.VALID.toValue();
+
+        //GenesisBlock skips the newBlock verification
+        if (lastConfirmedBlock != null) {
+            check |= verifyNewBlock(block);
         }
 
-        if (lastConfirmedBlock.getIndex() + 1 != nextBlock.getIndex()) {
-            log.warn("invalid index: prev:{} / new:{}", lastConfirmedBlock.getIndex(), nextBlock.getIndex());
-            String msg = String.format("Invalid to chain cur=%s, new=%s",
-                    lastConfirmedBlock.getIndex(), nextBlock.getIndex()); //duplicated code
-            throw new NotValidateException(msg);
-        } else if (!lastConfirmedBlock.getHash().equals(nextBlock.getPrevBlockHash())) {
-            log.warn("invalid previous hash= {} {}", lastConfirmedBlock.getHash(), nextBlock.getPrevBlockHash());
-            String msg = String.format("Invalid to chain cur=%s, new=%s",
-                    lastConfirmedBlock.getIndex(), nextBlock.getIndex());
-            throw new NotValidateException(msg);
-        }
+        check |= BusinessError.addCode(verifyDuplicated(block), BusinessError.DUPLICATED);
 
-        return true;
+        check |= BusinessError.addCode(VerifierUtils.verifyDataFormat(block), BusinessError.INVALID_DATA_FORMAT);
+
+        check |= BusinessError.addCode(
+                VerifierUtils.verifyBlockBodyHash(block), BusinessError.INVALID_MERKLE_ROOT_HASH);
+
+        return check;
+    }
+
+    private int verifyNewBlock(ConsensusBlock<T> nextBlock) {
+        int check = BusinessError.VALID.toValue();
+
+        check |= BusinessError.addCode(verifyBlockHeight(nextBlock), BusinessError.UNKNOWN_BLOCK_HEIGHT);
+
+        check |= BusinessError.addCode(verifyBlockHash(nextBlock), BusinessError.INVALID_BLOCK_HASH);
+
+        check |= BusinessError.addCode(VerifierUtils.verifySignature(nextBlock), BusinessError.UNTRUSTED);
+
+        return check;
+    }
+
+    private boolean verifyDuplicated(Transaction transaction) {
+        return !transactionStore.contains(transaction.getHash());
+    }
+
+    private boolean verifyDuplicated(Block block) {
+        return !blockStore.contains(block.getHash());
+    }
+
+    private boolean verifyBlockHeight(ConsensusBlock<T> nextBlock) {
+        return lastConfirmedBlock.getIndex() + 1 == nextBlock.getIndex();
+    }
+
+    private boolean verifyBlockHash(ConsensusBlock<T> nextBlock) {
+        return lastConfirmedBlock.getHash().equals(nextBlock.getPrevBlockHash());
     }
 
     @Override
     public ConsensusBlock<T> addBlock(ConsensusBlock<T> nextBlock) {
-        if (nextBlock == null
-                || (verifyGenesis(nextBlock) && nextBlock.getIndex() != getLastIndex() + 1)
-                || !VerifierUtils.verify(nextBlock)) {
-            log.debug("Block is not valid.");
-            return null;
-        }
         // Store Block Index and Block Data
         this.blockStore.addBlock(nextBlock);
         this.lastConfirmedBlock = nextBlock;
@@ -111,20 +140,18 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
         transactionStore.batch(keys);
     }
 
+    // return businessError code
     @Override
-    public Transaction addTransaction(Transaction tx) {
-        if (transactionStore.contains(tx.getHash())) {
-            return null;
-        } else if (!VerifierUtils.verify(tx)) {
-            throw new InvalidSignatureException();
+    public int addTransaction(Transaction tx) {
+        int verifyResult = verify(tx);
+        if (verifyResult == BusinessError.VALID.toValue()) {
+            try {
+                transactionStore.addTransaction(tx);
+            } catch (Exception e) {
+                throw new FailedOperationException(e);
+            }
         }
-
-        try {
-            transactionStore.put(tx.getHash(), tx);
-            return tx;
-        } catch (Exception e) {
-            throw new FailedOperationException(e);
-        }
+        return verifyResult;
     }
 
     @Override
