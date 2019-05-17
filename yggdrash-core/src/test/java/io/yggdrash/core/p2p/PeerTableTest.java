@@ -80,7 +80,7 @@ public class PeerTableTest {
         List<Peer> latestPeerList = peerTable.getLatestPeers(touchedTime);
 
         assertEquals(1, latestPeerList.size());
-        assertTrue(!latestPeerList.contains(peer1));
+        assertFalse(latestPeerList.contains(peer1));
         assertTrue(latestPeerList.contains(peer2));
     }
 
@@ -116,13 +116,13 @@ public class PeerTableTest {
 
         // act
         Utils.sleep(10);
-        peerTable.copyLiveNode(5);
+        peerTable.copyLivePeer(5);
 
         // assert
         assertEquals(0, peerTable.getPeerStore().size());
 
         // act
-        peerTable.copyLiveNode(500);
+        peerTable.copyLivePeer(500);
         // assert
         assertEquals(2, peerTable.getPeerStore().size());
 
@@ -137,7 +137,7 @@ public class PeerTableTest {
 
         // act
         Utils.sleep(10);
-        peerTable.copyLiveNode(15);
+        peerTable.copyLivePeer(15);
 
         //assert
         assertEquals(3, peerTable.getPeerStore().size());
