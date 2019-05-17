@@ -402,12 +402,29 @@ public class StemContract implements BundleActivator, ServiceListener {
                 return;
 
             } else if(operatingFlag == StemOperation.UPDATE_VALIDATOR_SET) {
-                // TODO update all validator set
-                JsonArray validatorList = params.get("validatorList").getAsJsonArray();
+                // update all validator set
+                JsonObject newValidatorSet = new JsonObject();
+                JsonArray validatorList = params.get("validators").getAsJsonArray();
+                newValidatorSet.add("validators", validatorList);
 
                 // target validator is list hash(sha3ommit12)
-                validatorList.getAsString();
+                byte[] validatorsByteArray = newValidatorSet.toString().getBytes(StandardCharsets.UTF_8);
+                byte[] validatorsSha3 = HashUtil.sha3omit12(validatorsByteArray);
+                String calculateTargetValidator = HexUtil.toHexString(validatorsSha3);
+
                 // check and verify validatorList
+                if (!targetValidator.equals(calculateTargetValidator)) {
+                    txReceipt.setStatus(ExecuteStatus.FALSE);
+                    txReceipt.addLog("target Validator set is invalid");
+                    return;
+                }
+
+                // update Validator set
+                saveValidators(branchId, newValidatorSet);
+
+                txReceipt.setStatus(ExecuteStatus.SUCCESS);
+                txReceipt.addLog("validator set change");
+                return;
 
 
             }

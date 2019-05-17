@@ -3,7 +3,6 @@ package io.yggdrash.contract;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.vo.dpoa.Validator;
-import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.store.StateStore;
@@ -29,11 +28,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import static io.yggdrash.common.utils.JsonUtil.convertJsonArrayToSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -331,6 +330,78 @@ public class StemContractValidatorTest {
     @Test
     public void updateValidatorsUpdateValidatorSet() {
         // TODO Update validator Set
+        String targetBranchId = updateBranchId;
+        Long blockHeight = 100L;
+
+        // remove exist validator (v2)
+        String operatingFlag = StemOperation.UPDATE_VALIDATOR_SET.toValue(); // ADD OR DELETE OR REPLACE
+
+        JsonObject targetValidatorSet = stemContract.getValidators(updateBranchId);
+        targetValidatorSet.getAsJsonArray("validators")
+                .add("101167aaf090581b91c08480f6e559acdd9a3ddd");
+        targetValidatorSet.getAsJsonArray("validators")
+                .add("ffcbff030ecfa17628abdd0ff1990be003da35a2");
+        targetValidatorSet.getAsJsonArray("validators")
+                .add("b0aee21c81bf6057efa9a321916f0f1a12f5c547");
+
+        log.debug(JsonUtil.prettyFormat(targetValidatorSet));
+
+        byte[] validatorsByteArray = targetValidatorSet.toString().getBytes(StandardCharsets.UTF_8);
+        byte[] validatorsSha3 = HashUtil.sha3omit12(validatorsByteArray);
+        String targetValidator = HexUtil.toHexString(validatorsSha3);
+
+        // proposer to target
+
+        byte[] message = ByteUtil.merge(
+                HexUtil.hexStringToBytes(targetBranchId),
+                ByteUtil.longToBytes(blockHeight),
+                HexUtil.hexStringToBytes(proposer),
+                HexUtil.hexStringToBytes(targetValidator),
+                operatingFlag.getBytes()
+        );
+        // message make to sha3
+        message = HashUtil.sha3(message);
+        log.debug("message Size : {} ", message.length);
+        assertEquals("message Length : ", message.length, 32);
+
+        log.debug(updateBranchId);
+
+        byte[] signV1 = v1.sign(message, true);
+        byte[] signV2 = v2.sign(message, true);
+        byte[] signV3 = v3.sign(message, true);
+        byte[] signV4 = v4.sign(message, true);
+
+        String[] signed = new String[]{
+                HexUtil.toHexString(signV1), HexUtil.toHexString(signV2), HexUtil.toHexString(signV3), HexUtil.toHexString(signV4)
+        };
+
+        // add to params in sign
+        JsonArray signedArray = new JsonArray();
+        Arrays.stream(signed).forEach(sg -> signedArray.add(sg));
+
+        JsonObject updateBranchValiator = new JsonObject();
+        updateBranchValiator.addProperty("branchId", targetBranchId);
+        updateBranchValiator.addProperty("blockHeight", blockHeight);
+        updateBranchValiator.addProperty("proposer", proposer);
+        updateBranchValiator.addProperty("targetValidator", targetValidator);
+        updateBranchValiator.addProperty("operatingFlag", operatingFlag);
+        updateBranchValiator.add("signed", signedArray);
+        updateBranchValiator.add("validators", targetValidatorSet.getAsJsonArray("validators"));
+
+        log.debug(JsonUtil.prettyFormat(updateBranchValiator));
+
+
+        // UPDATE Validator Set
+        TransactionReceipt updateReceipt = createReceipt(proposer);
+        setUpReceipt(updateReceipt);
+
+        stemContract.updateValidator(updateBranchValiator);
+        assert updateReceipt.getStatus() == ExecuteStatus.SUCCESS;
+
+        JsonObject validators = stemContract.getValidators(updateBranchId);
+        log.debug(JsonUtil.prettyFormat(validators));
+
+        assertTrue(targetValidatorSet.getAsJsonArray("validators").size() == 7);
     }
 
 
