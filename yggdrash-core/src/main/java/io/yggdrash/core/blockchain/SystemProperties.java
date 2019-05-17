@@ -8,12 +8,11 @@ import java.util.Set;
 
 public class SystemProperties {
     private String esHost;
-    private String esTransport;
+    private int esTransport;
     private String[] eventStore;
 
     boolean checkEsClient() {
         return !StringUtils.isEmpty(esHost)
-                && !StringUtils.isEmpty(esTransport)
                 && eventStore != null
                 && eventStore.length > 0;
     }
@@ -34,7 +33,7 @@ public class SystemProperties {
         return esHost;
     }
 
-    String getEsPrefixHost() {
+    public String getEsPrefixHost() {
         String[] splitHost = splitHost();
         if (splitHost == null) {
             return null;
@@ -50,11 +49,8 @@ public class SystemProperties {
         return Integer.parseInt(splitHost[1]);
     }
 
-    int getEsTransport() {
-        if (!StringUtils.isNumeric(esTransport)) {
-            throw new IllegalArgumentException("The es.transport value must be a number.");
-        }
-        return Integer.parseInt(esTransport);
+    public int getEsTransport() {
+        return esTransport;
     }
 
     public Set<String> getEventStore() {
@@ -66,7 +62,7 @@ public class SystemProperties {
 
     public static final class SystemPropertiesBuilder {
         private String esHost;
-        private String esTransport;
+        private int esTransport;
         private String[] eventStore;
 
         private SystemPropertiesBuilder() {
@@ -81,7 +77,7 @@ public class SystemProperties {
             return this;
         }
 
-        public SystemPropertiesBuilder withEsTransport(String esTransport) {
+        public SystemPropertiesBuilder withEsTransport(int esTransport) {
             this.esTransport = esTransport;
             return this;
         }

@@ -1,4 +1,3 @@
-    
 /*
  * Copyright 2018 Akashic Foundation
  *
@@ -17,16 +16,15 @@
 
 package io.yggdrash.gateway.dto;
 
+import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.proto.Proto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 public class TransactionDto {
-    private static final Logger log = LoggerFactory.getLogger(TransactionDto.class);
 
     public String branchId;
     public String version;
@@ -38,6 +36,10 @@ public class TransactionDto {
     public String body;
     public String author;
     public String txId;
+
+    public JsonObject toJsonObject() {
+        return JsonUtil.parseJsonObject(this);
+    }
 
     public static Transaction of(TransactionDto dto) {
         Proto.Transaction.Header header = Proto.Transaction.Header.newBuilder()

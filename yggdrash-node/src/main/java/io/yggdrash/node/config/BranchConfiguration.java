@@ -23,6 +23,7 @@ import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BlockChainManagerImpl;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
@@ -55,6 +56,10 @@ public class BranchConfiguration {
 
     @Value("classpath:/branch-yggdrash.json")
     Resource yggdrashResource;
+
+    @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
+    @Autowired(required = false)
+    SystemProperties systemProperties;
 
     @Autowired
     BranchConfiguration(DefaultConfig defaultConfig) {
@@ -123,13 +128,16 @@ public class BranchConfiguration {
     }
 
     static BlockChain getBlockChain(GenesisBlock genesis, StoreBuilder storeBuilder,
-                                     ContractPolicyLoader policyLoader, BranchId branchId,
+                                    ContractPolicyLoader policyLoader, BranchId branchId,
                                     SystemProperties systemProperties) {
+
         ContractStore contractStore = storeBuilder.buildContractStore();
+
         BlockChainManager blockChainManager = new BlockChainManagerImpl(
                 storeBuilder.buildBlockStore(),
                 storeBuilder.buildTransactionStore(),
                 contractStore.getTransactionReceiptStore());
+
         ContractManager contractManager = ContractManagerBuilder.newInstance()
                 .withFrameworkFactory(policyLoader.getFrameworkFactory())
                 .withContractManagerConfig(policyLoader.getContractManagerConfig())

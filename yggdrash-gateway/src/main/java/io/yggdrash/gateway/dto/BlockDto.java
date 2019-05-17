@@ -16,7 +16,9 @@
 
 package io.yggdrash.gateway.dto;
 
+import com.google.gson.JsonObject;
 import com.google.protobuf.util.Timestamps;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.BlockHeader;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
@@ -41,6 +43,11 @@ public class BlockDto {
     public List<TransactionDto> body;
     public String author;
     public String blockId;
+    public Object consensusMessages;
+
+    public JsonObject toJsonObject() {
+        return JsonUtil.parseJsonObject(this);
+    }
 
     public static BlockDto createBy(ConsensusBlock block) {
         return createBy(block, block.getBody().getCount() < MAX_TX_BODY);
@@ -65,6 +72,7 @@ public class BlockDto {
         }
         blockDto.author = block.getBlock().getAddress().toString();
         blockDto.blockId = block.getHash().toString();
+        blockDto.consensusMessages = block.getConsensusMessages();
         return blockDto;
     }
 

@@ -37,7 +37,6 @@ ext {
     logbackJinoVersion  = '3.0.12'
     equinoxVersion = '3.13.0.v20180226-1711'
     elasticSearchVersion = '7.0.1'
-    rxJavaVersion = '2.2.7'
 }
 
 allprojects {
@@ -112,8 +111,6 @@ project(':yggdrash-core') {
         compile "com.google.code.gson:gson:${gsonVersion}"
         compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
         compile "com.typesafe:config:${typesafeVersion}"
-        compile "org.elasticsearch.client:transport:${elasticSearchVersion}"
-        compile "io.reactivex.rxjava2:rxjava:${rxJavaVersion}"
         compile 'org.beryx:text-io:3.3.0'
         compileOnly "javax.annotation:javax.annotation-api:${annotationVersion}"
         testCompile "org.assertj:assertj-core:${assertjVersion}"
@@ -248,6 +245,7 @@ project(':yggdrash-gateway') {
         compile project(':yggdrash-core')
         compile "org.springframework.boot:spring-boot-starter-undertow"
         compile "org.springframework.boot:spring-boot-starter-websocket"
+        compile "org.elasticsearch.client:transport:${elasticSearchVersion}"
         compile "org.webjars:sockjs-client:1.1.2"
         compile "org.webjars:stomp-websocket:2.3.3"
         compile "org.webjars:bootstrap:3.3.7"

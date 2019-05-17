@@ -20,7 +20,6 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.node.TcpNodeTesting;
 import io.yggdrash.node.TestNode;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -31,7 +30,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class BroadcastTxToValidatorTest extends TcpNodeTesting {
 
     @Test
-    @Ignore
     public void test() {
         // arrange
         // validator
