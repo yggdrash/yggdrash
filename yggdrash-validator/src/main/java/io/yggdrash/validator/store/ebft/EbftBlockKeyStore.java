@@ -3,16 +3,15 @@ package io.yggdrash.validator.store.ebft;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.utils.ByteUtil;
-import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.BlockKeyStore;
 import org.iq80.leveldb.CompressionType;
 import org.iq80.leveldb.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 
-import java.io.IOException;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static io.yggdrash.common.config.Constants.LEVELDB_SIZE_KEY;
 
 public class EbftBlockKeyStore implements BlockKeyStore<Long, byte[]> {
     private static final Logger log = LoggerFactory.getLogger(EbftBlockKeyStore.class);
@@ -33,13 +32,7 @@ public class EbftBlockKeyStore implements BlockKeyStore<Long, byte[]> {
         options.verifyChecksums(true);
         options.maxOpenFiles(32);
         this.db = dbSource.init(options);
-
-        try {
-            this.size = this.db.getAll().size();
-        } catch (IOException e) {
-            log.debug(e.getMessage());
-            throw new NotValidateException("BlockKeyStore is not valid.");
-        }
+        this.size = loadSize();
     }
 
     @Override
@@ -52,11 +45,9 @@ public class EbftBlockKeyStore implements BlockKeyStore<Long, byte[]> {
         lock.lock();
         try {
             if (!contains(key)) {
-                log.trace("put "
-                        + "(key: " + key + ")"
-                        + "(value : " + Hex.toHexString(value) + ")");
                 db.put(ByteUtil.longToBytes(key), value);
                 size++;
+                db.put(LEVELDB_SIZE_KEY, ByteUtil.longToBytes(size));
             }
         } catch (Exception e) {
             log.debug(e.getMessage());
@@ -74,7 +65,7 @@ public class EbftBlockKeyStore implements BlockKeyStore<Long, byte[]> {
 
         lock.lock();
         try {
-            log.trace("get " + "(" + key + ")");
+            log.trace("get " + "({})", key);
             return db.get(ByteUtil.longToBytes(key));
         } catch (Exception e) {
             log.debug(e.getMessage());
@@ -112,4 +103,17 @@ public class EbftBlockKeyStore implements BlockKeyStore<Long, byte[]> {
             lock.unlock();
         }
     }
+
+    private long loadSize() {
+        // loading db is just first
+        lock.lock();
+        byte[] sizeByte = db.get(LEVELDB_SIZE_KEY);
+        lock.unlock();
+        if (sizeByte != null) {
+            return ByteUtil.byteArrayToLong(sizeByte);
+        } else {
+            return 0L;
+        }
+    }
+
 }

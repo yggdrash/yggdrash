@@ -19,7 +19,6 @@ package io.yggdrash.common.store.datasource;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.utils.FileUtil;
 import org.iq80.leveldb.DB;
-import org.iq80.leveldb.DBIterator;
 import org.iq80.leveldb.Options;
 import org.iq80.leveldb.WriteBatch;
 import org.iq80.leveldb.impl.Iq80DBFactory;
@@ -30,8 +29,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -174,14 +171,4 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         return alive;
     }
 
-    public List<byte[]> getAll() throws IOException {
-        List<byte[]> valueList = new ArrayList<>();
-        try (DBIterator iterator = db.iterator()) {
-            for (iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
-                byte[] value = iterator.peekNext().getValue();
-                valueList.add(value);
-            }
-        }
-        return valueList;
-    }
 }

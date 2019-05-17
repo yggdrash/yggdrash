@@ -23,21 +23,20 @@ import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NonExistObjectException;
-import io.yggdrash.core.exception.NotValidateException;
 import org.iq80.leveldb.CompressionType;
 import org.iq80.leveldb.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static io.yggdrash.common.config.Constants.LEVELDB_SIZE_KEY;
 
 public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
     private static final Logger log = LoggerFactory.getLogger(AbstractBlockStore.class);
 
     protected final DbSource<byte[], byte[]> db;
-    private long blockSize;
-    private long transactionSize;
+    private long size;
 
     protected final ReentrantLock lock = new ReentrantLock();
 
@@ -52,15 +51,7 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
         options.verifyChecksums(true);
         options.maxOpenFiles(32);
         this.db = dbSource.init(options);
-
-        try {
-            this.blockSize = this.db.getAll().size();
-        } catch (IOException e) {
-            log.debug(e.getMessage());
-            throw new NotValidateException("Store is not valid.");
-        }
-        // get Transaction Size
-        transactionSize = getBlockChainTransactionSize();
+        this.size = loadSize();
     }
 
     @Override
@@ -75,7 +66,8 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
             if (!contains(key)) {
                 log.trace("put (key: {})(blockHash {})", key, value.getHash());
                 db.put(key.getBytes(), bytes);
-                blockSize++;
+                size++;
+                db.put(LEVELDB_SIZE_KEY, ByteUtil.longToBytes(size));
             }
         } catch (Exception e) {
             log.debug(e.getMessage());
@@ -93,7 +85,7 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
     public long size() {
         lock.lock();
         try {
-            return this.blockSize;
+            return size;
         } finally {
             lock.unlock();
         }
@@ -119,9 +111,6 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
         db.put(indexKey, block.getHash().getBytes());
         // store block data
         put(block.getHash(), block);
-        // add block Transaction size
-        transactionSize += block.getBody().getCount();
-        db.put("TRANSACTION_SIZE".getBytes(), ByteUtil.longToBytes(transactionSize));
         lock.unlock();
     }
 
@@ -138,20 +127,16 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
         return get(Sha3Hash.createByHashed(blockHash));
     }
 
-    @Override
-    public long getBlockChainTransactionSize() {
+    private long loadSize() {
         // loading db is just first
-        if (transactionSize == 0L) {
-            lock.lock();
-            byte[] txSize = db.get("TRANSACTION_SIZE".getBytes());
-            lock.unlock();
-            if (txSize != null) {
-                transactionSize = ByteUtil.byteArrayToLong(txSize);
-            } else {
-                return 0L;
-            }
+        lock.lock();
+        byte[] sizeByte = db.get(LEVELDB_SIZE_KEY);
+        lock.unlock();
+        if (sizeByte != null) {
+            return ByteUtil.byteArrayToLong(sizeByte);
+        } else {
+            return 0L;
         }
-        return transactionSize;
     }
 
     private byte[] blockIndexKey(long index) {

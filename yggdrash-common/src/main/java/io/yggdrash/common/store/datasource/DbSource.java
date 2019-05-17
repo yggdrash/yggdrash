@@ -18,9 +18,6 @@ package io.yggdrash.common.store.datasource;
 
 import org.iq80.leveldb.Options;
 
-import java.io.IOException;
-import java.util.List;
-
 public interface DbSource<K, V> {
     DbSource<K, V> init();
 
@@ -29,8 +26,6 @@ public interface DbSource<K, V> {
     V get(K key);
 
     void put(K key, V value);
-
-    List<V> getAll() throws IOException;
 
     void close();
 
