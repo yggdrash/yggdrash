@@ -30,6 +30,7 @@ import org.osgi.framework.ServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -37,7 +38,6 @@ import java.util.List;
 import java.util.Set;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
-import static java.lang.Math.abs;
 
 
 public class StemContract implements BundleActivator, ServiceListener {
@@ -302,7 +302,7 @@ public class StemContract implements BundleActivator, ServiceListener {
                     ByteUtil.longToBytes(blockHeight),
                     HexUtil.hexStringToBytes(proposer),
                     HexUtil.hexStringToBytes(targetValidator),
-                    operatingFlag.toValue().getBytes()
+                    operatingFlag.toValue().getBytes(StandardCharsets.UTF_8)
             );
             JsonArray signed = params.get("signed").getAsJsonArray();
 
@@ -336,6 +336,7 @@ public class StemContract implements BundleActivator, ServiceListener {
             checkValidator.clear();
 
             if (vote < voteCount) {
+                // 정족수 부족
                 txReceipt.setStatus(ExecuteStatus.FALSE);
                 txReceipt.addLog("Lack of quorum");
                 return;
@@ -376,15 +377,39 @@ public class StemContract implements BundleActivator, ServiceListener {
                 return;
 
             } else if(operatingFlag == StemOperation.REPLACE_VALIDATOR) {
-                // TODO replace validator
+                // replace validator
                 // param get validator list
-                JsonArray validatorList = params.get("validatorList").getAsJsonArray();
+                // remove proposer
+                // add targetValidator
+                // check proposer exist and targetValidator not exist
+                if (!validatorSet.contains(proposer) || validatorSet.contains(targetValidator)) {
+                    // propser
+                    txReceipt.setStatus(ExecuteStatus.FALSE);
+                    txReceipt.addLog("proposer not exist validator set or new validator exist validator set");
+                    return;
+                }
+                // remove and add
+                validatorSet.remove(proposer);
+                validatorSet.add(targetValidator);
 
-
-
+                // save validator set
+                JsonObject validatorList = new JsonObject();
+                validatorArray = JsonUtil.convertCollectionToJsonArray(validatorSet);
+                validatorList.add("validators", validatorArray);
+                saveValidators(branchId, validatorList);
+                txReceipt.setStatus(ExecuteStatus.SUCCESS);
+                txReceipt.addLog(String.format("validator replace %s to %s", proposer, targetValidator));
+                return;
 
             } else if(operatingFlag == StemOperation.UPDATE_VALIDATOR_SET) {
                 // TODO update all validator set
+                JsonArray validatorList = params.get("validatorList").getAsJsonArray();
+
+                // target validator is list hash(sha3ommit12)
+                validatorList.getAsString();
+                // check and verify validatorList
+
+
             }
 
 
@@ -507,10 +532,6 @@ public class StemContract implements BundleActivator, ServiceListener {
             // TODO get branch feeState and calculate
             return BigInteger.ZERO;
 
-        }
-
-        private boolean isBranchExist(String branchId) {
-            return state.contains(branchId);
         }
 
         private boolean branchVerify(JsonObject branch) {

@@ -31,7 +31,9 @@ import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
+import static io.yggdrash.common.utils.JsonUtil.convertJsonArrayToSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -182,24 +184,6 @@ public class StemContractValidatorTest {
         updateBranchValiator.add("signed", signedArray);
 
         log.debug(JsonUtil.prettyFormat(updateBranchValiator));
-        /*
-        // Test Sign verify
-        ECKey.ECDSASignature signatureV1 = new ECKey.ECDSASignature(signV1);
-        ECKey.ECDSASignature signatureV2 = new ECKey.ECDSASignature(signV2);
-        ECKey.ECDSASignature signatureV3 = new ECKey.ECDSASignature(signV3);
-        ECKey.ECDSASignature signatureV4 = new ECKey.ECDSASignature(signV4);
-
-        byte[] addressV1 = ECKey.recoverAddressFromSignature(signV1[0] - 27, signatureV1, message);
-        byte[] addressV2 = ECKey.recoverAddressFromSignature(signV2[0] - 27, signatureV2, message);
-        byte[] addressV3 = ECKey.recoverAddressFromSignature(signV3[0] - 27, signatureV3, message);
-        byte[] addressV4 = ECKey.recoverAddressFromSignature(signV4[0] - 27, signatureV4, message);
-        log.debug("validator 1 {}", HexUtil.toHexString(addressV1));
-
-        assertTrue("address Is equal", Arrays.equals(addressV1, v1.getAddress()));
-        assertTrue("address Is equal", Arrays.equals(addressV2, v2.getAddress()));
-        assertTrue("address Is equal", Arrays.equals(addressV3, v3.getAddress()));
-        assertTrue("address Is equal", Arrays.equals(addressV4, v4.getAddress()));
-        */
 
         // UPDATE Validator Set
         TransactionReceipt updateReceipt = createReceipt(proposer);
@@ -217,11 +201,131 @@ public class StemContractValidatorTest {
     @Test
     public void updateValidatorsRemoveValidator() {
         // TODO remove validator
+
+        String targetBranchId = updateBranchId;
+        Long blockHeight = 100L;
+
+        // remove exist validator (v2)
+        String targetValidator = "a4e063d728ee7a45c5bab3aa2283822d49a9f73a";
+        String operatingFlag = StemOperation.REMOVE_VALIDATOR.toValue(); // ADD OR DELETE OR REPLACE
+
+        byte[] message = ByteUtil.merge(
+                HexUtil.hexStringToBytes(targetBranchId),
+                ByteUtil.longToBytes(blockHeight),
+                HexUtil.hexStringToBytes(proposer),
+                HexUtil.hexStringToBytes(targetValidator),
+                operatingFlag.getBytes()
+        );
+        // message make to sha3
+        message = HashUtil.sha3(message);
+        log.debug("message Size : {} ", message.length);
+        assertEquals("message Length : ", message.length, 32);
+
+        log.debug(updateBranchId);
+
+        byte[] signV1 = v1.sign(message, true);
+        //byte[] signV2 = v2.sign(message, true);
+        byte[] signV3 = v3.sign(message, true);
+        byte[] signV4 = v4.sign(message, true);
+
+        String[] signed = new String[]{
+                HexUtil.toHexString(signV1), HexUtil.toHexString(signV3), HexUtil.toHexString(signV4)
+        };
+
+        // add to params in sign
+        JsonArray signedArray = new JsonArray();
+        Arrays.stream(signed).forEach(sg -> signedArray.add(sg));
+
+        JsonObject updateBranchValiator = new JsonObject();
+        updateBranchValiator.addProperty("branchId", targetBranchId);
+        updateBranchValiator.addProperty("blockHeight", blockHeight);
+        updateBranchValiator.addProperty("proposer", proposer);
+        updateBranchValiator.addProperty("targetValidator", targetValidator);
+        updateBranchValiator.addProperty("operatingFlag", operatingFlag);
+        updateBranchValiator.add("signed", signedArray);
+
+        log.debug(JsonUtil.prettyFormat(updateBranchValiator));
+
+
+        // UPDATE Validator Set
+        TransactionReceipt updateReceipt = createReceipt(proposer);
+        setUpReceipt(updateReceipt);
+
+        stemContract.updateValidator(updateBranchValiator);
+        assert updateReceipt.getStatus() == ExecuteStatus.SUCCESS;
+
+        JsonObject validators = stemContract.getValidators(updateBranchId);
+        log.debug(JsonUtil.prettyFormat(validators));
+        Set<String> validatorSet = JsonUtil.convertJsonArrayToSet(validators.getAsJsonArray("validators"));
+        assertTrue("remove Validator", validators.getAsJsonArray("validators").size() == 3);
+        assertTrue("remove check validator", !validatorSet.contains(targetValidator));
+
     }
 
     @Test
     public void updateValidatorsReplaceValidator() {
-        // TODO remove validator
+        // TODO remove and add validator
+
+        String targetBranchId = updateBranchId;
+        Long blockHeight = 100L;
+
+        // remove exist validator (v2)
+        String targetValidator = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
+        String operatingFlag = StemOperation.REPLACE_VALIDATOR.toValue(); // ADD OR DELETE OR REPLACE
+
+        // proposer to target
+
+        byte[] message = ByteUtil.merge(
+                HexUtil.hexStringToBytes(targetBranchId),
+                ByteUtil.longToBytes(blockHeight),
+                HexUtil.hexStringToBytes(proposer),
+                HexUtil.hexStringToBytes(targetValidator),
+                operatingFlag.getBytes()
+        );
+        // message make to sha3
+        message = HashUtil.sha3(message);
+        log.debug("message Size : {} ", message.length);
+        assertEquals("message Length : ", message.length, 32);
+
+        log.debug(updateBranchId);
+
+        byte[] signV1 = v1.sign(message, true);
+        //byte[] signV2 = v2.sign(message, true);
+        byte[] signV3 = v3.sign(message, true);
+        byte[] signV4 = v4.sign(message, true);
+
+        String[] signed = new String[]{
+                HexUtil.toHexString(signV1), HexUtil.toHexString(signV3), HexUtil.toHexString(signV4)
+        };
+
+        // add to params in sign
+        JsonArray signedArray = new JsonArray();
+        Arrays.stream(signed).forEach(sg -> signedArray.add(sg));
+
+        JsonObject updateBranchValiator = new JsonObject();
+        updateBranchValiator.addProperty("branchId", targetBranchId);
+        updateBranchValiator.addProperty("blockHeight", blockHeight);
+        updateBranchValiator.addProperty("proposer", proposer);
+        updateBranchValiator.addProperty("targetValidator", targetValidator);
+        updateBranchValiator.addProperty("operatingFlag", operatingFlag);
+        updateBranchValiator.add("signed", signedArray);
+
+        log.debug(JsonUtil.prettyFormat(updateBranchValiator));
+
+
+        // UPDATE Validator Set
+        TransactionReceipt updateReceipt = createReceipt(proposer);
+        setUpReceipt(updateReceipt);
+
+        stemContract.updateValidator(updateBranchValiator);
+        assert updateReceipt.getStatus() == ExecuteStatus.SUCCESS;
+
+        JsonObject validators = stemContract.getValidators(updateBranchId);
+        log.debug(JsonUtil.prettyFormat(validators));
+        Set<String> validatorSet = JsonUtil.convertJsonArrayToSet(validators.getAsJsonArray("validators"));
+        assertTrue("remove check validator", validatorSet.contains(targetValidator));
+        assertTrue("remove check validator", !validatorSet.contains(proposer));
+
     }
 
     @Test
