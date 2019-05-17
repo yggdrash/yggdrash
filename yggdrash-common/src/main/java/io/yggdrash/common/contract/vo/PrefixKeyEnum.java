@@ -13,7 +13,11 @@ public enum PrefixKeyEnum {
     VALIDATORS("vl-"),
     PROPOSE_INTER_CHAIN("pi-"),
     PROPOSE_INTER_CHAIN_STATUS("pis-"),
-    TRANSACTION_CONFIRM("tc-")
+    TRANSACTION_CONFIRM("tc-"),
+    STEM_BRANCH("sb-"),
+    STEM_META("sm-"),
+    STEM_BRANCH_VALIDATOR("sbv-"),
+
     ;
 
     private final String value;

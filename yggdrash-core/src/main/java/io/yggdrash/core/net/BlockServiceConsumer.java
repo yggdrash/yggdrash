@@ -108,7 +108,7 @@ public class BlockServiceConsumer<T> implements BlockConsumer<T> {
             if (block == null) {
                 return;
             }
-            bodyLengthSum += block.getHeader().getBodyLength();
+            bodyLengthSum += block.getSerializedSize();
             if (bodyLengthSum > Limit.BLOCK_SYNC_SIZE) {
                 return;
             }

@@ -84,6 +84,11 @@ public abstract class AbstractConsensusBlock<T extends MessageOrBuilder> impleme
     }
 
     @Override
+    public int getSerializedSize() {
+        return toBinary().length;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

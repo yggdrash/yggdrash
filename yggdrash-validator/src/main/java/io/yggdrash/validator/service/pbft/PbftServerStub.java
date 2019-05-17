@@ -106,7 +106,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
                     = this.blockChain.getBlockChainManager().getLastConfirmedBlock();
             if (lastPbftBlock.getIndex() == newPbftBlock.getIndex() - 1
                     && lastPbftBlock.getHash().equals(newPbftBlock.getPrevBlockHash())) {
-                this.blockChain.addBlock(newPbftBlock);
+                this.pbftService.confirmedBlock(newPbftBlock);
             }
             pbftService.getLock().unlock();
         } finally {

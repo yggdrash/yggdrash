@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, PbftMessage> {
 
@@ -34,8 +33,6 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
     private final BlockChainManagerMock<PbftProto.PbftBlock> blockChainManagerMock;
     private final PbftBlock genesisBlock;
     private final Consensus consensus;
-
-    private final ReentrantLock lock = new ReentrantLock();
 
     public PbftBlockChain(Block genesisBlock, String dbPath,
                           String blockKeyStorePath, String blockStorePath, String txStorePath) {
@@ -114,14 +111,9 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
 
     @Override
     public ConsensusBlock<PbftProto.PbftBlock> addBlock(ConsensusBlock<PbftProto.PbftBlock> block) {
-        this.lock.lock();
-        try {
-            blockChainManagerMock.addBlock(block); // todo: check efficiency & change index
-            this.blockKeyStore.put(block.getIndex(), block.getHash().getBytes());
-            loggingBlock((PbftBlock) block);
-        } finally {
-            this.lock.unlock();
-        }
+        blockChainManagerMock.addBlock(block); // todo: check efficiency & change index
+        this.blockKeyStore.put(block.getIndex(), block.getHash().getBytes());
+        loggingBlock((PbftBlock) block);
         return block;
     }
 

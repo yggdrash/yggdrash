@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     private static final Logger log = LoggerFactory.getLogger(BlockChainImpl.class);
@@ -36,6 +37,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     //private final Map<OutputType, OutputStore> outputStores; //TODO move to gw module
 
     private final Consensus consensus;
+    private final ReentrantLock lock = new ReentrantLock();
 
     public BlockChainImpl(Branch branch,
                           ConsensusBlock<T> genesisBlock,
@@ -71,7 +73,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                 contractManager.reloadInject();
             } catch (IllegalAccessException e) {
                 log.error(e.getMessage());
-                throw new RuntimeException("contract Inject Fail");
+                throw new FailedOperationException("contract Inject Fail");
             }
         } else {
             // TODO BlockChain ready fails
@@ -90,7 +92,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             // load contract
         }
     }
-
 
     private void initGenesis() {
         blockChainManager.initGenesis(genesisBlock);
@@ -160,48 +161,37 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
     @Override
     public ConsensusBlock<T> addBlock(ConsensusBlock<T> nextBlock, boolean broadcast) {
-        if (blockChainManager.verify(nextBlock) != BusinessError.VALID.toValue()) {
-            return null;
-        }
+        try {
+            lock.lock();
 
-        // add best Block
-        branchStore.setBestBlock(nextBlock);
-
-        // run Block Transactions
-        // TODO run block execute move to other process (or thread)
-        // TODO last execute block will invoke
-        if (nextBlock.getIndex() > branchStore.getLastExecuteBlockIndex()) {
-            BlockRuntimeResult result = contractManager.executeTxs(nextBlock); //TODO Exception
-            // Save Result
-            contractManager.commitBlockResult(result);
-            branchStore.setLastExecuteBlock(nextBlock);
-
-            /*
-            //Store event //TODO move to gw module
-            if (outputStores != null && outputStores.size() > 0) {
-                Map<String, JsonObject> transactionMap = new HashMap<>();
-                List<Transaction> txList = nextBlock.getBody().getTransactionList();
-                txList.forEach(tx -> {
-                    String txHash = tx.getHash().toString();
-                    transactionMap.put(txHash, tx.toJsonObjectFromProto());
-                });
-
-                outputStores.forEach((storeType, store) -> {
-                    store.put(nextBlock.toJsonObjectByProto());
-                    store.put(nextBlock.getHash().toString(), transactionMap);
-                });
+            if (blockChainManager.verify(nextBlock) != BusinessError.VALID.toValue()) {
+                return null;
             }
-            */
+            // add best Block
+            branchStore.setBestBlock(nextBlock);
+
+            // run Block Transactions
+            // TODO run block execute move to other process (or thread)
+            // TODO last execute block will invoke
+            if (nextBlock.getIndex() > branchStore.getLastExecuteBlockIndex()) {
+                BlockRuntimeResult result = contractManager.executeTxs(nextBlock); //TODO Exception
+                // Save Result
+                contractManager.commitBlockResult(result);
+                branchStore.setLastExecuteBlock(nextBlock);
+            }
+
+            // BlockChainManager add nextBlock to the blockStore, set the lastConfirmedBlock to nextBlock,
+            // and then batch the transactions.
+            blockChainManager.addBlock(nextBlock);
+            if (!listenerList.isEmpty() && broadcast) {
+                listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
+            }
+            log.debug("Added idx=[{}], tx={}, branch={}, blockHash={}", nextBlock.getIndex(),
+                    nextBlock.getBody().getCount(), getBranchId(), nextBlock.getHash());
+        } finally {
+            lock.unlock();
         }
 
-        // BlockChainManager add nextBlock to the blockStore, set the lastConfirmedBlock to nextBlock,
-        // and then batch the transactions.
-        blockChainManager.addBlock(nextBlock);
-        if (!listenerList.isEmpty() && broadcast) {
-            listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
-        }
-        log.debug("Added idx=[{}], tx={}, branch={}, blockHash={}", nextBlock.getIndex(),
-                nextBlock.getBody().getCount(), getBranchId(), nextBlock.getHash());
         return nextBlock;
     }
 

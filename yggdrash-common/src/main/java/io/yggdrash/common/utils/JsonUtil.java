@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -79,6 +80,14 @@ public class JsonUtil {
             set.add(element.getAsString());
         }
         return set;
+    }
+
+    public static JsonArray convertCollectionToJsonArray(Collection<String> c) {
+        JsonArray array = new JsonArray();
+        for (String e : c) {
+            array.add(e);
+        }
+        return array;
     }
 
 
