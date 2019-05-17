@@ -108,7 +108,7 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
     @Override
     public void copyLiveNode() {
         long minTableTime = 30000;      //30 seconds
-        tableMap.values().forEach(table -> table.copyLiveNode(minTableTime));
+        tableMap.values().forEach(table -> table.copyLivePeer(minTableTime));
     }
 
     @Override
@@ -119,7 +119,7 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
     }
 
     private void selfRefresh(Map.Entry<BranchId, PeerTable> entry) {
-        entry.getValue().loadSeedNodes(seedPeerList);
+        entry.getValue().loadSeedPeers(seedPeerList);
         lookup(0, new ArrayList<>(), getOwner(), entry);
     }
 

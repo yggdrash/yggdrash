@@ -1,6 +1,8 @@
 package io.yggdrash.common.config;
 
 import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.utils.SerializationUtil;
 
 public final class Constants {
 
@@ -11,11 +13,6 @@ public final class Constants {
     public static final int BRANCH_LENGTH = 20;
     public static final int BRANCH_HEX_LENGTH = BRANCH_LENGTH * 2;
 
-    /*
-    private static final String STEM = "STEM"; //isSystem = false
-    private static final String YEED = "YEED"; //isSystem = true
-    public static final String VALIDATOR = "VALIDATOR"; //isSystem = true
-    */
     public static final String YGGDRASH = "YGGDRASH";
     public static final String BRANCH_ID = "branchId";
     public static final String TX_ID = "txId";
@@ -28,7 +25,7 @@ public final class Constants {
     public static final int HASH_LENGTH = 32;
     public static final int SIGNATURE_LENGTH = 65;
 
-    public static final int TX_BODY_MAX_LENGTH = 10000000; // 10 Mb
+    public static final byte[] LEVELDB_SIZE_KEY = HashUtil.sha3(SerializationUtil.serializeString("SIZE"));
 
     public static final byte[] EMPTY_BRANCH = new byte[BRANCH_LENGTH];
     public static final byte[] EMPTY_HASH = new byte[HASH_LENGTH];
@@ -74,7 +71,6 @@ public final class Constants {
         public static final String HEADER = "header";
         public static final String SIGNATURE = "signature";
         public static final String BODY = "body";
-        public static final String VALIDATOR = "validator";
     }
 
     private static final String STEM_CONTRACT_STR = "74df17611373672371cb3872e8a5d4a2e8733fb1";

@@ -34,7 +34,7 @@ public class PeerTableGroupTest {
     /*
     Try refresh with TARGET
     The size of closestPeers will be 0, so selfRefresh will be executed.
-    selfLookup is done after loadSeedNodes.
+    selfLookup is done after loadSeedPeers.
     lookup will proceed with the target after selfRefresh done.
     A total of 13 peers will be existed in the bucket which includes 6 peers received after lookup,
     5 peers received after lookup by target, owner, and seed.
