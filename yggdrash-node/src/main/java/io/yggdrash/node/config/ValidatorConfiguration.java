@@ -16,6 +16,7 @@ import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.service.ValidatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -33,10 +34,13 @@ public class ValidatorConfiguration {
 
     private static final Logger log = LoggerFactory.getLogger(ValidatorConfiguration.class);
 
+    @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
+    @Autowired(required = false)
+    SystemProperties systemProperties;
+
     @Bean
     public Map<BranchId, List<ValidatorService>> validatorServiceMap(BranchGroup branchGroup,
                                                                      DefaultConfig defaultConfig,
-                                                                     SystemProperties systemProperties,
                                                                      ContractPolicyLoader policyLoader) {
 
         Map<BranchId, List<ValidatorService>> validatorServiceMap = new HashMap<>();
@@ -51,8 +55,7 @@ public class ValidatorConfiguration {
             }
             GenesisBlock genesis = GenesisBlock.of(branch.getBranch(), branch.getGenesisBlock());
             List<ValidatorService> validatorServiceList =
-                    loadValidatorService(branchPath, genesis, branch.getConsensus(), defaultConfig,
-                            systemProperties, policyLoader);
+                    loadValidatorService(branchPath, genesis, branch.getConsensus(), defaultConfig, policyLoader);
             validatorServiceMap.put(branch.getBranchId(), validatorServiceList);
         }
 
@@ -72,7 +75,7 @@ public class ValidatorConfiguration {
     }
 
     private List<ValidatorService> loadValidatorService(File branchPath, GenesisBlock genesis, Consensus consensus,
-                                                        DefaultConfig defaultConfig, SystemProperties systemProperties,
+                                                        DefaultConfig defaultConfig,
                                                         ContractPolicyLoader policyLoader) {
 
         List<ValidatorService> validatorServiceList = new ArrayList<>();

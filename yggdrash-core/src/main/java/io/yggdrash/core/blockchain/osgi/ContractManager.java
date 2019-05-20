@@ -233,9 +233,9 @@ public class ContractManager {
         List<PermissionInfo> systemPermissions = commonPermissions;
         // Add Branch File Write
         systemPermissions.add(new PermissionInfo(filePermissionName, branchStoreFile, allPermission));
-        if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getEsHost())) {
+        if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getElasticsearchHost())) {
             systemPermissions.add(new PermissionInfo(
-                    SocketPermission.class.getName(), systemProperties.getEsHost(), "connect,resolve"));
+                    SocketPermission.class.getName(), systemProperties.getElasticsearchAddress(), "connect,resolve"));
         }
         // Bundle 파일의 위치로 권한을 할당한다.
         // {BID}-container-permission-system-file
@@ -254,10 +254,10 @@ public class ContractManager {
         List<PermissionInfo> userPermissions = commonPermissions;
         userPermissions.add(new PermissionInfo(filePermissionName, branchStoreFile, "read"));
 
-        if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getEsHost())) {
+        if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getElasticsearchAddress())) {
             userPermissions.add(
                     new PermissionInfo(SocketPermission.class.getName(),
-                            systemProperties.getEsHost(), "connect,resolve"));
+                            systemProperties.getElasticsearchAddress(), "connect,resolve"));
         }
         infos.add(admin.newConditionalPermissionInfo(
                 String.format("%s-user-file", permissionKey),

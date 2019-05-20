@@ -1,56 +1,24 @@
 package io.yggdrash.core.blockchain;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 public class SystemProperties {
-    private String esHost;
-    private int esTransport;
+    private String elasticsearchHost;
+    private int elasticsearchPort;
     private String[] eventStore;
 
-    boolean checkEsClient() {
-        return !StringUtils.isEmpty(esHost)
-                && eventStore != null
-                && eventStore.length > 0;
+    public String getElasticsearchHost() {
+        return elasticsearchHost;
     }
 
-    private String[] splitHost() {
-        String[] splitHost = null;
-        if (esHost != null) {
-            splitHost = esHost.split(":");
-            if (splitHost.length != 2) {
-                throw new IllegalArgumentException("The es.host value must be of the form ip:port.");
-            }
-        }
-
-        return splitHost;
+    public int getElasticsearchPort() {
+        return elasticsearchPort;
     }
 
-    public String getEsHost() {
-        return esHost;
-    }
-
-    public String getEsPrefixHost() {
-        String[] splitHost = splitHost();
-        if (splitHost == null) {
-            return null;
-        }
-        return splitHost[0];
-    }
-
-    public int getEsPort() {
-        String[] splitHost = splitHost();
-        if (splitHost == null) {
-            return 0;
-        }
-        return Integer.parseInt(splitHost[1]);
-    }
-
-    public int getEsTransport() {
-        return esTransport;
+    public String getElasticsearchAddress() {
+        return String.format("%s:%d", elasticsearchHost, elasticsearchPort);
     }
 
     public Set<String> getEventStore() {
@@ -61,38 +29,38 @@ public class SystemProperties {
     }
 
     public static final class SystemPropertiesBuilder {
-        private String esHost;
-        private int esTransport;
+        private String elasticsearchHost;
+        private int elasticsearchPort;
         private String[] eventStore;
 
         private SystemPropertiesBuilder() {
         }
 
-        public static SystemPropertiesBuilder aSystemProperties() {
-            return new SystemPropertiesBuilder();
-        }
-
-        public SystemPropertiesBuilder withEsHost(String esHost) {
-            this.esHost = esHost;
+        public SystemPropertiesBuilder setElasticsearchHost(String elasticsearchHost) {
+            this.elasticsearchHost = elasticsearchHost;
             return this;
         }
 
-        public SystemPropertiesBuilder withEsTransport(int esTransport) {
-            this.esTransport = esTransport;
+        public SystemPropertiesBuilder setElasticsearchPort(int elasticsearchPort) {
+            this.elasticsearchPort = elasticsearchPort;
             return this;
         }
 
-        public SystemPropertiesBuilder withEventStore(String[] eventStore) {
+        public SystemPropertiesBuilder setEventStore(String[] eventStore) {
             this.eventStore = eventStore;
             return this;
         }
 
         public SystemProperties build() {
             SystemProperties systemProperties = new SystemProperties();
+            systemProperties.elasticsearchHost = this.elasticsearchHost;
+            systemProperties.elasticsearchPort = this.elasticsearchPort;
             systemProperties.eventStore = this.eventStore;
-            systemProperties.esTransport = this.esTransport;
-            systemProperties.esHost = this.esHost;
             return systemProperties;
+        }
+
+        public static SystemPropertiesBuilder newBuilder() {
+            return new SystemPropertiesBuilder();
         }
     }
 }

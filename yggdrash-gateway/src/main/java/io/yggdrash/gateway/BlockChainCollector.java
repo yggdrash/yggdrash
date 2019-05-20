@@ -39,7 +39,7 @@ import java.util.Map;
  */
 @Component
 @DependsOn("yggdrash")
-@ConditionalOnProperty("es.host")
+@ConditionalOnProperty("elasticsearch.host")
 public class BlockChainCollector implements BranchEventListener {
     private static final Logger log = LoggerFactory.getLogger(BlockChainCollector.class);
 

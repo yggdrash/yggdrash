@@ -25,29 +25,29 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty("es.host")
+@ConditionalOnProperty("elasticsearch.host")
 public class ElasticSearchConfiguration {
 
-    @Value("${es.host}")
-    private String esHost;
+    @Value("${elasticsearch.host}")
+    private String elasticsearchHost;
 
-    @Value("${es.transport}")
-    private int esTransport;
+    @Value("${elasticsearch.port:9200}")
+    private int elasticsearchPort;
 
     @Value("${event.store:#{null}}")
     private String[] eventStore;
 
     @Bean
     SystemProperties systemProperties() {
-        return SystemProperties.SystemPropertiesBuilder.aSystemProperties()
-                .withEsHost(esHost)
-                .withEsTransport(esTransport)
-                .withEventStore(eventStore)
+        return SystemProperties.SystemPropertiesBuilder.newBuilder()
+                .setElasticsearchHost(elasticsearchHost)
+                .setElasticsearchPort(elasticsearchPort)
+                .setEventStore(eventStore)
                 .build();
     }
 
     @Bean
-    OutputStore outputStore(SystemProperties systemProperties) {
-        return EsClient.newInstance(systemProperties.getEsPrefixHost(), systemProperties.getEsTransport());
+    OutputStore outputStore() {
+        return EsClient.newInstance(elasticsearchHost, elasticsearchPort);
     }
 }
