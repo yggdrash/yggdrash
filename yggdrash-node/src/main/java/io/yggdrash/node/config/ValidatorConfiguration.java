@@ -83,7 +83,7 @@ public class ValidatorConfiguration {
             }
 
             Config referenceConfig = ConfigFactory.parseFile(validatorConfFile);
-            Config config = defaultConfig.getConfig().withFallback(referenceConfig);
+            Config config = referenceConfig.withFallback(defaultConfig.getConfig()).resolve();
             DefaultConfig validatorConfig = new DefaultConfig(config, defaultConfig.isProductionMode());
             log.debug("{}:{}, key={}", validatorConfig.getString("yggdrash.validator.host"),
                     validatorConfig.getString("yggdrash.validator.port"),
