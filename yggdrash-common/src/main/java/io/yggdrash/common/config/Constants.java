@@ -1,6 +1,8 @@
 package io.yggdrash.common.config;
 
 import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.utils.SerializationUtil;
 
 public final class Constants {
 
@@ -11,11 +13,6 @@ public final class Constants {
     public static final int BRANCH_LENGTH = 20;
     public static final int BRANCH_HEX_LENGTH = BRANCH_LENGTH * 2;
 
-    /*
-    private static final String STEM = "STEM"; //isSystem = false
-    private static final String YEED = "YEED"; //isSystem = true
-    public static final String VALIDATOR = "VALIDATOR"; //isSystem = true
-    */
     public static final String YGGDRASH = "YGGDRASH";
     public static final String BRANCH_ID = "branchId";
     public static final String TX_ID = "txId";
@@ -28,7 +25,7 @@ public final class Constants {
     public static final int HASH_LENGTH = 32;
     public static final int SIGNATURE_LENGTH = 65;
 
-    public static final int TX_BODY_MAX_LENGTH = 10000000; // 10 Mb
+    public static final byte[] LEVELDB_SIZE_KEY = HashUtil.sha3(SerializationUtil.serializeString("SIZE"));
 
     public static final byte[] EMPTY_BRANCH = new byte[BRANCH_LENGTH];
     public static final byte[] EMPTY_HASH = new byte[HASH_LENGTH];
@@ -74,15 +71,14 @@ public final class Constants {
         public static final String HEADER = "header";
         public static final String SIGNATURE = "signature";
         public static final String BODY = "body";
-        public static final String VALIDATOR = "validator";
     }
 
     private static final String STEM_CONTRACT_STR = "74df17611373672371cb3872e8a5d4a2e8733fb1";
     public static final ContractVersion STEM_CONTRACT_VERSION = ContractVersion.of(STEM_CONTRACT_STR);
 
     private static final String YEED_CONTRACT_STR = "d79ab8e1d735090d2a7ef4f16d13a910457c0d93";
-    public static final ContractVersion YEED_CONTRACT_VERSION = ContractVersion.ofNonHex(YEED_CONTRACT_STR);
+    public static final ContractVersion YEED_CONTRACT_VERSION = ContractVersion.of(YEED_CONTRACT_STR);
 
     private static final String VALIDATOR_CONTRACT_STR = "f5f92857982260477387d519f020b6b1fe37b2d5";
-    public static final ContractVersion VALIDATOR_CONTRACT_VERSION = ContractVersion.ofNonHex(VALIDATOR_CONTRACT_STR);
+    public static final ContractVersion VALIDATOR_CONTRACT_VERSION = ContractVersion.of(VALIDATOR_CONTRACT_STR);
 }

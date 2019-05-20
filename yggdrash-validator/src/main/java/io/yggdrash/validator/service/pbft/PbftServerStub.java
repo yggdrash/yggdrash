@@ -2,6 +2,7 @@
 package io.yggdrash.validator.service.pbft;
 
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.proto.CommonProto;
@@ -27,8 +28,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
     }
 
     @Override
-    public void pingPongTime(CommonProto.PingTime request,
-                             StreamObserver<CommonProto.PongTime> responseObserver) {
+    public void pingPongTime(CommonProto.PingTime request, StreamObserver<CommonProto.PongTime> responseObserver) {
         long timestamp = System.currentTimeMillis();
         CommonProto.PongTime pongTime
                 = CommonProto.PongTime.newBuilder().setTimestamp(timestamp).build();
@@ -107,7 +107,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
                     = this.blockChain.getBlockChainManager().getLastConfirmedBlock();
             if (lastPbftBlock.getIndex() == newPbftBlock.getIndex() - 1
                     && lastPbftBlock.getHash().equals(newPbftBlock.getPrevBlockHash())) {
-                this.blockChain.addBlock(newPbftBlock);
+                this.pbftService.confirmedBlock(newPbftBlock);
             }
             pbftService.getLock().unlock();
         } finally {
@@ -116,30 +116,41 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
     }
 
     @Override
-    public void getPbftBlockList(io.yggdrash.proto.CommonProto.Offset request,
-                                 io.grpc.stub.StreamObserver<PbftProto.PbftBlockList> responseObserver) {
+    public void getPbftBlockList(CommonProto.Offset request, StreamObserver<PbftProto.PbftBlockList> responseObserver) {
         long start = request.getIndex();
+        if (start < 0) {
+            start = 0;
+        }
         long count = request.getCount();
-        long end = Math.min(start - 1 + count, this.blockChain.getBlockChainManager().getLastIndex());
+        long end = Math.min(start - 1 + count, blockChain.getBlockChainManager().getLastIndex());
 
         log.trace("start: {}", start);
         log.trace("end: {}", end);
 
+        responseObserver.onNext(getBlockList(start, end));
+        responseObserver.onCompleted();
+    }
+
+    private PbftProto.PbftBlockList getBlockList(long start, long end) {
         PbftProto.PbftBlockList.Builder builder = PbftProto.PbftBlockList.newBuilder();
-        if (start < end) {
-            for (long l = start; l <= end; l++) {
-                try {
-                    // todo: check efficiency
-                    ConsensusBlock<PbftProto.PbftBlock> block = blockChain.getBlockChainManager().getBlockByIndex(l);
-                    builder.addPbftBlock(block.getInstance());
-                } catch (Exception e) {
-                    break;
+        if (start >= end) {
+            return builder.build();
+        }
+        long bodyLengthSum = 0;
+        for (long l = start; l <= end; l++) {
+            try {
+                // todo: check efficiency
+                ConsensusBlock<PbftProto.PbftBlock> block = blockChain.getBlockChainManager().getBlockByIndex(l);
+                bodyLengthSum += block.getSerializedSize();
+                if (bodyLengthSum > Constants.Limit.BLOCK_SYNC_SIZE) {
+                    return builder.build();
                 }
+                builder.addPbftBlock(block.getInstance());
+            } catch (Exception e) {
+                break;
             }
         }
-
-        responseObserver.onNext(builder.build());
-        responseObserver.onCompleted();
+        return builder.build();
     }
 
     private void updateStatus(PbftStatus status) {

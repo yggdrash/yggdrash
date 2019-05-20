@@ -81,6 +81,10 @@ public class ValidatorConfiguration {
         List<ValidatorService> validatorServiceList = new ArrayList<>();
         for (File validatorServicePath : Objects.requireNonNull(branchPath.listFiles())) {
             File validatorConfFile = new File(validatorServicePath, "validator.conf");
+            if (!validatorConfFile.exists()) {
+                continue;
+            }
+
             Config referenceConfig = ConfigFactory.parseFile(validatorConfFile);
             Config config = defaultConfig.getConfig().withFallback(referenceConfig);
             DefaultConfig validatorConfig = new DefaultConfig(config, defaultConfig.isProductionMode());

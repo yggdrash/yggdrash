@@ -16,6 +16,7 @@
 
 package io.yggdrash.core.blockchain;
 
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
@@ -28,11 +29,13 @@ public interface BlockChain<T, V> extends ConsensusBlockChain<T, V> {
 
     ConsensusBlock<T> addBlock(ConsensusBlock<T> block, boolean broadcast);
 
-    Transaction addTransaction(Transaction tx);
+    int addTransaction(Transaction tx); //return error code
 
     ContractManager getContractManager();
 
     List<BranchContract> getBranchContracts();
+
+    boolean containBranchContract(ContractVersion contractVersion);
 
     void close();
 

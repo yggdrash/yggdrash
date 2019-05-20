@@ -168,7 +168,7 @@ public class BlockChainSyncManager implements SyncManager {
         reqSyncBlockToHandlers(blockChain);
 
         try {
-            blockChain.addBlock(block, true);
+            blockChain.addBlock(block, false);
         } catch (Exception e) {
             log.warn("CatchUp block error={}", e.getMessage());
         }

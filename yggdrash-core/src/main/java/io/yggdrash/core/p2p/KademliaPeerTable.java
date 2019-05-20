@@ -41,7 +41,7 @@ public class KademliaPeerTable implements PeerTable {
     }
 
     @Override
-    public void loadSeedNodes(List<String> seedPeerList) {
+    public void loadSeedPeers(List<String> seedPeerList) {
         if (this.peerStore.size() > 0) {
             for (String peer : this.peerStore.getAll()) {
                 addPeer(Peer.valueOf(peer));
@@ -79,7 +79,7 @@ public class KademliaPeerTable implements PeerTable {
     }
 
     @Override
-    public void copyLiveNode(long minTableTime) {
+    public void copyLivePeer(long minTableTime) {
         List<Peer> peerList = new ArrayList<>();
         long baseTime = System.currentTimeMillis();
         for (Peer peer : getAllPeers()) {

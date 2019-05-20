@@ -27,6 +27,7 @@ import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
+import io.yggdrash.gateway.dto.TransactionResponseDto;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Before;
 import org.junit.Test;
@@ -129,8 +130,8 @@ public class TransactionMockitoTest {
 
     @Test
     public void sendTransactionTest() {
-        String res = txApiImpl.sendTransaction(TransactionDto.createBy(tx));
-        assertThat(res).isNotEmpty();
+        TransactionResponseDto res = txApiImpl.sendTransaction(TransactionDto.createBy(tx));
+        assertThat(res.txHash).isNotEmpty();
     }
 
     @Test(expected = FailedOperationException.class)

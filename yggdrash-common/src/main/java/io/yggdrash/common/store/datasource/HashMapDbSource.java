@@ -19,8 +19,6 @@ package io.yggdrash.common.store.datasource;
 import org.apache.commons.codec.binary.Hex;
 import org.iq80.leveldb.Options;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -47,11 +45,6 @@ public class HashMapDbSource implements DbSource<byte[], byte[]> {
     @Override
     public void put(byte[] key, byte[] value) {
         db.put(Hex.encodeHexString(key), value);
-    }
-
-    @Override
-    public List<byte[]> getAll() {
-        return new ArrayList<>(db.values());
     }
 
     @Override

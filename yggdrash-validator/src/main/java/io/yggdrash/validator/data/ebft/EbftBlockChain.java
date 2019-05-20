@@ -46,7 +46,7 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
         TransactionStore transactionStore = new TransactionStore(new LevelDbDataSource(dbPath, txStorePath));
         this.blockChainManagerMock = new BlockChainManagerMock<>(blockStore, transactionStore);
 
-        if (VerifierUtils.verifyGenesis(genesisBlock)) {
+        if (!VerifierUtils.verifyGenesisHash(genesisBlock)) {
             log.error("GenesisBlock is not valid.");
             throw new NotValidateException();
         }

@@ -21,6 +21,7 @@ import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.core.p2p.Peer;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -33,6 +34,11 @@ import static org.junit.Assert.assertTrue;
 
 public class PeerStoreTest {
     private PeerStore peerStore;
+
+    @Before
+    public void setUp() {
+        peerStore = new PeerStore(new HashMapDbSource());
+    }
 
     @AfterClass
     public static void destroy() {
@@ -54,17 +60,32 @@ public class PeerStoreTest {
 
     @Test
     public void shouldBeGotAllPeer() {
-        peerStore = new PeerStore(new HashMapDbSource());
-
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+        peerStore.put(peer.getPeerId(), peer);
+        assertThat(peerStore.getAll().size()).isEqualTo(1);
+
+        // add exist peer
         peerStore.put(peer.getPeerId(), peer);
         assertThat(peerStore.getAll().size()).isEqualTo(1);
     }
 
+
+    @Test
+    public void shouldBeRemovedPeer() {
+        // arrange
+        Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+        peerStore.put(peer.getPeerId(), peer);
+        assertThat(peerStore.size()).isEqualTo(1);
+        assertThat(peerStore.getAll().size()).isEqualTo(peerStore.size());
+        // act
+        peerStore.remove(peer.getPeerId());
+        // assert
+        assertThat(peerStore.size()).isEqualTo(0);
+        assertThat(peerStore.getAll().size()).isEqualTo(peerStore.size());
+    }
+
     @Test
     public void overwrite() {
-        peerStore = new PeerStore(new HashMapDbSource());
-
         Peer p1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
         Peer p2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32919");
         peerStore.put(p1.getPeerId(), p1);

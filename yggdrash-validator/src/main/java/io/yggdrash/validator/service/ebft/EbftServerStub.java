@@ -1,6 +1,7 @@
 package io.yggdrash.validator.service.ebft;
 
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
@@ -65,7 +66,6 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
             ebftService.updateUnconfirmedBlock(newEbftBlock);
         }
         ebftService.getLock().unlock();
-
     }
 
     @Override
@@ -100,27 +100,39 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
     @Override
     public void getEbftBlockList(CommonProto.Offset request, StreamObserver<EbftProto.EbftBlockList> responseObserver) {
         long start = request.getIndex();
+        if (start < 0) {
+            start = 0;
+        }
         long count = request.getCount();
         long end = Math.min(start - 1 + count, blockChain.getBlockChainManager().getLastIndex());
 
         log.trace("start: {}", start);
         log.trace("end: {}", end);
 
+        responseObserver.onNext(getBlockList(start, end));
+        responseObserver.onCompleted();
+    }
+
+    private EbftProto.EbftBlockList getBlockList(long start, long end) {
         EbftProto.EbftBlockList.Builder builder = EbftProto.EbftBlockList.newBuilder();
-        if (start < end) {
-            for (long l = start; l <= end; l++) {
-                try {
-                    // todo: check efficiency
-                    ConsensusBlock<EbftProto.EbftBlock> block = blockChain.getBlockChainManager().getBlockByIndex(l);
-                    builder.addEbftBlock(block.getInstance());
-                } catch (Exception e) {
-                    break;
+        if (start >= end) {
+            return builder.build();
+        }
+        long bodyLengthSum = 0;
+        for (long l = start; l <= end; l++) {
+            try {
+                // todo: check efficiency
+                ConsensusBlock<EbftProto.EbftBlock> block = blockChain.getBlockChainManager().getBlockByIndex(l);
+                bodyLengthSum += block.getSerializedSize();
+                if (bodyLengthSum > Constants.Limit.BLOCK_SYNC_SIZE) {
+                    return builder.build();
                 }
+                builder.addEbftBlock(block.getInstance());
+            } catch (Exception e) {
+                break;
             }
         }
-
-        responseObserver.onNext(builder.build());
-        responseObserver.onCompleted();
+        return builder.build();
     }
 
     private void updateStatus(EbftStatus ebftStatus) {

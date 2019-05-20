@@ -226,7 +226,7 @@ public class ContractExecutor {
 
     public void commitBlockResult(BlockRuntimeResult result) {
         // TODO store transaction by batch
-        Map<String, JsonObject> changes = result.getBlockResult();
+        Map<String, JsonObject> changes = result.getBlockResult(); //TODO test required
         TransactionReceiptStore transactionReceiptStore = contractStore.getTransactionReceiptStore();
         result.getTxReceipts().forEach(transactionReceiptStore::put);
         if (!changes.isEmpty()) {

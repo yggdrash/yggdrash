@@ -8,16 +8,23 @@ import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NonExistObjectException;
+import io.yggdrash.core.exception.errorcode.BusinessError;
+import io.yggdrash.core.exception.errorcode.SystemError;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
+import io.yggdrash.gateway.dto.TransactionResponseDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @AutoJsonRpcServiceImpl
 public class TransactionApiImpl implements TransactionApi {
+    private static final Logger log = LoggerFactory.getLogger(TransactionApiImpl.class);
 
     private final BranchGroup branchGroup;
 
@@ -84,25 +91,27 @@ public class TransactionApiImpl implements TransactionApi {
         }
     }
 
-    /* send */
     @Override
-    public String sendTransaction(TransactionDto tx) {
-        if (branchGroup.getBranch(BranchId.of(tx.branchId)) != null) {
-            // TODO Transaction Validate
-            Transaction addedTx = branchGroup.addTransaction(TransactionDto.of(tx));
-            return addedTx.getHash().toString();
-        } else {
-            return "No branch existed";
+    public TransactionResponseDto sendTransaction(TransactionDto tx) {
+        Transaction transaction = TransactionDto.of(tx);
+        List<String> errorLogs = new ArrayList<>();
+        int verifyResult = branchGroup.addTransaction(transaction);
+        if (verifyResult > SystemError.VALID.toValue() || verifyResult > BusinessError.VALID.toValue()) {
+            log.error("Error Code[{}]", verifyResult);
+            errorLogs = BusinessError.errorLogs(verifyResult);
+            return TransactionResponseDto.createBy(tx.txId, false, errorLogs);
         }
+
+        return TransactionResponseDto.createBy(tx.txId, true, errorLogs);
     }
 
     @Override
-    public byte[] sendRawTransaction(byte[] bytes) {
+    public byte[] sendRawTransaction(byte[] bytes) { //TODO consider return type (no error logs)
         Transaction transaction = TransactionImpl.parseFromRaw(bytes);
         if (branchGroup.getBranch(transaction.getBranchId()) != null) {
             // TODO Transaction Validate
-            Transaction addedTx = branchGroup.addTransaction(transaction);
-            return addedTx.getHash().getBytes();
+            branchGroup.addTransaction(transaction);
+            return transaction.getHash().getBytes();
         } else {
             return "No branch existed".getBytes();
         }
@@ -118,6 +127,5 @@ public class TransactionApiImpl implements TransactionApi {
     public TransactionReceiptDto getTransactionReceipt(String branchId, String txId) {
         TransactionReceipt receipt = branchGroup.getTransactionReceipt(BranchId.of(branchId), txId);
         return TransactionReceiptDto.createBy(receipt);
-
     }
 }

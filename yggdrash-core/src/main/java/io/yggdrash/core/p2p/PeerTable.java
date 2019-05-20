@@ -21,11 +21,11 @@ import java.util.Map;
 
 public interface PeerTable {
 
-    void loadSeedNodes(List<String> seedPeerList);
+    void loadSeedPeers(List<String> seedPeerList);
 
     void addPeer(Peer peer);
 
-    void copyLiveNode(long minTableTime);
+    void copyLivePeer(long minTableTime);
 
     List<Peer> getClosestPeers(Peer peer, int limit); // getNeighbor
 

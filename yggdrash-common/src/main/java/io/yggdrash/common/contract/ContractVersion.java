@@ -23,15 +23,9 @@ import java.util.Arrays;
 
 public class ContractVersion {
     private final byte[] data;
-    private boolean isSystem;
 
     private ContractVersion(byte[] data) {
         this.data = data;
-    }
-
-    private ContractVersion(byte[] data, boolean isSystem) {
-        this.data = data;
-        this.isSystem = isSystem;
     }
 
     public byte[] getBytes() {
@@ -57,9 +51,6 @@ public class ContractVersion {
 
     @Override
     public String toString() {
-        if (isSystem) {
-            return new String(data);
-        }
         return Hex.toHexString(data);
     }
 
@@ -70,9 +61,5 @@ public class ContractVersion {
 
     public static ContractVersion of(String hexString) {
         return new ContractVersion(Hex.decode(hexString));
-    }
-
-    public static ContractVersion ofNonHex(String nonHexString) {
-        return new ContractVersion(nonHexString.getBytes(), true);
     }
 }
