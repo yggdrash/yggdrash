@@ -186,8 +186,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             if (!listenerList.isEmpty() && broadcast) {
                 listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
             }
-            log.debug("Added idx=[{}], tx={}, branch={}, blockHash={}", nextBlock.getIndex(),
-                    nextBlock.getBody().getCount(), getBranchId(), nextBlock.getHash());
+            nextBlock.loggingBlock();
         } finally {
             lock.unlock();
         }
