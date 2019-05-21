@@ -16,6 +16,7 @@
 
 package io.yggdrash.node.config;
 
+import io.yggdrash.common.config.Constants.ActiveProfiles;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
@@ -41,11 +42,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 
 @Configuration
 @EnableScheduling
@@ -86,8 +89,14 @@ public class BranchConfiguration {
     }
 
     @Bean
-    BranchLoader branchLoader(DefaultConfig defaultConfig, BranchGroup branchGroup, ContractPolicyLoader policyLoader) {
+    BranchLoader branchLoader(DefaultConfig defaultConfig, BranchGroup branchGroup,
+                              ContractPolicyLoader policyLoader, Environment env) {
+
         BranchLoader branchLoader = new BranchLoader(defaultConfig.getBranchPath());
+        boolean isValidator = Arrays.asList(env.getActiveProfiles()).contains(ActiveProfiles.VALIDATOR);
+        if (isValidator) {
+            return branchLoader;
+        }
         // TODO check exist branch
         try {
             for (GenesisBlock genesis : branchLoader.getGenesisBlockList()) {
