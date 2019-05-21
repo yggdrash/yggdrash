@@ -19,6 +19,7 @@ package io.yggdrash.node.config;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.gateway.controller.BranchController;
+import io.yggdrash.node.PeerTask;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +35,16 @@ public class BootstrapNodeTest extends TestConstants.CiTest {
     @Autowired
     private BranchGroup branchGroup;
 
+    @Autowired
+    private PeerTask peerTask;
+
     @Autowired(required = false)
     private BranchController branchController;
+
+    @Test
+    public void shouldBePeerTaskEnabled() {
+        assertThat(peerTask).isNotNull();
+    }
 
     @Test
     public void shouldBeEmptyBranch() {
@@ -43,7 +52,7 @@ public class BootstrapNodeTest extends TestConstants.CiTest {
     }
 
     @Test
-    public void shouldBeNotActivateGatewayProfile() {
+    public void shouldBeControllerDisabled() {
         assertThat(branchController).isNull();
     }
 }
