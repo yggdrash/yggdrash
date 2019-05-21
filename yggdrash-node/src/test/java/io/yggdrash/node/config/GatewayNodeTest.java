@@ -17,6 +17,7 @@
 package io.yggdrash.node.config;
 
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.gateway.controller.BranchController;
 import io.yggdrash.node.ChainTask;
@@ -30,8 +31,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest()
-@ActiveProfiles("gateway")
+@SpringBootTest
+@ActiveProfiles(Constants.ActiveProfiles.GATEWAY)
 public class GatewayNodeTest extends TestConstants.CiTest {
 
     @Autowired
