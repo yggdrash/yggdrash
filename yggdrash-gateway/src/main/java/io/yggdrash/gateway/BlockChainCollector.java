@@ -27,6 +27,7 @@ import io.yggdrash.gateway.dto.BlockDto;
 import io.yggdrash.gateway.dto.TransactionDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
@@ -60,7 +61,11 @@ public class BlockChainCollector implements BranchEventListener {
         Map<String, JsonObject> transactionMap = new HashMap<>();
 
         for (Transaction tx : block.getBody().getTransactionList()) {
-            transactionMap.put(tx.getHash().toString(), TransactionDto.createBy(tx).toJsonObject());
+            TransactionDto dto = TransactionDto.createBy(tx);
+            JsonObject json = dto.toJsonObject();
+            json.addProperty("rawTx",
+                    Hex.toHexString(TransactionDto.of(dto).toBinary()));
+            transactionMap.put(tx.getHash().toString(), json);
         }
 
         outputStore.put(block.getHash().toString(), block.getIndex(), transactionMap);

@@ -47,6 +47,7 @@ public class EsClient implements OutputStore {
                 default:
                     return null;
             }
+
         } catch (IOException e) {
             log.warn("Failed save {} to elasticsearch err={}", index, e.getMessage());
         }
@@ -75,8 +76,6 @@ public class EsClient implements OutputStore {
         transactionMap.forEach((txHash, tx) -> {
             tx.addProperty("blockId", blockId);
             tx.addProperty("blockIndex", blockIndex);
-//            tx.addProperty("rawTx",
-//                    Hex.toHexString(TransactionDto.of(tx).toBinary()));
             bulkRequest.add(new IndexRequest(index)
                     .id(txHash)
                     .source(tx.toString(), XContentType.JSON));
