@@ -60,8 +60,9 @@ public class EsClient implements OutputStore {
         }
         block.remove("body");
 
+        String index = INDEX_PREFIX + "block";
         String id = block.get("index").getAsString();
-        put(INDEX_PREFIX + "block", id, block);
+        put(index, id, block);
     }
 
     @Override
@@ -69,11 +70,11 @@ public class EsClient implements OutputStore {
         if (transactionMap == null || transactionMap.size() == 0) {
             return;
         }
-
+        String index = INDEX_PREFIX + "tx";
         BulkRequest bulkRequest = new BulkRequest();
         transactionMap.forEach((txHash, tx) -> {
             tx.addProperty("blockId", blockId);
-            bulkRequest.add(new IndexRequest(INDEX_PREFIX + "tx")
+            bulkRequest.add(new IndexRequest(index)
                     .id(txHash)
                     .source(tx.toString(), XContentType.JSON));
         });
@@ -85,7 +86,7 @@ public class EsClient implements OutputStore {
                 log.warn("Bulk response has failure={}", failureMessage);
             }
         } catch (IOException e) {
-            log.warn("Failed save transaction to elasticsearch err={}", e.getMessage());
+            log.warn("Failed save {} to elasticsearch err={}", index, e.getMessage());
         }
     }
 }

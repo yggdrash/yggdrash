@@ -3,6 +3,7 @@ package io.yggdrash.core.blockchain.osgi;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.contract.core.store.OutputType;
@@ -17,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 import org.osgi.framework.BundlePermission;
 import org.osgi.framework.CapabilityPermission;
 import org.osgi.framework.PackagePermission;
@@ -53,8 +55,8 @@ import java.util.jar.Manifest;
 public class ContractManager {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
 
-    static final String SUFFIX_SYSTEM_CONTRACT = "contract/system";
-    static final String SUFFIX_USER_CONTRACT = "contract/user";
+    private static final String SUFFIX_SYSTEM_CONTRACT = "contract/system";
+    private static final String SUFFIX_USER_CONTRACT = "contract/user";
 
     private Framework framework;
 
@@ -133,7 +135,7 @@ public class ContractManager {
         return bundle;
     }
 
-    void newFramework() {
+    private void newFramework() {
         String managerPath = String.format("%s/%s", config.getOsgiPath(), branchId);
         log.debug("ContractManager Path : {}", managerPath);
         Map<String, String> contractManagerConfig = new HashMap<>();
@@ -228,8 +230,6 @@ public class ContractManager {
         commonPermissions.add(new PermissionInfo(filePermissionName, branchStorePath, "read"));
         commonPermissions.add(new PermissionInfo(filePermissionName, branchStoreFile, "read"));
 
-
-
         List<PermissionInfo> systemPermissions = commonPermissions;
         // Add Branch File Write
         systemPermissions.add(new PermissionInfo(filePermissionName, branchStoreFile, allPermission));
@@ -254,7 +254,7 @@ public class ContractManager {
         List<PermissionInfo> userPermissions = commonPermissions;
         userPermissions.add(new PermissionInfo(filePermissionName, branchStoreFile, "read"));
 
-        if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getElasticsearchAddress())) {
+        if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getElasticsearchHost())) {
             userPermissions.add(
                     new PermissionInfo(SocketPermission.class.getName(),
                             systemProperties.getElasticsearchAddress(), "connect,resolve"));
@@ -377,7 +377,7 @@ public class ContractManager {
             String location = String.format("%s/%s", locationPrefix, version.toString());
             // set Location
             bundle = framework.getBundleContext().installBundle(location, fileStream);
-            log.debug("installed  {} {}", version.toString(), bundle.getLocation());
+            log.debug("installed  {} {}", version, bundle.getLocation());
 
             boolean isPass = verifyManifest(bundle);
             if (!isPass) {
@@ -388,7 +388,7 @@ public class ContractManager {
             setFullLocation(bundle.getLocation());
         } catch (Exception e) {
             log.error("Install bundle exception: branchID - {}, msg - {}", branchId, e.getMessage());
-            throw new RuntimeException(e);
+            throw new FailedOperationException(e);
         }
 
         return bundle.getBundleId();
@@ -432,7 +432,7 @@ public class ContractManager {
                         }
                     } catch (Exception e) {
                         bundle.uninstall();
-                        throw new RuntimeException(e);
+                        throw new FailedOperationException(e);
                     }
 
                     break;
@@ -440,13 +440,13 @@ public class ContractManager {
                     bundle.stop();
                     break;
                 default:
-                    throw new Exception("Action is not Exist");
+                    throw new FailedOperationException("Action is not Exist");
             }
-        } catch (Exception e) {
+        } catch (BundleException e) {
 
             log.error("Execute bundle exception: contractId:{}, path:{}, stack:{}",
                     bundle.getBundleId(), bundle.getLocation(), ExceptionUtils.getStackTrace(e));
-            throw new RuntimeException(e);
+            throw new FailedOperationException(e);
         }
         return true;
     }
