@@ -31,12 +31,13 @@
     </appender>
 
      <!--ES Appender -->
-    <springProperty scope="context" name="esHost" source="es.host" defaultValue=""/>
-    <springProperty scope="context" name="esPrefixIndex" source="es.prefix.index" defaultValue="yggdrash"/>
+    <springProperty scope="context" name="elasticsearchHost" source="elasticsearch.host" defaultValue=""/>
+    <springProperty scope="context" name="elasticsearchPort" source="elasticsearch.port" defaultValue="9200"/>
+    <springProperty scope="context" name="elasticsearchPrefixIndex" source="elasticsearch.prefix.index" defaultValue="yggdrash"/>
     <appender name="ES" class="com.internetitem.logback.elasticsearch.ElasticsearchAppender">
-        <url>http://${esHost}/_bulk</url>
-        <index>${esPrefixIndex}-%date{yyyy-MM-dd}</index>
-        <type>${esPrefixIndex}</type>
+        <url>http://${elasticsearchHost}:${elasticsearchPort}/_bulk</url>
+        <index>${elasticsearchPrefixIndex}-%date{yyyy-MM-dd}</index>
+        <type>_doc</type>
         <loggerName>es-logger</loggerName> <!-- optional -->
         <errorLoggerName>es-error-logger</errorLoggerName> <!-- optional -->
         <connectTimeout>30000</connectTimeout> <!-- optional (in ms, default 30000) -->
@@ -134,7 +135,7 @@
         <root level="INFO">
             <appender-ref ref="Console"/>
             <appender-ref ref="FILE"/>
-            <if condition='!property("esHost").equals("")'>
+            <if condition='!property("elasticsearchHost").equals("")'>
                 <then>
                     <appender-ref ref="ES"/>
                 </then>

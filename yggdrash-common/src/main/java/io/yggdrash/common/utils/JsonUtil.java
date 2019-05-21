@@ -40,7 +40,7 @@ public class JsonUtil {
         try {
             return mapper.readValue(json.toString(), HashMap.class);
         } catch (IOException e) {
-            log.warn("convert fail json to map err={}", e);
+            log.warn("convert fail json to map err={}", e.getMessage());
             return null;
         }
     }
@@ -49,7 +49,7 @@ public class JsonUtil {
         try {
             return mapper.writeValueAsString(obj);
         } catch (JsonProcessingException e) {
-            log.warn("convert fail obj to string err={}", e);
+            log.warn("convert fail obj to string err={}", e.getMessage());
             return null;
         }
     }
@@ -60,6 +60,10 @@ public class JsonUtil {
 
     public static JsonObject parseJsonObject(String json) {
         return (JsonObject) jsonParser.parse(json);
+    }
+
+    public static JsonObject parseJsonObject(Object obj) {
+        return (JsonObject) jsonParser.parse(convertObjToString(obj));
     }
 
     public static JsonObject parseJsonObject(Reader json) {
@@ -110,7 +114,7 @@ public class JsonUtil {
         try {
             object = mapper.readValue(jsonData, valueTypeRef);
         } catch (IOException e) {
-            log.warn("convert fail string to class err={}", e);
+            log.warn("convert fail string to class err={}", e.getMessage());
         }
         return object;
     }

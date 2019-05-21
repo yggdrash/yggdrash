@@ -57,14 +57,9 @@ public class BranchConfiguration {
     @Value("classpath:/branch-yggdrash.json")
     Resource yggdrashResource;
 
-    @Value("${es.host:#{null}}")
-    private String esHost;
-    @Value("${es.transport:#{null}}")
-    private String esTransport;
-    @Value("${event.store:#{null}}")
-    private String[] eventStore;
-
-    private SystemProperties systemProperties;
+    @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
+    @Autowired(required = false)
+    SystemProperties systemProperties;
 
     @Autowired
     BranchConfiguration(DefaultConfig defaultConfig) {
@@ -88,16 +83,6 @@ public class BranchConfiguration {
     @Bean
     ContractPolicyLoader policyLoader() {
         return new ContractPolicyLoader();
-    }
-
-    @Bean
-    SystemProperties systemProperties() {
-        this.systemProperties = SystemProperties.SystemPropertiesBuilder.aSystemProperties()
-                .withEsHost(esHost)
-                .withEsTransport(esTransport)
-                .withEventStore(eventStore)
-                .build();
-        return systemProperties;
     }
 
     @Bean
@@ -143,13 +128,16 @@ public class BranchConfiguration {
     }
 
     static BlockChain getBlockChain(GenesisBlock genesis, StoreBuilder storeBuilder,
-                                     ContractPolicyLoader policyLoader, BranchId branchId,
+                                    ContractPolicyLoader policyLoader, BranchId branchId,
                                     SystemProperties systemProperties) {
+
         ContractStore contractStore = storeBuilder.buildContractStore();
+
         BlockChainManager blockChainManager = new BlockChainManagerImpl(
                 storeBuilder.buildBlockStore(),
                 storeBuilder.buildTransactionStore(),
                 contractStore.getTransactionReceiptStore());
+
         ContractManager contractManager = ContractManagerBuilder.newInstance()
                 .withFrameworkFactory(policyLoader.getFrameworkFactory())
                 .withContractManagerConfig(policyLoader.getContractManagerConfig())

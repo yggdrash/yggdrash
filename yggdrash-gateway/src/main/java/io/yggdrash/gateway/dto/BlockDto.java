@@ -16,6 +16,9 @@
 
 package io.yggdrash.gateway.dto;
 
+import com.google.gson.JsonObject;
+import com.google.protobuf.util.Timestamps;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.BlockHeader;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
@@ -32,7 +35,7 @@ public class BlockDto {
     public String type;
     public String prevBlockId;
     public long index;
-    public long timestamp;
+    public String timestamp;
     public String merkleRoot;
     public long bodyLength;
     public long txSize;
@@ -40,6 +43,11 @@ public class BlockDto {
     public List<TransactionDto> body;
     public String author;
     public String blockId;
+    public Object consensusMessages;
+
+    public JsonObject toJsonObject() {
+        return JsonUtil.parseJsonObject(this);
+    }
 
     public static BlockDto createBy(ConsensusBlock block) {
         return createBy(block, block.getBody().getCount() < MAX_TX_BODY);
@@ -53,7 +61,7 @@ public class BlockDto {
         blockDto.type = Hex.toHexString(header.getType());
         blockDto.prevBlockId = block.getPrevBlockHash().toString();
         blockDto.index = block.getIndex();
-        blockDto.timestamp = header.getTimestamp();
+        blockDto.timestamp = Timestamps.toString(Timestamps.fromMillis(header.getTimestamp()));
         blockDto.merkleRoot = Hex.toHexString(header.getMerkleRoot());
         blockDto.bodyLength = header.getBodyLength();
         blockDto.signature = Hex.toHexString(block.getSignature());
@@ -64,6 +72,7 @@ public class BlockDto {
         }
         blockDto.author = block.getBlock().getAddress().toString();
         blockDto.blockId = block.getHash().toString();
+        blockDto.consensusMessages = block.getConsensusMessages();
         return blockDto;
     }
 

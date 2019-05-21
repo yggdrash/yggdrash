@@ -1,7 +1,7 @@
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
-    id 'org.springframework.boot' version '2.1.1.RELEASE' apply false
+    id 'org.springframework.boot' version '2.1.5.RELEASE' apply false
     id 'com.google.protobuf' version '0.8.7'
     id 'com.palantir.docker' version '0.21.0'
     id 'com.github.kt3k.coveralls' version '2.8.2'
@@ -17,10 +17,10 @@ version = '0.10.0-SNAPSHOT'
 defaultTasks ':yggdrash-node:bootRun'
 
 ext {
-    grpcVersion         = '1.19.0'
-    protobufVersion     = '3.7.0'
+    grpcVersion         = '1.20.0'
+    protobufVersion     = '3.7.1'
     levelDBVersion      = '0.11'
-    ehcacheVersion      = '3.6.3'
+    ehcacheVersion      = '3.7.1'
     scastleVersion      = '1.58.0.0'
     commonsCodecVersion = '1.11'
     commonsIOVersion    = '2.6'
@@ -36,7 +36,7 @@ ext {
     logbackEsAppenderVersion  = '1.6'
     logbackJinoVersion  = '3.0.12'
     equinoxVersion = '3.13.0.v20180226-1711'
-    elasticSearchVersion = '7.0.1'
+    set('elasticsearch.version', '7.0.1')
 }
 
 allprojects {
@@ -111,7 +111,6 @@ project(':yggdrash-core') {
         compile "com.google.code.gson:gson:${gsonVersion}"
         compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
         compile "com.typesafe:config:${typesafeVersion}"
-        compile "org.elasticsearch.client:transport:${elasticSearchVersion}"
         compile 'org.beryx:text-io:3.3.0'
         compileOnly "javax.annotation:javax.annotation-api:${annotationVersion}"
         testCompile "org.assertj:assertj-core:${assertjVersion}"
@@ -194,7 +193,6 @@ project(':yggdrash-node') {
         compile "org.springframework.boot:spring-boot-starter-actuator"
         compile "org.springframework.cloud:spring-cloud-starter:2.0.0.RELEASE"
         compile "com.github.briandilley.jsonrpc4j:jsonrpc4j:1.5.3"
-        compile "com.internetitem:logback-elasticsearch-appender:${logbackEsAppenderVersion}"
         compile "org.codehaus.janino:janino:${logbackJinoVersion}"
         annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
         //Must be disable in osgi
@@ -246,16 +244,14 @@ project(':yggdrash-gateway') {
         compile project(':yggdrash-core')
         compile "org.springframework.boot:spring-boot-starter-undertow"
         compile "org.springframework.boot:spring-boot-starter-websocket"
+        compile "org.elasticsearch.client:elasticsearch-rest-high-level-client"
+        compile "com.internetitem:logback-elasticsearch-appender:${logbackEsAppenderVersion}"
         compile "org.webjars:sockjs-client:1.1.2"
         compile "org.webjars:stomp-websocket:2.3.3"
         compile "org.webjars:bootstrap:3.3.7"
         compile "org.webjars:webjars-locator-core"
         testCompile "org.springframework.boot:spring-boot-starter-test"
         testCompile project(':yggdrash-core').sourceSets.test.output
-    }
-
-    configurations {
-        compile.exclude module: 'spring-boot-starter-tomcat'
     }
 
     jar {

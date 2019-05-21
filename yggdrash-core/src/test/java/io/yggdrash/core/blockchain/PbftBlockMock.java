@@ -35,7 +35,7 @@ public class PbftBlockMock extends AbstractConsensusBlock<PbftProto.PbftBlock> {
 
     @Override
     public Object getConsensusMessages() {
-        throw new FailedOperationException("Not implemented");
+        return "MockConsensus";
     }
 
     @Override
