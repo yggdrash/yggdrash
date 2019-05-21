@@ -9,5 +9,5 @@ public interface OutputStore {
 
     void put(JsonObject blockJson);
 
-    void put(String blockId, Map<String, JsonObject> transactionMap);
+    void put(String blockId, long index, Map<String, JsonObject> transactionMap);
 }
