@@ -66,7 +66,7 @@ public class EsClient implements OutputStore {
     }
 
     @Override
-    public void put(String blockId, Map<String, JsonObject> transactionMap) {
+    public void put(String blockId, long blockIndex, Map<String, JsonObject> transactionMap) {
         if (transactionMap == null || transactionMap.size() == 0) {
             return;
         }
@@ -74,6 +74,9 @@ public class EsClient implements OutputStore {
         BulkRequest bulkRequest = new BulkRequest();
         transactionMap.forEach((txHash, tx) -> {
             tx.addProperty("blockId", blockId);
+            tx.addProperty("blockIndex", blockIndex);
+//            tx.addProperty("rawTx",
+//                    Hex.toHexString(TransactionDto.of(tx).toBinary()));
             bulkRequest.add(new IndexRequest(index)
                     .id(txHash)
                     .source(tx.toString(), XContentType.JSON));

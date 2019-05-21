@@ -63,7 +63,7 @@ public class BlockChainCollector implements BranchEventListener {
             transactionMap.put(tx.getHash().toString(), TransactionDto.createBy(tx).toJsonObject());
         }
 
-        outputStore.put(block.getHash().toString(), transactionMap);
+        outputStore.put(block.getHash().toString(), block.getIndex(), transactionMap);
     }
 
     @Override
