@@ -64,7 +64,7 @@ public class BlockChainCollector implements BranchEventListener {
             TransactionDto dto = TransactionDto.createBy(tx);
             JsonObject json = dto.toJsonObject();
             json.addProperty("rawTx",
-                    Hex.toHexString(TransactionDto.of(dto).toBinary()));
+                    Hex.toHexString(tx.toRawTransaction()));
             transactionMap.put(tx.getHash().toString(), json);
         }
 
