@@ -80,3 +80,4 @@ yggdrash:
   node:
     validator: true
     chain.enabled: false
+    grpc.enabled: false
