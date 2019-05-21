@@ -16,6 +16,7 @@
 
 package io.yggdrash.node.config;
 
+import io.yggdrash.common.config.Constants.ActiveProfiles;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.wallet.Wallet;
 import org.slf4j.Logger;
@@ -34,7 +35,7 @@ public class WalletConfiguration {
 
     @Bean
     DefaultConfig defaultConfig(Environment env) {
-        boolean isProductionMode = Arrays.asList(env.getActiveProfiles()).contains("prod");
+        boolean isProductionMode = Arrays.asList(env.getActiveProfiles()).contains(ActiveProfiles.PROD);
         DefaultConfig defaultConfig = new DefaultConfig(isProductionMode);
         log.info("Yggdrash Data Path : {}", defaultConfig.getYggDataPath());
         return defaultConfig;

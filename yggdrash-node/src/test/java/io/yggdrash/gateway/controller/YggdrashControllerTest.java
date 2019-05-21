@@ -17,6 +17,7 @@
 package io.yggdrash.gateway.controller;
 
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.node.YggdrashNodeApp;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
 @SpringBootTest(classes = YggdrashNodeApp.class)
-@ActiveProfiles("gateway")
+@ActiveProfiles(Constants.ActiveProfiles.GATEWAY)
 public class YggdrashControllerTest extends TestConstants.CiTest {
 
     @Autowired
