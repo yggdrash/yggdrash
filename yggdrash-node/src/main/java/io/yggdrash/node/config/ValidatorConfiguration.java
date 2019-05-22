@@ -4,11 +4,12 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
+import io.yggdrash.common.config.Constants.ActiveProfiles;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
-import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.SystemProperties;
+import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.consensus.Consensus;
@@ -16,6 +17,7 @@ import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.service.ValidatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -26,53 +28,55 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
-@Profile("validator")
+@Profile(ActiveProfiles.VALIDATOR)
 @Configuration
 public class ValidatorConfiguration {
 
     private static final Logger log = LoggerFactory.getLogger(ValidatorConfiguration.class);
 
+    @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
+    @Autowired(required = false)
+    SystemProperties systemProperties;
+
     @Bean
-    public Map<BranchId, List<ValidatorService>> validatorServiceMap(BranchGroup branchGroup,
+    public Map<BranchId, List<ValidatorService>> validatorServiceMap(BranchLoader branchLoader,
                                                                      DefaultConfig defaultConfig,
-                                                                     SystemProperties systemProperties,
                                                                      ContractPolicyLoader policyLoader) {
 
         Map<BranchId, List<ValidatorService>> validatorServiceMap = new HashMap<>();
         File validatorPath = new File(defaultConfig.getValidatorPath());
 
         for (File branchPath : Objects.requireNonNull(validatorPath.listFiles())) {
-
-            BlockChain branch = getBranch(branchPath, branchGroup);
-            if (branch == null) {
+            Optional<GenesisBlock> genesisBlock = getGenesisBlock(branchPath, branchLoader);
+            if (!genesisBlock.isPresent()) {
                 log.warn("Not found branch for [{}]", branchPath);
                 continue;
             }
-            GenesisBlock genesis = GenesisBlock.of(branch.getBranch(), branch.getGenesisBlock());
+            GenesisBlock genesis = genesisBlock.get();
             List<ValidatorService> validatorServiceList =
-                    loadValidatorService(branchPath, genesis, branch.getConsensus(), defaultConfig,
-                            systemProperties, policyLoader);
-            validatorServiceMap.put(branch.getBranchId(), validatorServiceList);
+                    loadValidatorService(branchPath, genesis, genesis.getConsensus(), defaultConfig, policyLoader);
+            validatorServiceMap.put(genesis.getBranchId(), validatorServiceList);
         }
 
         return validatorServiceMap;
     }
 
-    private BlockChain getBranch(File branchPath, BranchGroup branchGroup) {
+    private Optional<GenesisBlock> getGenesisBlock(File branchPath, BranchLoader branchLoader) {
 
         String branchName = branchPath.getName();
         if (branchName.length() != Constants.BRANCH_HEX_LENGTH || !branchName.matches("^[0-9a-fA-F]+$")) {
-            return null;
+            return Optional.empty();
         }
 
         BranchId branchId = new BranchId(new Sha3Hash(branchPath.getName()));
 
-        return branchGroup.getBranch(branchId);
+        return branchLoader.getGenesisBlock(branchId);
     }
 
     private List<ValidatorService> loadValidatorService(File branchPath, GenesisBlock genesis, Consensus consensus,
-                                                        DefaultConfig defaultConfig, SystemProperties systemProperties,
+                                                        DefaultConfig defaultConfig,
                                                         ContractPolicyLoader policyLoader) {
 
         List<ValidatorService> validatorServiceList = new ArrayList<>();

@@ -24,6 +24,7 @@ public class GrpcServerProperties {
 
     private int port = DEFAULT_GRPC_PORT;
     private String[] blackList;
+    private boolean enabled = true;
 
     public String[] getBlackList() {
         return blackList;
@@ -39,5 +40,13 @@ public class GrpcServerProperties {
 
     public void setPort(int port) {
         this.port = port;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }

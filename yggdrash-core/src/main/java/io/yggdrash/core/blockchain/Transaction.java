@@ -82,4 +82,6 @@ public interface Transaction extends ProtoObject<Proto.Transaction>, Comparable<
     JsonObject toJsonObject();
 
     JsonObject toJsonObjectFromProto();
+
+    byte[] toRawTransaction();
 }

@@ -16,6 +16,7 @@
 
 package io.yggdrash.node.config;
 
+import io.yggdrash.common.config.Constants.ActiveProfiles;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.net.DiscoveryServiceConsumer;
@@ -48,7 +49,7 @@ public class P2PConfiguration {
     @Autowired
     P2PConfiguration(NodeProperties nodeProperties, Environment env) {
         this.nodeProperties = nodeProperties;
-        boolean isLocal = Arrays.asList(env.getActiveProfiles()).contains("local");
+        boolean isLocal = Arrays.asList(env.getActiveProfiles()).contains(ActiveProfiles.LOCAL);
         if (!isLocal && "localhost".equals(nodeProperties.getGrpc().getHost())) {
             try {
                 nodeProperties.getGrpc().setHost(InetAddress.getLocalHost().getHostAddress());

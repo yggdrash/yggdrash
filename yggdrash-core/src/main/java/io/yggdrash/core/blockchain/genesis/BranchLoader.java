@@ -27,6 +27,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class BranchLoader {
     public static final String BRANCH_FILE = "branch.json";
@@ -46,6 +47,9 @@ public class BranchLoader {
     private void load() {
         for (File branchDir : branchRoot.listFiles()) {
             File branchFile = new File(branchDir, BRANCH_FILE);
+            if (!branchFile.exists()) {
+                continue;
+            }
             try (FileInputStream is = new FileInputStream(branchFile)) {
                 GenesisBlock genesisBlock = GenesisBlock.of(is);
                 genesisBlockList.add(genesisBlock);
@@ -71,6 +75,12 @@ public class BranchLoader {
             }
         }
         return false;
+    }
+
+    public Optional<GenesisBlock> getGenesisBlock(BranchId branchId) {
+        return genesisBlockList.stream()
+                .filter(genesisBlock -> genesisBlock.getBranchId().equals(branchId))
+                .findFirst();
     }
 
     public List<GenesisBlock> getGenesisBlockList() {

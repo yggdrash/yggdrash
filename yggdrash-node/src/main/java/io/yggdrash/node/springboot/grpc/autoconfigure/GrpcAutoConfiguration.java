@@ -34,6 +34,7 @@ import org.springframework.context.annotation.Bean;
 
 @AutoConfigureOrder
 @ConditionalOnBean(annotation = GrpcService.class)
+@ConditionalOnProperty(name = "yggdrash.node.grpc.enabled", matchIfMissing = true)
 @EnableConfigurationProperties(GrpcServerProperties.class)
 public class GrpcAutoConfiguration {
     @LocalRunningGrpcPort

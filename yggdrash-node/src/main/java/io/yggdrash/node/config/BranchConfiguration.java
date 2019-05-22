@@ -16,6 +16,7 @@
 
 package io.yggdrash.node.config;
 
+import io.yggdrash.common.config.Constants.ActiveProfiles;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
@@ -41,11 +42,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.util.Arrays;
 
 @Configuration
 @EnableScheduling
@@ -57,14 +59,9 @@ public class BranchConfiguration {
     @Value("classpath:/branch-yggdrash.json")
     Resource yggdrashResource;
 
-    @Value("${es.host:#{null}}")
-    private String esHost;
-    @Value("${es.transport:#{null}}")
-    private String esTransport;
-    @Value("${event.store:#{null}}")
-    private String[] eventStore;
-
-    private SystemProperties systemProperties;
+    @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
+    @Autowired(required = false)
+    SystemProperties systemProperties;
 
     @Autowired
     BranchConfiguration(DefaultConfig defaultConfig) {
@@ -75,8 +72,12 @@ public class BranchConfiguration {
     @Bean
     @ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
     BlockChain yggdrash(BranchGroup branchGroup, ContractPolicyLoader policyLoader) throws IOException {
-        BlockChain yggdrash = createBranch(yggdrashResource.getInputStream(), policyLoader);
-        branchGroup.addBranch(yggdrash);
+        GenesisBlock genesis = GenesisBlock.of(yggdrashResource.getInputStream());
+        BlockChain yggdrash = branchGroup.getBranch(genesis.getBranchId());
+        if (yggdrash == null) {
+            yggdrash = createBranch(genesis, policyLoader);
+            branchGroup.addBranch(yggdrash);
+        }
         return yggdrash;
     }
 
@@ -91,21 +92,20 @@ public class BranchConfiguration {
     }
 
     @Bean
-    SystemProperties systemProperties() {
-        this.systemProperties = SystemProperties.SystemPropertiesBuilder.aSystemProperties()
-                .withEsHost(esHost)
-                .withEsTransport(esTransport)
-                .withEventStore(eventStore)
-                .build();
-        return systemProperties;
-    }
+    BranchLoader branchLoader(DefaultConfig defaultConfig, BranchGroup branchGroup,
+                              ContractPolicyLoader policyLoader, Environment env) {
 
-    @Bean
-    BranchLoader branchLoader(DefaultConfig defaultConfig, BranchGroup branchGroup, ContractPolicyLoader policyLoader) {
         BranchLoader branchLoader = new BranchLoader(defaultConfig.getBranchPath());
+        boolean isValidator = Arrays.asList(env.getActiveProfiles()).contains(ActiveProfiles.VALIDATOR);
+        if (isValidator) {
+            return branchLoader;
+        }
         // TODO check exist branch
         try {
             for (GenesisBlock genesis : branchLoader.getGenesisBlockList()) {
+                if (branchGroup.getBranch(genesis.getBranchId()) != null) {
+                    continue;
+                }
                 BlockChain bc = createBranch(genesis, policyLoader);
                 branchGroup.addBranch(bc);
             }
@@ -113,12 +113,6 @@ public class BranchConfiguration {
             log.warn(e.getMessage(), e);
         }
         return branchLoader;
-    }
-
-    private BlockChain createBranch(InputStream is, ContractPolicyLoader policyLoader)
-            throws IOException {
-        GenesisBlock genesis = GenesisBlock.of(is);
-        return createBranch(genesis, policyLoader);
     }
 
     private BlockChain createBranch(GenesisBlock genesis, ContractPolicyLoader policyLoader) {
@@ -143,13 +137,16 @@ public class BranchConfiguration {
     }
 
     static BlockChain getBlockChain(GenesisBlock genesis, StoreBuilder storeBuilder,
-                                     ContractPolicyLoader policyLoader, BranchId branchId,
+                                    ContractPolicyLoader policyLoader, BranchId branchId,
                                     SystemProperties systemProperties) {
+
         ContractStore contractStore = storeBuilder.buildContractStore();
+
         BlockChainManager blockChainManager = new BlockChainManagerImpl(
                 storeBuilder.buildBlockStore(),
                 storeBuilder.buildTransactionStore(),
                 contractStore.getTransactionReceiptStore());
+
         ContractManager contractManager = ContractManagerBuilder.newInstance()
                 .withFrameworkFactory(policyLoader.getFrameworkFactory())
                 .withContractManagerConfig(policyLoader.getContractManagerConfig())

@@ -38,6 +38,7 @@ import org.spongycastle.util.encoders.Hex;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.mock.env.MockEnvironment;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,7 +67,7 @@ public class BranchConfigurationTest {
 
         saveFile(branchId, branchJson);
         BranchGroup branchGroup = branchConfig.branchGroup();
-        branchConfig.branchLoader(config, branchGroup, policyLoader);
+        branchConfig.branchLoader(config, branchGroup, policyLoader, new MockEnvironment());
         File branchDir = new File(config.getBranchPath(), branchId.toString());
         FileUtils.deleteQuietly(branchDir);
 

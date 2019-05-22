@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.ParseException;
 
 import static io.yggdrash.node.api.JsonRpcConfig.BLOCK_API;
 import static io.yggdrash.node.api.JsonRpcConfig.TX_API;
@@ -131,7 +132,7 @@ public class TransactionApiImplTest {
     public void checkTransactionJsonFormat() throws IOException {
         Transaction tx = createTx();
         String txString = new ObjectMapper().writeValueAsString(TransactionDto.createBy(tx));
-        Assert.assertTrue(txString.contains(tx.getBranchId().toString()));
+        assertTrue(txString.contains(tx.getBranchId().toString()));
     }
 
     @Test
@@ -189,7 +190,7 @@ public class TransactionApiImplTest {
     }
 
     @Test
-    public void txSigValidateTest() throws IOException {
+    public void txSigValidateTest() throws IOException, ParseException {
         // Create Transaction
         Transaction tx = createTx();
 

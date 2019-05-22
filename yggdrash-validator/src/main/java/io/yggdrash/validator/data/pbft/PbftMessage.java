@@ -1,5 +1,6 @@
 package io.yggdrash.validator.data.pbft;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
@@ -162,6 +163,7 @@ public class PbftMessage implements ConsensusMessage<PbftMessage> {
     }
 
     @Override
+    @JsonIgnore
     public Block getBlock() {
         return block;
     }

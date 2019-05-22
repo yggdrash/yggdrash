@@ -81,7 +81,7 @@ public class BlockApiImplTest {
     }
 
     @Test
-    public void BlockDtoTest() throws IOException {
+    public void blockDtoTest() throws IOException {
         // Create Block
         ConsensusBlock block = BlockChainTestUtils.genesisBlock();
 

@@ -7,7 +7,7 @@ services:
       - node.name=es01
       - discovery.seed_hosts=es02
       - cluster.initial_master_nodes=es01,es02
-      - cluster.name=docker-cluster
+      - cluster.name=elasticsearch
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ulimits:
@@ -28,7 +28,7 @@ services:
       - node.name=es02
       - discovery.seed_hosts=es01
       - cluster.initial_master_nodes=es01,es02
-      - cluster.name=docker-cluster
+      - cluster.name=elasticsearch
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ulimits:

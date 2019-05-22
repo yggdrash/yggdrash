@@ -16,6 +16,7 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.common.config.Constants.ActiveProfiles;
 import io.yggdrash.gateway.GatewayConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -30,7 +31,7 @@ public class YggdrashNodeApp {
     }
 
     @Configuration
-    @Profile("gateway")
+    @Profile(ActiveProfiles.GATEWAY)
     @Import(GatewayConfiguration.class)
     class NodeConfig {
     }

@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.blockchain;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.protobuf.ByteString;
@@ -243,7 +242,7 @@ public class TransactionImpl implements Transaction {
         return Long.compare(getHeader().getTimestamp(), o.getHeader().getTimestamp());
     }
 
-    @VisibleForTesting
+    @Override
     public byte[] toRawTransaction() {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
 

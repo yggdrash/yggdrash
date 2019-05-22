@@ -16,21 +16,24 @@
 
 package io.yggdrash.gateway.dto;
 
+import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.util.Timestamps;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionImpl;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.Proto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
+import java.text.ParseException;
+
 public class TransactionDto {
-    private static final Logger log = LoggerFactory.getLogger(TransactionDto.class);
 
     public String branchId;
     public String version;
     public String type;
-    public long timestamp;
+    public String timestamp;
     public String bodyHash;
     public long bodyLength;
     public String signature;
@@ -38,15 +41,24 @@ public class TransactionDto {
     public String author;
     public String txId;
 
+    public JsonObject toJsonObject() {
+        return JsonUtil.parseJsonObject(this);
+    }
+
     public static Transaction of(TransactionDto dto) {
-        Proto.Transaction.Header header = Proto.Transaction.Header.newBuilder()
-                .setChain(ByteString.copyFrom(Hex.decode(dto.branchId)))
-                .setVersion(ByteString.copyFrom(Hex.decode(dto.version)))
-                .setType(ByteString.copyFrom(Hex.decode(dto.type)))
-                .setTimestamp(dto.timestamp)
-                .setBodyHash(ByteString.copyFrom(Hex.decode(dto.bodyHash)))
-                .setBodyLength(dto.bodyLength)
-                .build();
+        Proto.Transaction.Header header;
+        try {
+            header = Proto.Transaction.Header.newBuilder()
+                    .setChain(ByteString.copyFrom(Hex.decode(dto.branchId)))
+                    .setVersion(ByteString.copyFrom(Hex.decode(dto.version)))
+                    .setType(ByteString.copyFrom(Hex.decode(dto.type)))
+                    .setTimestamp(Timestamps.toMillis(Timestamps.parse(dto.timestamp)))
+                    .setBodyHash(ByteString.copyFrom(Hex.decode(dto.bodyHash)))
+                    .setBodyLength(dto.bodyLength)
+                    .build();
+        } catch (ParseException e) {
+            throw new NotValidateException(e);
+        }
 
         Proto.Transaction tx = Proto.Transaction.newBuilder()
                 .setHeader(header)
@@ -61,7 +73,7 @@ public class TransactionDto {
         transactionDto.branchId = tx.getBranchId().toString();
         transactionDto.version = Hex.toHexString(tx.getHeader().getVersion());
         transactionDto.type = Hex.toHexString(tx.getHeader().getType());
-        transactionDto.timestamp = tx.getHeader().getTimestamp();
+        transactionDto.timestamp = Timestamps.toString(Timestamps.fromMillis(tx.getHeader().getTimestamp()));
         transactionDto.bodyHash = Hex.toHexString(tx.getBody().getHash());
         transactionDto.bodyLength = tx.getBody().getLength();
         transactionDto.signature = Hex.toHexString(tx.getSignature());

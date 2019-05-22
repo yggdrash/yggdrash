@@ -79,3 +79,9 @@ spring.profiles: validator
 yggdrash:
   node:
     validator: true
+    chain.enabled: false
+    grpc.enabled: false
+
+spring:
+  main:
+    web-application-type: NONE

@@ -18,6 +18,7 @@ package io.yggdrash.gateway.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.gateway.dto.BlockDto;
 import io.yggdrash.node.YggdrashNodeApp;
 import org.junit.Before;
@@ -40,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
 @SpringBootTest(classes = YggdrashNodeApp.class)
-@ActiveProfiles("gateway")
+@ActiveProfiles(Constants.ActiveProfiles.GATEWAY)
 public class BlockControllerTest extends TestConstants.CiTest {
 
     private String basePath;

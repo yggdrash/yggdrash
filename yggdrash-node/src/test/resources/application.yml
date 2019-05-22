@@ -12,3 +12,14 @@ management:
   endpoint:
     restart:
       enabled: true
+
+
+---
+
+spring.profiles: validator
+
+yggdrash:
+  node:
+    validator: true
+    chain.enabled: false
+    grpc.enabled: false
