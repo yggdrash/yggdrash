@@ -81,3 +81,7 @@ yggdrash:
     validator: true
     chain.enabled: false
     grpc.enabled: false
+
+spring:
+  main:
+    web-application-type: NONE

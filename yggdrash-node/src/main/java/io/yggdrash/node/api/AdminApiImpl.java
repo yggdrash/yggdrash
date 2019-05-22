@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cloud.context.restart.RestartEndpoint;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @AutoJsonRpcServiceImpl
+@ConditionalOnBean(HttpServletRequest.class)
 public class AdminApiImpl implements AdminApi {
 
     private static final Logger log = LoggerFactory.getLogger(AdminApiImpl.class);
