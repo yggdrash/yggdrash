@@ -100,6 +100,9 @@ public class BranchConfiguration {
         // TODO check exist branch
         try {
             for (GenesisBlock genesis : branchLoader.getGenesisBlockList()) {
+                if (branchGroup.getBranch(genesis.getBranchId()) != null) {
+                    continue;
+                }
                 BlockChain bc = createBranch(genesis, policyLoader);
                 branchGroup.addBranch(bc);
             }
