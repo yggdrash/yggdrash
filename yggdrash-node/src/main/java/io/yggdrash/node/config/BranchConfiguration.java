@@ -47,7 +47,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 
 @Configuration
@@ -73,8 +72,12 @@ public class BranchConfiguration {
     @Bean
     @ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
     BlockChain yggdrash(BranchGroup branchGroup, ContractPolicyLoader policyLoader) throws IOException {
-        BlockChain yggdrash = createBranch(yggdrashResource.getInputStream(), policyLoader);
-        branchGroup.addBranch(yggdrash);
+        GenesisBlock genesis = GenesisBlock.of(yggdrashResource.getInputStream());
+        BlockChain yggdrash = branchGroup.getBranch(genesis.getBranchId());
+        if (yggdrash == null) {
+            yggdrash = createBranch(genesis, policyLoader);
+            branchGroup.addBranch(yggdrash);
+        }
         return yggdrash;
     }
 
@@ -110,12 +113,6 @@ public class BranchConfiguration {
             log.warn(e.getMessage(), e);
         }
         return branchLoader;
-    }
-
-    private BlockChain createBranch(InputStream is, ContractPolicyLoader policyLoader)
-            throws IOException {
-        GenesisBlock genesis = GenesisBlock.of(is);
-        return createBranch(genesis, policyLoader);
     }
 
     private BlockChain createBranch(GenesisBlock genesis, ContractPolicyLoader policyLoader) {
