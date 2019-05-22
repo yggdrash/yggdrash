@@ -16,8 +16,8 @@
 
 package io.yggdrash.node.config;
 
-import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.node.PeerTask;
 import io.yggdrash.node.springboot.grpc.GrpcServerRunner;
@@ -28,12 +28,21 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.File;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @ActiveProfiles(Constants.ActiveProfiles.VALIDATOR)
-public class ValidatorNodeTest extends TestConstants.CiTest {
+public class ValidatorNodeTest {
+
+    static {
+        File validatorPath = new File(new DefaultConfig().getValidatorPath());
+        if (!validatorPath.exists()) {
+            validatorPath.mkdirs();
+        }
+    }
 
     @Autowired
     private BranchGroup branchGroup;
