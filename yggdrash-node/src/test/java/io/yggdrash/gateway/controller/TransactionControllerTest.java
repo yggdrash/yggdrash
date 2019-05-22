@@ -17,10 +17,10 @@
 package io.yggdrash.gateway.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.node.YggdrashNodeApp;
@@ -50,7 +50,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
 @SpringBootTest(classes = YggdrashNodeApp.class)
-@ActiveProfiles("gateway")
+@ActiveProfiles(Constants.ActiveProfiles.GATEWAY)
 public class TransactionControllerTest extends TestConstants.CiTest {
 
     private String basePath;

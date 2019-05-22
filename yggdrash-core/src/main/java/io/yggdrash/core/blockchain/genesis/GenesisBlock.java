@@ -7,8 +7,10 @@ import io.yggdrash.core.blockchain.BlockHeader;
 import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;
+import io.yggdrash.core.consensus.Consensus;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,6 +42,14 @@ public class GenesisBlock {
 
     public Branch getBranch() {
         return branch;
+    }
+
+    public BranchId getBranchId() {
+        return branch.getBranchId();
+    }
+
+    public Consensus getConsensus() {
+        return new Consensus(branch.getConsensus());
     }
 
     private Block toBlock() {

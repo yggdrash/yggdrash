@@ -18,6 +18,7 @@ package io.yggdrash.gateway.controller;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.node.YggdrashNodeApp;
@@ -39,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
 @SpringBootTest(classes = YggdrashNodeApp.class)
-@ActiveProfiles("gateway")
+@ActiveProfiles(Constants.ActiveProfiles.GATEWAY)
 public class BranchControllerTest  extends TestConstants.CiTest {
 
     @Autowired

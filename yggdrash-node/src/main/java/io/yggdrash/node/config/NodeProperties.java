@@ -112,6 +112,7 @@ public class NodeProperties {
     public static class Grpc {
         private String host;
         private int port;
+        private boolean enabled = true;
 
         public String getHost() {
             return host;
@@ -127,6 +128,14 @@ public class NodeProperties {
 
         public void setPort(int port) {
             this.port = port;
+        }
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
         }
     }
 }

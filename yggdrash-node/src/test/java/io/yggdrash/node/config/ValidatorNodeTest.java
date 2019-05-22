@@ -16,35 +16,42 @@
 
 package io.yggdrash.node.config;
 
-import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants;
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BranchGroup;
-import io.yggdrash.gateway.controller.BranchController;
 import io.yggdrash.node.PeerTask;
+import io.yggdrash.node.springboot.grpc.GrpcServerRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.io.File;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(properties = {"yggdrash.node.seed=true", "yggdrash.node.chain.enabled=false"})
-public class BootstrapNodeTest extends TestConstants.CiTest {
+@SpringBootTest
+@ActiveProfiles(Constants.ActiveProfiles.VALIDATOR)
+public class ValidatorNodeTest {
+
+    static {
+        File validatorPath = new File(new DefaultConfig().getValidatorPath());
+        if (!validatorPath.exists()) {
+            validatorPath.mkdirs();
+        }
+    }
 
     @Autowired
     private BranchGroup branchGroup;
 
-    @Autowired
+    @Autowired(required = false)
     private PeerTask peerTask;
 
     @Autowired(required = false)
-    private BranchController branchController;
-
-    @Test
-    public void shouldBePeerTaskEnabled() {
-        assertThat(peerTask).isNotNull();
-    }
+    private GrpcServerRunner grpcServerRunner;
 
     @Test
     public void shouldBeEmptyBranch() {
@@ -52,7 +59,13 @@ public class BootstrapNodeTest extends TestConstants.CiTest {
     }
 
     @Test
-    public void shouldBeControllerDisabled() {
-        assertThat(branchController).isNull();
+    public void shouldBePeerTaskDisabled() {
+        assertThat(peerTask).isNull();
     }
+
+    @Test
+    public void shouldBeGrpcDisabled() {
+        assertThat(grpcServerRunner).isNull();
+    }
+
 }
