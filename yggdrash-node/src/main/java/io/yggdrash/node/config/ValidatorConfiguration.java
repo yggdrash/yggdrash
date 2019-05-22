@@ -46,9 +46,9 @@ public class ValidatorConfiguration {
                                                                      ContractPolicyLoader policyLoader) {
 
         Map<BranchId, List<ValidatorService>> validatorServiceMap = new HashMap<>();
-        File branchRootPath = new File(defaultConfig.getBranchPath());
+        File validatorPath = new File(defaultConfig.getValidatorPath());
 
-        for (File branchPath : Objects.requireNonNull(branchRootPath.listFiles())) {
+        for (File branchPath : Objects.requireNonNull(validatorPath.listFiles())) {
             Optional<GenesisBlock> genesisBlock = getGenesisBlock(branchPath, branchLoader);
             if (!genesisBlock.isPresent()) {
                 log.warn("Not found branch for [{}]", branchPath);
