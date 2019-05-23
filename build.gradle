@@ -179,12 +179,8 @@ project(':yggdrash-node') {
     apply plugin: 'io.spring.dependency-management'
 
     dependencies {
-        compile(project(':yggdrash-validator')) {
-            exclude module: 'contracts'
-        }
-        compile(project(':yggdrash-gateway')) {
-            exclude module: 'contracts'
-        }
+        compile project(':yggdrash-validator')
+        compile project(':yggdrash-gateway')
         compile "org.springframework.boot:spring-boot-starter-web"
         compile "org.springframework.boot:spring-boot-starter-undertow"
         compile "org.springframework.boot:spring-boot-starter-actuator"
