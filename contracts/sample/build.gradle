@@ -107,5 +107,5 @@ jar {
 }
 
 dependencies {
-    compile project(':yggdrash-common')
+    compile project(':yggdrash-contract-core')
 }

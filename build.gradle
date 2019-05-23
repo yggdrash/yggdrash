@@ -179,9 +179,6 @@ project(':yggdrash-node') {
     apply plugin: 'io.spring.dependency-management'
 
     dependencies {
-        compile(project(':yggdrash-core')) {
-            exclude module: 'contracts'
-        }
         compile(project(':yggdrash-validator')) {
             exclude module: 'contracts'
         }
