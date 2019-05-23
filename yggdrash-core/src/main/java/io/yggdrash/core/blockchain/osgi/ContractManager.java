@@ -478,12 +478,14 @@ public class ContractManager {
         for (Transaction tx : nextBlock.getBody().getTransactionList()) {
 
             String contractVersion = getContractVersion(tx);
-            Bundle bundle = getBundle(contractVersion);
-            if (bundle == null) {
-                throw new NonExistObjectException(contractVersion + " bundle");
+            // Not exist contract in map
+            if (!serviceMap.containsKey(contractVersion)) {
+                Bundle bundle = getBundle(contractVersion);
+                if (bundle == null) {
+                    serviceMap.put(contractVersion, null);
+                }
+                serviceMap.put(contractVersion, getService(bundle));
             }
-
-            serviceMap.put(contractVersion, getService(bundle));
         }
 
         return contractExecutor.executeTxs(serviceMap, nextBlock);

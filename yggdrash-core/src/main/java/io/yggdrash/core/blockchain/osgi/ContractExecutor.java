@@ -156,9 +156,9 @@ public class ContractExecutor {
                 contractVersion, service, methodName, params, MethodType.Query, null, null);
     }
 
-    public Object invoke(String contractVersion, Object service, JsonObject txBody, TransactionReceipt txReceipt) {
+    public void invoke(String contractVersion, Object service, JsonObject txBody, TransactionReceipt txReceipt) {
 
-        return callContractMethod(contractVersion, service, txBody.get("method").getAsString(),
+        callContractMethod(contractVersion, service, txBody.get("method").getAsString(),
                 txBody.getAsJsonObject("params"), MethodType.InvokeTx, txReceipt, null);
     }
 
@@ -187,8 +187,8 @@ public class ContractExecutor {
         txRuntimeResult.setTransactionReceipt(txReceipt);
 
         JsonObject txBody = JsonUtil.parseJsonObject(tx.getBody().toString());
-        Object contractResult = invoke(contractVersion, service, txBody, txReceipt);
-        //TODO Q. Where will the contractResult be used?
+        // invoke transaction
+        invoke(contractVersion, service, txBody, txReceipt);
 
         txRuntimeResult.setChangeValues(contractStore.getTmpStateStore().changeValues());
 
@@ -204,16 +204,23 @@ public class ContractExecutor {
         BlockRuntimeResult blockRuntimeResult = new BlockRuntimeResult(nextBlock);
 
         for (Transaction tx : nextBlock.getBody().getTransactionList()) {
+            // get all exceptions
             TransactionReceipt txReceipt = createTransactionReceipt(tx);
 
             txReceipt.setBlockId(nextBlock.getHash().toString());
             txReceipt.setBlockHeight(nextBlock.getIndex());
             txReceipt.setBranchId(nextBlock.getBranchId().toString());
 
-            JsonObject txBody = JsonUtil.parseJsonObject(tx.getBody().toString());
+            JsonObject txBody = tx.getBody().getBody();
             String contractVersion = txBody.get("contractVersion").getAsString();
             Object service = serviceMap.get(contractVersion);
-            Object contractResult = invoke(contractVersion, service, txBody, txReceipt);
+
+            if (service != null) {
+                invoke(contractVersion, service, txBody, txReceipt);
+            } else {
+                txReceipt.addLog("contract is not exist");
+            }
+
             //TODO Q. Where will the contractResult be used?
 
             log.debug("{} is {}", txReceipt.getTxId(), txReceipt.isSuccess());
