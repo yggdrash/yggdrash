@@ -5,7 +5,7 @@ option java_outer_classname = "Proto";
 
 import "Common.proto";
 
-service PeerService {
+service DiscoveryService {
     rpc findPeers (TargetPeer) returns (PeerList) {
     }
     rpc ping (Ping) returns (Pong) {
