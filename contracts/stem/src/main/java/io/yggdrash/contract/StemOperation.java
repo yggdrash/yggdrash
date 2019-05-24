@@ -21,8 +21,8 @@ public enum StemOperation {
 
     public static StemOperation fromValue(String flag) {
         StemOperation[] values = StemOperation.values();
-        for(StemOperation value : values) {
-            if (value.flag.equals(flag) ) {
+        for (StemOperation value : values) {
+            if (value.flag.equals(flag)) {
                 return value;
             }
         }

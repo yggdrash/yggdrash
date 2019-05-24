@@ -309,7 +309,7 @@ public class StemContract implements BundleActivator, ServiceListener {
             // all message is sha3hashed
             message = HashUtil.sha3(message);
 
-            int voteCount = (int)Math.ceil(1.0*validatorSet.size()*2/3);
+            int voteCount = (int)Math.ceil(1.0 * validatorSet.size() * 2 / 3);
             int vote = 0;
             log.debug("vote count {}", voteCount);
 
@@ -360,7 +360,7 @@ public class StemContract implements BundleActivator, ServiceListener {
                 txReceipt.addLog("new validator add in branch");
                 return;
 
-            } else if(operatingFlag == StemOperation.REMOVE_VALIDATOR) {
+            } else if (operatingFlag == StemOperation.REMOVE_VALIDATOR) {
                 // remove validator
                 if (!validatorSet.contains(targetValidator)) {
                     txReceipt.setStatus(ExecuteStatus.FALSE);
@@ -376,7 +376,7 @@ public class StemContract implements BundleActivator, ServiceListener {
                 txReceipt.addLog("validator remove in branch");
                 return;
 
-            } else if(operatingFlag == StemOperation.REPLACE_VALIDATOR) {
+            } else if (operatingFlag == StemOperation.REPLACE_VALIDATOR) {
                 // replace validator
                 // param get validator list
                 // remove proposer
@@ -401,7 +401,7 @@ public class StemContract implements BundleActivator, ServiceListener {
                 txReceipt.addLog(String.format("validator replace %s to %s", proposer, targetValidator));
                 return;
 
-            } else if(operatingFlag == StemOperation.UPDATE_VALIDATOR_SET) {
+            } else if (operatingFlag == StemOperation.UPDATE_VALIDATOR_SET) {
                 // update all validator set
                 JsonObject newValidatorSet = new JsonObject();
                 JsonArray validatorList = params.get("validators").getAsJsonArray();

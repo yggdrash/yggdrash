@@ -331,12 +331,12 @@ public class StemContractValidatorTest {
     public void updateValidatorsUpdateValidatorSet() {
         // TODO Update validator Set
         String targetBranchId = updateBranchId;
-        Long blockHeight = 100L;
+        final Long blockHeight = 100L;
 
         // remove exist validator (v2)
-        String operatingFlag = StemOperation.UPDATE_VALIDATOR_SET.toValue(); // ADD OR DELETE OR REPLACE
+        final String operatingFlag = StemOperation.UPDATE_VALIDATOR_SET.toValue(); // ADD OR DELETE OR REPLACE
 
-        JsonObject targetValidatorSet = stemContract.getValidators(updateBranchId);
+        JsonObject targetValidatorSet = stemContract.getValidators(targetBranchId);
         targetValidatorSet.getAsJsonArray("validators")
                 .add("101167aaf090581b91c08480f6e559acdd9a3ddd");
         targetValidatorSet.getAsJsonArray("validators")
@@ -372,7 +372,8 @@ public class StemContractValidatorTest {
         byte[] signV4 = v4.sign(message, true);
 
         String[] signed = new String[]{
-                HexUtil.toHexString(signV1), HexUtil.toHexString(signV2), HexUtil.toHexString(signV3), HexUtil.toHexString(signV4)
+                HexUtil.toHexString(signV1), HexUtil.toHexString(signV2),
+                HexUtil.toHexString(signV3), HexUtil.toHexString(signV4)
         };
 
         // add to params in sign

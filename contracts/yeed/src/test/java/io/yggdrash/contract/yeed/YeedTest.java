@@ -380,7 +380,7 @@ public class YeedTest {
         proposal.addProperty("blockHeight", targetBlockHeight);
         proposal.addProperty("fee", fee);
 
-        BigInteger issuerOriginBalance = getBalance(issuer);
+        final BigInteger issuerOriginBalance = getBalance(issuer);
 
         TransactionReceipt receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 1);
 
@@ -502,7 +502,7 @@ public class YeedTest {
     @Test
     public void processingPropose() {
         // Type 1 - Issuer validate transaction
-        String transactionId = "0x02";
+        final String transactionId = "0x02";
         String receiveAddress = "c3cf7a283a4415ce3c41f5374934612389334780";
         BigInteger receiveAsset = new BigInteger("1000000000000000000");
         int receiveChainId = 1;
@@ -589,8 +589,8 @@ public class YeedTest {
 
         assert receipt.getStatus() == ExecuteStatus.SUCCESS;
 
-        transactionId = "0x03";
-        receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 50);
+        final String newTransactionId = "0x03";
+        receipt = setTxReceipt(newTransactionId, issuer, BRANCH_ID, 50);
         yeedContract.processPropose(processJson);
         assert receipt.getStatus() == ExecuteStatus.FALSE;
         receipt.getTxLog().stream().forEach(l -> log.debug(l));
@@ -599,7 +599,7 @@ public class YeedTest {
 
     @Test
     public void processingInvalid() {
-        String transactionId = "0x02";
+        final String transactionId = "0x02";
         String receiveAddress = "ad8992d6f78d9cc597438efbccd8940d7c02bc6d";
         BigInteger receiveAsset = new BigInteger("11000000000000000000");
         int receiveChainId = 1;
@@ -679,7 +679,7 @@ public class YeedTest {
 
     @Test
     public void proposeIssueFail() {
-        String transactionId = "0x02";
+        final String transactionId = "0x02";
         String receiveAddress = "ad8992d6f78d9cc597438efbccd8940d7c02bc6d";
         BigInteger receiveAsset = new BigInteger("11000000000000000000");
         int receiveChainId = 1;
@@ -737,7 +737,7 @@ public class YeedTest {
     @Test
     public void processingProposeConfirm() {
         // Type 1 - Issuer validate transaction
-        String transactionId = "0x02";
+        final String transactionId = "0x02";
         String receiveAddress = "c3cf7a283a4415ce3c41f5374934612389334780";
         BigInteger receiveAsset = new BigInteger("1000000000000000000");
         int receiveChainId = 1;
