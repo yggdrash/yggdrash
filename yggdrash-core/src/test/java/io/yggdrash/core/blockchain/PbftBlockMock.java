@@ -72,8 +72,7 @@ public class PbftBlockMock extends AbstractConsensusBlock<PbftProto.PbftBlock> {
     @Override
     public void loggingBlock() {
         try {
-            log.info("PbftBlockMock "
-                    + ")");
+            log.info("PbftBlockMock");
         } catch (Exception e) {
             log.debug(e.getMessage());
         }
