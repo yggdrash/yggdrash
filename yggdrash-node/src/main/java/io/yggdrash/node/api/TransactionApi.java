@@ -8,8 +8,6 @@ import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.RejectedAccessException;
 import io.yggdrash.gateway.dto.TransactionDto;
-import io.yggdrash.gateway.dto.TransactionHeaderRawDto;
-import io.yggdrash.gateway.dto.TransactionRawDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
 import io.yggdrash.gateway.dto.TransactionResponseDto;
 

@@ -35,7 +35,7 @@ public class TransactionHeader implements ProtoObject<Proto.Transaction.Header> 
     public static final int VERSION_LENGTH = 8;
     public static final int TYPE_LENGTH = 8;
 
-    static final int LENGTH = 84;
+    public static final int LENGTH = 84;
 
     private final Proto.Transaction.Header protoHeader;
 
