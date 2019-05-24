@@ -3,6 +3,7 @@ jar {
 }
 
 dependencies {
+    compile "ch.qos.logback:logback-classic:${logbackVersion}"
     compile "org.eclipse.tycho:org.eclipse.osgi:${equinoxVersion}"
     compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
     compile "com.google.code.gson:gson:${gsonVersion}"

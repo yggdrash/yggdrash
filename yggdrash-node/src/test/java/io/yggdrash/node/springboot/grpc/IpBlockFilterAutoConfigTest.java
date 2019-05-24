@@ -22,7 +22,7 @@ import io.grpc.ServerInterceptor;
 import io.grpc.StatusRuntimeException;
 import io.yggdrash.node.springboot.grpc.context.LocalRunningGrpcPort;
 import io.yggdrash.node.springboot.grpc.demo.GrpcDemoApp;
-import io.yggdrash.proto.PeerServiceGrpc;
+import io.yggdrash.proto.DiscoveryServiceGrpc;
 import io.yggdrash.proto.Proto;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +53,6 @@ public class IpBlockFilterAutoConfigTest {
         // Create channel
         ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", runningPort).usePlaintext().build();
 
-        PeerServiceGrpc.newBlockingStub(channel).ping(Proto.Ping.newBuilder().setPing("Ping").build());
+        DiscoveryServiceGrpc.newBlockingStub(channel).ping(Proto.Ping.newBuilder().setPing("Ping").build());
     }
 }

@@ -17,12 +17,15 @@
 package io.yggdrash.node.api;
 
 import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.common.config.Constants;
+import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.TransactionHeader;
 import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.gateway.dto.TransactionDto;
@@ -148,4 +151,27 @@ public class TransactionMockitoTest {
         log.debug("\n\nres :: " + Hex.encodeHexString(res));
         assertThat(res).isNotEqualTo(testTx.getHash().getBytes());
     }
+
+    @Test
+    public void getRawTransaction() {
+        when(branchGroupMock.getTxByHash(branchId, txId))
+                .thenReturn(tx);
+        String raw = txApiImpl.getRawTransaction(branchId.toString(), txId);
+        assertThat(raw).isNotEmpty();
+    }
+
+    @Test
+    public void getRawTransactionHeader() {
+        when(branchGroupMock.getTxByHash(branchId, txId))
+                .thenReturn(tx);
+        String raw = txApiImpl.getRawTransactionHeader(branchId.toString(), txId);
+        log.debug(raw);
+
+        byte[] rawByteArray = HexUtil.hexStringToBytes(raw);
+        log.debug("header  raw size : {} ", rawByteArray.length);
+        assertThat(raw.length())
+                .isEqualTo((TransactionHeader.LENGTH + Constants.SIGNATURE_LENGTH) * 2);
+        assertThat(raw).isNotEmpty();
+    }
+
 }

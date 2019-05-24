@@ -145,4 +145,17 @@ public interface TransactionApi {
                     code = NonExistObjectException.CODE)})
     TransactionReceiptDto getTransactionReceipt(@JsonRpcParam(value = BRANCH_ID) String branchId,
                                                 @JsonRpcParam(value = TX_ID) String txId);
+
+    @JsonRpcErrors({
+            @JsonRpcError(exception = NonExistObjectException.class,
+                    code = NonExistObjectException.CODE)})
+    String getRawTransaction(@JsonRpcParam(value = BRANCH_ID) String branchId,
+                                        @JsonRpcParam(value = TX_ID) String txId);
+
+    @JsonRpcErrors({
+            @JsonRpcError(exception = NonExistObjectException.class,
+                    code = NonExistObjectException.CODE)})
+    String getRawTransactionHeader(@JsonRpcParam(value = BRANCH_ID) String branchId,
+                                                    @JsonRpcParam(value = TX_ID) String txId);
+
 }

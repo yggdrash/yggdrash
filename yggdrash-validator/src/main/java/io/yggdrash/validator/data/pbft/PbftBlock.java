@@ -23,8 +23,11 @@ import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.consensus.AbstractConsensusBlock;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.PbftProto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PbftBlock extends AbstractConsensusBlock<PbftProto.PbftBlock> {
+    private static final Logger log = LoggerFactory.getLogger(PbftBlock.class);
 
     private transient PbftMessageSet pbftMessageSet;
 
@@ -83,6 +86,24 @@ public class PbftBlock extends AbstractConsensusBlock<PbftProto.PbftBlock> {
             return PbftProto.PbftBlock.parseFrom(bytes);
         } catch (InvalidProtocolBufferException e) {
             throw new NotValidateException(e);
+        }
+    }
+
+    @Override
+    public void loggingBlock() {
+        try {
+            log.info("PbftBlock ({}) [{}] ({}) ({}) ({}) ({}) ({}) tx({})",
+                    this.getConsensusMessages().getPrePrepare().getViewNumber(),
+                    this.getIndex(),
+                    this.getHash(),
+                    this.getConsensusMessages().getPrepareMap().size(),
+                    this.getConsensusMessages().getCommitMap().size(),
+                    this.getConsensusMessages().getViewChangeMap().size(),
+                    this.getBlock().getAddress(),
+                    this.getBlock().getBody().getCount()
+            );
+        } catch (Exception e) {
+            log.debug(e.getMessage());
         }
     }
 }

@@ -26,12 +26,15 @@ import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.consensus.AbstractConsensusBlock;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.EbftProto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class EbftBlock extends AbstractConsensusBlock<EbftProto.EbftBlock> {
+    private static final Logger log = LoggerFactory.getLogger(EbftBlock.class);
 
     private final transient List<ByteString> consensusList;
 
@@ -100,6 +103,20 @@ public class EbftBlock extends AbstractConsensusBlock<EbftProto.EbftBlock> {
             return EbftProto.EbftBlock.parseFrom(bytes);
         } catch (InvalidProtocolBufferException e) {
             throw new NotValidateException(e);
+        }
+    }
+
+    @Override
+    public void loggingBlock() {
+        try {
+            log.info("EbftBlock [{}] {} ({}) ({})",
+                    this.getIndex(),
+                    this.getHash(),
+                    this.getBlock().getAddress(),
+                    this.getConsensusMessages().size()
+            );
+        } catch (Exception e) {
+            log.debug(e.getMessage());
         }
     }
 }

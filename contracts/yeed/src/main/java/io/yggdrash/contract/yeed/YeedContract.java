@@ -50,7 +50,6 @@ import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 import java.math.BigInteger;
 import java.util.Hashtable;
 import java.util.List;
@@ -404,7 +403,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
         private String approveKey(String sender, String spender) {
             byte[] approveKeyByteArray = ByteUtil.merge(sender.getBytes(), spender.getBytes());
             byte[] approveKey = HashUtil.sha3(approveKeyByteArray);
-            return String.format("%s%s", PrefixKeyEnum.APPROVE.toValue(),Hex.toHexString(approveKey));
+            return String.format("%s%s", PrefixKeyEnum.APPROVE.toValue(), HexUtil.toHexString(approveKey));
         }
 
         private boolean isTransferable(BigInteger targetBalance, BigInteger amount) {

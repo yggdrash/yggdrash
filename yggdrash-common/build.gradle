@@ -13,5 +13,4 @@ dependencies {
     compile "commons-codec:commons-codec:${commonsCodecVersion}"
     compile "org.apache.commons:commons-lang3:${commonLangVersion}"
     compile "org.apache.commons:commons-collections4:${collectionsVersion}"
-    compile "ch.qos.logback:logback-classic:${logbackVersion}"
 }

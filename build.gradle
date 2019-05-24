@@ -108,8 +108,6 @@ project(':yggdrash-core') {
         compile "io.grpc:grpc-netty:${grpcVersion}"
         compile "com.google.protobuf:protobuf-java-util:${protobufVersion}"
         compile "org.ehcache:ehcache:${ehcacheVersion}"
-        compile "com.google.code.gson:gson:${gsonVersion}"
-        compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
         compile "com.typesafe:config:${typesafeVersion}"
         compile 'org.beryx:text-io:3.3.0'
         compileOnly "javax.annotation:javax.annotation-api:${annotationVersion}"
@@ -179,17 +177,8 @@ project(':yggdrash-node') {
     apply plugin: 'io.spring.dependency-management'
 
     dependencies {
-        compile(project(':yggdrash-core')) {
-            exclude module: 'contracts'
-        }
-        compile(project(':yggdrash-validator')) {
-            exclude module: 'contracts'
-        }
-        compile(project(':yggdrash-gateway')) {
-            exclude module: 'contracts'
-        }
-        compile "org.springframework.boot:spring-boot-starter-web"
-        compile "org.springframework.boot:spring-boot-starter-undertow"
+        compile project(':yggdrash-validator')
+        compile project(':yggdrash-gateway')
         compile "org.springframework.boot:spring-boot-starter-actuator"
         compile "org.springframework.cloud:spring-cloud-starter:2.0.0.RELEASE"
         compile "com.github.briandilley.jsonrpc4j:jsonrpc4j:1.5.3"

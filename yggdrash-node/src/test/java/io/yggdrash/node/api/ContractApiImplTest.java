@@ -54,14 +54,15 @@ public class ContractApiImplTest {
 
     @Test
     public void totalSupply() {
-        queryAndAssert("totalSupply", null, BigInteger.valueOf(1000000000000L));
+        queryAndAssert("totalSupply", null, new BigInteger("1994000000000000000000000"));
     }
 
     @Test
     public void balanceOf() {
+        // TODO balance is branch-yggdrash.json omount
         Map params = createParams("address",
                 "cee3d4755e47055b530deeba062c5bd0c17eb00f");
-        queryAndAssert("balanceOf", params, BigInteger.valueOf(998000000000L));
+        queryAndAssert("balanceOf", params, new BigInteger("994000000000000000000000"));
     }
 
     @Test

@@ -24,7 +24,7 @@ import io.yggdrash.node.springboot.grpc.GrpcGlobalInterceptor;
 import io.yggdrash.node.springboot.grpc.GrpcServerRunner;
 import io.yggdrash.node.springboot.grpc.context.LocalRunningGrpcPort;
 import io.yggdrash.node.springboot.grpc.demo.GrpcDemoApp;
-import io.yggdrash.proto.PeerServiceGrpc;
+import io.yggdrash.proto.DiscoveryServiceGrpc;
 import io.yggdrash.proto.Proto;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,7 +60,7 @@ public class IpBlockInterceptorTest {
                 .forAddress("localhost", runningPort)
                 .usePlaintext().build();
 
-        Proto.Pong reply = PeerServiceGrpc.newBlockingStub(channel)
+        Proto.Pong reply = DiscoveryServiceGrpc.newBlockingStub(channel)
                 .ping(Proto.Ping.newBuilder().setPing("Ping").build());
 
         reply.getPong();
@@ -69,7 +69,7 @@ public class IpBlockInterceptorTest {
         // Set ip for blocking
         ((IpBlockInterceptor) ipBlockInterceptor).setBlackIps(new String[] {"127.0.0.1"});
 
-        PeerServiceGrpc.newBlockingStub(channel).ping(Proto.Ping.newBuilder().setPing("Ping").build());
+        DiscoveryServiceGrpc.newBlockingStub(channel).ping(Proto.Ping.newBuilder().setPing("Ping").build());
     }
 
     @TestConfiguration

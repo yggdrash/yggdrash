@@ -5,14 +5,14 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.node.springboot.grpc.GrpcService;
-import io.yggdrash.proto.PeerServiceGrpc;
+import io.yggdrash.proto.DiscoveryServiceGrpc;
 import io.yggdrash.proto.Proto;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
 @GrpcService
-public class DiscoveryService extends PeerServiceGrpc.PeerServiceImplBase {
+public class DiscoveryService extends DiscoveryServiceGrpc.DiscoveryServiceImplBase {
 
     private final DiscoveryConsumer discoveryConsumer;
 
