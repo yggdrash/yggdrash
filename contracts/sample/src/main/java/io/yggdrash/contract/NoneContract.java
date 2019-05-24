@@ -1,7 +1,6 @@
 package io.yggdrash.contract;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
@@ -39,9 +38,6 @@ public class NoneContract implements BundleActivator {
 
         @ContractTransactionReceipt
         TransactionReceipt txReceipt;
-
-        public void init(StateStore stateStore) {
-        }
 
         @InvokeTransaction
         public boolean doNothing(JsonObject param) {
