@@ -8,6 +8,8 @@ import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.RejectedAccessException;
 import io.yggdrash.gateway.dto.TransactionDto;
+import io.yggdrash.gateway.dto.TransactionHeaderRawDto;
+import io.yggdrash.gateway.dto.TransactionRawDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
 import io.yggdrash.gateway.dto.TransactionResponseDto;
 
@@ -145,4 +147,17 @@ public interface TransactionApi {
                     code = NonExistObjectException.CODE)})
     TransactionReceiptDto getTransactionReceipt(@JsonRpcParam(value = BRANCH_ID) String branchId,
                                                 @JsonRpcParam(value = TX_ID) String txId);
+
+    @JsonRpcErrors({
+            @JsonRpcError(exception = NonExistObjectException.class,
+                    code = NonExistObjectException.CODE)})
+    String getRawTransaction(@JsonRpcParam(value = BRANCH_ID) String branchId,
+                                        @JsonRpcParam(value = TX_ID) String txId);
+
+    @JsonRpcErrors({
+            @JsonRpcError(exception = NonExistObjectException.class,
+                    code = NonExistObjectException.CODE)})
+    String getRawTransactionHeader(@JsonRpcParam(value = BRANCH_ID) String branchId,
+                                                    @JsonRpcParam(value = TX_ID) String txId);
+
 }
