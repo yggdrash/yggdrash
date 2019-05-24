@@ -1,6 +1,8 @@
 package io.yggdrash.node.api;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
+import io.yggdrash.common.crypto.HexUtil;
+import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
@@ -8,6 +10,7 @@ import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NonExistObjectException;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.exception.errorcode.BusinessError;
 import io.yggdrash.core.exception.errorcode.SystemError;
 import io.yggdrash.gateway.dto.TransactionDto;
@@ -17,7 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -127,5 +131,38 @@ public class TransactionApiImpl implements TransactionApi {
     public TransactionReceiptDto getTransactionReceipt(String branchId, String txId) {
         TransactionReceipt receipt = branchGroup.getTransactionReceipt(BranchId.of(branchId), txId);
         return TransactionReceiptDto.createBy(receipt);
+    }
+
+    @Override
+    public String getRawTransaction(String branchId, String txId) {
+        Transaction tx = branchGroup.getTxByHash(BranchId.of(branchId), txId);
+        if (tx == null) {
+            throw new NonExistObjectException("Transaction");
+        }
+        byte[] rawTransaction = tx.toRawTransaction();
+
+        return HexUtil.toHexString(rawTransaction);
+    }
+
+    @Override
+    public String getRawTransactionHeader(String branchId, String txId) {
+        Transaction tx = branchGroup.getTxByHash(BranchId.of(branchId), txId);
+        if (tx == null) {
+            throw new NonExistObjectException("Transaction");
+        }
+        byte[] rawTransactionBinary = tx.getHeader().getBinaryForSigning();
+        byte[] transactionSign = tx.getSignature();
+
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        try {
+            bao.write(rawTransactionBinary);
+            bao.write(transactionSign);
+        } catch (IOException e) {
+            throw new NotValidateException();
+        }
+
+        byte[] rawTransactionHeader = bao.toByteArray();
+
+        return HexUtil.toHexString(rawTransactionHeader);
     }
 }
