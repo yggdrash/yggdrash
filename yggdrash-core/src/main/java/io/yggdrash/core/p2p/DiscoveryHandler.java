@@ -23,7 +23,7 @@ import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
-import io.yggdrash.proto.PeerServiceGrpc;
+import io.yggdrash.proto.DiscoveryServiceGrpc;
 import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +40,7 @@ public class DiscoveryHandler<T> implements BlockChainHandler<T> {
     private final Peer peer;
 
     private final ManagedChannel channel;
-    private PeerServiceGrpc.PeerServiceBlockingStub peerBlockingStub;
+    private DiscoveryServiceGrpc.DiscoveryServiceBlockingStub peerBlockingStub;
 
     public DiscoveryHandler(Peer peer) {
         this(ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext().build(), peer);
@@ -49,7 +49,7 @@ public class DiscoveryHandler<T> implements BlockChainHandler<T> {
     public DiscoveryHandler(ManagedChannel channel, Peer peer) {
         this.channel = channel;
         this.peer = peer;
-        this.peerBlockingStub = PeerServiceGrpc.newBlockingStub(channel);
+        this.peerBlockingStub = DiscoveryServiceGrpc.newBlockingStub(channel);
     }
 
     @Override
