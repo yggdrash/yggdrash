@@ -47,8 +47,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import static io.yggdrash.common.utils.ByteUtil.EMPTY_BYTE_ARRAY;
-
 /**
  * Wallet Class.
  *
@@ -379,20 +377,21 @@ public class Wallet {
     public static byte[] calculatePubKey(byte[] data, byte[] signature, boolean hashed) {
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(signature);
         byte[] hashedData = hashed ? data : HashUtil.sha3(data);
-        ECKey ecKeyPub;
         try {
-            ecKeyPub = ECKey.signatureToKey(hashedData, ecdsaSignature);
+            return ECKey.signatureToKey(hashedData, ecdsaSignature).getPubKey();
         } catch (SignatureException e) {
             log.debug("Invalid signature", e.getMessage());
-            return EMPTY_BYTE_ARRAY;
+            return null;
         }
-
-        return ecKeyPub.getPubKey();
     }
 
     public static byte[] calculateAddress(byte[] publicKey) {
         return HashUtil.sha3omit12(
                 Arrays.copyOfRange(publicKey, 1, publicKey.length));
+    }
+
+    public static byte[] calculateAddress(byte[] data, byte[] signature, boolean hashed) {
+        return calculateAddress(calculatePubKey(data, signature, hashed));
     }
 
     /**

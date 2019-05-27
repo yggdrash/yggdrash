@@ -172,6 +172,7 @@ public class PbftMessageTest {
             log.debug("signatureHex: " + message.getSignatureHex());
             log.debug("block: " + (message.getBlock() == null ? "null" :
                     message.getBlock().toString()));
+            log.debug("address: {}", message.getAddressHex());
         }
 
         {
@@ -187,6 +188,7 @@ public class PbftMessageTest {
             log.debug("signatureHex: " + message.getSignatureHex());
             log.debug("block: " + (message.getBlock() == null ? "null" :
                     message.getBlock().toString()));
+            log.debug("address: {}", message.getAddressHex());
         }
 
         {
@@ -202,6 +204,7 @@ public class PbftMessageTest {
             log.debug("signatureHex: " + message.getSignatureHex());
             log.debug("block: " + (message.getBlock() == null ? "null" :
                     message.getBlock().toString()));
+            log.debug("address: {}", message.getAddressHex());
         }
 
         {
@@ -217,6 +220,7 @@ public class PbftMessageTest {
             log.debug("signatureHex: " + message.getSignatureHex());
             log.debug("block: " + (message.getBlock() == null ? "null" :
                     message.getBlock().toString()));
+            log.debug("address: {}", message.getAddressHex());
         }
     }
 
