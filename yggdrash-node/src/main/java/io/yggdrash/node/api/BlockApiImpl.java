@@ -51,15 +51,6 @@ public class BlockApiImpl implements BlockApi {
     }
 
     @Override
-    public int newBlockFilter() {
-        try {
-            return 0;
-        } catch (Exception exception) {
-            throw new InternalErrorException();
-        }
-    }
-
-    @Override
     public BlockDto getLastBlock(String branchId) {
         BranchId id = BranchId.of(branchId);
         ConsensusBlock block = branchGroup.getBlockByIndex(id, branchGroup.getLastIndex(id));

@@ -52,14 +52,6 @@ public interface BlockApi {
                               @JsonRpcParam(value = "bool") Boolean bool);
 
     /**
-     * Creates a filter in the node, to notify when a new block arrives.
-     */
-    @JsonRpcErrors({
-            @JsonRpcError(exception = InternalErrorException.class,
-                    code = InternalErrorException.CODE)})
-    int newBlockFilter();
-
-    /**
      * Get last block
      * @return the latest block
      */

@@ -72,15 +72,6 @@ public class BlockApiImplTest {
     }
 
     @Test
-    public void newBlockFilter() {
-        try {
-            assertThat(BLOCK_API.newBlockFilter()).isZero();
-        } catch (Exception exception) {
-            log.debug("newBlockFilter :: exception : " + exception);
-        }
-    }
-
-    @Test
     public void blockDtoTest() throws IOException {
         // Create Block
         ConsensusBlock block = BlockChainTestUtils.genesisBlock();
