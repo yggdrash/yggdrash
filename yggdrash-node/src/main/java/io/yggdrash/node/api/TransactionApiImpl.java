@@ -51,15 +51,6 @@ public class TransactionApiImpl implements TransactionApi {
     }
 
     @Override
-    public int getTransactionCountByBlockNumber(String branchId, String tag) {
-        if ("latest".equals(tag)) {
-            return getTransactionCountByBlockNumber(branchId, 0);
-        } else {
-            return 0;
-        }
-    }
-
-    @Override
     public TransactionDto getTransactionByHash(String branchId, String txId) {
         Transaction tx = branchGroup.getTxByHash(BranchId.of(branchId), txId);
         if (tx == null) {

@@ -42,17 +42,6 @@ public interface TransactionApi {
                                          @JsonRpcParam(value = "blockNumber") long blockNumber);
 
     /**
-     * Returns the number of transactions in a block matching the given block number.
-     *
-     * @param tag "latest","earliest","pending"
-     */
-    @JsonRpcErrors({
-            @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.CODE)})
-    int getTransactionCountByBlockNumber(@JsonRpcParam(value = BRANCH_ID) String branchId,
-                                         @JsonRpcParam(value = "tag") String tag);
-
-    /**
      * Returns the information about a transaction requested by transaction hash.
      *
      * @param txId hash of transaction

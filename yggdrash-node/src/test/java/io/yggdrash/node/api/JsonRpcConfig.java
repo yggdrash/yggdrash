@@ -22,7 +22,6 @@ public class JsonRpcConfig {
     static final BranchApi BRANCH_API = new JsonRpcConfig().proxyOf(BranchApi.class);
     static final TransactionApi TX_API = new JsonRpcConfig().proxyOf(TransactionApi.class);
     static final ContractApi CONTRACT_API = new JsonRpcConfig().proxyOf(ContractApi.class);
-    static final AccountApi ACCOUNT_API = new JsonRpcConfig().proxyOf(AccountApi.class);
     static final PeerApi PEER_API = new JsonRpcConfig().proxyOf(PeerApi.class);
 
     private <T> T proxyOf(Class<T> proxyInterface) {
@@ -32,9 +31,6 @@ public class JsonRpcConfig {
     public <T> T proxyOf(String server, Class<T> proxyInterface) {
         try {
             String apiPath = proxyInterface.getSimpleName().toLowerCase().replace("api", "");
-            if (proxyInterface.equals(AccountApi.class)) {
-                apiPath = "wallet";
-            }
             URL url = new URL(String.format("http://%s:8080/api/%s", server, apiPath));
             return ProxyUtil.createClientProxy(getClass().getClassLoader(),
                     proxyInterface, getJsonRpcHttpClient(url));
