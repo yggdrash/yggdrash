@@ -133,7 +133,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
 
     private PbftProto.PbftBlockList getBlockList(long start, long end) {
         PbftProto.PbftBlockList.Builder builder = PbftProto.PbftBlockList.newBuilder();
-        if (start >= end) {
+        if (start > end) {
             return builder.build();
         }
         long bodyLengthSum = 0;
