@@ -74,7 +74,7 @@ subprojects {
     test {
         failFast = true
         systemProperty('spring.profiles.active', project.properties.get('springProfiles'))
-        systemProperty('key.password', 'Password1234!')
+        systemProperty('key.password', 'Aa1234567890!')
     }
 }
 
