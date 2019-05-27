@@ -691,49 +691,51 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         }
     }
 
-    private void blockSyncing(String addr, long index) {
+    private void blockSyncing(String addr, long untilBlockIndex) {
         PbftClientStub client = totalValidatorMap.get(addr);
+        if (!client.isRunning()) {
+            return;
+        }
+
         PbftBlock pbftBlock;
         long lastConfirmedBlockIndex = this.blockChain.getBlockChainManager().getLastIndex();
-        if (client.isRunning()) {
-            List<PbftBlock> pbftBlockList = client.getBlockList(lastConfirmedBlockIndex + 1);
+        log.debug("Block syncing Node: {} From: {} To: {}", client.getId(), lastConfirmedBlockIndex + 1, untilBlockIndex);
 
-            log.debug("node: " + client.getId());
-            log.debug("index: " + (!pbftBlockList.isEmpty() ? pbftBlockList.get(0).getIndex() : null));
-            log.debug("blockList size: " + (pbftBlockList != null ? pbftBlockList.size() : null));
+        List<PbftBlock> pbftBlockList = client.getBlockList(lastConfirmedBlockIndex + 1);
+        log.debug("BlockList size: {}", (pbftBlockList != null ? pbftBlockList.size() : null));
 
-            if (pbftBlockList == null) {
-                return;
-            } else if (pbftBlockList.size() == 0) {
+        if (pbftBlockList == null) {
+            return;
+        } else if (pbftBlockList.size() == 0) {
+            pbftBlockList.clear();
+            return;
+        }
+
+        int i = 0;
+        for (; i < pbftBlockList.size(); i++) {
+            pbftBlock = pbftBlockList.get(i);
+            if (!PbftVerifier.INSTANCE.verify(pbftBlock)
+                    || this.blockChain.addBlock(pbftBlock) == null) {
+                log.warn("Failed verifing a block when syncing");
+                client.setIsRunning(false);
+                for (PbftBlock pbBlock : pbftBlockList) {
+                    pbBlock.clear();
+                }
                 pbftBlockList.clear();
                 return;
             }
-
-            int i = 0;
-            for (; i < pbftBlockList.size(); i++) {
-                pbftBlock = pbftBlockList.get(i);
-                if (!PbftVerifier.INSTANCE.verify(pbftBlock)) {
-                    log.warn("Verify Fail");
-                    for (PbftBlock pbBlock : pbftBlockList) {
-                        pbBlock.clear();
-                    }
-                    pbftBlockList.clear();
-                    return;
-                }
-                this.blockChain.addBlock(pbftBlock);
-            }
-            pbftBlock = pbftBlockList.get(i - 1);
-            resetUnConfirmedBlock(pbftBlock.getIndex());
-
-            for (PbftBlock pbBlock : pbftBlockList) {
-                pbBlock.clear();
-            }
-            pbftBlockList.clear();
-
         }
 
-        if (lastConfirmedBlockIndex < index) {
-            blockSyncing(addr, index);
+        pbftBlock = pbftBlockList.get(i - 1);
+        resetUnConfirmedBlock(pbftBlock.getIndex());
+
+        for (PbftBlock pbBlock : pbftBlockList) {
+            pbBlock.clear();
+        }
+        pbftBlockList.clear();
+
+        if (this.blockChain.getBlockChainManager().getLastIndex() < untilBlockIndex) {
+            blockSyncing(addr, untilBlockIndex);
         }
     }
 
