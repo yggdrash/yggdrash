@@ -695,12 +695,10 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         PbftClientStub client = totalValidatorMap.get(addr);
         PbftBlock pbftBlock;
         long lastConfirmedBlockIndex = this.blockChain.getBlockChainManager().getLastIndex();
+        log.debug("Block syncing Node: {} From: {} To: {}", client.getId(), lastConfirmedBlockIndex + 1, index);
         if (client.isRunning()) {
             List<PbftBlock> pbftBlockList = client.getBlockList(lastConfirmedBlockIndex + 1);
-
-            log.debug("node: " + client.getId());
-            log.debug("index: " + (!pbftBlockList.isEmpty() ? pbftBlockList.get(0).getIndex() : null));
-            log.debug("blockList size: " + (pbftBlockList != null ? pbftBlockList.size() : null));
+            log.debug("BlockList size: {}", (pbftBlockList != null ? pbftBlockList.size() : null));
 
             if (pbftBlockList == null) {
                 return;
