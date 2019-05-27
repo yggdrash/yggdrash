@@ -714,16 +714,18 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         int i = 0;
         for (; i < pbftBlockList.size(); i++) {
             pbftBlock = pbftBlockList.get(i);
-            if (!PbftVerifier.INSTANCE.verify(pbftBlock)) {
-                log.warn("Verify Fail");
+            if (!PbftVerifier.INSTANCE.verify(pbftBlock)
+                    || this.blockChain.addBlock(pbftBlock) == null) {
+                log.warn("Failed verifing a block when syncing");
+                client.setIsRunning(false);
                 for (PbftBlock pbBlock : pbftBlockList) {
                     pbBlock.clear();
                 }
                 pbftBlockList.clear();
                 return;
             }
-            this.blockChain.addBlock(pbftBlock);
         }
+
         pbftBlock = pbftBlockList.get(i - 1);
         resetUnConfirmedBlock(pbftBlock.getIndex());
 
