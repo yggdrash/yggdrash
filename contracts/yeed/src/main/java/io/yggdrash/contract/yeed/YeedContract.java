@@ -286,7 +286,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
             log.debug("approve Key : {}", approveKey);
             BigInteger senderBalance = getBalance(sender);
             if (getBalance(approveKey).compareTo(BigInteger.ZERO) == 0) {
-                txReceipt.addLog(String.format("{} has no balance", from));
+                txReceipt.addLog(String.format("%s has no balance", from));
                 txReceipt.setStatus(ExecuteStatus.ERROR);
                 return txReceipt;
             }
@@ -299,7 +299,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
             // Check Fee
             if (senderBalance.compareTo(fee) < 0) {
-                txReceipt.addLog(String.format("{} has no balance", from));
+                txReceipt.addLog(String.format("%s has no balance", from));
                 txReceipt.setStatus(ExecuteStatus.ERROR);
                 return txReceipt;
             }
