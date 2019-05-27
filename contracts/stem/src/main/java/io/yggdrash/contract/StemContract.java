@@ -29,6 +29,7 @@ import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -93,7 +94,7 @@ public class StemContract implements BundleActivator, ServiceListener {
         @Genesis
         @InvokeTransaction // TODO remove InvokeTransaction
         public TransactionReceipt init(JsonObject param) {
-            log.info("[StemContract | genesis] SUCCESS! param => {}");
+            log.info("[StemContract | genesis] SUCCESS!");
             return txReceipt;
         }
 
@@ -169,7 +170,7 @@ public class StemContract implements BundleActivator, ServiceListener {
             // check validator is unique in list
             if (validatorSet.size() != validators.size()) {
                 this.txReceipt.setStatus(ExecuteStatus.FALSE);
-                this.txReceipt.addLog(String.format("validator list is unique accounts list"));
+                this.txReceipt.addLog("validator list is unique accounts list");
                 return;
             }
             log.debug(" is validator contain {}",validatorSet.contains(txReceipt.getIssuer()));

@@ -337,20 +337,20 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
 
         //todo: check efficiency
         String minKey = null;
-        for (String key : unConfirmedEbftBlockMap.keySet()) {
-            if (unConfirmedEbftBlockMap.get(key).getIndex() != lastConfirmedBlockIndex + 1) {
+        for (Map.Entry<String, EbftBlock> entry : unConfirmedEbftBlockMap.entrySet()) {
+            if (entry.getValue().getIndex() != lastConfirmedBlockIndex + 1) {
                 continue;
             }
             if (minKey == null) {
-                minKey = key;
+                minKey = entry.getKey();
                 if (ABNORMAL_TEST) {
                     // for test abnormal node(attacker)
                     break;
                 }
             } else {
                 if (org.spongycastle.util.Arrays.compareUnsigned(Hex.decode(minKey),
-                        Hex.decode(key)) > 0) {
-                    minKey = key;
+                        Hex.decode(entry.getKey())) > 0) {
+                    minKey = entry.getKey();
                 }
             }
         }
@@ -484,8 +484,8 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
     }
 
     private void multicastBlock(EbftBlock block) {
-        for (String key : totalValidatorMap.keySet()) {
-            EbftClientStub client = totalValidatorMap.get(key);
+        for (Map.Entry<String, EbftClientStub> entry : totalValidatorMap.entrySet()) {
+            EbftClientStub client = entry.getValue();
             if (client.isMyclient()) {
                 continue;
             }
@@ -502,8 +502,8 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
     }
 
     private void broadcastBlock(EbftBlock block, Map<String, EbftClientStub> clientMap) {
-        for (String key : clientMap.keySet()) {
-            EbftClientStub client = clientMap.get(key);
+        for (Map.Entry<String, EbftClientStub> entry : clientMap.entrySet()) {
+            EbftClientStub client = entry.getValue();
             if (client.isMyclient()) {
                 continue;
             }
@@ -569,10 +569,10 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
         try {
             Map<String, Object> validatorInfoMap =
                     this.defaultConfig.getConfig().getConfig("yggdrash.validator.info").root().unwrapped();
-            for (String key : validatorInfoMap.keySet()) {
-                String host = ((Map<String, String>) validatorInfoMap.get(key)).get("host");
-                int port = ((Map<String, Integer>) validatorInfoMap.get(key)).get("port");
-                EbftClientStub client = new EbftClientStub(key, host, port);
+            for (Map.Entry<String, Object> entry : validatorInfoMap.entrySet()) {
+                String host = ((Map<String, String>) entry.getValue()).get("host");
+                int port = ((Map<String, Integer>) entry.getValue()).get("port");
+                EbftClientStub client = new EbftClientStub(entry.getKey(), host, port);
                 if (client.getId().equals(myNode.getId())) {
                     nodeMap.put(myNode.getAddr(), myNode);
                 } else {
@@ -592,10 +592,10 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
         try {
             Map<String, Object> proxyNodeMap =
                     this.defaultConfig.getConfig().getConfig("yggdrash.validator.proxyNode").root().unwrapped();
-            for (String key : proxyNodeMap.keySet()) {
-                String host = ((Map<String, String>) proxyNodeMap.get(key)).get("host");
-                int port = ((Map<String, Integer>) proxyNodeMap.get(key)).get("port");
-                EbftClientStub client = new EbftClientStub(key, host, port);
+            for (Map.Entry<String, Object> entry : proxyNodeMap.entrySet()) {
+                String host = ((Map<String, String>) entry.getValue()).get("host");
+                int port = ((Map<String, Integer>) entry.getValue()).get("port");
+                EbftClientStub client = new EbftClientStub(entry.getKey(), host, port);
                 if (client.getId().equals(myNode.getId())) {
                     nodeMap.put(myNode.getAddr(), myNode);
                 } else {

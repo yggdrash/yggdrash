@@ -36,6 +36,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -176,11 +177,11 @@ public class StemContractTest {
 
         stemContract.update(param);
 
-        assertEquals("update result", receipt.getStatus(), ExecuteStatus.SUCCESS);
+        assertEquals("update result", ExecuteStatus.SUCCESS, receipt.getStatus());
         JsonObject metaInfo = stemContract.getBranchMeta(param);
 
-        assertEquals("name did not update meta information", metaInfo.get("name").getAsString(), "YGGDRASH");
-        assertEquals("description is updated", metaInfo.get("description").getAsString(), "UPDATE DESCRIPTION");
+        assertEquals("name did not update meta information", "YGGDRASH", metaInfo.get("name").getAsString());
+        assertEquals("description is updated", "UPDATE DESCRIPTION", metaInfo.get("description").getAsString());
     }
 
     @Test
@@ -200,7 +201,7 @@ public class StemContractTest {
 
         stemContract.update(param);
 
-        assertEquals("transaction update is False", receipt.getStatus(), ExecuteStatus.FALSE);
+        assertEquals("transaction update is False", ExecuteStatus.FALSE, receipt.getStatus());
     }
 
     @Test
@@ -221,16 +222,10 @@ public class StemContractTest {
         JsonObject metaUpdated = stemContract.metaMerge(metaSample, metaUpdate);
 
 
-        assertEquals("Name is not update",
-                metaUpdated.get("name").getAsString(), "YGGDRASH");
-        assertEquals("Symbol is not update",
-                metaUpdated.get("symbol").getAsString(), "YGGDRASH");
-        assertEquals("Property is not update",
-                metaUpdated.get("property").getAsString(), "platform");
-        assertEquals("description is Update",
-                metaUpdated.get("description").getAsString(), "UPDATE DESCRIPTION");
-
-
+        assertEquals("Name is not update", "YGGDRASH", metaUpdated.get("name").getAsString());
+        assertEquals("Symbol is not update", "YGGDRASH", metaUpdated.get("symbol").getAsString());
+        assertEquals("Property is not update", "platform", metaUpdated.get("property").getAsString());
+        assertEquals("description is Update", "UPDATE DESCRIPTION", metaUpdated.get("description").getAsString());
     }
 
     @Test
@@ -259,7 +254,7 @@ public class StemContractTest {
 
         stemContract.create(param);
 
-        assertEquals("otherBranch Create", receipt.getStatus(), ExecuteStatus.SUCCESS);
+        assertEquals("otherBranch Create", ExecuteStatus.SUCCESS, receipt.getStatus());
 
         JsonObject queryMeta = stemContract.getBranchMeta(queryParam);
 

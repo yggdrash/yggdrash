@@ -37,8 +37,8 @@ import static io.yggdrash.common.config.Constants.TIMESTAMP_2018;
 
 public class VerifierUtils {
 
-    static {
-
+    private VerifierUtils() {
+        throw new IllegalStateException("Utility class");
     }
 
     private static final Logger log = LoggerFactory.getLogger(VerifierUtils.class);

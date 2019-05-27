@@ -109,9 +109,8 @@ public class PbftStatus {
 
         try {
             dataForSigning.write(ByteUtil.longToBytes(index));
-            for (String key : this.unConfirmedPbftMessageMap.keySet()) {
-                PbftMessage pbftMessage = this.unConfirmedPbftMessageMap.get(key);
-                dataForSigning.write(pbftMessage.toBinary());
+            for (Map.Entry<String, PbftMessage> entry : this.unConfirmedPbftMessageMap.entrySet()) {
+                dataForSigning.write(entry.getValue().toBinary());
             }
             dataForSigning.write(ByteUtil.longToBytes(timestamp));
         } catch (Exception e) {
@@ -175,9 +174,8 @@ public class PbftStatus {
         jsonObject.addProperty("index", this.index);
 
         JsonArray unConfirmedMessageMapJsonArray = new JsonArray();
-        for (String key : this.unConfirmedPbftMessageMap.keySet()) {
-            PbftMessage pbftMessage = this.unConfirmedPbftMessageMap.get(key);
-            unConfirmedMessageMapJsonArray.add(pbftMessage.toJsonObject());
+        for (Map.Entry<String, PbftMessage> entry : unConfirmedPbftMessageMap.entrySet()) {
+            unConfirmedMessageMapJsonArray.add(entry.getValue().toJsonObject());
         }
         if (unConfirmedMessageMapJsonArray.size() > 0) {
             jsonObject.add("unConfirmedList", unConfirmedMessageMapJsonArray);

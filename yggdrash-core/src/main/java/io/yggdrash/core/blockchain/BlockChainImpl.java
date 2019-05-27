@@ -211,10 +211,8 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
     public int addTransaction(Transaction tx, boolean broadcast) {
         int res = blockChainManager.addTransaction(tx);
-        if (res == BusinessError.VALID.toValue()) {
-            if (!listenerList.isEmpty() && broadcast) {
-                listenerList.forEach(listener -> listener.receivedTransaction(tx));
-            }
+        if (res == BusinessError.VALID.toValue() && !listenerList.isEmpty() && broadcast) {
+            listenerList.forEach(listener -> listener.receivedTransaction(tx));
         }
         return res;
     }
