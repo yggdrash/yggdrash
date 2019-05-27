@@ -19,6 +19,7 @@ package io.yggdrash.node.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.blockchain.Transaction;
@@ -32,7 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.text.ParseException;
 
 import static io.yggdrash.node.api.JsonRpcConfig.BLOCK_API;
 import static io.yggdrash.node.api.JsonRpcConfig.TX_API;
@@ -150,10 +150,22 @@ public class TransactionApiImplTest {
     }
 
     @Test
+    public void invalidTransactionTest() {
+        // invalid contractVersion (non existed)
+        Transaction invalidTx = BlockChainTestUtils.createInvalidTransferTx(ContractVersion.of("696e76616c6964"));
+        try {
+            TransactionResponseDto res = TX_API.sendTransaction(TransactionDto.createBy(invalidTx));
+            assertFalse(res.status);
+        } catch (Exception e) {
+            log.debug("\n\ninvalidTransactionTest :: ERR => {}", e.getMessage());
+        }
+    }
+
+    @Test
     public void sendRawTransactionTest() {
         // Request Transaction with byteArr
         try {
-            byte[] input = ((TransactionImpl)createTx()).toRawTransaction();
+            byte[] input = createTx().toRawTransaction();
             // Convert byteArray to Transaction
             assertThat(TX_API.sendRawTransaction(input)).isNotEmpty();
         } catch (Exception e) {
@@ -190,7 +202,7 @@ public class TransactionApiImplTest {
     }
 
     @Test
-    public void txSigValidateTest() throws IOException, ParseException {
+    public void txSigValidateTest() throws IOException {
         // Create Transaction
         Transaction tx = createTx();
 
