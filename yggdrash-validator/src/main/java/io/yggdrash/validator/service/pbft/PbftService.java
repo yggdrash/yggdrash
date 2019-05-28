@@ -238,8 +238,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     private void multicastMessage(PbftMessage message) {
-        for (String key : totalValidatorMap.keySet()) {
-            PbftClientStub client = totalValidatorMap.get(key);
+        for (Map.Entry<String, PbftClientStub> entry : totalValidatorMap.entrySet()) {
+            PbftClientStub client = entry.getValue();
             if (client.isMyclient()) {
                 continue;
             }
@@ -257,8 +257,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     private void broadcastBlock(PbftBlock block, Map<String, PbftClientStub> clientMap) {
-        for (String key : clientMap.keySet()) {
-            PbftClientStub client = clientMap.get(key);
+        for (Map.Entry<String, PbftClientStub> entry : clientMap.entrySet()) {
+            PbftClientStub client = entry.getValue();
             if (client.isMyclient()) {
                 continue;
             }
@@ -644,8 +644,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     public void checkNode() {
-        for (String key : totalValidatorMap.keySet()) {
-            PbftClientStub client = totalValidatorMap.get(key);
+        for (Map.Entry<String, PbftClientStub> entry : totalValidatorMap.entrySet()) {
+            PbftClientStub client = entry.getValue();
             if (client.isMyclient()) {
                 continue;
             }
@@ -691,49 +691,52 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         }
     }
 
-    private void blockSyncing(String addr, long index) {
+    private void blockSyncing(String addr, long untilBlockIndex) {
         PbftClientStub client = totalValidatorMap.get(addr);
+        if (!client.isRunning()) {
+            return;
+        }
+
         PbftBlock pbftBlock;
         long lastConfirmedBlockIndex = this.blockChain.getBlockChainManager().getLastIndex();
-        if (client.isRunning()) {
-            List<PbftBlock> pbftBlockList = client.getBlockList(lastConfirmedBlockIndex + 1);
+        log.debug("Block syncing Node: {} From: {} To: {}",
+                client.getId(), lastConfirmedBlockIndex + 1, untilBlockIndex);
 
-            log.debug("node: " + client.getId());
-            log.debug("index: " + (!pbftBlockList.isEmpty() ? pbftBlockList.get(0).getIndex() : null));
-            log.debug("blockList size: " + (pbftBlockList != null ? pbftBlockList.size() : null));
+        List<PbftBlock> pbftBlockList = client.getBlockList(lastConfirmedBlockIndex + 1);
+        log.debug("BlockList size: {}", (pbftBlockList != null ? pbftBlockList.size() : null));
 
-            if (pbftBlockList == null) {
-                return;
-            } else if (pbftBlockList.size() == 0) {
+        if (pbftBlockList == null) {
+            return;
+        } else if (pbftBlockList.size() == 0) {
+            pbftBlockList.clear();
+            return;
+        }
+
+        int i = 0;
+        for (; i < pbftBlockList.size(); i++) {
+            pbftBlock = pbftBlockList.get(i);
+            if (!PbftVerifier.INSTANCE.verify(pbftBlock)
+                    || this.blockChain.addBlock(pbftBlock) == null) {
+                log.warn("Failed verifing a block when syncing");
+                client.setIsRunning(false);
+                for (PbftBlock pbBlock : pbftBlockList) {
+                    pbBlock.clear();
+                }
                 pbftBlockList.clear();
                 return;
             }
-
-            int i = 0;
-            for (; i < pbftBlockList.size(); i++) {
-                pbftBlock = pbftBlockList.get(i);
-                if (!PbftVerifier.INSTANCE.verify(pbftBlock)) {
-                    log.warn("Verify Fail");
-                    for (PbftBlock pbBlock : pbftBlockList) {
-                        pbBlock.clear();
-                    }
-                    pbftBlockList.clear();
-                    return;
-                }
-                this.blockChain.addBlock(pbftBlock);
-            }
-            pbftBlock = pbftBlockList.get(i - 1);
-            resetUnConfirmedBlock(pbftBlock.getIndex());
-
-            for (PbftBlock pbBlock : pbftBlockList) {
-                pbBlock.clear();
-            }
-            pbftBlockList.clear();
-
         }
 
-        if (lastConfirmedBlockIndex < index) {
-            blockSyncing(addr, index);
+        pbftBlock = pbftBlockList.get(i - 1);
+        resetUnConfirmedBlock(pbftBlock.getIndex());
+
+        for (PbftBlock pbBlock : pbftBlockList) {
+            pbBlock.clear();
+        }
+        pbftBlockList.clear();
+
+        if (this.blockChain.getBlockChainManager().getLastIndex() < untilBlockIndex) {
+            blockSyncing(addr, untilBlockIndex);
         }
     }
 
@@ -751,9 +754,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     public void updateUnconfirmedMsgMap(Map<String, PbftMessage> newPbftMessageMap) {
-        for (String key : newPbftMessageMap.keySet()) {
-            PbftMessage newPbftMessage = newPbftMessageMap.get(key);
-            updateUnconfirmedMsg(newPbftMessage);
+        for (Map.Entry<String, PbftMessage> entry : newPbftMessageMap.entrySet()) {
+            updateUnconfirmedMsg(entry.getValue());
         }
     }
 
@@ -816,10 +818,10 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         try {
             Map<String, Object> proxyNodeMap =
                     this.defaultConfig.getConfig().getConfig("yggdrash.validator.proxyNode").root().unwrapped();
-            for (String key : proxyNodeMap.keySet()) {
-                String host = ((Map<String, String>) proxyNodeMap.get(key)).get("host");
-                int port = ((Map<String, Integer>) proxyNodeMap.get(key)).get("port");
-                updateNodeMap(nodeMap, key, host, port);
+            for (Map.Entry<String, Object> entry : proxyNodeMap.entrySet()) {
+                String host = ((Map<String, String>) entry.getValue()).get("host");
+                int port = ((Map<String, Integer>) entry.getValue()).get("port");
+                updateNodeMap(nodeMap, entry.getKey(), host, port);
             }
             log.debug("ProxyNode: {}", nodeMap.toString());
         } catch (ConfigException ce) {
@@ -868,8 +870,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
     private int getActiveNodeCount() {
         int count = 0;
-        for (String key : totalValidatorMap.keySet()) {
-            if (totalValidatorMap.get(key).isRunning()) {
+        for (Map.Entry<String, PbftClientStub> entry : totalValidatorMap.entrySet()) {
+            if (entry.getValue().isRunning()) {
                 count++;
             }
         }

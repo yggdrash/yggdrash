@@ -164,6 +164,18 @@ public class PbftMessage implements ConsensusMessage<PbftMessage> {
 
     @Override
     @JsonIgnore
+    public byte[] getAddress() {
+        return Wallet.calculateAddress(getHashForSigning(), this.signature, true);
+    }
+
+    @Override
+    @JsonIgnore
+    public String getAddressHex() {
+        return Hex.toHexString(getAddress());
+    }
+
+    @Override
+    @JsonIgnore
     public Block getBlock() {
         return block;
     }

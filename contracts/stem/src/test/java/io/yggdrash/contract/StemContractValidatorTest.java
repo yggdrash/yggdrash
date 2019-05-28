@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -156,7 +157,7 @@ public class StemContractValidatorTest {
         // message make to sha3
         message = HashUtil.sha3(message);
         log.debug("message Size : {} ", message.length);
-        assertEquals("message Length : ", message.length, 32);
+        assertEquals("message Length : ", 32, message.length);
 
         log.debug(updateBranchId);
 
@@ -218,7 +219,7 @@ public class StemContractValidatorTest {
         // message make to sha3
         message = HashUtil.sha3(message);
         log.debug("message Size : {} ", message.length);
-        assertEquals("message Length : ", message.length, 32);
+        assertEquals("message Length : ", 32, message.length);
 
         log.debug(updateBranchId);
 
@@ -284,7 +285,7 @@ public class StemContractValidatorTest {
         // message make to sha3
         message = HashUtil.sha3(message);
         log.debug("message Size : {} ", message.length);
-        assertEquals("message Length : ", message.length, 32);
+        assertEquals("message Length : ", 32, message.length);
 
         log.debug(updateBranchId);
 
@@ -362,7 +363,7 @@ public class StemContractValidatorTest {
         // message make to sha3
         message = HashUtil.sha3(message);
         log.debug("message Size : {} ", message.length);
-        assertEquals("message Length : ", message.length, 32);
+        assertEquals("message Length : ", 32, message.length);
 
         log.debug(updateBranchId);
 

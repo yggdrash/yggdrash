@@ -21,8 +21,6 @@ import io.yggdrash.core.exception.errorcode.BusinessError;
 import io.yggdrash.core.store.ConsensusBlockStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,7 +29,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
-    private static final Logger log = LoggerFactory.getLogger(BlockChainImpl.class);
 
     private ConsensusBlock<T> lastConfirmedBlock;
     private final ConsensusBlockStore<T> blockStore;

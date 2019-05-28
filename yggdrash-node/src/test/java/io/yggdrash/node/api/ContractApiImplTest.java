@@ -93,6 +93,7 @@ public class ContractApiImplTest {
                 "cee3d4755e47055b530deeba062c5bd0c17eb00f",
                 "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e",
                 new BigInteger("1000"));
+
         sendTransaction(txBody);
     }
 
@@ -115,6 +116,7 @@ public class ContractApiImplTest {
     private void sendTransaction(JsonObject txBody) {
         Transaction tx = BlockChainTestUtils.createTx(TestConstants.yggdrash(), txBody);
         Assert.assertTrue(VerifierUtils.verify(tx));
+        log.debug(tx.toJsonObject().toString());
         try {
             TX_API.sendTransaction(TransactionDto.createBy(tx));
         } catch (Exception e) {

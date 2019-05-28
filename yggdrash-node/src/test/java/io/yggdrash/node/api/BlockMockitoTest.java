@@ -93,8 +93,4 @@ public class BlockMockitoTest {
         blockApiImpl.getBlockByNumber(branchId.toString(), numOfBlock, true);
     }
 
-    @Test
-    public void newBlockFilterTest() {
-        assertThat(blockApiImpl.newBlockFilter()).isEqualTo(0);
-    }
 }

@@ -42,6 +42,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.List;
@@ -380,7 +381,7 @@ public class YeedTest {
         proposal.addProperty("blockHeight", targetBlockHeight);
         proposal.addProperty("fee", fee);
 
-        BigInteger issuerOriginBalance = getBalance(issuer);
+        final BigInteger issuerOriginBalance = getBalance(issuer);
 
         TransactionReceipt receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 1);
 
@@ -502,7 +503,7 @@ public class YeedTest {
     @Test
     public void processingPropose() {
         // Type 1 - Issuer validate transaction
-        String transactionId = "0x02";
+        final String transactionId = "0x02";
         String receiveAddress = "c3cf7a283a4415ce3c41f5374934612389334780";
         BigInteger receiveAsset = new BigInteger("1000000000000000000");
         int receiveChainId = 1;
@@ -582,15 +583,14 @@ public class YeedTest {
         log.debug("fee {} ", fee);
         // issuer Done process , issuer return fee 1/2
         receipt.getTxLog().stream().forEach(l -> log.debug(l));
-        Assert.assertEquals("Transaction is Success", receipt.getStatus(), ExecuteStatus.SUCCESS);
+        Assert.assertEquals("Transaction is Success", ExecuteStatus.SUCCESS, receipt.getStatus());
         assert issuerDoneBalance.subtract(issuerIssuedBalance)
                 .compareTo(fee.divide(BigInteger.valueOf(2L))) == 0;
         assert issuerDoneBalance.compareTo(issuerIssuedBalance) > 0;
 
         assert receipt.getStatus() == ExecuteStatus.SUCCESS;
 
-        transactionId = "0x03";
-        receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 50);
+        receipt = setTxReceipt("0x03", issuer, BRANCH_ID, 50);
         yeedContract.processPropose(processJson);
         assert receipt.getStatus() == ExecuteStatus.FALSE;
         receipt.getTxLog().stream().forEach(l -> log.debug(l));
@@ -599,7 +599,7 @@ public class YeedTest {
 
     @Test
     public void processingInvalid() {
-        String transactionId = "0x02";
+        final String transactionId = "0x02";
         String receiveAddress = "ad8992d6f78d9cc597438efbccd8940d7c02bc6d";
         BigInteger receiveAsset = new BigInteger("11000000000000000000");
         int receiveChainId = 1;
@@ -671,7 +671,7 @@ public class YeedTest {
         receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 10);
         yeedContract.processPropose(processJson);
 
-        Assert.assertEquals("processing is fail", receipt.getStatus(), ExecuteStatus.FALSE);
+        Assert.assertEquals("processing is fail", ExecuteStatus.FALSE, receipt.getStatus());
 
         receipt.getTxLog().stream().forEach(l -> log.debug(l));
 
@@ -737,7 +737,7 @@ public class YeedTest {
     @Test
     public void processingProposeConfirm() {
         // Type 1 - Issuer validate transaction
-        String transactionId = "0x02";
+        final String transactionId = "0x02";
         String receiveAddress = "c3cf7a283a4415ce3c41f5374934612389334780";
         BigInteger receiveAsset = new BigInteger("1000000000000000000");
         int receiveChainId = 1;
@@ -851,7 +851,7 @@ public class YeedTest {
         Assert.assertEquals(TxConfirmStatus.DONE.toValue(), queryConfirm.get("status").getAsInt());
         log.debug(queryConfirm.toString());
 
-        Assert.assertEquals(receipt.getStatus(), ExecuteStatus.SUCCESS);
+        Assert.assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
         log.debug("PROPOSE STAKE : {} YEED", getBalance(proposeIssueId));
         // 1010000000000000000
         //   10000000000000000

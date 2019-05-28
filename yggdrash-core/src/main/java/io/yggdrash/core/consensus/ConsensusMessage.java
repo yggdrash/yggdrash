@@ -35,6 +35,10 @@ public interface ConsensusMessage<T> {
 
     String getSignatureHex();
 
+    byte[] getAddress();
+
+    String getAddressHex();
+
     Block getBlock();
 
     byte[] toBinary();
