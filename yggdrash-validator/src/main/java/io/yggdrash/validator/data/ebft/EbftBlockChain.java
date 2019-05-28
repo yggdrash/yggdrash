@@ -1,6 +1,7 @@
 package io.yggdrash.validator.data.ebft;
 
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.blockchain.Block;
@@ -132,16 +133,19 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
         return true;
     }
 
+    @Override
+    public ValidatorSet getValidators() {
+        return null;
+    }
+
     private void loggingBlock(EbftBlock block) {
         try {
-            log.info("EbftBlock [" + block.getIndex() + "] "
-                    + block.getHash()
-                    + " ("
-                    + block.getBlock().getAddress()
-                    + ") "
-                    + "("
-                    + block.getConsensusMessages().size()
-                    + ")");
+            log.info("EbftBlock [{}] ({}) ({})({})",
+                    block.getIndex(),
+                    block.getHash(),
+                    block.getBlock().getAddress(),
+                    block.getConsensusMessages().size()
+                    );
         } catch (Exception e) {
             log.debug(e.getMessage());
         }
