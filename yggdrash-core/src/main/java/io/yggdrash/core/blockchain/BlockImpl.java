@@ -30,8 +30,6 @@ import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Address;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.Proto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
@@ -46,7 +44,6 @@ import static io.yggdrash.common.config.Constants.Key.HEADER;
 import static io.yggdrash.common.config.Constants.Key.SIGNATURE;
 
 public class BlockImpl implements Block, ProtoObject<Proto.Block> {
-    private static final Logger log = LoggerFactory.getLogger(BlockImpl.class);
 
     private final Proto.Block protoBlock;
 

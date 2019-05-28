@@ -69,24 +69,21 @@ public class PbftVerifier implements ConsensusVerifier<PbftProto.PbftBlock, Pbft
             return false;
         }
 
-        for (String key : prepareMap.keySet()) {
-            PbftMessage pbftMessage = prepareMap.get(key);
-            if (!verify(pbftMessage)) {
+        for (Map.Entry<String, PbftMessage> entry : prepareMap.entrySet()) {
+            if (!verify(entry.getValue())) {
                 return false;
             }
         }
 
-        for (String key : commitMap.keySet()) {
-            PbftMessage pbftMessage = commitMap.get(key);
-            if (!verify(pbftMessage)) {
+        for (Map.Entry<String, PbftMessage> entry : commitMap.entrySet()) {
+            if (!verify(entry.getValue())) {
                 return false;
             }
         }
 
         Map<String, PbftMessage> viewChangeMap = pbftMessageSet.getViewChangeMap();
-        for (String key : viewChangeMap.keySet()) {
-            PbftMessage pbftMessage = viewChangeMap.get(key);
-            if (!verify(pbftMessage)) {
+        for (Map.Entry<String, PbftMessage> entry : viewChangeMap.entrySet()) {
+            if (!verify(entry.getValue())) {
                 return false;
             }
         }

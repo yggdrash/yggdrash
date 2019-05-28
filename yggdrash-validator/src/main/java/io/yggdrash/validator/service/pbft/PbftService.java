@@ -238,8 +238,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     private void multicastMessage(PbftMessage message) {
-        for (String key : totalValidatorMap.keySet()) {
-            PbftClientStub client = totalValidatorMap.get(key);
+        for (Map.Entry<String, PbftClientStub> entry : totalValidatorMap.entrySet()) {
+            PbftClientStub client = entry.getValue();
             if (client.isMyclient()) {
                 continue;
             }
@@ -257,8 +257,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     private void broadcastBlock(PbftBlock block, Map<String, PbftClientStub> clientMap) {
-        for (String key : clientMap.keySet()) {
-            PbftClientStub client = clientMap.get(key);
+        for (Map.Entry<String, PbftClientStub> entry : clientMap.entrySet()) {
+            PbftClientStub client = entry.getValue();
             if (client.isMyclient()) {
                 continue;
             }
@@ -644,8 +644,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     public void checkNode() {
-        for (String key : totalValidatorMap.keySet()) {
-            PbftClientStub client = totalValidatorMap.get(key);
+        for (Map.Entry<String, PbftClientStub> entry : totalValidatorMap.entrySet()) {
+            PbftClientStub client = entry.getValue();
             if (client.isMyclient()) {
                 continue;
             }
@@ -699,7 +699,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
         PbftBlock pbftBlock;
         long lastConfirmedBlockIndex = this.blockChain.getBlockChainManager().getLastIndex();
-        log.debug("Block syncing Node: {} From: {} To: {}", client.getId(), lastConfirmedBlockIndex + 1, untilBlockIndex);
+        log.debug("Block syncing Node: {} From: {} To: {}",
+                client.getId(), lastConfirmedBlockIndex + 1, untilBlockIndex);
 
         List<PbftBlock> pbftBlockList = client.getBlockList(lastConfirmedBlockIndex + 1);
         log.debug("BlockList size: {}", (pbftBlockList != null ? pbftBlockList.size() : null));
@@ -753,9 +754,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     public void updateUnconfirmedMsgMap(Map<String, PbftMessage> newPbftMessageMap) {
-        for (String key : newPbftMessageMap.keySet()) {
-            PbftMessage newPbftMessage = newPbftMessageMap.get(key);
-            updateUnconfirmedMsg(newPbftMessage);
+        for (Map.Entry<String, PbftMessage> entry : newPbftMessageMap.entrySet()) {
+            updateUnconfirmedMsg(entry.getValue());
         }
     }
 
@@ -818,10 +818,10 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         try {
             Map<String, Object> proxyNodeMap =
                     this.defaultConfig.getConfig().getConfig("yggdrash.validator.proxyNode").root().unwrapped();
-            for (String key : proxyNodeMap.keySet()) {
-                String host = ((Map<String, String>) proxyNodeMap.get(key)).get("host");
-                int port = ((Map<String, Integer>) proxyNodeMap.get(key)).get("port");
-                updateNodeMap(nodeMap, key, host, port);
+            for (Map.Entry<String, Object> entry : proxyNodeMap.entrySet()) {
+                String host = ((Map<String, String>) entry.getValue()).get("host");
+                int port = ((Map<String, Integer>) entry.getValue()).get("port");
+                updateNodeMap(nodeMap, entry.getKey(), host, port);
             }
             log.debug("ProxyNode: {}", nodeMap.toString());
         } catch (ConfigException ce) {
@@ -870,8 +870,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
     private int getActiveNodeCount() {
         int count = 0;
-        for (String key : totalValidatorMap.keySet()) {
-            if (totalValidatorMap.get(key).isRunning()) {
+        for (Map.Entry<String, PbftClientStub> entry : totalValidatorMap.entrySet()) {
+            if (entry.getValue().isRunning()) {
                 count++;
             }
         }
