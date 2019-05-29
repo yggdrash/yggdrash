@@ -34,13 +34,11 @@ public class ContractManagerBuilderTest {
         // check builder config
         DefaultConfig config = new DefaultConfig();
         ContractPolicyLoader loader = new ContractPolicyLoader();
-        Map output = new HashMap();
 
         ContractManager manager = ContractManagerBuilder.newInstance()
                 .withConfig(config)
                 .withFrameworkFactory(loader.getFrameworkFactory())
                 .withContractManagerConfig(loader.getContractManagerConfig())
-                .withOutputStore(output)
                 .withBranchId("test")
                 .build();
 

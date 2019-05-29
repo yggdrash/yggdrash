@@ -1,12 +1,9 @@
 package io.yggdrash.core.blockchain.osgi;
 
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.contract.core.store.OutputStore;
-import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.store.ContractStore;
 import org.osgi.framework.launch.FrameworkFactory;
-
 import java.util.Map;
 
 public class ContractManagerBuilder {
@@ -16,7 +13,6 @@ public class ContractManagerBuilder {
     private ContractStore contractStore;
     private DefaultConfig config;
     private SystemProperties systemProperties;
-    private Map<OutputType, OutputStore> outputStore;
 
     private ContractManagerBuilder() {
 
@@ -57,11 +53,6 @@ public class ContractManagerBuilder {
         return this;
     }
 
-    public ContractManagerBuilder withOutputStore(Map<OutputType, OutputStore> outputStore) {
-        this.outputStore = outputStore;
-        return this;
-    }
-
     public ContractManager build() {
         if (this.frameworkFactory == null) {
             throw new IllegalStateException("Must set frameworkFactory");
@@ -81,8 +72,7 @@ public class ContractManagerBuilder {
                 this.branchId,
                 this.contractStore,
                 this.config,
-                this.systemProperties,
-                this.outputStore
+                this.systemProperties
         );
     }
 

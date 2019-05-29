@@ -10,9 +10,6 @@ import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.InjectEvent;
-import io.yggdrash.contract.core.annotation.InjectOutputStore;
-import io.yggdrash.contract.core.store.OutputStore;
-import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
@@ -24,7 +21,6 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.launch.Framework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -38,16 +34,13 @@ public class ContractExecutor {
     private final Framework framework;
     private final ContractStore contractStore;
 
-    private final Map<OutputType, OutputStore> outputStore;
     private final SystemProperties systemProperties;
     private final ContractCache contractCache;
     private TransactionReceiptAdapter trAdapter;
 
-    ContractExecutor(Framework framework, ContractStore contractStore,
-                     Map<OutputType, OutputStore> outputStore, SystemProperties systemProperties) {
+    ContractExecutor(Framework framework, ContractStore contractStore, SystemProperties systemProperties) {
         this.framework = framework;
         this.contractStore = contractStore;
-        this.outputStore = outputStore;
         this.systemProperties = systemProperties;
         contractCache = new ContractCache();
         trAdapter = new TransactionReceiptAdapter();
@@ -74,13 +67,6 @@ public class ContractExecutor {
 
                 if (annotation.annotationType().equals(ContractTransactionReceipt.class)) {
                     field.set(service, trAdapter);
-                }
-
-
-                if (outputStore != null
-                        && annotation.annotationType().equals(InjectOutputStore.class)
-                        && field.getType().isAssignableFrom(outputStore.getClass())) {
-                    field.set(service, outputStore);
                 }
 
                 if (systemProperties != null
