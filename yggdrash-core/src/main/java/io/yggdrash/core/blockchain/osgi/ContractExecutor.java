@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.TransactionReceiptAdapter;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
@@ -40,6 +41,7 @@ public class ContractExecutor {
     private final Map<OutputType, OutputStore> outputStore;
     private final SystemProperties systemProperties;
     private final ContractCache contractCache;
+    private TransactionReceiptAdapter trAdapter;
 
     ContractExecutor(Framework framework, ContractStore contractStore,
                      Map<OutputType, OutputStore> outputStore, SystemProperties systemProperties) {
@@ -48,6 +50,7 @@ public class ContractExecutor {
         this.outputStore = outputStore;
         this.systemProperties = systemProperties;
         contractCache = new ContractCache();
+        trAdapter = new TransactionReceiptAdapter();
     }
 
     void injectFields(String location, Object service, boolean isSystemContract)
@@ -68,6 +71,11 @@ public class ContractExecutor {
                         field.set(service, contractStore.getBranchStore());
                     }
                 }
+
+                if (annotation.annotationType().equals(ContractTransactionReceipt.class)) {
+                    field.set(service, trAdapter);
+                }
+
 
                 if (outputStore != null
                         && annotation.annotationType().equals(InjectOutputStore.class)
@@ -121,16 +129,8 @@ public class ContractExecutor {
         Method method = methodMap.get(methodName);
         try {
             if (methodType == MethodType.InvokeTx) {
-                // Inject field
-                Map<Field, List<Annotation>> fields = contractCache.getInjectingFields().get(contractVersion);
-                for (Field field : fields.keySet()) {
-                    field.setAccessible(true);
-                    for (Annotation a : field.getDeclaredAnnotations()) {
-                        if (a.annotationType().equals(ContractTransactionReceipt.class)) {
-                            field.set(service, txReceipt);
-                        }
-                    }
-                }
+                //
+                trAdapter.setTransactionReceipt(txReceipt);
             }
 
             if (method.getParameterCount() == 0) {
