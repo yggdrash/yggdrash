@@ -36,22 +36,17 @@ import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.Genesis;
 import io.yggdrash.contract.core.annotation.InjectEvent;
-import io.yggdrash.contract.core.annotation.InjectOutputStore;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.annotation.ParamValidation;
-import io.yggdrash.contract.core.store.OutputStore;
-import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import org.apache.commons.collections4.MapUtils;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -79,9 +74,6 @@ public class DPoAContract implements BundleActivator {
     public static class DPoAService {
         private static final String validatorSchemeName = "validator";
         private static final String proposedValidatorSchemeName = "proposedValidator";
-
-        @InjectOutputStore
-        Map<OutputType, OutputStore> outputStore;
 
         @InjectEvent
         Set<String> eventStore;
@@ -125,13 +117,6 @@ public class DPoAContract implements BundleActivator {
             branchStateStore.setValidators(validatorSet);
 
             return true;
-        }
-
-        private void sendOutputStore(String schemeName, String id, JsonObject jsonObject) {
-            if (outputStore == null || eventStore == null || !eventStore.contains(validatorSchemeName)) {
-                return;
-            }
-            outputStore.forEach((outputType, store) -> store.put(schemeName, id, jsonObject));
         }
 
         private boolean validateTx(TxPayload txPayload) {
@@ -257,7 +242,7 @@ public class DPoAContract implements BundleActivator {
         // TODO should receive a set of byzantine and a set of validator that participated in the
         // previous block consensus.
         @ContractEndBlock
-        public List<Validator> commit(JsonObject params) {
+        public void commit(JsonObject params) {
             boolean isUpdateValidator = false;
             boolean isUpdateProposedValidator = false;
             ValidatorSet validatorSet = getValidatorSet();
@@ -291,24 +276,6 @@ public class DPoAContract implements BundleActivator {
             if (isUpdateProposedValidator) {
                 state.put(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue(), proposedValidator);
             }
-
-            return getValidators(params, validatorSet, proposedValidator);
-        }
-
-        private List<Validator> getValidators(JsonObject params, ValidatorSet validatorSet,
-                                              JsonObject proposedValidator) {
-            JsonObject jsonValidator = JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet));
-            List<Validator> validators = validatorSet.order(null);
-            if (params != null) {
-                if (jsonValidator != null) {
-                    sendOutputStore(validatorSchemeName, params.get("blockNo").getAsString(), jsonValidator);
-                }
-                if (proposedValidator != null) {
-                    sendOutputStore(proposedValidatorSchemeName, params.get("blockNo").getAsString(),
-                            proposedValidator);
-                }
-            }
-            return validators;
         }
 
         //todo need to set governance
