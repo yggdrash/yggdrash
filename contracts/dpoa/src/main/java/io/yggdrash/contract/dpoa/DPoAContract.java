@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -242,7 +243,7 @@ public class DPoAContract implements BundleActivator {
         // TODO should receive a set of byzantine and a set of validator that participated in the
         // previous block consensus.
         @ContractEndBlock
-        public void commit(JsonObject params) {
+        public List<Validator> commit() {
             boolean isUpdateValidator = false;
             boolean isUpdateProposedValidator = false;
             ValidatorSet validatorSet = getValidatorSet();
@@ -276,6 +277,8 @@ public class DPoAContract implements BundleActivator {
             if (isUpdateProposedValidator) {
                 state.put(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue(), proposedValidator);
             }
+
+            return getValidatorSet().order(null);
         }
 
         //todo need to set governance
