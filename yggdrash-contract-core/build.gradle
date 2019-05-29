@@ -3,6 +3,9 @@ jar {
 }
 
 dependencies {
+    testCompile "org.assertj:assertj-core:${assertjVersion}"
+    testCompile "com.vmlens:concurrent-junit:1.0.2"
+
     compile "ch.qos.logback:logback-classic:${logbackVersion}"
     compile "org.eclipse.tycho:org.eclipse.osgi:${equinoxVersion}"
     compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
