@@ -2,6 +2,7 @@ package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
@@ -202,6 +203,11 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     @Override
     public boolean isValidator(String addr) {
         return branchStore.isValidator(addr);
+    }
+
+    @Override
+    public ValidatorSet getValidators() {
+        return branchStore.getValidators();
     }
 
     @Override

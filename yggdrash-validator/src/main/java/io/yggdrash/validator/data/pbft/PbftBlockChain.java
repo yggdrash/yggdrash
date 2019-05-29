@@ -1,6 +1,7 @@
 package io.yggdrash.validator.data.pbft;
 
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.blockchain.Block;
@@ -122,28 +123,22 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
         return true;
     }
 
+    @Override
+    public ValidatorSet getValidators() {
+        return null;
+    }
+
     private void loggingBlock(PbftBlock block) {
         try {
-            log.info("PbftBlock "
-                    + "("
-                    + block.getConsensusMessages().getPrePrepare().getViewNumber()
-                    + ") "
-                    + "["
-                    + block.getIndex()
-                    + "]"
-                    + block.getHash()
-                    + " ("
-                    + block.getConsensusMessages().getPrepareMap().size()
-                    + ")"
-                    + " ("
-                    + block.getConsensusMessages().getCommitMap().size()
-                    + ")"
-                    + " ("
-                    + block.getConsensusMessages().getViewChangeMap().size()
-                    + ")"
-                    + " ("
-                    + block.getBlock().getAddress()
-                    + ")");
+            log.info("PbftBlock ({}) [{}] ({}) ({}) ({}) ({}) ({})",
+                    block.getConsensusMessages().getPrePrepare().getViewNumber(),
+                    block.getIndex(),
+                    block.getHash(),
+                    block.getConsensusMessages().getPrepareMap().size(),
+                    block.getConsensusMessages().getCommitMap().size(),
+                    block.getConsensusMessages().getViewChangeMap().size(),
+                    block.getBlock().getAddress()
+                    );
         } catch (Exception e) {
             log.debug(e.getMessage());
         }
