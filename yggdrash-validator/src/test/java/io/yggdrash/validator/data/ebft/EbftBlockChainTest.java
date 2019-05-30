@@ -74,8 +74,7 @@ public class EbftBlockChainTest {
 
         this.ebftBlockChain = new EbftBlockChain(block0, StoreTestUtils.getTestPath(),
                 "/ebftKey",
-                "/ebftBlock",
-                "/ebftTx");
+                "/ebftBlock");
         this.blockChainManager = ebftBlockChain.getBlockChainManager();
         this.ebftBlock0 = new EbftBlock(this.block0);
 

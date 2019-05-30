@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
 
     private ConsensusBlock<T> lastConfirmedBlock;
+
     private final ConsensusBlockStore<T> blockStore;
     private final TransactionStore transactionStore;
     private final TransactionReceiptStore transactionReceiptStore;
@@ -43,16 +44,6 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
         this.transactionStore = blockChainStore.getTransactionStore();
         this.transactionReceiptStore = blockChainStore.getTransactionReceiptStore();
         this.blockChainStore = blockChainStore;
-    }
-
-    @Deprecated
-    public BlockChainManagerImpl(ConsensusBlockStore<T> blockStore,
-                                 TransactionStore transactionStore,
-                                 TransactionReceiptStore transactionReceiptStore) {
-        this.blockStore = blockStore;
-        this.transactionStore = transactionStore;
-        this.transactionReceiptStore = transactionReceiptStore;
-        this.blockChainStore = null;
     }
 
     @Override
