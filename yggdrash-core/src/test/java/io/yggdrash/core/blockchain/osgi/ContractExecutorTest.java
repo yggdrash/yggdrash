@@ -18,6 +18,7 @@ import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
@@ -32,6 +33,7 @@ import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
+import org.apache.commons.codec.binary.Base64;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -55,6 +57,7 @@ public class ContractExecutorTest {
     private ContractStore contractStore;
     private ContractManager manager;
     private ContractExecutor executor;
+    private String namespace;
 
     @Before
     public void setUp() throws Exception {
@@ -68,12 +71,6 @@ public class ContractExecutorTest {
         initGenesis(); //alloc process (executeTxs)
     }
 
-    private Transaction generateTx(long amount) {
-        JsonObject txBody = ContractTestUtils.transferTxBodyJson(TestConstants.TRANSFER_TO, amount, contractVersion);
-        TransactionBuilder builder = new TransactionBuilder();
-        return builder.setTxBody(txBody).setWallet(wallet).setBranchId(branchId).build();
-    }
-
     @Test
     public void executeTxTest() {
         // success tx
@@ -83,9 +80,9 @@ public class ContractExecutorTest {
         assertEquals(ExecuteStatus.SUCCESS, res.getReceipt().getStatus());
         assertEquals(2, res.getChangeValues().size());
         assertEquals("100",
-                res.getChangeValues().get(TestConstants.TRANSFER_TO).get(BALANCE).getAsString());
+                res.getChangeValues().get(getNamespaceKey(TestConstants.TRANSFER_TO)).get(BALANCE).getAsString());
         assertEquals("999900",
-                res.getChangeValues().get(tx.getAddress().toString()).get(BALANCE).getAsString());
+                res.getChangeValues().get(getNamespaceKey(tx.getAddress().toString())).get(BALANCE).getAsString());
 
         //tx not yet committed
         assertEquals(0, contractStore.getTmpStateStore().changeValues().size()); //revert after checkTx
@@ -148,6 +145,10 @@ public class ContractExecutorTest {
     private boolean checkExistContract(String contractVersion) {
         for (ContractStatus cs : manager.searchContracts()) {
             if (cs.getLocation().lastIndexOf(contractVersion) > 0) {
+                String bundleSymbolicName = cs.getSymbolicName();
+                byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(bundleSymbolicName.getBytes());
+                this.namespace = new String(Base64.encodeBase64(bundleSymbolicSha3));
+
                 return true;
             }
         }
@@ -196,5 +197,15 @@ public class ContractExecutorTest {
         }
 
         assertEquals(0, contractStore.getTmpStateStore().changeValues().size());
+    }
+
+    private Transaction generateTx(long amount) {
+        JsonObject txBody = ContractTestUtils.transferTxBodyJson(TestConstants.TRANSFER_TO, amount, contractVersion);
+        TransactionBuilder builder = new TransactionBuilder();
+        return builder.setTxBody(txBody).setWallet(wallet).setBranchId(branchId).build();
+    }
+
+    private String getNamespaceKey(String key) {
+        return String.format("%s%s", namespace, key);
     }
 }
