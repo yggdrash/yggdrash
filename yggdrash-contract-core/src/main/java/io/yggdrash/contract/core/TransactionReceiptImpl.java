@@ -41,6 +41,13 @@ public class TransactionReceiptImpl implements TransactionReceipt {
         this.issuer = issuer;
     }
 
+    public TransactionReceiptImpl(String txId, Long txSize, String issuer, String contractVersion) {
+        this.txId = txId;
+        this.txSize = txSize;
+        this.issuer = issuer;
+        this.contractVersion = contractVersion;
+    }
+
     public void addLog(String log) {
         txLog.add(log);
     }

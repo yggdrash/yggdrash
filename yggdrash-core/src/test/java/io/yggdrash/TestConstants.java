@@ -25,6 +25,7 @@ import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.wallet.Wallet;
 import org.junit.Assume;
 import org.junit.BeforeClass;
+import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,14 +49,14 @@ public class TestConstants {
     private static final String CONSOLE_TEST = "console";
     private static final String PROFILE = System.getProperty("spring.profiles.active");
 
-    private static final Wallet wallet;
+    private static Wallet wallet;
 
     private TestConstants() {
     }
 
     static {
         try {
-            wallet = new Wallet(new DefaultConfig(), "Password1234!");
+            wallet = new Wallet(new DefaultConfig(), "Aa1234567890!");
             branchFile = new File("../yggdrash-core/src/main/resources", "branch-yggdrash.json");
             if (!branchFile.exists()) {
                 branchFile = new File("yggdrash-core/src/main/resources", "branch-yggdrash.json");
@@ -90,6 +91,11 @@ public class TestConstants {
     }
 
     public static Wallet wallet() {
+        return wallet;
+    }
+
+    public static Wallet wallet(String path) throws IOException, InvalidCipherTextException {
+        wallet = new Wallet(path, "As1234567890!");
         return wallet;
     }
 

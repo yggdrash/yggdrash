@@ -55,7 +55,4 @@ public class BlockRuntimeResult {
     public ConsensusBlock getOriginBlock() {
         return this.block;
     }
-
-
-
 }

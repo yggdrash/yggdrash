@@ -138,12 +138,9 @@ public class TransactionApiImplTest {
     @Test
     public void sendTransactionTest() {
         Transaction tx = createTx();
-        Transaction invalidTx = BlockChainTestUtils.createInvalidTransferTx();
         try {
             TransactionResponseDto res = TX_API.sendTransaction(TransactionDto.createBy(tx));
             assertTrue(res.status);
-            TransactionResponseDto invalidRes = TX_API.sendTransaction(TransactionDto.createBy(invalidTx));
-            assertFalse(invalidRes.status);
         } catch (Exception exception) {
             log.debug("\n\nsendTransactionTest :: exception => " + exception);
         }
@@ -152,9 +149,13 @@ public class TransactionApiImplTest {
     @Test
     public void invalidTransactionTest() {
         // invalid contractVersion (non existed)
-        Transaction invalidTx = BlockChainTestUtils.createInvalidTransferTx(ContractVersion.of("696e76616c6964"));
+        Transaction sysErrTx = BlockChainTestUtils.createInvalidTransferTx(ContractVersion.of("696e76616c6964"));
+        // timeout, invalid format, untrusted
+        Transaction busErrTx = BlockChainTestUtils.createInvalidTransferTx();
         try {
-            TransactionResponseDto res = TX_API.sendTransaction(TransactionDto.createBy(invalidTx));
+            TransactionResponseDto res = TX_API.sendTransaction(TransactionDto.createBy(sysErrTx));
+            assertFalse(res.status);
+            res = TX_API.sendTransaction(TransactionDto.createBy(busErrTx));
             assertFalse(res.status);
         } catch (Exception e) {
             log.debug("\n\ninvalidTransactionTest :: ERR => {}", e.getMessage());

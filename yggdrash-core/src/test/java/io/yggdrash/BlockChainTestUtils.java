@@ -46,6 +46,7 @@ import io.yggdrash.core.store.PbftBlockStoreMock;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.proto.PbftProto;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -53,13 +54,28 @@ import java.util.Collections;
 import java.util.List;
 
 public class BlockChainTestUtils {
-    private static final GenesisBlock genesis;
+    private static GenesisBlock genesis;
 
     private BlockChainTestUtils() {
     }
 
     static {
+        generateGenesisBlockByFile();
+        /*
         try (InputStream is = new FileInputStream(TestConstants.branchFile)) {
+            genesis = GenesisBlock.of(is);
+        } catch (Exception e) {
+            throw new InvalidSignatureException(e);
+        }
+        */
+    }
+
+    private static void generateGenesisBlockByFile() {
+        generateGenesisBlockByFile(TestConstants.branchFile);
+    }
+
+    private static void generateGenesisBlockByFile(File file) {
+        try (InputStream is = new FileInputStream(file)) {
             genesis = GenesisBlock.of(is);
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
@@ -74,6 +90,11 @@ public class BlockChainTestUtils {
     }
 
     public static ConsensusBlock<PbftProto.PbftBlock> genesisBlock() {
+        return new PbftBlockMock(genesis.getBlock());
+    }
+
+    public static ConsensusBlock<PbftProto.PbftBlock> genesisBlock(File file) {
+        generateGenesisBlockByFile(file);
         return new PbftBlockMock(genesis.getBlock());
     }
 
@@ -223,6 +244,16 @@ public class BlockChainTestUtils {
                 .build();
     }
 
+    public static Transaction createTransferTx(BranchId branchId, ContractVersion contractVersion) {
+        JsonObject txBody = ContractTestUtils.transferTxBodyJson(
+                TestConstants.TRANSFER_TO, 100, contractVersion);
+        TransactionBuilder builder = new TransactionBuilder();
+        return builder.setTxBody(txBody)
+                .setWallet(TestConstants.wallet())
+                .setBranchId(branchId)
+                .build();
+    }
+
     public static Transaction createInvalidTransferTx(ContractVersion contractVersion) {
         JsonObject txBody = ContractTestUtils
                 .invalidTransferTxBodyJson(TestConstants.TRANSFER_TO, 100, contractVersion);
@@ -232,6 +263,12 @@ public class BlockChainTestUtils {
     public static Transaction createInvalidTransferTx(BranchId branchId, ContractVersion contractVersion) {
         JsonObject txBody = ContractTestUtils
                 .invalidTransferTxBodyJson(TestConstants.TRANSFER_TO, 100, contractVersion);
+        return createInvalidTx(branchId, Constants.EMPTY_BYTE8, txBody);
+    }
+
+    public static Transaction createInvalidTransferTx(BranchId branchId, ContractVersion contractVersion, long amount) {
+        JsonObject txBody = ContractTestUtils
+                .invalidTransferTxBodyJson(TestConstants.TRANSFER_TO, amount, contractVersion);
         return createInvalidTx(branchId, Constants.EMPTY_BYTE8, txBody);
     }
 

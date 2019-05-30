@@ -182,7 +182,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
             // BlockChainManager add nextBlock to the blockStore, set the lastConfirmedBlock to nextBlock,
             // and then batch the transactions.
-            blockChainManager.addBlock(nextBlock);
+            blockChainManager.addBlock(nextBlock); //TODO set stateStore after addBlock
             if (!listenerList.isEmpty() && broadcast) {
                 listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
             }

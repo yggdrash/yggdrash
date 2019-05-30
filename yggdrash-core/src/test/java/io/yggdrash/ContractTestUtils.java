@@ -43,6 +43,14 @@ public class ContractTestUtils {
         return txBodyJson(TestConstants.YEED_CONTRACT, "transfer", params, true);
     }
 
+    public static JsonObject transferTxBodyJson(String to, long amount, ContractVersion contractVersion) {
+        JsonObject params = new JsonObject();
+        params.addProperty("to", to);
+        params.addProperty("amount", amount);
+        TestConstants.yggdrash();
+        return txBodyJson(contractVersion, "transfer", params, true);
+    }
+
     public static JsonObject invalidTransferTxBodyJson(String to, long amount, ContractVersion contractVersion) {
         JsonObject params = new JsonObject();
         params.addProperty("to", to);
