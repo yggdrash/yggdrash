@@ -31,6 +31,8 @@ import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.blockchain.osgi.ContractManagerBuilder;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.consensus.Consensus;
+import io.yggdrash.core.store.BlockChainStore;
+import io.yggdrash.core.store.BlockChainStoreBuilder;
 import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.ChainTask;
@@ -54,7 +56,9 @@ import java.util.Arrays;
 public class BranchConfiguration {
     private static final Logger log = LoggerFactory.getLogger(BranchConfiguration.class);
 
-    private final StoreBuilder storeBuilder;
+    //private final StoreBuilder storeBuilder;
+
+    private final DefaultConfig defaultConfig;
 
     @Value("classpath:/branch-yggdrash.json")
     Resource yggdrashResource;
@@ -65,7 +69,7 @@ public class BranchConfiguration {
 
     @Autowired
     BranchConfiguration(DefaultConfig defaultConfig) {
-        this.storeBuilder = StoreBuilder.newBuilder().setConfig(defaultConfig);
+        this.defaultConfig = defaultConfig;
     }
 
     // TODO Remove Default Branch Load
@@ -121,11 +125,13 @@ public class BranchConfiguration {
         try {
             Consensus consensus = new Consensus(genesis.getBranch().getConsensus());
             BranchId branchId = genesis.getBranch().getBranchId();
-            storeBuilder.setBranchId(branchId)
-                    .setConsensusAlgorithm(consensus.getAlgorithm())
-                    .setBlockStoreFactory(ValidatorService.blockStoreFactory());
-
-            BlockChain blockChain = getBlockChain(genesis, storeBuilder, policyLoader, branchId, systemProperties);
+            BlockChainStoreBuilder builder = BlockChainStoreBuilder.newBuilder(branchId);
+            builder.withConfig(defaultConfig)
+                .setBlockStoreFactory(ValidatorService.blockStoreFactory())
+                .setConsensusAlgorithm(consensus.getAlgorithm())
+            ;
+            BlockChainStore blockChainStore = builder.build();
+            BlockChain blockChain = getBlockChain(defaultConfig, genesis, blockChainStore, policyLoader, branchId, systemProperties);
 
             log.info("Branch is Ready {}", blockChain.getBranchId());
 
@@ -136,23 +142,23 @@ public class BranchConfiguration {
         }
     }
 
-    static BlockChain getBlockChain(GenesisBlock genesis, StoreBuilder storeBuilder,
-                                    ContractPolicyLoader policyLoader, BranchId branchId,
+    static BlockChain getBlockChain(DefaultConfig config,
+                                    GenesisBlock genesis,
+                                    BlockChainStore blockChainStore,
+                                    ContractPolicyLoader policyLoader,
+                                    BranchId branchId,
                                     SystemProperties systemProperties) {
 
-        ContractStore contractStore = storeBuilder.buildContractStore();
+        ContractStore contractStore = blockChainStore.getContractStore();
 
-        BlockChainManager blockChainManager = new BlockChainManagerImpl(
-                storeBuilder.buildBlockStore(),
-                storeBuilder.buildTransactionStore(),
-                contractStore.getTransactionReceiptStore());
+        BlockChainManager blockChainManager = new BlockChainManagerImpl(blockChainStore);
 
         ContractManager contractManager = ContractManagerBuilder.newInstance()
                 .withFrameworkFactory(policyLoader.getFrameworkFactory())
                 .withContractManagerConfig(policyLoader.getContractManagerConfig())
                 .withBranchId(branchId.toString())
                 .withContractStore(contractStore)
-                .withConfig(storeBuilder.getConfig())
+                .withConfig(config)
                 .withSystemProperties(systemProperties)
                 .build();
 

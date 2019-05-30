@@ -58,6 +58,7 @@ public class StoreBuilder {
         return new ContractStore(buildBranchStore(), buildStateStore(), buildTransactionReceiptStore());
     }
 
+    @Deprecated
     public ConsensusBlockStore buildBlockStore() {
         DbSource dbSource = getDbSource(branchId + "/blocks");
         return blockStoreFactory.create(consensusAlgorithm, dbSource);
@@ -67,18 +68,23 @@ public class StoreBuilder {
         return new PeerStore(getDbSource(branchId + "/peers"));
     }
 
+    @Deprecated
     public BranchStore buildBranchStore() {
+        // TODO merge branchStore and StateStore
         return new BranchStore(getDbSource(branchId + "/branch"));
     }
 
+    @Deprecated
     public TransactionStore buildTransactionStore() {
         return new TransactionStore(getDbSource(branchId + "/txs"));
     }
 
+    @Deprecated
     private StateStore buildStateStore() {
         return new StateStore(getDbSource(branchId + "/state"));
     }
 
+    @Deprecated
     public TransactionReceiptStore buildTransactionReceiptStore() {
         return new TransactionReceiptStore(getDbSource(branchId + "/txreceipt"));
     }
