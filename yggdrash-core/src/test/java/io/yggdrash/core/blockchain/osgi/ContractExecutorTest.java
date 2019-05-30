@@ -78,7 +78,9 @@ public class ContractExecutorTest {
         TransactionRuntimeResult res = manager.executeTx(tx); //executeTx -> invoke -> callContractMethod
 
         assertEquals(ExecuteStatus.SUCCESS, res.getReceipt().getStatus());
+        System.out.println(res.getChangeValues());
         assertEquals(2, res.getChangeValues().size());
+        System.out.println(getNamespaceKey(TestConstants.TRANSFER_TO));
         assertEquals("100",
                 res.getChangeValues().get(getNamespaceKey(TestConstants.TRANSFER_TO)).get(BALANCE).getAsString());
         assertEquals("999900",
@@ -134,6 +136,10 @@ public class ContractExecutorTest {
         }
 
         for (ContractStatus cs : manager.searchContracts()) {
+            String bundleSymbolicName = cs.getSymbolicName();
+            byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(bundleSymbolicName.getBytes());
+            this.namespace = new String(Base64.encodeBase64(bundleSymbolicSha3));
+
             log.debug("Description {}", cs.getDescription());
             log.debug("Location {}", cs.getLocation());
             log.debug("SymbolicName {}", cs.getSymbolicName());
@@ -145,10 +151,6 @@ public class ContractExecutorTest {
     private boolean checkExistContract(String contractVersion) {
         for (ContractStatus cs : manager.searchContracts()) {
             if (cs.getLocation().lastIndexOf(contractVersion) > 0) {
-                String bundleSymbolicName = cs.getSymbolicName();
-                byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(bundleSymbolicName.getBytes());
-                this.namespace = new String(Base64.encodeBase64(bundleSymbolicSha3));
-
                 return true;
             }
         }
