@@ -55,7 +55,7 @@ public class TestConstants {
 
     static {
         try {
-            wallet = new Wallet(new DefaultConfig(), "Aa1234567890!");
+            wallet = new Wallet(new DefaultConfig(), "Password1234!");
             branchFile = new File("../yggdrash-core/src/main/resources", "branch-yggdrash.json");
             if (!branchFile.exists()) {
                 branchFile = new File("yggdrash-core/src/main/resources", "branch-yggdrash.json");
