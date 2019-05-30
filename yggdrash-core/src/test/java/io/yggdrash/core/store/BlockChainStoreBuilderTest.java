@@ -17,8 +17,10 @@ public class BlockChainStoreBuilderTest {
 
     @Before
     public void setUp() {
+        DefaultConfig config = new DefaultConfig();
         builder = BlockChainStoreBuilder.newBuilder(BranchId.NULL)
-                .withConfig(new DefaultConfig())
+                .withDataBasePath(config.getDatabasePath())
+                .withProductionMode(config.isProductionMode())
         .setConsensusAlgorithm(null)
         .setBlockStoreFactory(PbftBlockStoreMock::new);
         this.bcStore = builder.build();

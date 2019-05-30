@@ -1,7 +1,6 @@
 package io.yggdrash.core.blockchain.osgi;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.utils.JsonUtil;

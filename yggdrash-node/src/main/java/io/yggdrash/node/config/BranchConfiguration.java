@@ -123,10 +123,11 @@ public class BranchConfiguration {
         try {
             Consensus consensus = new Consensus(genesis.getBranch().getConsensus());
             BranchId branchId = genesis.getBranch().getBranchId();
-            BlockChainStoreBuilder builder = BlockChainStoreBuilder.newBuilder(branchId);
-            builder.withConfig(defaultConfig)
-                .setBlockStoreFactory(ValidatorService.blockStoreFactory())
-                .setConsensusAlgorithm(consensus.getAlgorithm())
+            BlockChainStoreBuilder builder = BlockChainStoreBuilder.newBuilder(branchId)
+                    .withDataBasePath(defaultConfig.getDatabasePath())
+                    .withProductionMode(defaultConfig.isProductionMode())
+                    .setBlockStoreFactory(ValidatorService.blockStoreFactory())
+                    .setConsensusAlgorithm(consensus.getAlgorithm())
             ;
             BlockChainStore blockChainStore = builder.build();
             BlockChain blockChain = getBlockChain(defaultConfig, genesis, blockChainStore, policyLoader, branchId, systemProperties);

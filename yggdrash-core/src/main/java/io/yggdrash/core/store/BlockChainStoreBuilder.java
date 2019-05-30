@@ -9,7 +9,6 @@ import io.yggdrash.core.blockchain.BranchId;
 
 public class BlockChainStoreBuilder {
     BranchId branchId;
-    private DefaultConfig config;
     private StoreBuilder.BlockStoreFactory blockStoreFactory;
     private String consensusAlgorithm;
     private boolean isProductionMode;
@@ -18,13 +17,6 @@ public class BlockChainStoreBuilder {
 
     private BlockChainStoreBuilder(BranchId branchId) {
         this.branchId = branchId;
-    }
-
-    public BlockChainStoreBuilder withConfig(DefaultConfig config) {
-        this.config = config;
-        this.isProductionMode = config.isProductionMode();
-        this.databasePath = config.getDatabasePath();
-        return this;
     }
 
     public BlockChainStoreBuilder withProductionMode(Boolean isProductionMode) {

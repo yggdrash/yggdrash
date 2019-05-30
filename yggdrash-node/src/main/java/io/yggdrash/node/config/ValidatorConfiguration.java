@@ -98,7 +98,8 @@ public class ValidatorConfiguration {
                 BranchId branchId = genesis.getBranch().getBranchId();
 
                 BlockChainStoreBuilder builder = BlockChainStoreBuilder.newBuilder(branchId);
-                builder.withConfig(defaultConfig)
+                builder.withDataBasePath(defaultConfig.getDatabasePath())
+                        .withProductionMode(defaultConfig.isProductionMode())
                         .setBlockStoreFactory(ValidatorService.blockStoreFactory())
                         .setConsensusAlgorithm(consensus.getAlgorithm())
                 ;
