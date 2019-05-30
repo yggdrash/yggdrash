@@ -72,7 +72,8 @@ public class BlockDto {
         }
         blockDto.author = block.getBlock().getAddress().toString();
         blockDto.blockId = block.getHash().toString();
-        blockDto.consensusMessages = block.getConsensusMessages();
+        //blockDto.consensusMessages = block.getConsensusMessages();
+        // TODO add consensus messages
         return blockDto;
     }
 
