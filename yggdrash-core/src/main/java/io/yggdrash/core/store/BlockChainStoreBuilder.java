@@ -4,6 +4,7 @@ import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
+import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.BranchId;
 
 public class BlockChainStoreBuilder {
@@ -52,9 +53,9 @@ public class BlockChainStoreBuilder {
         }
     }
 
-    private BranchStore buildBranchStore() {
+    private BranchStore buildBranchStore(ReadWriterStore store) {
         // TODO merge branchStore and StateStore
-        return new BranchStore(getDbSource(branchId + "/branch"));
+        return new BranchStore(store);
     }
 
     private TransactionStore buildTransactionStore() {
@@ -79,7 +80,9 @@ public class BlockChainStoreBuilder {
         TransactionReceiptStore txrStore = buildTransactionReceiptStore();
         StateStore stateStore = buildStateStore();
         ConsensusBlockStore blockStore = buildBlockStore();
-        BranchStore branchStore = buildBranchStore();
+        // State Store and Branch Store is merged
+        StoreAdapter adapter = new StoreAdapter(stateStore, "branch");
+        BranchStore branchStore = buildBranchStore(adapter);
 
         BlockChainStore blockChainStore = new BlockChainStore(
                 txStore,
