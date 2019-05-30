@@ -1,6 +1,5 @@
 package io.yggdrash.core.store;
 
-import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
@@ -9,7 +8,7 @@ import io.yggdrash.core.blockchain.BranchId;
 
 public class BlockChainStoreBuilder {
     BranchId branchId;
-    private StoreBuilder.BlockStoreFactory blockStoreFactory;
+    private BlockStoreFactory blockStoreFactory;
     private String consensusAlgorithm;
     private boolean isProductionMode;
     private String databasePath;
@@ -30,7 +29,7 @@ public class BlockChainStoreBuilder {
     }
 
 
-    public BlockChainStoreBuilder setBlockStoreFactory(StoreBuilder.BlockStoreFactory blockStoreFactory) {
+    public BlockChainStoreBuilder setBlockStoreFactory(BlockStoreFactory blockStoreFactory) {
         this.blockStoreFactory = blockStoreFactory;
         return this;
     }
