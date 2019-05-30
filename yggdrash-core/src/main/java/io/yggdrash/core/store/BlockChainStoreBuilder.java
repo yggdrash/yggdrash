@@ -5,7 +5,6 @@ import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
-import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.blockchain.BranchId;
 
 public class BlockChainStoreBuilder {

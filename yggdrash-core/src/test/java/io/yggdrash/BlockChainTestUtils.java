@@ -129,18 +129,22 @@ public class BlockChainTestUtils {
         } else {
             storeBuilder = StoreBuilder.newBuilder().setConfig(new DefaultConfig());
         }
+
         storeBuilder.setBranchId(genesis.getBranch().getBranchId())
                 .setBlockStoreFactory(PbftBlockStoreMock::new);
 
         ContractStore contractStore = storeBuilder.buildContractStore();
         ContractPolicyLoader contractPolicyLoader = new ContractPolicyLoader();
+        DefaultConfig config = new DefaultConfig();
 
         ContractManager contractManager = ContractManagerBuilder.newInstance()
                 .withFrameworkFactory(contractPolicyLoader.getFrameworkFactory())
                 .withContractManagerConfig(contractPolicyLoader.getContractManagerConfig())
                 .withBranchId(genesis.getBranch().getBranchId().toString())
                 .withContractStore(contractStore)
-                .withConfig(new DefaultConfig())
+                .withDataBasePath(config.getDatabasePath())
+                .withOsgiPath(config.getOsgiPath())
+                .withContractPath(config.getContractPath())
                 .build();
 
         BlockChainManager blockChainManager = new BlockChainManagerImpl(

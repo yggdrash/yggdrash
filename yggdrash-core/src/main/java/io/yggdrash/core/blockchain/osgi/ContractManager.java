@@ -62,6 +62,11 @@ public class ContractManager {
     private final String branchId;
     private final ContractStore contractStore;
     private final DefaultConfig config;
+
+
+    private final String osgiPath;
+    private final String databasePath;
+    private final String contractPath;
     private final SystemProperties systemProperties;
     private final Map<String, String> fullLocation; // => Map<contractVersion, fullLocation>
 
@@ -75,6 +80,11 @@ public class ContractManager {
         this.branchId = branchId;
         this.contractStore = contractStore;
         this.config = config;
+
+        this.osgiPath = config.getOsgiPath();
+        this.databasePath = config.getDatabasePath();
+        this.contractPath = config.getContractPath();
+
         this.systemProperties = systemProperties;
         this.fullLocation = new HashMap<>();
 
@@ -90,7 +100,7 @@ public class ContractManager {
     }
 
     public String getContractPath() {
-        return this.config.getContractPath();
+        return contractPath;
     }
 
     private String getFullLocation(String contractName) {
@@ -131,7 +141,7 @@ public class ContractManager {
     }
 
     private void newFramework() {
-        String managerPath = String.format("%s/%s", config.getOsgiPath(), branchId);
+        String managerPath = String.format("%s/%s", osgiPath, branchId);
         log.debug("ContractManager Path : {}", managerPath);
         Map<String, String> contractManagerConfig = new HashMap<>();
         contractManagerConfig.put("org.osgi.framework.storage", managerPath);
@@ -211,11 +221,11 @@ public class ContractManager {
         // 컨트렉트 폴더 읽기/쓰기 권한
         // TODO 아카식 시스템 폴더 읽기/쓰기 권한
 
-        String stateStorePath = String.format("%s/%s/state", config.getDatabasePath(), branchId);
-        String stateStoreFile = String.format("%s/%s/state/*", config.getDatabasePath(), branchId);
+        String stateStorePath = String.format("%s/%s/state", databasePath, branchId);
+        String stateStoreFile = String.format("%s/%s/state/*", databasePath, branchId);
 
-        String branchStorePath = String.format("%s/%s/branch", config.getDatabasePath(), branchId);
-        String branchStoreFile = String.format("%s/%s/branch/*", config.getDatabasePath(), branchId);
+        String branchStorePath = String.format("%s/%s/branch", databasePath, branchId);
+        String branchStoreFile = String.format("%s/%s/branch/*", databasePath, branchId);
         String allPermission = "read,write,delete";
         String filePermissionName = FilePermission.class.getName();
 

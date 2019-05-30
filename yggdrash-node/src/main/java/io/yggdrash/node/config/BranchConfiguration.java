@@ -158,13 +158,15 @@ public class BranchConfiguration {
                 .withContractManagerConfig(policyLoader.getContractManagerConfig())
                 .withBranchId(branchId.toString())
                 .withContractStore(contractStore)
-                .withConfig(config)
+                .withOsgiPath(config.getOsgiPath())
+                .withDataBasePath(config.getDatabasePath())
+                .withContractPath(config.getContractPath())
                 .withSystemProperties(systemProperties)
                 .build();
 
         return BlockChainBuilder.newBuilder()
                 .setGenesis(genesis)
-                .setBranchStore(contractStore.getBranchStore())
+                .setBranchStore(blockChainStore.getBranchStore())
                 .setBlockChainManager(blockChainManager)
                 .setContractManager(contractManager)
                 .setFactory(ValidatorService.factory())
