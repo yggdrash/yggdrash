@@ -55,7 +55,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
     @Override
     public void multicastPbftMessage(PbftProto.PbftMessage request,
                                      StreamObserver<CommonProto.Empty> responseObserver) {
-        log.trace("multicastPbftMessage");
+        log.trace("multicastPbftMessage: {} {} {}", request.getType(), request.getViewNumber(), request.getSeqNumber());
         PbftMessage pbftMessage = new PbftMessage(request);
         try {
 

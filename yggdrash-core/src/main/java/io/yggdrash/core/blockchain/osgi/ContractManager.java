@@ -5,8 +5,6 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.utils.JsonUtil;
-import io.yggdrash.contract.core.store.OutputStore;
-import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
@@ -34,7 +32,6 @@ import org.osgi.service.condpermadmin.ConditionalPermissionUpdate;
 import org.osgi.service.permissionadmin.PermissionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilePermission;
@@ -68,18 +65,16 @@ public class ContractManager {
     private final Map<String, String> fullLocation; // => Map<contractVersion, fullLocation>
 
     private ContractExecutor contractExecutor;
-    private Map<OutputType, OutputStore> outputStore;
 
     ContractManager(FrameworkFactory frameworkFactory, Map<String, String> contractManagerConfig,
                     String branchId, ContractStore contractStore, DefaultConfig config,
-                    SystemProperties systemProperties, Map<OutputType, OutputStore> outputStore) {
+                    SystemProperties systemProperties) {
         this.frameworkFactory = frameworkFactory;
         this.commonContractManagerConfig = contractManagerConfig;
         this.branchId = branchId;
         this.contractStore = contractStore;
         this.config = config;
         this.systemProperties = systemProperties;
-        this.outputStore = outputStore;
         this.fullLocation = new HashMap<>();
 
         newFramework();
@@ -146,7 +141,7 @@ public class ContractManager {
 
         framework = frameworkFactory.newFramework(contractManagerConfig);
 
-        contractExecutor = new ContractExecutor(framework, contractStore, outputStore, systemProperties);
+        contractExecutor = new ContractExecutor(framework, contractStore, systemProperties);
 
         try {
             framework.start();
@@ -462,7 +457,7 @@ public class ContractManager {
         for (ServiceReference serviceRef : serviceRefs) {
             Object service = framework.getBundleContext().getService(serviceRef);
 
-            contractExecutor.injectFields(bundle.getLocation(), service, isSystemContract);
+            contractExecutor.injectFields(bundle, service, isSystemContract);
         }
     }
 

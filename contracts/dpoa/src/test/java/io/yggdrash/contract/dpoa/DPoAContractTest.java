@@ -355,7 +355,7 @@ public class DPoAContractTest {
      */
     @Test
     public void commitAddedValidator() throws IllegalAccessException {
-        List<Validator> validators = dPoAService.commit(null);
+        List<Validator> validators = dPoAService.commit();
         assertEquals(validatorsArr.size(), validators.size());
         assertEquals(VALIDATOR_1, validators.get(0).getAddr());
         assertEquals(VALIDATOR_2, validators.get(1).getAddr());
@@ -380,7 +380,7 @@ public class DPoAContractTest {
         receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
-        validators = dPoAService.commit(null);
+        validators = dPoAService.commit();
         assertEquals(validatorsArr.size(), validators.size());
         assertEquals(VALIDATOR_1, validators.get(0).getAddr());
         assertEquals(VALIDATOR_2, validators.get(1).getAddr());
@@ -395,7 +395,7 @@ public class DPoAContractTest {
         receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
-        validators = dPoAService.commit(null);
+        validators = dPoAService.commit();
         assertEquals(4, validators.size());
         assertEquals(PROPOSED_VALIDATOR, validators.get(0).getAddr());
         assertEquals(VALIDATOR_1, validators.get(1).getAddr());
@@ -453,7 +453,7 @@ public class DPoAContractTest {
         receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
-        List<Validator> validators = dPoAService.commit(null);
+        List<Validator> validators = dPoAService.commit();
         assertEquals(3, validators.size());
         assertEquals(VALIDATOR_1, validators.get(0).getAddr());
         assertEquals(VALIDATOR_2, validators.get(1).getAddr());
@@ -471,7 +471,7 @@ public class DPoAContractTest {
         receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
-        validators = dPoAService.commit(null);
+        validators = dPoAService.commit();
         assertEquals(3, validators.size());
         assertEquals(VALIDATOR_1, validators.get(0).getAddr());
         assertEquals(VALIDATOR_2, validators.get(1).getAddr());
@@ -489,7 +489,7 @@ public class DPoAContractTest {
         receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
-        validators = dPoAService.commit(null);
+        validators = dPoAService.commit();
         assertEquals(3, validators.size());
         assertEquals(VALIDATOR_1, validators.get(0).getAddr());
         assertEquals(VALIDATOR_2, validators.get(1).getAddr());

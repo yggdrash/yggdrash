@@ -1,28 +1,30 @@
 package io.yggdrash.core.blockchain.osgi;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.TransactionReceiptAdapter;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.InjectEvent;
-import io.yggdrash.contract.core.annotation.InjectOutputStore;
-import io.yggdrash.contract.core.store.OutputStore;
-import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.ContractStore;
+import io.yggdrash.core.store.StoreAdapter;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import org.apache.commons.codec.binary.Base64;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.launch.Framework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -38,20 +40,19 @@ public class ContractExecutor {
     private final Framework framework;
     private final ContractStore contractStore;
 
-    private final Map<OutputType, OutputStore> outputStore;
     private final SystemProperties systemProperties;
     private final ContractCache contractCache;
+    private TransactionReceiptAdapter trAdapter;
 
-    ContractExecutor(Framework framework, ContractStore contractStore,
-                     Map<OutputType, OutputStore> outputStore, SystemProperties systemProperties) {
+    ContractExecutor(Framework framework, ContractStore contractStore, SystemProperties systemProperties) {
         this.framework = framework;
         this.contractStore = contractStore;
-        this.outputStore = outputStore;
         this.systemProperties = systemProperties;
         contractCache = new ContractCache();
+        trAdapter = new TransactionReceiptAdapter();
     }
 
-    void injectFields(String location, Object service, boolean isSystemContract)
+    void injectFields(Bundle bundle, Object service, boolean isSystemContract)
             throws IllegalAccessException {
 
         Field[] fields = service.getClass().getDeclaredFields();
@@ -59,21 +60,21 @@ public class ContractExecutor {
             field.setAccessible(true);
 
             for (Annotation annotation : field.getDeclaredAnnotations()) {
-                if (isSystemContract) {
-                    if (annotation.annotationType().equals(ContractStateStore.class)) {
-                        //field.set(service, contractStore.getStateStore());
-                        field.set(service, contractStore.getTmpStateStore()); //default => tmpStateStore
-                    }
-
-                    if (annotation.annotationType().equals(ContractBranchStateStore.class)) {
-                        field.set(service, contractStore.getBranchStore());
-                    }
+                if (annotation.annotationType().equals(ContractStateStore.class)) {
+                    String bundleSymbolicName = bundle.getSymbolicName();
+                    byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(bundleSymbolicName.getBytes());
+                    String nameSpace = new String(Base64.encodeBase64(bundleSymbolicSha3));
+                    log.debug("bundleSymbolicName {} , nameSpace {}", bundleSymbolicName, nameSpace);
+                    StoreAdapter adapterStore = new StoreAdapter(contractStore.getTmpStateStore(), nameSpace);
+                    field.set(service, adapterStore); //default => tmpStateStore
                 }
 
-                if (outputStore != null
-                        && annotation.annotationType().equals(InjectOutputStore.class)
-                        && field.getType().isAssignableFrom(outputStore.getClass())) {
-                    field.set(service, outputStore);
+                if (isSystemContract && annotation.annotationType().equals(ContractBranchStateStore.class)) {
+                    field.set(service, contractStore.getBranchStore());
+                }
+
+                if (annotation.annotationType().equals(ContractTransactionReceipt.class)) {
+                    field.set(service, trAdapter);
                 }
 
                 if (systemProperties != null
@@ -84,7 +85,7 @@ public class ContractExecutor {
             }
         }
 
-        contractCache.cacheContract(location, service);
+        contractCache.cacheContract(bundle.getLocation(), service);
     }
 
     private enum MethodType {
@@ -122,16 +123,8 @@ public class ContractExecutor {
         Method method = methodMap.get(methodName);
         try {
             if (methodType == MethodType.InvokeTx) {
-                // Inject field
-                Map<Field, List<Annotation>> fields = contractCache.getInjectingFields().get(contractVersion);
-                for (Field field : fields.keySet()) {
-                    field.setAccessible(true);
-                    for (Annotation a : field.getDeclaredAnnotations()) {
-                        if (a.annotationType().equals(ContractTransactionReceipt.class)) {
-                            field.set(service, txReceipt);
-                        }
-                    }
-                }
+                //
+                trAdapter.setTransactionReceipt(txReceipt);
             }
 
             if (method.getParameterCount() == 0) {

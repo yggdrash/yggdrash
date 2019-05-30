@@ -207,7 +207,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
                     messageCount = consensusCount;
             }
 
-            if (getMsgMap(blockChain.getBlockChainManager().getLastIndex() + 1, message).size()
+            if (getMsgMap(this.viewNumber, this.seqNumber, message).size()
                     < messageCount) {
                 try {
                     Thread.sleep(100);
@@ -232,6 +232,11 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         log.debug("isViewChanged= " + this.isViewChanged);
 
         log.debug("unConfirmedMsgMap size= " + this.blockChain.getUnConfirmedData().size());
+        if (log.isTraceEnabled()) {
+            for (PbftMessage message : this.blockChain.getUnConfirmedData().values()) {
+                log.trace(message.toJsonObject().toString());
+            }
+        }
         log.debug("TxStore unConfirmed Tx.size= "
                 + this.blockChain.getBlockChainManager().getUnconfirmedTxs().size());
         log.debug("");
@@ -314,32 +319,12 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         return prePrepare;
     }
 
-    private long getCurrentViewNumber(long seqNumber) {
-        Map<String, PbftMessage> viewChangeMsgMap = getMsgMap(seqNumber, "VIEWCHAN");
+    private long getCurrentViewNumber() {
+        long newViewNumber = this.viewNumber + 1;
+        Map<String, PbftMessage> viewChangeMsgMap = getMsgMap(newViewNumber, this.seqNumber, "VIEWCHAN");
         if (viewChangeMsgMap.size() < consensusCount) {
-            return seqNumber;
+            return this.viewNumber;
         }
-
-        long newViewNumber = this.viewNumber;
-        for (int i = 0; i < viewChangeMsgMap.size(); i++) {
-            if (((PbftMessage) viewChangeMsgMap.values().toArray()[i]).getViewNumber() <= this.viewNumber) {
-                continue;
-            }
-
-            long count = 0;
-            for (int j = 0; j < viewChangeMsgMap.size(); j++) {
-                if (((PbftMessage) viewChangeMsgMap.values().toArray()[i]).getViewNumber()
-                        == ((PbftMessage) viewChangeMsgMap.values().toArray()[j])
-                        .getViewNumber()) {
-                    count++;
-                }
-            }
-            if (count >= consensusCount
-                    && newViewNumber < ((PbftMessage) viewChangeMsgMap.values().toArray()[i]).getViewNumber()) {
-                newViewNumber = ((PbftMessage) viewChangeMsgMap.values().toArray()[i]).getViewNumber();
-            }
-        }
-
         return newViewNumber;
     }
 
@@ -385,9 +370,15 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         }
 
         // todo : check 1 more PREPREPARE msg
-        PbftMessage prePrepareMsg = (PbftMessage) getMsgMap(seqNumber, "PREPREPA").values()
-                .toArray()[0];
-        if (prePrepareMsg == null) {
+        PbftMessage prePrepareMsg;
+        try {
+            prePrepareMsg = (PbftMessage) getMsgMap(this.viewNumber, this.seqNumber, "PREPREPA").values()
+                    .toArray()[0];
+            if (prePrepareMsg == null) {
+                return null;
+            }
+        } catch (Exception e) {
+            log.debug(e.getMessage());
             return null;
         }
 
@@ -426,7 +417,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
             return null;
         }
 
-        Map<String, PbftMessage> prepareMsgMap = getMsgMap(seqNumber, "PREPAREM");
+        Map<String, PbftMessage> prepareMsgMap = getMsgMap(this.viewNumber, this.seqNumber, "PREPAREM");
         if (prepareMsgMap == null) {
             return null;
         } else if (prepareMsgMap.size() < consensusCount) {
@@ -539,7 +530,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     private PbftMessage makeViewChangeMsg() {
-        if (this.failCount < FAIL_COUNT) {
+        if (this.failCount < FAIL_COUNT
+                || this.isPrePrepared == true) {
             return null;
         }
 
@@ -601,11 +593,12 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         this.seqNumber = index + 1;
     }
 
-    private Map<String, PbftMessage> getMsgMap(long index, String msg) {
+    private Map<String, PbftMessage> getMsgMap(long viewNumber, long seqNumber, String msg) {
         Map<String, PbftMessage> msgMap = new TreeMap<>();
         for (String key : this.blockChain.getUnConfirmedData().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedData().get(key);
-            if (pbftMessage.getSeqNumber() == index
+            if (pbftMessage.getViewNumber() == viewNumber
+                    && pbftMessage.getSeqNumber() == seqNumber
                     && pbftMessage.getType().equals(msg)) {
                 msgMap.put(key, pbftMessage);
             }
@@ -614,7 +607,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     private void checkPrimary() {
-        long checkViewNumber = getCurrentViewNumber(this.seqNumber);
+        long checkViewNumber = getCurrentViewNumber();
         if (checkViewNumber > this.viewNumber) {
             this.viewNumber = checkViewNumber;
             this.failCount = 0;
