@@ -55,7 +55,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     private boolean isPrePrepared;
     private boolean isPrepared;
     private boolean isCommitted;
-    private boolean isViewChanged;
 
     private boolean isPrimary;
     private long viewNumber;
@@ -87,7 +86,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         this.isPrePrepared = false;
         this.isPrepared = false;
         this.isCommitted = false;
-        this.isViewChanged = false;
         this.failCount = 0;
 
         this.viewNumber = this.blockChain.getBlockChainManager().getLastIndex() + 1;
@@ -229,7 +227,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         log.debug("isPrePrepared= " + this.isPrePrepared);
         log.debug("isPrepared= " + this.isPrepared);
         log.debug("isCommitted= " + this.isCommitted);
-        log.debug("isViewChanged= " + this.isViewChanged);
 
         log.debug("unConfirmedMsgMap size= " + this.blockChain.getUnConfirmedData().size());
         if (log.isTraceEnabled()) {
@@ -326,25 +323,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
             return this.viewNumber;
         }
         return newViewNumber;
-    }
-
-    private long getNextActiveValidatorIndex(long index) {
-        long validatorCount = this.totalValidatorMap.size();
-        log.trace("Before ValidatorIndex: " + index + " " + validatorCount);
-
-        for (long l = index + 1; l <= index + validatorCount; l++) {
-            // next validator sequence 0 ~ n
-            int validatorSeq = (int) (l % validatorCount);
-            PbftClientStub client =
-                    (PbftClientStub) this.totalValidatorMap.values().toArray()[validatorSeq];
-            if (client.isRunning()) {
-                log.trace("NextActiveValidatorIndex: " + l);
-                return l;
-            }
-        }
-
-        log.error("Cannot get next active validator index!");
-        return -1L;
     }
 
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
@@ -556,7 +534,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         }
 
         this.blockChain.getUnConfirmedData().put(viewChangeMsg.getSignatureHex(), viewChangeMsg);
-        this.isViewChanged = true;
 
         log.warn("ViewChanged"
                 + " ("
@@ -587,7 +564,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         this.isPrepared = false;
         this.isCommitted = false;
         this.failCount = 0;
-        this.isViewChanged = false;
 
         this.viewNumber = index + 1;
         this.seqNumber = index + 1;
@@ -610,7 +586,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         long checkViewNumber = getCurrentViewNumber();
         if (checkViewNumber > this.viewNumber) {
             this.viewNumber = checkViewNumber;
-            this.failCount = 0;
+            resetUnConfirmedMessage(this.viewNumber, this.seqNumber);
         }
 
         int primaryIndex = (int) (this.viewNumber % totalValidatorMap.size());
@@ -622,6 +598,22 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         log.debug("currentPrimaryAddr: " + currentPrimaryAddr);
 
         this.isPrimary = currentPrimaryAddr.equals(this.myNode.getAddr());
+    }
+
+    private void resetUnConfirmedMessage(long viewNumber, long seqNumber) {
+        for (String key : this.blockChain.getUnConfirmedData().keySet()) {
+            PbftMessage pbftMessage = this.blockChain.getUnConfirmedData().get(key);
+            if (pbftMessage.getViewNumber() < viewNumber
+                    || pbftMessage.getSeqNumber() < seqNumber) {
+                pbftMessage.clear();
+                this.blockChain.getUnConfirmedData().remove(key);
+            }
+        }
+
+        this.isPrePrepared = false;
+        this.isPrepared = false;
+        this.isCommitted = false;
+        this.failCount = 0;
     }
 
     private Map<String, PbftMessage> getViewChangeMsgMap(long index) {
