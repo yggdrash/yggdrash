@@ -679,7 +679,6 @@ public class YeedTest {
 
     @Test
     public void proposeIssueFail() {
-        String transactionId = "0x02";
         String receiveAddress = "ad8992d6f78d9cc597438efbccd8940d7c02bc6d";
         BigInteger receiveAsset = new BigInteger("11000000000000000000");
         int receiveChainId = 1;
@@ -708,6 +707,7 @@ public class YeedTest {
 
         BigInteger issuerOriginBalance = getBalance(issuer);
         log.debug("issuerOriginBalance {} ", issuerOriginBalance);
+        String transactionId = "0x02";
         TransactionReceipt receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 1);
 
         // issue propose

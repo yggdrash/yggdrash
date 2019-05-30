@@ -138,7 +138,7 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
                     block.getConsensusMessages().getCommitMap().size(),
                     block.getConsensusMessages().getViewChangeMap().size(),
                     block.getBlock().getAddress()
-                    );
+            );
         } catch (Exception e) {
             log.debug(e.getMessage());
         }

@@ -145,7 +145,7 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
                     block.getHash(),
                     block.getBlock().getAddress(),
                     block.getConsensusMessages().size()
-                    );
+            );
         } catch (Exception e) {
             log.debug(e.getMessage());
         }
