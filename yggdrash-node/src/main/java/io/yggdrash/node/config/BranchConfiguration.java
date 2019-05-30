@@ -34,7 +34,6 @@ import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
 import io.yggdrash.core.store.ContractStore;
-import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.ChainTask;
 import io.yggdrash.node.service.ValidatorService;
 import org.slf4j.Logger;
@@ -47,7 +46,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.EnableScheduling;
-
 import java.io.IOException;
 import java.util.Arrays;
 

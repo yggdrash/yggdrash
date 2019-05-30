@@ -61,8 +61,6 @@ public class ContractManager {
     private final Map<String, String> commonContractManagerConfig;
     private final String branchId;
     private final ContractStore contractStore;
-    private final DefaultConfig config;
-
 
     private final String osgiPath;
     private final String databasePath;
@@ -73,17 +71,16 @@ public class ContractManager {
     private ContractExecutor contractExecutor;
 
     ContractManager(FrameworkFactory frameworkFactory, Map<String, String> contractManagerConfig,
-                    String branchId, ContractStore contractStore, DefaultConfig config,
-                    SystemProperties systemProperties) {
+                    String branchId, ContractStore contractStore, String osgiPath, String databasePath,
+                    String contractPath, SystemProperties systemProperties) {
         this.frameworkFactory = frameworkFactory;
         this.commonContractManagerConfig = contractManagerConfig;
         this.branchId = branchId;
         this.contractStore = contractStore;
-        this.config = config;
 
-        this.osgiPath = config.getOsgiPath();
-        this.databasePath = config.getDatabasePath();
-        this.contractPath = config.getContractPath();
+        this.osgiPath = osgiPath;
+        this.databasePath = databasePath;
+        this.contractPath = contractPath;
 
         this.systemProperties = systemProperties;
         this.fullLocation = new HashMap<>();

@@ -12,8 +12,6 @@ public class ContractManagerBuilder {
     private String branchId;
     private ContractStore contractStore;
 
-    // TODO remove config
-    private DefaultConfig config;
     private SystemProperties systemProperties;
 
     private String osgiPath;
@@ -51,7 +49,6 @@ public class ContractManagerBuilder {
 
     @Deprecated
     public ContractManagerBuilder withConfig(DefaultConfig config) {
-        this.config = config;
         this.osgiPath = config.getOsgiPath();
         this.databasePath = config.getDatabasePath();
         this.contractPath = config.getContractPath();
@@ -96,7 +93,9 @@ public class ContractManagerBuilder {
                 this.contractManagerConfig,
                 this.branchId,
                 this.contractStore,
-                this.config,
+                this.osgiPath,
+                this.databasePath,
+                this.contractPath,
                 this.systemProperties
         );
     }

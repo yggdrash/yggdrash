@@ -32,6 +32,12 @@ public class BlockChainStoreBuilder {
         return this;
     }
 
+    public BlockChainStoreBuilder withDataBasePath(String databasePath) {
+        this.databasePath = databasePath;
+        return this;
+    }
+
+
     public BlockChainStoreBuilder setBlockStoreFactory(StoreBuilder.BlockStoreFactory blockStoreFactory) {
         this.blockStoreFactory = blockStoreFactory;
         return this;
