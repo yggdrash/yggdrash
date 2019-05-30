@@ -1,6 +1,9 @@
 package io.yggdrash.core.blockchain.osgi;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.TransactionReceipt;
@@ -16,7 +19,9 @@ import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.ContractStore;
+import io.yggdrash.core.store.StoreAdapter;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import org.apache.commons.codec.binary.Base64;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.launch.Framework;
 import org.slf4j.Logger;
@@ -46,7 +51,7 @@ public class ContractExecutor {
         trAdapter = new TransactionReceiptAdapter();
     }
 
-    void injectFields(String location, Object service, boolean isSystemContract)
+    void injectFields(Bundle bundle, Object service, boolean isSystemContract)
             throws IllegalAccessException {
 
         Field[] fields = service.getClass().getDeclaredFields();
@@ -54,15 +59,17 @@ public class ContractExecutor {
             field.setAccessible(true);
 
             for (Annotation annotation : field.getDeclaredAnnotations()) {
-                if (isSystemContract) {
-                    if (annotation.annotationType().equals(ContractStateStore.class)) {
-                        //field.set(service, contractStore.getStateStore());
-                        field.set(service, contractStore.getTmpStateStore()); //default => tmpStateStore
-                    }
+                if (annotation.annotationType().equals(ContractStateStore.class)) {
+                    String bundleSymbolicName = bundle.getSymbolicName();
+                    byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(bundleSymbolicName.getBytes());
+                    String nameSpace = new String(Base64.encodeBase64(bundleSymbolicSha3));
+                    log.debug("bundleSymbolicName {} , nameSpace {}", bundleSymbolicName, nameSpace);
+                    StoreAdapter adapterStore = new StoreAdapter(contractStore.getTmpStateStore(), nameSpace);
+                    field.set(service, adapterStore); //default => tmpStateStore
+                }
 
-                    if (annotation.annotationType().equals(ContractBranchStateStore.class)) {
-                        field.set(service, contractStore.getBranchStore());
-                    }
+                if (isSystemContract && annotation.annotationType().equals(ContractBranchStateStore.class)) {
+                    field.set(service, contractStore.getBranchStore());
                 }
 
                 if (annotation.annotationType().equals(ContractTransactionReceipt.class)) {
@@ -77,7 +84,7 @@ public class ContractExecutor {
             }
         }
 
-        contractCache.cacheContract(location, service);
+        contractCache.cacheContract(bundle.getLocation(), service);
     }
 
     private enum MethodType {

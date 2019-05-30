@@ -458,7 +458,7 @@ public class ContractManager {
         for (ServiceReference serviceRef : serviceRefs) {
             Object service = framework.getBundleContext().getService(serviceRef);
 
-            contractExecutor.injectFields(bundle.getLocation(), service, isSystemContract);
+            contractExecutor.injectFields(bundle, service, isSystemContract);
         }
     }
 
