@@ -25,7 +25,6 @@ import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.wallet.Wallet;
 import org.junit.Assume;
 import org.junit.BeforeClass;
-import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -91,11 +90,6 @@ public class TestConstants {
     }
 
     public static Wallet wallet() {
-        return wallet;
-    }
-
-    public static Wallet wallet(String path) throws IOException, InvalidCipherTextException {
-        wallet = new Wallet(path, "As1234567890!");
         return wallet;
     }
 
