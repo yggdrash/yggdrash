@@ -1,10 +1,9 @@
 package io.yggdrash.core.blockchain.osgi;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.crypto.HashUtil;
-import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.store.StateStore;
+import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptAdapter;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
@@ -25,11 +24,11 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.launch.Framework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -194,9 +193,9 @@ public class ContractExecutor {
         List<Transaction> txList = nextBlock.getBody().getTransactionList();
 
         if (nextBlock.getIndex() == 0) {
-            //first transaction is genesis
-            //init method don't call any more
-            txList = Collections.singletonList(txList.get(0));
+            //TODO first transaction is genesis
+            //TODO init method don't call any more
+            //@Genesis check
         }
 
         BlockRuntimeResult blockRuntimeResult = new BlockRuntimeResult(nextBlock);
@@ -217,6 +216,7 @@ public class ContractExecutor {
                 blockRuntimeResult.setBlockResult(invoke(contractVersion, service, txBody, txReceipt));
                 contractStore.getTmpStateStore().close();
             } else {
+                txReceipt.setStatus(ExecuteStatus.ERROR);
                 txReceipt.addLog("contract is not exist");
             }
 
