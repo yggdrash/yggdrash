@@ -45,6 +45,7 @@ import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
 import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.PbftBlockStoreMock;
+import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,6 +106,12 @@ public class BlockChainTestUtils {
     public static ConsensusBlock<PbftProto.PbftBlock> createNextBlock(List<Transaction> blockBody,
                                                                       ConsensusBlock prevBlock) {
         return new PbftBlockMock(BlockImpl.nextBlock(TestConstants.wallet(), blockBody, prevBlock));
+    }
+
+    public static ConsensusBlock<PbftProto.PbftBlock> createNextBlock(Wallet wallet,
+                                                                      List<Transaction> blockBody,
+                                                                      ConsensusBlock prevBlock) {
+        return new PbftBlockMock(BlockImpl.nextBlock(wallet, blockBody, prevBlock));
     }
 
     public static Transaction createBranchTx() {
