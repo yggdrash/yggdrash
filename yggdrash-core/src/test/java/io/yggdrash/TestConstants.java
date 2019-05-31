@@ -48,7 +48,7 @@ public class TestConstants {
     private static final String CONSOLE_TEST = "console";
     private static final String PROFILE = System.getProperty("spring.profiles.active");
 
-    private static final Wallet wallet;
+    private static Wallet wallet;
 
     private TestConstants() {
     }
