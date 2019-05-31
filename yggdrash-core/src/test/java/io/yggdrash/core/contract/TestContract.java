@@ -71,7 +71,10 @@ public class TestContract implements Contract {
         JsonObject param = new JsonObject();
         param.addProperty("contract", contract);
         param.addProperty("method", method);
-        channel.call(contract, ContractMethodType.INVOKE, method,  param);
+        JsonObject object = channel.call(contract, ContractMethodType.INVOKE, method,  param);
+        if (object != null) {
+            log.debug(object.toString());
+        }
     }
 
     public void callContractChannelQuery(String contract, String method) {
