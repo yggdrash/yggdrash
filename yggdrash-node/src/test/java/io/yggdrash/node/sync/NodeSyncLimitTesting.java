@@ -61,7 +61,6 @@ public class NodeSyncLimitTesting extends TcpNodeTesting {
         assert node1BlockChainManager.getLastIndex() == blockCount;
         // Node2 : start -> add route node2 -> node1
         TestNode node2 = createAndStartNode(8889, true);
-        BlockChainManager node2BlockChainManager = node2.getDefaultBranch().getBlockChainManager();
         node2.peerTableGroup.addPeer(TestConstants.yggdrash(), node1.peerTableGroup.getOwner());
 
         // act sync block
@@ -71,7 +70,7 @@ public class NodeSyncLimitTesting extends TcpNodeTesting {
         node2.shutdown();
 
         // assert
-
+        BlockChainManager node2BlockChainManager = node2.getDefaultBranch().getBlockChainManager();
         assertThat(node2BlockChainManager.getLastIndex()).isEqualTo(node1BlockChainManager.getLastIndex());
         assertThat(node2BlockChainManager.countOfTxs()).isEqualTo(node1BlockChainManager.countOfTxs());
     }
