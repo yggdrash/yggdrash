@@ -2,7 +2,6 @@ package io.yggdrash.node.api;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.common.crypto.HexUtil;
-import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
@@ -20,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -93,7 +93,8 @@ public class TransactionApiImpl implements TransactionApi {
         int verifyResult = branchGroup.addTransaction(transaction);
         if (verifyResult > SystemError.VALID.toValue() || verifyResult > BusinessError.VALID.toValue()) {
             log.error("Error Code[{}]", verifyResult);
-            errorLogs = BusinessError.errorLogs(verifyResult);
+            errorLogs.addAll(SystemError.errorLogs(verifyResult));
+            errorLogs.addAll(BusinessError.errorLogs(verifyResult));
             return TransactionResponseDto.createBy(tx.txId, false, errorLogs);
         }
 

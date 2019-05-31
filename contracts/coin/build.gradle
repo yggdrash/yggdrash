@@ -18,8 +18,9 @@ import java.security.MessageDigest
 
 ext {
     importPackage =
-                    "io.yggdrash.common.contract" +
+                    "io.yggdrash.common.contract" + 
                     ",io.yggdrash.common.contract.method" +
+                    ",io.yggdrash.common.contract.standard" +
                     ",io.yggdrash.common.contract.vo" +
                     ",io.yggdrash.common.contract.vo.dpoa" +
                     ",io.yggdrash.common.contract.vo.dpoa.tx" +
@@ -109,6 +110,7 @@ task copyContractToResrouce(type: Copy) {
         }
     }
 }
+
 task copyContractToProject(type: Copy) {
     dependsOn copyContractToResrouce
 

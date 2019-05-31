@@ -15,11 +15,21 @@ package io.yggdrash.core.net;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.BlockChainSyncManager;
 import io.yggdrash.core.blockchain.BranchGroup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BlockChainSyncManagerMock {
     static final BranchGroup branchGroup = BlockChainTestUtils.createBranchGroup();
     static final NodeStatus nodeStatus = NodeStatusMock.mock;
+    private static final Logger log = LoggerFactory.getLogger(BlockChainSyncManagerMock.class);
 
     public static final BlockChainSyncManager mock = new BlockChainSyncManager(nodeStatus,
             PeerNetworkMock.mock, branchGroup);
+
+    public BlockChainSyncManager getMock() {
+        log.debug("branch size : {}", branchGroup.getAllBranch().size());
+        log.debug("nodeStatus : {}", nodeStatus.isUpStatus());
+
+        return new BlockChainSyncManager(nodeStatus, PeerNetworkMock.mock, branchGroup);
+    }
 }

@@ -20,10 +20,13 @@ import io.yggdrash.core.p2p.BlockChainHandler;
 import io.yggdrash.core.p2p.PeerHandlerMock;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BlockChainSyncManagerTest {
+    private static final Logger log = LoggerFactory.getLogger(BlockChainSyncManagerTest.class);
 
     private final BlockChainHandler handler = PeerHandlerMock.dummy();
     private BlockChainSyncManager syncManager;
@@ -32,7 +35,10 @@ public class BlockChainSyncManagerTest {
 
     @Before
     public void setUp() {
-        syncManager = BlockChainSyncManagerMock.mock;
+        log.debug("init");
+        BlockChainSyncManagerMock bcsmm = new BlockChainSyncManagerMock();
+
+        syncManager = bcsmm.getMock();
         blockChain = BlockChainTestUtils.createBlockChain(false);
         blockChainManager = blockChain.getBlockChainManager();
     }

@@ -42,6 +42,7 @@ public interface Transaction extends ProtoObject<Proto.Transaction>, Comparable<
      *
      * @return transaction body class
      */
+    // TODO getBody -> getTransactionBody
     TransactionBody getBody();
 
     BranchId getBranchId();

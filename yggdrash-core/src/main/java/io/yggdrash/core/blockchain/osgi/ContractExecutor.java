@@ -3,7 +3,7 @@ package io.yggdrash.core.blockchain.osgi;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.store.StateStore;
-import io.yggdrash.common.utils.JsonUtil;
+import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptAdapter;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
@@ -25,12 +25,14 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.launch.Framework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class ContractExecutor {
     private static final Logger log = LoggerFactory.getLogger(ContractExecutor.class);
@@ -142,10 +144,12 @@ public class ContractExecutor {
                 contractVersion, service, methodName, params, ContractMethodType.QUERY, null, null);
     }
 
-    public Object invoke(String contractVersion, Object service, JsonObject txBody, TransactionReceipt txReceipt) {
+    private Set<Map.Entry<String, JsonObject>> invoke(
+            String contractVersion, Object service, JsonObject txBody, TransactionReceipt txReceipt) {
 
-        return callContractMethod(contractVersion, service, txBody.get("method").getAsString(),
+        callContractMethod(contractVersion, service, txBody.get("method").getAsString(),
                 txBody.getAsJsonObject("params"), ContractMethodType.INVOKE, txReceipt, null);
+        return contractStore.getTmpStateStore().changeValues();
     }
 
     private List<Object> endBlock(String location, Object service, JsonObject endBlockParams) {
@@ -172,47 +176,57 @@ public class ContractExecutor {
         TransactionRuntimeResult txRuntimeResult = new TransactionRuntimeResult(tx);
         txRuntimeResult.setTransactionReceipt(txReceipt);
 
-        JsonObject txBody = JsonUtil.parseJsonObject(tx.getBody().toString());
-        Object contractResult = invoke(contractVersion, service, txBody, txReceipt);
-        //TODO Q. Where will the contractResult be used?
+        JsonObject txBody = tx.getBody().getBody();
 
-        txRuntimeResult.setChangeValues(contractStore.getTmpStateStore().changeValues());
-
+        //invoke transaction
+        txRuntimeResult.setChangeValues(invoke(contractVersion, service, txBody, txReceipt));
+        contractStore.getTmpStateStore().close();
         return txRuntimeResult;
     }
 
     BlockRuntimeResult executeTxs(Map<String, Object> serviceMap, ConsensusBlock nextBlock) {
+        List<Transaction> txList = nextBlock.getBody().getTransactionList();
+
         if (nextBlock.getIndex() == 0) {
-            // TODO first transaction is genesis
-            // TODO init method don't call any more
+            //TODO first transaction is genesis
+            //TODO init method don't call any more
+            //@Genesis check
         }
 
         BlockRuntimeResult blockRuntimeResult = new BlockRuntimeResult(nextBlock);
 
-        for (Transaction tx : nextBlock.getBody().getTransactionList()) {
+        for (Transaction tx : txList) {
+            // get all exceptions
             TransactionReceipt txReceipt = createTransactionReceipt(tx);
 
             txReceipt.setBlockId(nextBlock.getHash().toString());
             txReceipt.setBlockHeight(nextBlock.getIndex());
             txReceipt.setBranchId(nextBlock.getBranchId().toString());
 
-            JsonObject txBody = JsonUtil.parseJsonObject(tx.getBody().toString());
+            JsonObject txBody = tx.getBody().getBody();
             String contractVersion = txBody.get("contractVersion").getAsString();
             Object service = serviceMap.get(contractVersion);
-            Object contractResult = invoke(contractVersion, service, txBody, txReceipt);
+
+            if (service != null) {
+                blockRuntimeResult.setBlockResult(invoke(contractVersion, service, txBody, txReceipt));
+                contractStore.getTmpStateStore().close();
+            } else {
+                txReceipt.setStatus(ExecuteStatus.ERROR);
+                txReceipt.addLog("contract is not exist");
+            }
+
             //TODO Q. Where will the contractResult be used?
 
             log.debug("{} is {}", txReceipt.getTxId(), txReceipt.isSuccess());
 
             blockRuntimeResult.addTxReceipt(txReceipt);
         }
-
         return blockRuntimeResult;
     }
 
-    public void commitBlockResult(BlockRuntimeResult result) {
+    void commitBlockResult(BlockRuntimeResult result) {
         // TODO store transaction by batch
-        Map<String, JsonObject> changes = result.getBlockResult(); //TODO test required
+        Map<String, JsonObject> changes = result.getBlockResult();
         TransactionReceiptStore transactionReceiptStore = contractStore.getTransactionReceiptStore();
         result.getTxReceipts().forEach(transactionReceiptStore::put);
         if (!changes.isEmpty()) {
@@ -222,11 +236,12 @@ public class ContractExecutor {
         // TODO make transaction Receipt Event
     }
 
-    public static TransactionReceipt createTransactionReceipt(Transaction tx) {
+    private static TransactionReceipt createTransactionReceipt(Transaction tx) {
         String txId = tx.getHash().toString();
         long txSize = tx.getBody().getLength();
         String issuer = tx.getAddress().toString();
+        String contractVersion = tx.getBody().getBody().get("contractVersion").getAsString();
 
-        return new TransactionReceiptImpl(txId, txSize, issuer);
+        return new TransactionReceiptImpl(txId, txSize, issuer, contractVersion);
     }
 }
