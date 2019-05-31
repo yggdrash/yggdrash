@@ -139,6 +139,19 @@ public class ContractExecutorTest {
         assertEquals(10, contractStore.getStateStore().getStateSize()); //same with origin state
         //TransactionReceiptStore contains errorReceipt
         assertTrue(contractStore.getTransactionReceiptStore().contains(errTx.getHash().toString()));
+
+        //success tx
+        Transaction tx = generateTx(100); //method => transfer
+        nextBlock = BlockChainTestUtils.createNextBlock(wallet, Collections.singletonList(tx), genesisBlock);
+        res = manager.executeTxs(nextBlock);
+
+        manager.commitBlockResult(res);
+
+        assertEquals(ExecuteStatus.SUCCESS, res.getTxReceipts().get(0).getStatus());
+        assertEquals(2, res.getBlockResult().size());
+        assertEquals(11, contractStore.getStateStore().getStateSize());
+        assertEquals(0, contractStore.getTmpStateStore().changeValues().size()); //revert to origin state
+        assertTrue(contractStore.getTransactionReceiptStore().contains(errTx.getHash().toString()));
     }
 
     private void buildExecutor() {
@@ -157,10 +170,9 @@ public class ContractExecutorTest {
                 .withContractManagerConfig(loader.getContractManagerConfig())
                 .withBranchId(branchId.toString())
                 .withContractStore(contractStore)
-                .withConfig(config)
+                .withContractPath(config.getContractPath())
                 .build();
         this.executor = manager.getContractExecutor();
-
     }
 
     private void createBundle() throws Exception {
