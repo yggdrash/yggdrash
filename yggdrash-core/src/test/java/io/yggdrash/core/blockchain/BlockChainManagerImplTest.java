@@ -14,8 +14,12 @@ package io.yggdrash.core.blockchain;
 
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.common.config.Constants;
+import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.store.BlockChainStore;
+import io.yggdrash.core.store.BlockChainStoreBuilder;
+import io.yggdrash.core.store.BlockStoreFactory;
 import io.yggdrash.core.store.ConsensusBlockStore;
 import io.yggdrash.core.store.PbftBlockStoreMock;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -35,12 +39,16 @@ public class BlockChainManagerImplTest {
     private BlockChainManagerImpl<PbftProto.PbftBlock> blockChainManager;
 
     @Before
-    public void setUp() throws Exception {
-        ConsensusBlockStore<PbftProto.PbftBlock> pbftBlockStore = new PbftBlockStoreMock(new HashMapDbSource());
-        TransactionStore transactionStore = new TransactionStore(new HashMapDbSource());
-        TransactionReceiptStore transactionReceiptStore = new TransactionReceiptStore(new HashMapDbSource());
+    public void setUp() {
+        BlockStoreFactory storeFactory = (consensusAlgorithm, dbSource) -> new PbftBlockStoreMock(dbSource);
+        BlockChainStore store = BlockChainStoreBuilder.newBuilder(BranchId.NULL)
+                .withProductionMode(false)
+                .withDataBasePath(null)
+                .setBlockStoreFactory(storeFactory)
+                .build();
+
         this.blockChainManager
-                = new BlockChainManagerImpl<>(pbftBlockStore, transactionStore, transactionReceiptStore);
+                = new BlockChainManagerImpl<>(store);
     }
 
     @Test

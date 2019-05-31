@@ -84,8 +84,7 @@ public class PbftBlockChainMultiThreadTest {
 
         this.pbftBlockChain = new PbftBlockChain(block0, StoreTestUtils.getTestPath(),
                 "/pbftKey",
-                "/pbftBlock",
-                "/pbftTx");
+                "/pbftBlock");
         this.blockChainManager = pbftBlockChain.getBlockChainManager();
         this.pbftMessageSet0 = makePbftMessageSet(block0);
         this.pbftBlock0 = new PbftBlock(this.block0, this.pbftMessageSet0);

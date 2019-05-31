@@ -27,8 +27,6 @@ public class StoreBuilder {
 
     private DefaultConfig config;
     private BranchId branchId;
-    private String consensusAlgorithm;
-    private BlockStoreFactory blockStoreFactory;
 
     public StoreBuilder setConfig(DefaultConfig config) {
         this.config = config;
@@ -44,43 +42,8 @@ public class StoreBuilder {
         return this;
     }
 
-    public StoreBuilder setConsensusAlgorithm(String consensusAlgorithm) {
-        this.consensusAlgorithm = consensusAlgorithm;
-        return this;
-    }
-
-    public StoreBuilder setBlockStoreFactory(BlockStoreFactory blockStoreFactory) {
-        this.blockStoreFactory = blockStoreFactory;
-        return this;
-    }
-
-    public ContractStore buildContractStore() {
-        return new ContractStore(buildBranchStore(), buildStateStore(), buildTransactionReceiptStore());
-    }
-
-    public ConsensusBlockStore buildBlockStore() {
-        DbSource dbSource = getDbSource(branchId + "/blocks");
-        return blockStoreFactory.create(consensusAlgorithm, dbSource);
-    }
-
     public PeerStore buildPeerStore() {
         return new PeerStore(getDbSource(branchId + "/peers"));
-    }
-
-    public BranchStore buildBranchStore() {
-        return new BranchStore(getDbSource(branchId + "/branch"));
-    }
-
-    public TransactionStore buildTransactionStore() {
-        return new TransactionStore(getDbSource(branchId + "/txs"));
-    }
-
-    private StateStore buildStateStore() {
-        return new StateStore(getDbSource(branchId + "/state"));
-    }
-
-    public TransactionReceiptStore buildTransactionReceiptStore() {
-        return new TransactionReceiptStore(getDbSource(branchId + "/txreceipt"));
     }
 
     private DbSource<byte[], byte[]> getDbSource(String name) {
@@ -93,9 +56,5 @@ public class StoreBuilder {
 
     public static StoreBuilder newBuilder() {
         return new StoreBuilder();
-    }
-
-    public interface BlockStoreFactory {
-        ConsensusBlockStore create(String consensusAlgorithm, DbSource dbSource);
     }
 }

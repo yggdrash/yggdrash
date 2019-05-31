@@ -113,11 +113,9 @@ public class ValidatorService {
 
         switch (algorithm) {
             case "pbft":
-                return new PbftBlockChain(genesisBlock, dbPath, keyStorePath, blockStorePath,
-                        txStorePath);
+                return new PbftBlockChain(genesisBlock, dbPath, keyStorePath, blockStorePath);
             case "ebft":
-                return new EbftBlockChain(genesisBlock, dbPath, keyStorePath, blockStorePath,
-                        txStorePath);
+                return new EbftBlockChain(genesisBlock, dbPath, keyStorePath, blockStorePath);
 
             default:
                 throw new NotValidateException("Algorithm is not valid.");

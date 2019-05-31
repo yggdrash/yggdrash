@@ -41,6 +41,8 @@ import io.yggdrash.core.blockchain.osgi.ContractManagerBuilder;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.InvalidSignatureException;
+import io.yggdrash.core.store.BlockChainStore;
+import io.yggdrash.core.store.BlockChainStoreBuilder;
 import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.PbftBlockStoreMock;
 import io.yggdrash.core.store.StoreBuilder;
@@ -123,16 +125,17 @@ public class BlockChainTestUtils {
     }
 
     public static BlockChain createBlockChain(boolean isProductionMode) {
-        StoreBuilder storeBuilder;
-        if (isProductionMode) {
-            storeBuilder = StoreTestUtils.getProdMockBuilder();
-        } else {
-            storeBuilder = StoreBuilder.newBuilder().setConfig(new DefaultConfig());
-        }
-        storeBuilder.setBranchId(genesis.getBranch().getBranchId())
-                .setBlockStoreFactory(PbftBlockStoreMock::new);
+        //StoreBuilder storeBuilder;
+        DefaultConfig config = new DefaultConfig();
+        BlockChainStoreBuilder builder = BlockChainStoreBuilder.newBuilder(genesis.getBranch().getBranchId())
+                .setBlockStoreFactory(PbftBlockStoreMock::new)
+                .withProductionMode(isProductionMode)
+                .withDataBasePath(config.getDatabasePath())
+        ;
+        BlockChainStore bcStore = builder.build();
 
-        ContractStore contractStore = storeBuilder.buildContractStore();
+
+        ContractStore contractStore = bcStore.getContractStore();
         ContractPolicyLoader contractPolicyLoader = new ContractPolicyLoader();
 
         ContractManager contractManager = ContractManagerBuilder.newInstance()
@@ -140,13 +143,12 @@ public class BlockChainTestUtils {
                 .withContractManagerConfig(contractPolicyLoader.getContractManagerConfig())
                 .withBranchId(genesis.getBranch().getBranchId().toString())
                 .withContractStore(contractStore)
-                .withConfig(new DefaultConfig())
+                .withDataBasePath(config.getDatabasePath())
+                .withOsgiPath(config.getOsgiPath())
+                .withContractPath(config.getContractPath())
                 .build();
 
-        BlockChainManager blockChainManager = new BlockChainManagerImpl(
-                storeBuilder.buildBlockStore(),
-                storeBuilder.buildTransactionStore(),
-                contractStore.getTransactionReceiptStore());
+        BlockChainManager blockChainManager = new BlockChainManagerImpl(bcStore);
 
         return BlockChainBuilder.newBuilder()
                 .setGenesis(genesis)

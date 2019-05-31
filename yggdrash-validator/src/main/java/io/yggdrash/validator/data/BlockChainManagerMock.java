@@ -18,8 +18,12 @@ import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BlockChainManagerImpl;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.store.BlockChainStore;
+import io.yggdrash.core.store.BlockChainStoreBuilder;
+import io.yggdrash.core.store.BlockStoreFactory;
 import io.yggdrash.core.store.ConsensusBlockStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
@@ -31,10 +35,8 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
 
     private final BlockChainManager<T> blockChainManager;
 
-    public BlockChainManagerMock(ConsensusBlockStore<T> blockStore, TransactionStore transactionStore) {
-        TransactionReceiptStore transactionReceiptStore = new TransactionReceiptStore(new HashMapDbSource());
-        this.blockChainManager =
-                new BlockChainManagerImpl<>(blockStore, transactionStore, transactionReceiptStore);
+    public BlockChainManagerMock(BlockChainStore store) {
+        this.blockChainManager = new BlockChainManagerImpl<>(store);
     }
 
     @Override

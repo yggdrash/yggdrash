@@ -8,6 +8,7 @@ import io.yggdrash.core.blockchain.BlockChainImpl;
 import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.store.BlockStoreFactory;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.EbftProto;
@@ -107,7 +108,7 @@ public class ValidatorService {
         };
     }
 
-    public static StoreBuilder.BlockStoreFactory blockStoreFactory() {
+    public static BlockStoreFactory blockStoreFactory() {
         return (consensusAlgorithm, dbSource) -> {
 
             switch (consensusAlgorithm) {

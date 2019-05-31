@@ -11,9 +11,13 @@ import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.store.BlockChainStore;
+import io.yggdrash.core.store.BlockChainStoreBuilder;
+import io.yggdrash.core.store.BlockStoreFactory;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.validator.data.BlockChainManagerMock;
+import io.yggdrash.validator.store.ebft.EbftBlockStore;
 import io.yggdrash.validator.store.pbft.PbftBlockKeyStore;
 import io.yggdrash.validator.store.pbft.PbftBlockStore;
 import org.slf4j.Logger;
@@ -36,10 +40,18 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
     private final Consensus consensus;
 
     public PbftBlockChain(Block genesisBlock, String dbPath,
-                          String blockKeyStorePath, String blockStorePath, String txStorePath) {
-        PbftBlockStore blockStore = new PbftBlockStore(new LevelDbDataSource(dbPath, blockStorePath));
-        TransactionStore transactionStore = new TransactionStore(new LevelDbDataSource(dbPath, txStorePath));
-        this.blockChainManagerMock = new BlockChainManagerMock<>(blockStore, transactionStore);
+                          String blockKeyStorePath, String blockStorePath) {
+
+        String pbftBlockChainPath = String.format("%s%s", dbPath, blockStorePath);
+        BlockStoreFactory storeFactory = (consensusAlgorithm, dbSource) -> new PbftBlockStore(dbSource);
+        BlockChainStore store = BlockChainStoreBuilder.newBuilder(BranchId.NULL)
+                .withProductionMode(true)
+                .withDataBasePath(pbftBlockChainPath)
+                .setBlockStoreFactory(storeFactory)
+                .build();
+
+
+        this.blockChainManagerMock = new BlockChainManagerMock<>(store);
 
         if (!VerifierUtils.verifyGenesisHash(genesisBlock)) {
             log.error("GenesisBlock is not valid.");
