@@ -8,6 +8,7 @@ import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptAdapter;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
+import io.yggdrash.contract.core.annotation.ContractChannelField;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.InjectEvent;
@@ -43,6 +44,7 @@ public class ContractExecutor {
     private final SystemProperties systemProperties;
     private final ContractCache contractCache;
     private TransactionReceiptAdapter trAdapter;
+    private ContractChannelCoupler coupler;
 
     ContractExecutor(Framework framework, ContractStore contractStore, SystemProperties systemProperties) {
         this.framework = framework;
@@ -50,6 +52,7 @@ public class ContractExecutor {
         this.systemProperties = systemProperties;
         contractCache = new ContractCache();
         trAdapter = new TransactionReceiptAdapter();
+        coupler = new ContractChannelCoupler();
     }
 
     void injectFields(Bundle bundle, Object service, boolean isSystemContract)
@@ -75,6 +78,10 @@ public class ContractExecutor {
 
                 if (annotation.annotationType().equals(ContractTransactionReceipt.class)) {
                     field.set(service, trAdapter);
+                }
+
+                if (annotation.annotationType().equals(ContractChannelField.class)) {
+                    field.set(service, coupler);
                 }
 
                 if (systemProperties != null
@@ -185,6 +192,9 @@ public class ContractExecutor {
     }
 
     BlockRuntimeResult executeTxs(Map<String, Object> serviceMap, ConsensusBlock nextBlock) {
+        // Set Coupler Contract and contractCache
+        coupler.setContract(serviceMap, contractCache);
+
         List<Transaction> txList = nextBlock.getBody().getTransactionList();
 
         if (nextBlock.getIndex() == 0) {
