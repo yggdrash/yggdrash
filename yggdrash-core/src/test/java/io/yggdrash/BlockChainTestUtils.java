@@ -45,6 +45,8 @@ import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.PbftBlockStoreMock;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.proto.PbftProto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -54,29 +56,30 @@ import java.util.Collections;
 import java.util.List;
 
 public class BlockChainTestUtils {
-    private static GenesisBlock genesis;
+    private static final GenesisBlock genesis;
+    private static final Logger log = LoggerFactory.getLogger(BlockChainTestUtils.class);
+
 
     private BlockChainTestUtils() {
     }
 
     static {
-        generateGenesisBlockByFile();
-        /*
         try (InputStream is = new FileInputStream(TestConstants.branchFile)) {
             genesis = GenesisBlock.of(is);
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
         }
-        */
     }
 
+    /*
     private static void generateGenesisBlockByFile() {
         generateGenesisBlockByFile(TestConstants.branchFile);
     }
+    */
 
-    private static void generateGenesisBlockByFile(File file) {
+    private static GenesisBlock generateGenesisBlockByFile(File file) {
         try (InputStream is = new FileInputStream(file)) {
-            genesis = GenesisBlock.of(is);
+            return GenesisBlock.of(is);
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
         }
@@ -94,8 +97,8 @@ public class BlockChainTestUtils {
     }
 
     public static ConsensusBlock<PbftProto.PbftBlock> genesisBlock(File file) {
-        generateGenesisBlockByFile(file);
-        return new PbftBlockMock(genesis.getBlock());
+        return new PbftBlockMock(generateGenesisBlockByFile(file).getBlock());
+        //return new PbftBlockMock(genesis.getBlock());
     }
 
     public static ConsensusBlock<PbftProto.PbftBlock> createNextBlock() {
@@ -144,6 +147,7 @@ public class BlockChainTestUtils {
     }
 
     public static BlockChain createBlockChain(boolean isProductionMode) {
+        log.debug("createBlockChain is {}", isProductionMode);
         StoreBuilder storeBuilder;
         if (isProductionMode) {
             storeBuilder = StoreTestUtils.getProdMockBuilder();
@@ -152,7 +156,8 @@ public class BlockChainTestUtils {
         }
         storeBuilder.setBranchId(genesis.getBranch().getBranchId())
                 .setBlockStoreFactory(PbftBlockStoreMock::new);
-
+        log.debug("createBlockChain is {}", genesis.getBranch().toJsonObject().toString());
+        log.debug("createBlockChain is {}", genesis.getBranch().getBranchId().toString());
         ContractStore contractStore = storeBuilder.buildContractStore();
         ContractPolicyLoader contractPolicyLoader = new ContractPolicyLoader();
 
@@ -179,8 +184,12 @@ public class BlockChainTestUtils {
     }
 
     public static BranchGroup createBranchGroup() {
+        log.debug("createBranchGroup");
         BranchGroup branchGroup = new BranchGroup();
         BlockChain blockChain = createBlockChain(false);
+        log.debug(blockChain.getBranch().getName());
+
+
         branchGroup.addBranch(blockChain);
         return branchGroup;
     }
