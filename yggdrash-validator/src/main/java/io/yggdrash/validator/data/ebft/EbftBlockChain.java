@@ -11,6 +11,9 @@ import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.store.BlockChainStore;
+import io.yggdrash.core.store.BlockChainStoreBuilder;
+import io.yggdrash.core.store.BlockStoreFactory;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.proto.EbftProto;
 import io.yggdrash.validator.data.BlockChainManagerMock;
@@ -40,12 +43,20 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
     public EbftBlockChain(Block genesisBlock,
                           String dbPath,
                           String blockKeyStorePath,
-                          String blockStorePath,
-                          String txStorePath) {
+                          String blockStorePath
+                          ) {
 
-        EbftBlockStore blockStore = new EbftBlockStore(new LevelDbDataSource(dbPath, blockStorePath));
-        TransactionStore transactionStore = new TransactionStore(new LevelDbDataSource(dbPath, txStorePath));
-        this.blockChainManagerMock = new BlockChainManagerMock<>(blockStore, transactionStore);
+
+        String ebftBlockChainPath = String.format("%s%s", dbPath, blockStorePath);
+
+        BlockStoreFactory storeFactory = (consensusAlgorithm, dbSource) -> new EbftBlockStore(dbSource);
+        BlockChainStore store = BlockChainStoreBuilder.newBuilder(BranchId.NULL)
+                .withProductionMode(true)
+                .withDataBasePath(ebftBlockChainPath)
+                .setBlockStoreFactory(storeFactory)
+                .build();
+
+        this.blockChainManagerMock = new BlockChainManagerMock<>(store);
 
         if (!VerifierUtils.verifyGenesisHash(genesisBlock)) {
             log.error("GenesisBlock is not valid.");
@@ -145,7 +156,7 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
                     block.getHash(),
                     block.getBlock().getAddress(),
                     block.getConsensusMessages().size()
-                    );
+            );
         } catch (Exception e) {
             log.debug(e.getMessage());
         }

@@ -28,8 +28,10 @@ import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
+import io.yggdrash.core.store.BlockChainStore;
+import io.yggdrash.core.store.BlockChainStoreBuilder;
 import io.yggdrash.core.store.ContractStore;
-import io.yggdrash.core.store.StoreBuilder;
+import io.yggdrash.core.store.PbftBlockStoreMock;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
@@ -104,11 +106,15 @@ public class ContractExecutorTest {
 
     private void buildExecutor() {
         DefaultConfig config = new DefaultConfig();
+        BlockChainStore bcStore = BlockChainStoreBuilder.newBuilder(branchId)
+                .withDataBasePath(config.getDatabasePath())
+                .withProductionMode(config.isProductionMode())
+                .setConsensusAlgorithm(null)
+                .setBlockStoreFactory(PbftBlockStoreMock::new)
+                .build();
+        this.contractStore = bcStore.getContractStore();
+
         ContractPolicyLoader loader = new ContractPolicyLoader();
-        StoreBuilder builder = StoreBuilder.newBuilder()
-                .setBranchId(branchId)
-                .setConfig(new DefaultConfig());
-        this.contractStore = builder.buildContractStore();
         this.manager = ContractManagerBuilder.newInstance()
                 .withFrameworkFactory(loader.getFrameworkFactory())
                 .withContractManagerConfig(loader.getContractManagerConfig())
@@ -117,6 +123,7 @@ public class ContractExecutorTest {
                 .withConfig(config)
                 .build();
         this.executor = manager.getContractExecutor();
+
     }
 
     private void createBundle() throws Exception {

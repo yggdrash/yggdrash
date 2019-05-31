@@ -11,8 +11,12 @@ public class ContractManagerBuilder {
     private Map<String, String> contractManagerConfig;
     private String branchId;
     private ContractStore contractStore;
-    private DefaultConfig config;
+
     private SystemProperties systemProperties;
+
+    private String osgiPath;
+    private String databasePath;
+    private String contractPath;
 
     private ContractManagerBuilder() {
 
@@ -43,8 +47,26 @@ public class ContractManagerBuilder {
 
     }
 
+    @Deprecated
     public ContractManagerBuilder withConfig(DefaultConfig config) {
-        this.config = config;
+        this.osgiPath = config.getOsgiPath();
+        this.databasePath = config.getDatabasePath();
+        this.contractPath = config.getContractPath();
+        return this;
+    }
+
+    public ContractManagerBuilder withOsgiPath(String osgiPath) {
+        this.osgiPath = osgiPath;
+        return this;
+    }
+
+    public ContractManagerBuilder withDataBasePath(String databasePath) {
+        this.databasePath = databasePath;
+        return this;
+    }
+
+    public ContractManagerBuilder withContractPath(String contractPath) {
+        this.contractPath = contractPath;
         return this;
     }
 
@@ -71,7 +93,9 @@ public class ContractManagerBuilder {
                 this.contractManagerConfig,
                 this.branchId,
                 this.contractStore,
-                this.config,
+                this.osgiPath,
+                this.databasePath,
+                this.contractPath,
                 this.systemProperties
         );
     }

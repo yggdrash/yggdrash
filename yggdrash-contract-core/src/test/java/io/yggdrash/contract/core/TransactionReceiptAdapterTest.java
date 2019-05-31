@@ -1,9 +1,9 @@
 package io.yggdrash.contract.core;
 
-import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+
 
 public class TransactionReceiptAdapterTest {
 

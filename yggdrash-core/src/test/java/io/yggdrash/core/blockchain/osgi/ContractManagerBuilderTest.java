@@ -36,7 +36,9 @@ public class ContractManagerBuilderTest {
         ContractPolicyLoader loader = new ContractPolicyLoader();
 
         ContractManager manager = ContractManagerBuilder.newInstance()
-                .withConfig(config)
+                .withOsgiPath(config.getOsgiPath())
+                .withContractPath(config.getContractPath())
+                .withDataBasePath(config.getDatabasePath())
                 .withFrameworkFactory(loader.getFrameworkFactory())
                 .withContractManagerConfig(loader.getContractManagerConfig())
                 .withBranchId("test")

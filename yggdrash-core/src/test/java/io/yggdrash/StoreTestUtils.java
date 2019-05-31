@@ -40,14 +40,4 @@ public class StoreTestUtils {
         return Paths.get(PATH, "store").toString();
     }
 
-    static StoreBuilder getProdMockBuilder() {
-        return StoreBuilder.newBuilder().setConfig(new ProdDefaultConfig());
-    }
-
-    private static class ProdDefaultConfig extends DefaultConfig {
-        ProdDefaultConfig() {
-            super();
-            this.productionMode = true;
-        }
-    }
 }

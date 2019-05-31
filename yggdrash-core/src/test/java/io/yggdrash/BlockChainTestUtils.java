@@ -41,9 +41,10 @@ import io.yggdrash.core.blockchain.osgi.ContractManagerBuilder;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.InvalidSignatureException;
+import io.yggdrash.core.store.BlockChainStore;
+import io.yggdrash.core.store.BlockChainStoreBuilder;
 import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.PbftBlockStoreMock;
-import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.proto.PbftProto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +60,6 @@ public class BlockChainTestUtils {
     private static final GenesisBlock genesis;
     private static final Logger log = LoggerFactory.getLogger(BlockChainTestUtils.class);
 
-
     private BlockChainTestUtils() {
     }
 
@@ -70,12 +70,6 @@ public class BlockChainTestUtils {
             throw new InvalidSignatureException(e);
         }
     }
-
-    /*
-    private static void generateGenesisBlockByFile() {
-        generateGenesisBlockByFile(TestConstants.branchFile);
-    }
-    */
 
     private static GenesisBlock generateGenesisBlockByFile(File file) {
         try (InputStream is = new FileInputStream(file)) {
@@ -98,7 +92,6 @@ public class BlockChainTestUtils {
 
     public static ConsensusBlock<PbftProto.PbftBlock> genesisBlock(File file) {
         return new PbftBlockMock(generateGenesisBlockByFile(file).getBlock());
-        //return new PbftBlockMock(genesis.getBlock());
     }
 
     public static ConsensusBlock<PbftProto.PbftBlock> createNextBlock() {
@@ -147,18 +140,18 @@ public class BlockChainTestUtils {
     }
 
     public static BlockChain createBlockChain(boolean isProductionMode) {
-        log.debug("createBlockChain is {}", isProductionMode);
-        StoreBuilder storeBuilder;
-        if (isProductionMode) {
-            storeBuilder = StoreTestUtils.getProdMockBuilder();
-        } else {
-            storeBuilder = StoreBuilder.newBuilder().setConfig(new DefaultConfig());
-        }
-        storeBuilder.setBranchId(genesis.getBranch().getBranchId())
-                .setBlockStoreFactory(PbftBlockStoreMock::new);
-        log.debug("createBlockChain is {}", genesis.getBranch().toJsonObject().toString());
-        log.debug("createBlockChain is {}", genesis.getBranch().getBranchId().toString());
-        ContractStore contractStore = storeBuilder.buildContractStore();
+        log.debug("createBlockChain isProdMode : {}", isProductionMode);
+        log.debug("createBlockChain branchId : {}", genesis.getBranch().getBranchId().toString());
+        DefaultConfig config = new DefaultConfig();
+        BlockChainStoreBuilder builder = BlockChainStoreBuilder.newBuilder(genesis.getBranch().getBranchId())
+                .setBlockStoreFactory(PbftBlockStoreMock::new)
+                .withProductionMode(isProductionMode)
+                .withDataBasePath(config.getDatabasePath())
+        ;
+        BlockChainStore bcStore = builder.build();
+
+
+        ContractStore contractStore = bcStore.getContractStore();
         ContractPolicyLoader contractPolicyLoader = new ContractPolicyLoader();
 
         ContractManager contractManager = ContractManagerBuilder.newInstance()
@@ -166,13 +159,12 @@ public class BlockChainTestUtils {
                 .withContractManagerConfig(contractPolicyLoader.getContractManagerConfig())
                 .withBranchId(genesis.getBranch().getBranchId().toString())
                 .withContractStore(contractStore)
-                .withConfig(new DefaultConfig())
+                .withDataBasePath(config.getDatabasePath())
+                .withOsgiPath(config.getOsgiPath())
+                .withContractPath(config.getContractPath())
                 .build();
 
-        BlockChainManager blockChainManager = new BlockChainManagerImpl(
-                storeBuilder.buildBlockStore(),
-                storeBuilder.buildTransactionStore(),
-                contractStore.getTransactionReceiptStore());
+        BlockChainManager blockChainManager = new BlockChainManagerImpl(bcStore);
 
         return BlockChainBuilder.newBuilder()
                 .setGenesis(genesis)
@@ -187,9 +179,6 @@ public class BlockChainTestUtils {
         log.debug("createBranchGroup");
         BranchGroup branchGroup = new BranchGroup();
         BlockChain blockChain = createBlockChain(false);
-        log.debug(blockChain.getBranch().getName());
-
-
         branchGroup.addBranch(blockChain);
         return branchGroup;
     }
