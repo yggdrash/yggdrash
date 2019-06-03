@@ -1,6 +1,5 @@
 package io.yggdrash.core.blockchain.osgi;
 
-import com.google.gson.JsonObject;
 import io.yggdrash.core.contract.TestContract;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +37,7 @@ public class ContractChannelCouplerTest {
             s.channel = coupler;
         });
         TestContract t = (TestContract) contractMap.get("TEST2");
-        t.callContractChannel("TEST1", "callMethod");
+        t.callContractChannelInvoke("TEST1", "callMethod");
 
         t.callContractChannelQuery("TEST1","yesmanQuery");
 
@@ -46,6 +45,16 @@ public class ContractChannelCouplerTest {
 
     @Test
     public void callChnnelMethodTest() {
+        ContractChannelCoupler coupler = new ContractChannelCoupler();
+        coupler.setContract(contractMap, cache);
+
+        contractMap.values().stream().forEach(c -> {
+            TestContract s = (TestContract)c;
+            s.channel = coupler;
+        });
+
+        TestContract t = (TestContract) contractMap.get("TEST2");
+        t.callContractChnnelMethod("TEST1", "transferChannel");
 
     }
 

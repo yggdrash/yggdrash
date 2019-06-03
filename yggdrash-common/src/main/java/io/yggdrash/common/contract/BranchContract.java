@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package io.yggdrash.common.store;
+package io.yggdrash.common.contract;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.common.contract.ContractVersion;
 
 public class BranchContract {
     private final ContractVersion contractVersion;

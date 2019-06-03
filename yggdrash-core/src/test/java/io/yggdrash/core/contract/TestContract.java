@@ -68,7 +68,7 @@ public class TestContract implements Contract {
         log.debug("callMethod : {}", param.toString());
     }
 
-    public void callContractChannel(String contract, String method) {
+    public void callContractChannelInvoke(String contract, String method) {
         JsonObject param = new JsonObject();
         param.addProperty("contract", contract);
         param.addProperty("method", method);
@@ -87,18 +87,37 @@ public class TestContract implements Contract {
 
     }
 
+    public void callContractChnnelMethod(String contract, String method) {
+        JsonObject param = new JsonObject();
+        param.addProperty("from", "FROM_ACCOUNT");
+        param.addProperty("to", "TO_ACCOUNT");
+        param.addProperty("amount", BigInteger.valueOf(100L));
+        param.addProperty("fee", BigInteger.valueOf(1L));
+
+        JsonObject ressult = channel.call(contract, ContractMethodType.CHANNEL_METHOD, method,  param);
+
+
+    }
+
     @ContractChannelMethod
     public boolean transferChannel(JsonObject params) {
-        txReceipt.getContractVersion();
+        //String contractVersion = txReceipt.getContractVersion();
 
 
         String from = params.get("from").getAsString();
         String to = params.get("to").getAsString();
         BigInteger amount = params.get("amount").getAsBigInteger();
         BigInteger fee = params.get("fee").getAsBigInteger();
-        return false;
+
+        return transfer(from, to, amount, fee);
+    }
+
+    protected boolean transfer(String from, String to, BigInteger amount, BigInteger fee) {
+        log.debug("Transfer from {} to {} value {} fee {} ", from, to, amount, fee);
+        return true;
 
     }
+
 
 
 }

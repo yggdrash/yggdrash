@@ -18,7 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.yggdrash.common.store.BranchContract;
+import io.yggdrash.common.contract.BranchContract;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;

@@ -24,7 +24,7 @@ import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.core.blockchain.Branch;
-import io.yggdrash.common.store.BranchContract;
+import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import org.junit.After;
 import org.junit.Before;

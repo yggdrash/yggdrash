@@ -4,7 +4,7 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.exception.FailedOperationException;
-import io.yggdrash.common.store.BranchContract;
+import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.consensus.Consensus;

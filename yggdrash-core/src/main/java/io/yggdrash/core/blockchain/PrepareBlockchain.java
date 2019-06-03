@@ -17,7 +17,7 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.contract.ContractVersion;
-import io.yggdrash.common.store.BranchContract;
+import io.yggdrash.common.contract.BranchContract;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

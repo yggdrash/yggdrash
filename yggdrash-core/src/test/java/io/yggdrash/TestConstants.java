@@ -19,7 +19,7 @@ package io.yggdrash;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.blockchain.Branch;
-import io.yggdrash.common.store.BranchContract;
+import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.wallet.Wallet;

@@ -25,7 +25,7 @@ import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.Branch;
-import io.yggdrash.common.store.BranchContract;
+import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.consensus.ConsensusBlock;
 
