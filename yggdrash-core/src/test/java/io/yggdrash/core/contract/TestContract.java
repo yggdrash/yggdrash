@@ -5,6 +5,7 @@ import io.yggdrash.common.contract.Contract;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.annotation.ContractChannelField;
+import io.yggdrash.contract.core.annotation.ContractChannelMethod;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
@@ -83,6 +84,19 @@ public class TestContract implements Contract {
         param.addProperty("method", method);
         JsonObject ressult = channel.call(contract, ContractMethodType.QUERY, method,  param);
         log.debug(ressult.toString());
+
+    }
+
+    @ContractChannelMethod
+    public boolean transferChannel(JsonObject params) {
+        txReceipt.getContractVersion();
+
+
+        String from = params.get("from").getAsString();
+        String to = params.get("to").getAsString();
+        BigInteger amount = params.get("amount").getAsBigInteger();
+        BigInteger fee = params.get("fee").getAsBigInteger();
+        return false;
 
     }
 

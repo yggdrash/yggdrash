@@ -16,20 +16,16 @@
 
 package io.yggdrash.core.store;
 
-import com.google.common.primitives.Longs;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.store.BranchStateStore;
-import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.utils.JsonUtil;
-import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.Branch;
-import io.yggdrash.core.blockchain.BranchContract;
+import io.yggdrash.common.store.BranchContract;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.consensus.ConsensusBlock;
 
@@ -38,13 +34,7 @@ import java.util.List;
 
 public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchStateStore {
 
-    //private final DbSource<byte[], byte[]> db;
     private final ReadWriterStore<String, JsonObject> store;
-
-    // TODO Change to DAO patten
-    //BranchStore(DbSource<byte[], byte[]> dbSource) {
-        //this.db = dbSource.init();
-    //}
 
     BranchStore(ReadWriterStore<String, JsonObject> store) {
         this.store = store;

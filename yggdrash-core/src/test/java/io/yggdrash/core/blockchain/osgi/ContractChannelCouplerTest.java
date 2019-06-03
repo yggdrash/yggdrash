@@ -42,7 +42,12 @@ public class ContractChannelCouplerTest {
 
         t.callContractChannelQuery("TEST1","yesmanQuery");
 
+    }
+
+    @Test
+    public void callChnnelMethodTest() {
 
     }
+
 
 }

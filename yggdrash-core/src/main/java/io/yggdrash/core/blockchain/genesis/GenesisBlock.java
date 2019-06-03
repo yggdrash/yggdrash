@@ -6,7 +6,7 @@ import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
 import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.blockchain.Branch;
-import io.yggdrash.core.blockchain.BranchContract;
+import io.yggdrash.common.store.BranchContract;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;

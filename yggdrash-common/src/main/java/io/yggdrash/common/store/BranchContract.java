@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.blockchain;
+package io.yggdrash.common.store;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.ContractVersion;
