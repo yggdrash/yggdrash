@@ -30,6 +30,7 @@ import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
+import io.yggdrash.contract.core.annotation.ContractChannelField;
 import io.yggdrash.contract.core.annotation.ContractEndBlock;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
@@ -38,6 +39,7 @@ import io.yggdrash.contract.core.annotation.Genesis;
 import io.yggdrash.contract.core.annotation.InjectEvent;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.annotation.ParamValidation;
+import io.yggdrash.contract.core.channel.ContractChannel;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import org.apache.commons.collections4.MapUtils;
 import org.osgi.framework.BundleActivator;
@@ -79,6 +81,8 @@ public class DPoAContract implements BundleActivator {
         @InjectEvent
         Set<String> eventStore;
 
+        @ContractChannelField
+        public ContractChannel channel;
 
         @ContractStateStore
         ReadWriterStore<String, JsonObject> state;
