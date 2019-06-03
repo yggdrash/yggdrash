@@ -204,8 +204,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                         from, to, amount, fee));
                 return true;
             } else {
-                txReceipt.addLog(String.format("%s transfer Error", from));
-                //TODO txReceipt.addLog(sender + " has no balance");
+                txReceipt.addLog(String.format("%s sender has no balance", from));
                 return false;
             }
         }

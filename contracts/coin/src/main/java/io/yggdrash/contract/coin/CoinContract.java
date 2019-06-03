@@ -153,8 +153,8 @@ public class CoinContract implements BundleActivator, ServiceListener {
                 txReceipt.addLog("Transfer " + amount + " from " + sender + " to " + to);
 
             } else {
-                log.debug("{} transfer Error", sender);
-                //TODO txReceipt.addLog(sender + " has no balance");
+                log.debug("Transfer Err : {} sender has no balance", sender);
+                txReceipt.addLog(String.format("%s sender has no balance", sender));
                 txReceipt.setStatus(ExecuteStatus.ERROR);
             }
             return txReceipt;
