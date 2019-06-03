@@ -97,6 +97,15 @@ task copyContractToNode(type: Copy) {
     into nodeContractPath
 }
 
+task copyContractToProject(type: Copy) {
+    def projectContractPath = file('yggdrash-node/.yggdrash/contract')
+    projectContractPath.mkdirs()
+
+    from resourceContractPath
+    into projectContractPath
+
+}
+
 
 project(':yggdrash-core') {
     apply plugin: 'com.google.protobuf'

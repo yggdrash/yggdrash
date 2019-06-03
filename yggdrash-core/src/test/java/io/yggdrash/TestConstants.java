@@ -35,7 +35,7 @@ public class TestConstants {
 
     private static BranchId YGGDRASH_BRANCH_ID;
 
-    static ContractVersion STEM_CONTRACT;
+    public static ContractVersion STEM_CONTRACT;
     public static ContractVersion YEED_CONTRACT;
     public static Branch TEST_BRANCH;
     public static File branchFile;

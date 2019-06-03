@@ -40,6 +40,7 @@ import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.blockchain.osgi.ContractManagerBuilder;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.contract.TestContract;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
@@ -60,6 +61,8 @@ import java.util.List;
 public class BlockChainTestUtils {
     private static final GenesisBlock genesis;
     private static final Logger log = LoggerFactory.getLogger(BlockChainTestUtils.class);
+    private ContractVersion stem;
+
 
     private BlockChainTestUtils() {
     }
@@ -67,6 +70,7 @@ public class BlockChainTestUtils {
     static {
         try (InputStream is = new FileInputStream(TestConstants.branchFile)) {
             genesis = GenesisBlock.of(is);
+            TestConstants.yggdrash();
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
         }
@@ -121,8 +125,10 @@ public class BlockChainTestUtils {
     }
 
     private static Transaction createBranchTx(JsonObject json) {
+
+
         TransactionBuilder builder = new TransactionBuilder();
-        return builder.setTxBody(Constants.STEM_CONTRACT_VERSION, "create", json, false)
+        return builder.setTxBody(TestConstants.STEM_CONTRACT, "create", json, false)
                 .setWallet(TestConstants.wallet())
                 .setBranchId(genesis.getBranch().getBranchId())
                 .build();
@@ -132,7 +138,7 @@ public class BlockChainTestUtils {
                                              JsonObject branch) {
         TransactionBuilder builder = new TransactionBuilder();
 
-        return builder.setTxBody(Constants.STEM_CONTRACT_VERSION, method, branch, false)
+        return builder.setTxBody(TestConstants.STEM_CONTRACT, method, branch, false)
                 .setWallet(TestConstants.wallet())
                 .setBranchId(branchId)
                 .build();
