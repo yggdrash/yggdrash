@@ -26,6 +26,7 @@ import org.osgi.framework.ServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
+
 import java.math.BigInteger;
 import java.util.Hashtable;
 import java.util.Map;
@@ -153,6 +154,7 @@ public class CoinContract implements BundleActivator, ServiceListener {
 
             } else {
                 log.debug("{} transfer Error", sender);
+                //TODO txReceipt.addLog(sender + " has no balance");
                 txReceipt.setStatus(ExecuteStatus.ERROR);
             }
             return txReceipt;

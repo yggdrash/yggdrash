@@ -10,6 +10,7 @@ import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.ContractStore;
+import io.yggdrash.core.store.LogStore;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.osgi.framework.Bundle;
@@ -31,6 +32,7 @@ import org.osgi.service.condpermadmin.ConditionalPermissionUpdate;
 import org.osgi.service.permissionadmin.PermissionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilePermission;
@@ -59,6 +61,7 @@ public class ContractManager {
     private final Map<String, String> commonContractManagerConfig;
     private final String branchId;
     private final ContractStore contractStore;
+    private final LogStore logStore;
 
     private final String osgiPath;
     private final String databasePath;
@@ -70,11 +73,12 @@ public class ContractManager {
 
     ContractManager(FrameworkFactory frameworkFactory, Map<String, String> contractManagerConfig,
                     String branchId, ContractStore contractStore, String osgiPath, String databasePath,
-                    String contractPath, SystemProperties systemProperties) {
+                    String contractPath, SystemProperties systemProperties, LogStore logStore) {
         this.frameworkFactory = frameworkFactory;
         this.commonContractManagerConfig = contractManagerConfig;
         this.branchId = branchId;
         this.contractStore = contractStore;
+        this.logStore = logStore;
 
         this.osgiPath = osgiPath;
         this.databasePath = databasePath;
@@ -90,12 +94,24 @@ public class ContractManager {
         return contractStore.getStateStore().getStateSize();
     }
 
-    public ContractExecutor getContractExecutor() {
+    ContractExecutor getContractExecutor() {
         return contractExecutor;
     }
 
     public String getContractPath() {
         return contractPath;
+    }
+
+    public String getLog(long index) {
+        return contractExecutor.getLog(index);
+    }
+
+    public List<String> getLogs(long start, long offset) {
+        return contractExecutor.getLogs(start, offset);
+    }
+
+    public long getCurLogIndex() {
+        return contractExecutor.getCurLogIndex();
     }
 
     private String getFullLocation(String contractName) {
@@ -147,7 +163,7 @@ public class ContractManager {
 
         framework = frameworkFactory.newFramework(contractManagerConfig);
 
-        contractExecutor = new ContractExecutor(framework, contractStore, systemProperties);
+        contractExecutor = new ContractExecutor(framework, contractStore, systemProperties, logStore);
 
         try {
             framework.start();
@@ -508,5 +524,6 @@ public class ContractManager {
 
     public void close() {
         contractStore.close();
+        logStore.close();
     }
 }

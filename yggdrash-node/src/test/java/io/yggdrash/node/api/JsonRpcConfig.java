@@ -23,6 +23,7 @@ public class JsonRpcConfig {
     static final TransactionApi TX_API = new JsonRpcConfig().proxyOf(TransactionApi.class);
     static final ContractApi CONTRACT_API = new JsonRpcConfig().proxyOf(ContractApi.class);
     static final PeerApi PEER_API = new JsonRpcConfig().proxyOf(PeerApi.class);
+    static final LogApi LOG_API = new JsonRpcConfig().proxyOf(LogApi.class);
 
     private <T> T proxyOf(Class<T> proxyInterface) {
         return proxyOf("localhost", proxyInterface);

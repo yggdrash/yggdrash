@@ -34,8 +34,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
     private final BlockChainManager<T> blockChainManager;
     private final ContractManager contractManager;
-    private final BranchStore branchStore; //TODO merge with stateStore + branchStateStore
-    //private final Map<OutputType, OutputStore> outputStores; //TODO move to gw module
+    private final BranchStore branchStore;
 
     private final Consensus consensus;
     private final ReentrantLock lock = new ReentrantLock();

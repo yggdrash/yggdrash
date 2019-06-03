@@ -157,7 +157,6 @@ public class BlockChainTestUtils {
         ;
         BlockChainStore bcStore = builder.build();
 
-
         ContractStore contractStore = bcStore.getContractStore();
         ContractPolicyLoader contractPolicyLoader = new ContractPolicyLoader();
 
@@ -169,6 +168,7 @@ public class BlockChainTestUtils {
                 .withDataBasePath(config.getDatabasePath())
                 .withOsgiPath(config.getOsgiPath())
                 .withContractPath(config.getContractPath())
+                .withLogStore(bcStore.getLogStore())
                 .build();
 
         BlockChainManager blockChainManager = new BlockChainManagerImpl(bcStore);

@@ -11,12 +11,14 @@ import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.InjectEvent;
+import io.yggdrash.core.blockchain.LogIndexer;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.ContractStore;
+import io.yggdrash.core.store.LogStore;
 import io.yggdrash.core.store.StoreAdapter;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.apache.commons.codec.binary.Base64;
@@ -42,13 +44,28 @@ public class ContractExecutor {
     private final SystemProperties systemProperties;
     private final ContractCache contractCache;
     private TransactionReceiptAdapter trAdapter;
+    private final LogIndexer logIndexer;
 
-    ContractExecutor(Framework framework, ContractStore contractStore, SystemProperties systemProperties) {
+    ContractExecutor(Framework framework, ContractStore contractStore, SystemProperties systemProperties,
+                     LogStore logStore) {
         this.framework = framework;
         this.contractStore = contractStore;
         this.systemProperties = systemProperties;
+        this.logIndexer = new LogIndexer(logStore, contractStore.getTransactionReceiptStore());
         contractCache = new ContractCache();
         trAdapter = new TransactionReceiptAdapter();
+    }
+
+    String getLog(long index) {
+        return logIndexer.getLog(index);
+    }
+
+    List<String> getLogs(long start, long offset) {
+        return logIndexer.getLogs(start, offset);
+    }
+
+    long getCurLogIndex() {
+        return logIndexer.curIndex();
     }
 
     void injectFields(Bundle bundle, Object service, boolean isSystemContract)
@@ -234,6 +251,7 @@ public class ContractExecutor {
         Map<String, JsonObject> changes = result.getBlockResult();
         TransactionReceiptStore transactionReceiptStore = contractStore.getTransactionReceiptStore();
         result.getTxReceipts().forEach(transactionReceiptStore::put);
+        result.getTxReceipts().forEach(receipt -> logIndexer.put(receipt.getTxId(), receipt.getTxLog().size()));
         if (!changes.isEmpty()) {
             StateStore stateStore = contractStore.getStateStore();
             changes.forEach(stateStore::put);

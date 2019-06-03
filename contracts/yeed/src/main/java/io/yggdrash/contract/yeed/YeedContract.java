@@ -50,6 +50,7 @@ import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.math.BigInteger;
 import java.util.Hashtable;
 import java.util.List;
@@ -204,6 +205,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 return true;
             } else {
                 txReceipt.addLog(String.format("%s transfer Error", from));
+                //TODO txReceipt.addLog(sender + " has no balance");
                 return false;
             }
         }
