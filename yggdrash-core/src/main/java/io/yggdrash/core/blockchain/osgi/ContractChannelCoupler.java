@@ -29,6 +29,11 @@ public class ContractChannelCoupler implements ContractChannel {
             case INVOKE:
                 contractMethodMap = cache.getInvokeTransactionMethods().get(contractVersion);
                 break;
+            case CHANNEL_METHOD:
+                contractMethodMap = cache.getChannelMethods().get(contractVersion);
+                break;
+            default:
+                return null;
         }
         if (contractMethodMap != null) {
             Method targetMethod = contractMethodMap.get(methodName);
