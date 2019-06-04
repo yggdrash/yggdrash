@@ -42,7 +42,7 @@ public class ContractExecutor {
     private final ContractStore contractStore;
 
     private final SystemProperties systemProperties;
-    private final ContractCache contractCache;
+    private final ContractCacheImpl contractCache;
     private TransactionReceiptAdapter trAdapter;
     private ContractChannelCoupler coupler;
 
@@ -50,7 +50,7 @@ public class ContractExecutor {
         this.framework = framework;
         this.contractStore = contractStore;
         this.systemProperties = systemProperties;
-        contractCache = new ContractCache();
+        contractCache = new ContractCacheImpl();
         trAdapter = new TransactionReceiptAdapter();
         coupler = new ContractChannelCoupler();
     }
@@ -101,23 +101,10 @@ public class ContractExecutor {
 
         contractCache.cacheContract(contractVersion, service);
 
-        Map<String, Method> methodMap = null;
-        switch (methodType) {
-            case INVOKE:
-                methodMap = contractCache.getInvokeTransactionMethods().get(contractVersion);
-                break;
-            case QUERY:
-                methodMap = contractCache.getQueryMethods().get(contractVersion);
-                break;
-            case END_BLOCK:
-                methodMap = contractCache.getEndBlockMethods().get(contractVersion);
-                break;
-            default:
-                log.error("Method Type is not exist");
-                return null;
-        }
+        Map<String, Method> methodMap = contractCache.getContractMethodMap(contractVersion, methodType);
 
         if (methodMap == null || methodMap.get(methodName) == null) {
+            log.error("Method Type is not exist");
             return null;
         }
 
@@ -159,10 +146,12 @@ public class ContractExecutor {
         return contractStore.getTmpStateStore().changeValues();
     }
 
+    // TODO fix End Block call by excution
     private List<Object> endBlock(String location, Object service, JsonObject endBlockParams) {
         List<Object> results = new ArrayList<>();
         for (Bundle bundle : framework.getBundleContext().getBundles()) {
             contractCache.cacheContract(location, service);
+            // TODO change contract version
             Map<String, Method> endBlockMethods = contractCache.getEndBlockMethods().get(bundle.getLocation());
             if (endBlockMethods != null) {
                 endBlockMethods.forEach((k, m) -> {

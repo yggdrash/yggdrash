@@ -20,7 +20,7 @@ public class ContractChannelCouplerTest {
         contractMap.put("TEST1", a);
         contractMap.put("TEST2", b);
 
-        cache = new ContractCache();
+        cache = new ContractCacheImpl();
 
         cache.cacheContract("TEST1", a);
         cache.cacheContract("TEST2", b);
