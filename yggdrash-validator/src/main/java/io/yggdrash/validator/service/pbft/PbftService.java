@@ -516,9 +516,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         Block block = this.blockChain.getBlockChainManager().getLastConfirmedBlock().getBlock();
         log.trace("block" + block.toString());
         long newViewNumber = this.viewNumber + 1;
-        if (newViewNumber < 0) {
-            return null;
-        }
 
         PbftMessage viewChangeMsg = new PbftMessage(
                 "VIEWCHAN",
@@ -565,7 +562,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         this.isCommitted = false;
         this.failCount = 0;
 
-        this.viewNumber = index + 1;
+        this.viewNumber = (this.viewNumber > index + 1 ? this.viewNumber : index + 1);
         this.seqNumber = index + 1;
     }
 
@@ -720,8 +717,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         }
 
         if (newPbftMessage.getType().equals("PREPREPA")
-                && newPbftMessage.getSeqNumber()
-                == this.blockChain.getBlockChainManager().getLastIndex() + 1) {
+                && newPbftMessage.getSeqNumber() == this.seqNumber
+                && newPbftMessage.getViewNumber() == this.viewNumber) {
             this.isPrePrepared = true;
         }
     }
@@ -737,7 +734,9 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         Map<String, PbftMessage> pbftMessageMap = new TreeMap<>();
         for (String key : this.blockChain.getUnConfirmedData().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedData().get(key);
-            if (pbftMessage != null && pbftMessage.getSeqNumber() == index + 1) {
+            if (pbftMessage != null
+                    && pbftMessage.getSeqNumber() == index + 1
+                    && pbftMessage.getViewNumber() == this.viewNumber) {
                 pbftMessageMap.put(key, pbftMessage.clone());
             }
         }
