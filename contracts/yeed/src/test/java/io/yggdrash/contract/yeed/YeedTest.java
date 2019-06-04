@@ -18,6 +18,7 @@ package io.yggdrash.contract.yeed;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.vo.dpoa.Validator;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.crypto.HexUtil;
@@ -100,6 +101,11 @@ public class YeedTest {
             @Override
             public boolean isValidator(String address) {
                 return true;
+            }
+
+            @Override
+            public List<BranchContract> getBranchContacts() {
+                return null;
             }
 
             public void setValidators(ValidatorSet validatorSet) {
