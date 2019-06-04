@@ -34,13 +34,13 @@ public class ContractManagerBuilderTest {
         // check builder config
         DefaultConfig config = new DefaultConfig();
         ContractPolicyLoader loader = new ContractPolicyLoader();
-        Map output = new HashMap();
 
         ContractManager manager = ContractManagerBuilder.newInstance()
-                .withConfig(config)
+                .withOsgiPath(config.getOsgiPath())
+                .withContractPath(config.getContractPath())
+                .withDataBasePath(config.getDatabasePath())
                 .withFrameworkFactory(loader.getFrameworkFactory())
                 .withContractManagerConfig(loader.getContractManagerConfig())
-                .withOutputStore(output)
                 .withBranchId("test")
                 .build();
 

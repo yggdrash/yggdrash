@@ -84,8 +84,7 @@ public class PbftBlockChainTest {
 
         this.pbftBlockChain = new PbftBlockChain(block0, StoreTestUtils.getTestPath(),
                 "/pbftKey",
-                "/pbftBlock",
-                "/pbftTx");
+                "/pbftBlock");
         this.blockChainManager = pbftBlockChain.getBlockChainManager();
         this.pbftMessageSet0 = makePbftMessageSet(block0);
         this.pbftBlock0 = new PbftBlock(this.block0, this.pbftMessageSet0);
@@ -167,8 +166,7 @@ public class PbftBlockChainTest {
     public void getPbftBlockListTest() {
         PbftBlockChain pbftBlockChain = new PbftBlockChain(block0, StoreTestUtils.getTestPath(),
                 "/pbftKeyTest",
-                "/pbftBlockTest",
-                "/pbftTxTest");
+                "/pbftBlockTest");
 
         // todo: check speed (put, get)
         int count = 100;

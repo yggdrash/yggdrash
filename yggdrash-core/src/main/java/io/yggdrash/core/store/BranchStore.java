@@ -16,67 +16,48 @@
 
 package io.yggdrash.core.store;
 
-import com.google.common.primitives.Longs;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.store.BranchStateStore;
-import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.utils.JsonUtil;
-import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.Branch;
-import io.yggdrash.core.blockchain.BranchContract;
+import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.consensus.ConsensusBlock;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BranchStore implements ReadWriterStore<String, String>, BranchStateStore {
+public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchStateStore {
 
-    private final DbSource<byte[], byte[]> db;
+    private final ReadWriterStore<String, JsonObject> store;
 
-    // TODO Change to DAO patten
-    BranchStore(DbSource<byte[], byte[]> dbSource) {
-        this.db = dbSource.init();
+    BranchStore(ReadWriterStore<String, JsonObject> store) {
+        this.store = store;
     }
 
     @Override
-    public void put(String key, String value) {
-        db.put(key.getBytes(), value.getBytes());
+    public void put(String key, JsonObject value) {
+        this.store.put(key, value);
     }
 
     @Override
-    public String get(String key) {
-        return new String(db.get(key.getBytes()));
-    }
-
-    private JsonObject getJson(String key) {
-        byte[] result = db.get(key.getBytes());
-        if (result == null) {
-            return null;
-        }
-        String tempValue = SerializationUtil.deserializeString(result);
-        return JsonUtil.parseJsonObject(tempValue);
-    }
-
-    private void putJson(String key, JsonObject value) {
-        byte[] tempValue = SerializationUtil.serializeJson(value);
-        db.put(key.getBytes(), tempValue);
+    public JsonObject get(String key) {
+        return this.store.get(key);
     }
 
     @Override
     public boolean contains(String key) {
-        return db.get(key.getBytes()) != null;
+        return this.store.contains(key);
     }
 
     @Override
     public void close() {
-        db.close();
+        this.store.close();
     }
 
     public Long getBestBlock() {
@@ -93,17 +74,19 @@ public class BranchStore implements ReadWriterStore<String, String>, BranchState
     }
 
     Sha3Hash getBestBlockHash() {
-        byte[] bestBlockHashArray = db.get(BlockchainMetaInfo.BEST_BLOCK.toString().getBytes());
+
+        JsonObject bestBlockHashObject = store.get(BlockchainMetaInfo.BEST_BLOCK.toString());
         Sha3Hash bestBlockHash = null;
-        if (bestBlockHashArray != null) {
-            bestBlockHash = Sha3Hash.createByHashed(bestBlockHashArray);
+        if (bestBlockHashObject != null) {
+            bestBlockHash = new Sha3Hash(bestBlockHashObject.get("bestBlock").getAsString());
         }
         return bestBlockHash;
     }
 
     void setBestBlockHash(Sha3Hash hash) {
-        byte[] bestBlockHash = hash.getBytes();
-        db.put(BlockchainMetaInfo.BEST_BLOCK.toString().getBytes(), bestBlockHash);
+        JsonObject bestBlock = new JsonObject();
+        bestBlock.addProperty("bestBlock", hash.toString());
+        store.put(BlockchainMetaInfo.BEST_BLOCK.toString(), bestBlock);
     }
 
     public Long getLastExecuteBlockIndex() {
@@ -111,32 +94,35 @@ public class BranchStore implements ReadWriterStore<String, String>, BranchState
     }
 
     public Sha3Hash getLastExecuteBlockHash() {
-        byte[] lastBlockBytes = db.get(BlockchainMetaInfo.LAST_EXECUTE_BLOCK.toString().getBytes());
+
+        JsonObject lastBlockHashObject = store.get(BlockchainMetaInfo.LAST_EXECUTE_BLOCK.toString());
         Sha3Hash lastBlockHash = null;
-        if (lastBlockBytes != null) {
-            lastBlockHash = Sha3Hash.createByHashed(lastBlockBytes);
+        if (lastBlockHashObject != null) {
+            lastBlockHash = new Sha3Hash(lastBlockHashObject.get("lastExecuteBlock").getAsString());
         }
         return lastBlockHash;
     }
 
     public void setLastExecuteBlock(ConsensusBlock block) {
         storeLongValue(BlockchainMetaInfo.LAST_EXECUTE_BLOCK_INDEX.toString(), block.getIndex());
-        Sha3Hash executeBlockHash = block.getHash();
-        db.put(BlockchainMetaInfo.LAST_EXECUTE_BLOCK.toString().getBytes(), executeBlockHash.getBytes());
+        JsonObject lastExecuteBlock = new JsonObject();
+        lastExecuteBlock.addProperty("lastExecuteBlock", block.getHash().toString());
+        store.put(BlockchainMetaInfo.LAST_EXECUTE_BLOCK.toString(), lastExecuteBlock);
     }
 
     private Long reStoreToLong(String key, long defaultValue) {
-        byte[] longByteArray = db.get(key.getBytes());
-        if (longByteArray == null) {
-            return defaultValue;
+        JsonObject value = this.store.get(key);
+        if (value != null) {
+            return value.get("value").getAsLong();
         } else {
-            return Longs.fromByteArray(longByteArray);
+            return defaultValue;
         }
     }
 
     private void storeLongValue(String key, long value) {
-        byte[] longValue = Longs.toByteArray(value);
-        db.put(key.getBytes(), longValue);
+        JsonObject valueObject = new JsonObject();
+        valueObject.addProperty("value", value);
+        put(key, valueObject);
     }
 
 
@@ -144,37 +130,32 @@ public class BranchStore implements ReadWriterStore<String, String>, BranchState
         // if Exist Branch Information Did not save
         // Save Branch
         JsonObject json = branch.getJson();
-        if (db.get(BlockchainMetaInfo.BRANCH.toString().getBytes()) == null) {
-            db.put(BlockchainMetaInfo.BRANCH.toString().getBytes(), json.toString().getBytes());
-            db.put(BlockchainMetaInfo.BRANCH_ID.toString().getBytes(), branch.getBranchId().getBytes());
+        if (!store.contains(BlockchainMetaInfo.BRANCH.toString())) {
+            store.put(BlockchainMetaInfo.BRANCH.toString(), json);
+            JsonObject branchId = new JsonObject();
+            branchId.addProperty("branchId", branch.getBranchId().toString());
+            store.put(BlockchainMetaInfo.BRANCH_ID.toString(), branchId);
         }
     }
 
     public Branch getBranch() {
         // load Branch
-        byte[] jsonByteArray = db.get(BlockchainMetaInfo.BRANCH.toString().getBytes());
-        String jsonString = new String(jsonByteArray);
-        JsonParser parser = new JsonParser();
-        JsonObject json = parser.parse(jsonString).getAsJsonObject();
-
+        JsonObject json = store.get(BlockchainMetaInfo.BRANCH.toString());
         return Branch.of(json);
     }
 
     public BranchId getBranchId() {
-        return new BranchId(getBranchIdHash());
+        JsonObject branchId = store.get(BlockchainMetaInfo.BRANCH_ID.toString());
+        return BranchId.of(branchId.get("branchId").getAsString());
     }
-
-    public Sha3Hash getBranchIdHash() {
-        byte[] branchIdBytes = db.get(BlockchainMetaInfo.BRANCH_ID.toString().getBytes());
-        return new Sha3Hash(branchIdBytes, true);
-    }
-
     // TODO UPDATE Branch - Version History
 
     // Set Genesis Block
     public boolean setGenesisBlockHash(Sha3Hash genesisBlockHash) {
-        if (db.get(BlockchainMetaInfo.GENESIS_BLOCK.toString().getBytes()) == null) {
-            db.put(BlockchainMetaInfo.GENESIS_BLOCK.toString().getBytes(), genesisBlockHash.getBytes());
+        if (!store.contains(BlockchainMetaInfo.GENESIS_BLOCK.toString())) {
+            JsonObject genesisBlock = new JsonObject();
+            genesisBlock.addProperty("genesisBlock", genesisBlockHash.toString());
+            store.put(BlockchainMetaInfo.GENESIS_BLOCK.toString(), genesisBlock);
             return true;
         }
         return false;
@@ -182,24 +163,30 @@ public class BranchStore implements ReadWriterStore<String, String>, BranchState
 
     // Get Genesis Block
     public Sha3Hash getGenesisBlockHash() {
-        byte[] genesisBlockHash = db.get(BlockchainMetaInfo.GENESIS_BLOCK.toString().getBytes());
-        if (genesisBlockHash == null) {
-            return null;
+        JsonObject genesisBlock = store.get(BlockchainMetaInfo.GENESIS_BLOCK.toString());
+        if (genesisBlock != null) {
+            String genesisBlockHashString = genesisBlock.get("genesisBlock").getAsString();
+            return new Sha3Hash(genesisBlockHashString);
         }
-        return new Sha3Hash(genesisBlockHash, true);
+        return null;
+    }
+
+    @Override
+    public Sha3Hash getBranchIdHash() {
+        return null;
     }
 
     // Set Validator
     public void setValidators(ValidatorSet validatorSet) {
         JsonObject jsonValidator = JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet));
-        putJson(PrefixKeyEnum.VALIDATORS.toValue(), jsonValidator);
+        put(PrefixKeyEnum.VALIDATORS.toValue(), jsonValidator);
     }
 
     // Get Validator
     @Override
     public ValidatorSet getValidators() {
         ValidatorSet validatorSet = null;
-        JsonObject jsonValidatorSet = getJson(PrefixKeyEnum.VALIDATORS.toValue());
+        JsonObject jsonValidatorSet = get(PrefixKeyEnum.VALIDATORS.toValue());
         if (jsonValidatorSet != null) {
             validatorSet = JsonUtil.generateJsonToClass(jsonValidatorSet.toString(), ValidatorSet.class);
         }
@@ -216,25 +203,23 @@ public class BranchStore implements ReadWriterStore<String, String>, BranchState
     public void setBranchContracts(List<BranchContract> contracts) {
         JsonArray array = new JsonArray();
         contracts.forEach(c -> array.add(c.getJson()));
-        byte[] contractBytes = array.toString().getBytes();
-        db.put(BlockchainMetaInfo.BRANCH_CONTRACTS.toString().getBytes(), contractBytes);
+        JsonObject contract = new JsonObject();
+        contract.add("contracts", array);
+        store.put(BlockchainMetaInfo.BRANCH_CONTRACTS.toString(), contract);
     }
 
     // Get Contracts
     // Load Contracts initial values
     public List<BranchContract> getBranchContacts() {
         List<BranchContract> contracts = new ArrayList<>();
-        byte[] contractBytes = db.get(BlockchainMetaInfo.BRANCH_CONTRACTS.toString().getBytes());
-        if (contractBytes == null) {
+        JsonObject contract = store.get(BlockchainMetaInfo.BRANCH_CONTRACTS.toString());
+        if (contract == null) {
             return new ArrayList<>();
-        }
-        JsonParser parser = new JsonParser();
-        JsonArray json = parser.parse(new String(contractBytes)).getAsJsonArray();
-
-        for (int i = 0; i < json.size(); i++) {
-            if (json.get(i).isJsonObject()) {
-                JsonObject branchContract = json.get(i).getAsJsonObject();
-                contracts.add(BranchContract.of(branchContract));
+        } else {
+            JsonArray contractArray = contract.get("contracts").getAsJsonArray();
+            for (int i=0; i < contractArray.size(); i++) {
+                JsonObject contractObject = contractArray.get(i).getAsJsonObject();
+                contracts.add(BranchContract.of(contractObject));
             }
         }
         return contracts;

@@ -1,5 +1,6 @@
 package io.yggdrash.core.consensus;
 
+import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.store.BlockKeyStore;
@@ -20,6 +21,8 @@ public interface ConsensusBlockChain<T, V> {
     ConsensusBlock<T> addBlock(ConsensusBlock<T> block);
 
     boolean isValidator(String addr);
+
+    ValidatorSet getValidators();
 
     BlockChainManager<T> getBlockChainManager();
 }

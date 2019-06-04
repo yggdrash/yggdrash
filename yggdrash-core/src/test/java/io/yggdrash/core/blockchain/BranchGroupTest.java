@@ -33,7 +33,7 @@ import java.util.Collections;
 import static io.yggdrash.TestConstants.PerformanceTest;
 import static io.yggdrash.TestConstants.TRANSFER_TO;
 import static io.yggdrash.TestConstants.yggdrash;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class BranchGroupTest {
 

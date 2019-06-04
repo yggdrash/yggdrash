@@ -18,6 +18,7 @@ package io.yggdrash.contract.yeed;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.vo.dpoa.Validator;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.crypto.HexUtil;
@@ -100,6 +101,11 @@ public class YeedTest {
             @Override
             public boolean isValidator(String address) {
                 return true;
+            }
+
+            @Override
+            public List<BranchContract> getBranchContacts() {
+                return null;
             }
 
             public void setValidators(ValidatorSet validatorSet) {
@@ -679,7 +685,6 @@ public class YeedTest {
 
     @Test
     public void proposeIssueFail() {
-        String transactionId = "0x02";
         String receiveAddress = "ad8992d6f78d9cc597438efbccd8940d7c02bc6d";
         BigInteger receiveAsset = new BigInteger("11000000000000000000");
         int receiveChainId = 1;
@@ -708,6 +713,7 @@ public class YeedTest {
 
         BigInteger issuerOriginBalance = getBalance(issuer);
         log.debug("issuerOriginBalance {} ", issuerOriginBalance);
+        String transactionId = "0x02";
         TransactionReceipt receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 1);
 
         // issue propose

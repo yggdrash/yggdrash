@@ -26,6 +26,10 @@ public class TransactionReceiptStore {
         return gson.fromJson(txReceiptJson, TransactionReceiptImpl.class);
     }
 
+    public boolean contains(String txHash) {
+        return db.get(txHash.getBytes()) != null;
+    }
+
     public void close() {
         this.db.close();
     }

@@ -13,6 +13,8 @@ import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.consensus.Consensus;
+import io.yggdrash.core.store.BlockChainStore;
+import io.yggdrash.core.store.BlockChainStoreBuilder;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.service.ValidatorService;
 import org.slf4j.Logger;
@@ -94,13 +96,17 @@ public class ValidatorConfiguration {
                     validatorConfig.getString("yggdrash.validator.key.path"));
             try {
                 BranchId branchId = genesis.getBranch().getBranchId();
-                StoreBuilder storeBuilder = StoreBuilder.newBuilder()
-                        .setBranchId(genesis.getBranch().getBranchId())
-                        .setConfig(validatorConfig)
-                        .setConsensusAlgorithm(consensus.getAlgorithm())
-                        .setBlockStoreFactory(ValidatorService.blockStoreFactory());
 
-                BlockChain blockChain = BranchConfiguration.getBlockChain(genesis, storeBuilder, policyLoader,
+                BlockChainStoreBuilder builder = BlockChainStoreBuilder.newBuilder(branchId);
+                builder.withDataBasePath(defaultConfig.getDatabasePath())
+                        .withProductionMode(defaultConfig.isProductionMode())
+                        .setBlockStoreFactory(ValidatorService.blockStoreFactory())
+                        .setConsensusAlgorithm(consensus.getAlgorithm())
+                ;
+                BlockChainStore blockChainStore = builder.build();
+
+                BlockChain blockChain = BranchConfiguration.getBlockChain(defaultConfig,
+                        genesis, blockChainStore, policyLoader,
                         branchId, systemProperties);
 
                 validatorServiceList.add(new ValidatorService(validatorConfig, blockChain));

@@ -1,12 +1,9 @@
 package io.yggdrash.core.blockchain.osgi;
 
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.contract.core.store.OutputStore;
-import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.store.ContractStore;
 import org.osgi.framework.launch.FrameworkFactory;
-
 import java.util.Map;
 
 public class ContractManagerBuilder {
@@ -14,9 +11,12 @@ public class ContractManagerBuilder {
     private Map<String, String> contractManagerConfig;
     private String branchId;
     private ContractStore contractStore;
-    private DefaultConfig config;
+
     private SystemProperties systemProperties;
-    private Map<OutputType, OutputStore> outputStore;
+
+    private String osgiPath;
+    private String databasePath;
+    private String contractPath;
 
     private ContractManagerBuilder() {
 
@@ -47,18 +47,31 @@ public class ContractManagerBuilder {
 
     }
 
+    @Deprecated
     public ContractManagerBuilder withConfig(DefaultConfig config) {
-        this.config = config;
+        this.osgiPath = config.getOsgiPath();
+        this.databasePath = config.getDatabasePath();
+        this.contractPath = config.getContractPath();
+        return this;
+    }
+
+    public ContractManagerBuilder withOsgiPath(String osgiPath) {
+        this.osgiPath = osgiPath;
+        return this;
+    }
+
+    public ContractManagerBuilder withDataBasePath(String databasePath) {
+        this.databasePath = databasePath;
+        return this;
+    }
+
+    public ContractManagerBuilder withContractPath(String contractPath) {
+        this.contractPath = contractPath;
         return this;
     }
 
     public ContractManagerBuilder withSystemProperties(SystemProperties systemProperties) {
         this.systemProperties = systemProperties;
-        return this;
-    }
-
-    public ContractManagerBuilder withOutputStore(Map<OutputType, OutputStore> outputStore) {
-        this.outputStore = outputStore;
         return this;
     }
 
@@ -80,9 +93,10 @@ public class ContractManagerBuilder {
                 this.contractManagerConfig,
                 this.branchId,
                 this.contractStore,
-                this.config,
-                this.systemProperties,
-                this.outputStore
+                this.osgiPath,
+                this.databasePath,
+                this.contractPath,
+                this.systemProperties
         );
     }
 

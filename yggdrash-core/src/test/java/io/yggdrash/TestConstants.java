@@ -19,7 +19,7 @@ package io.yggdrash;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.blockchain.Branch;
-import io.yggdrash.core.blockchain.BranchContract;
+import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.wallet.Wallet;
@@ -35,7 +35,7 @@ public class TestConstants {
 
     private static BranchId YGGDRASH_BRANCH_ID;
 
-    static ContractVersion STEM_CONTRACT;
+    public static ContractVersion STEM_CONTRACT;
     public static ContractVersion YEED_CONTRACT;
     public static Branch TEST_BRANCH;
     public static File branchFile;
@@ -48,7 +48,7 @@ public class TestConstants {
     private static final String CONSOLE_TEST = "console";
     private static final String PROFILE = System.getProperty("spring.profiles.active");
 
-    private static final Wallet wallet;
+    private static Wallet wallet;
 
     private TestConstants() {
     }

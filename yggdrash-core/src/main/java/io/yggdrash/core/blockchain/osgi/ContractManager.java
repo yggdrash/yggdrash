@@ -1,16 +1,12 @@
 package io.yggdrash.core.blockchain.osgi;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.utils.JsonUtil;
-import io.yggdrash.contract.core.store.OutputStore;
-import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
-import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.ContractStore;
@@ -35,7 +31,6 @@ import org.osgi.service.condpermadmin.ConditionalPermissionUpdate;
 import org.osgi.service.permissionadmin.PermissionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilePermission;
@@ -64,23 +59,28 @@ public class ContractManager {
     private final Map<String, String> commonContractManagerConfig;
     private final String branchId;
     private final ContractStore contractStore;
-    private final DefaultConfig config;
+
+    private final String osgiPath;
+    private final String databasePath;
+    private final String contractPath;
     private final SystemProperties systemProperties;
     private final Map<String, String> fullLocation; // => Map<contractVersion, fullLocation>
 
     private ContractExecutor contractExecutor;
-    private Map<OutputType, OutputStore> outputStore;
 
     ContractManager(FrameworkFactory frameworkFactory, Map<String, String> contractManagerConfig,
-                    String branchId, ContractStore contractStore, DefaultConfig config,
-                    SystemProperties systemProperties, Map<OutputType, OutputStore> outputStore) {
+                    String branchId, ContractStore contractStore, String osgiPath, String databasePath,
+                    String contractPath, SystemProperties systemProperties) {
         this.frameworkFactory = frameworkFactory;
         this.commonContractManagerConfig = contractManagerConfig;
         this.branchId = branchId;
         this.contractStore = contractStore;
-        this.config = config;
+
+        this.osgiPath = osgiPath;
+        this.databasePath = databasePath;
+        this.contractPath = contractPath;
+
         this.systemProperties = systemProperties;
-        this.outputStore = outputStore;
         this.fullLocation = new HashMap<>();
 
         newFramework();
@@ -95,7 +95,7 @@ public class ContractManager {
     }
 
     public String getContractPath() {
-        return this.config.getContractPath();
+        return contractPath;
     }
 
     private String getFullLocation(String contractName) {
@@ -136,7 +136,7 @@ public class ContractManager {
     }
 
     private void newFramework() {
-        String managerPath = String.format("%s/%s", config.getOsgiPath(), branchId);
+        String managerPath = String.format("%s/%s", osgiPath, branchId);
         log.debug("ContractManager Path : {}", managerPath);
         Map<String, String> contractManagerConfig = new HashMap<>();
         contractManagerConfig.put("org.osgi.framework.storage", managerPath);
@@ -147,7 +147,7 @@ public class ContractManager {
 
         framework = frameworkFactory.newFramework(contractManagerConfig);
 
-        contractExecutor = new ContractExecutor(framework, contractStore, outputStore, systemProperties);
+        contractExecutor = new ContractExecutor(framework, contractStore, systemProperties);
 
         try {
             framework.start();
@@ -216,11 +216,11 @@ public class ContractManager {
         // 컨트렉트 폴더 읽기/쓰기 권한
         // TODO 아카식 시스템 폴더 읽기/쓰기 권한
 
-        String stateStorePath = String.format("%s/%s/state", config.getDatabasePath(), branchId);
-        String stateStoreFile = String.format("%s/%s/state/*", config.getDatabasePath(), branchId);
+        String stateStorePath = String.format("%s/%s/state", databasePath, branchId);
+        String stateStoreFile = String.format("%s/%s/state/*", databasePath, branchId);
 
-        String branchStorePath = String.format("%s/%s/branch", config.getDatabasePath(), branchId);
-        String branchStoreFile = String.format("%s/%s/branch/*", config.getDatabasePath(), branchId);
+        String branchStorePath = String.format("%s/%s/branch", databasePath, branchId);
+        String branchStoreFile = String.format("%s/%s/branch/*", databasePath, branchId);
         String allPermission = "read,write,delete";
         String filePermissionName = FilePermission.class.getName();
 
@@ -463,7 +463,7 @@ public class ContractManager {
         for (ServiceReference serviceRef : serviceRefs) {
             Object service = framework.getBundleContext().getService(serviceRef);
 
-            contractExecutor.injectFields(bundle.getLocation(), service, isSystemContract);
+            contractExecutor.injectFields(bundle, service, isSystemContract);
         }
     }
 
@@ -478,12 +478,17 @@ public class ContractManager {
         for (Transaction tx : nextBlock.getBody().getTransactionList()) {
 
             String contractVersion = getContractVersion(tx);
-            Bundle bundle = getBundle(contractVersion);
-            if (bundle == null) {
-                throw new NonExistObjectException(contractVersion + " bundle");
+            log.debug("executeTxs contractVersion : {}", contractVersion);
+            // Not exist contract in map
+            if (!serviceMap.containsKey(contractVersion)) {
+                Bundle bundle = getBundle(contractVersion);
+                if (bundle == null) {
+                    log.debug("executeTxs bundle is null");
+                    serviceMap.put(contractVersion, null);
+                } else {
+                    serviceMap.put(contractVersion, getService(bundle));
+                }
             }
-
-            serviceMap.put(contractVersion, getService(bundle));
         }
 
         return contractExecutor.executeTxs(serviceMap, nextBlock);
@@ -493,7 +498,8 @@ public class ContractManager {
         String contractVersion = getContractVersion(tx);
         Bundle bundle = getBundle(contractVersion);
 
-        return bundle != null ? contractExecutor.executeTx(contractVersion, getService(bundle), tx) : null;
+        return bundle != null ? contractExecutor.executeTx(contractVersion, getService(bundle), tx)
+                : new TransactionRuntimeResult(tx);
     }
 
     public void commitBlockResult(BlockRuntimeResult result) {

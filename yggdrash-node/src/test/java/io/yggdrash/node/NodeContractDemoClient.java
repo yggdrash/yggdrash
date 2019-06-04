@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
@@ -167,17 +168,10 @@ public class NodeContractDemoClient {
         Optional<Map.Entry<String,BranchDto>> branch = branches.entrySet().stream().filter(ent ->
                 "YGGDRASH".equals(ent.getValue().name))
                 .findFirst();
+        TestConstants.yggdrash();
         if (branch.isPresent()) {
-            yggdrash = BranchId.of(branch.get().getKey());
-            BranchDto branchDto = branch.get().getValue();
-            branchDto.contracts.forEach(contract -> {
-                if ("STEM".equals(contract.get("name"))) {
-                    stemContract = ContractVersion.of((String) contract.get("contractVersion"));
-                } else if ("YEED".equals(contract.get("name"))) {
-                    yeedContract = ContractVersion.of((String) contract.get("contractVersion"));
-                }
-
-            });
+            stemContract = TestConstants.STEM_CONTRACT;
+            yeedContract = TestConstants.YEED_CONTRACT;
         }
     }
 
@@ -295,7 +289,7 @@ public class NodeContractDemoClient {
             System.out.println("=> ");
             JsonObject params = JsonUtil.parseJsonObject(scan.nextLine());
 
-            txBody = ContractTestUtils.txBodyJson(Constants.YEED_CONTRACT_VERSION, method, params, true);
+            txBody = ContractTestUtils.txBodyJson(TestConstants.YEED_CONTRACT, method, params, true);
         } else {
             switch (method) {
                 case "approve":

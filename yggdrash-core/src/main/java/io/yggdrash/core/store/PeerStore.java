@@ -42,7 +42,7 @@ public class PeerStore implements ReadWriterStore<PeerId, Peer> {
     }
 
     @Override
-    public void put(PeerId key, Peer value) {
+    public void put(PeerId key, Peer value) { //TODO invalid data validation
         if (!contains(key)) {
             peerSize++;
             byte[] indexKey = getIndexKey(peerSize);
@@ -63,7 +63,7 @@ public class PeerStore implements ReadWriterStore<PeerId, Peer> {
         if (foundedValue != null) {
             return Peer.valueOf(foundedValue);
         }
-        throw new NonExistObjectException(Hex.toHexString(key));
+        throw new NonExistObjectException(Hex.toHexString(key)); //TODO handling exception
     }
 
     @Override

@@ -18,6 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.TestConstants.PerformanceTest;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
@@ -53,8 +54,8 @@ public class TransactionSpeedTest extends PerformanceTest {
         JsonObject params = new JsonObject();
         params.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
         params.addProperty("amount", "10000000");
-
-        JsonObject txObjBody = ContractTestUtils.txBodyJson(Constants.STEM_CONTRACT_VERSION,
+        TestConstants.yggdrash();
+        JsonObject txObjBody = ContractTestUtils.txBodyJson(TestConstants.STEM_CONTRACT,
                 "transfer", params, false);
 
         txBody = new TransactionBody(txObjBody);

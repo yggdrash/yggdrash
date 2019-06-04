@@ -130,7 +130,6 @@ public class VerifierUtils {
      */
     public static boolean verifyDataFormat(Transaction tx) {
         TransactionHeader header = tx.getHeader();
-        TransactionBody body = tx.getBody();
 
         // TODO CheckByValidate By Code
         boolean check = true;
@@ -144,6 +143,8 @@ public class VerifierUtils {
         check &= verifyTimestampAfter2018(header.getTimestamp());
         check &= verifyCheckLengthNotNull(
                 header.getBodyHash(), Constants.HASH_LENGTH, "bodyHash");
+
+        TransactionBody body = tx.getBody();
         check &= verifyBodyLength(header.getBodyLength(), body.getLength());
         check &= verifyCheckLengthNotNull(tx.getSignature(), Constants.SIGNATURE_LENGTH, SIGNATURE);
 
@@ -164,7 +165,6 @@ public class VerifierUtils {
      */
     public static boolean verifyDataFormat(Block block) {
         BlockHeader header = block.getHeader();
-        BlockBody body = block.getBody();
 
         // TODO CheckByValidate By Code
         boolean check = true;
@@ -184,6 +184,8 @@ public class VerifierUtils {
         }
         check &= header.getIndex() >= 0;
         check &= verifyTimestampAfter2018(header.getTimestamp());
+
+        BlockBody body = block.getBody();
         check &= verifyBodyLength(header.getBodyLength(), body.getLength());
         check &= Arrays.equals(header.getMerkleRoot(), Trie.getMerkleRoot(body.getTransactionList()));
 

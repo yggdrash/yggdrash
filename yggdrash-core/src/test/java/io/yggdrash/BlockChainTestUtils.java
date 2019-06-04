@@ -40,12 +40,18 @@ import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.blockchain.osgi.ContractManagerBuilder;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.contract.TestContract;
 import io.yggdrash.core.exception.InvalidSignatureException;
+import io.yggdrash.core.store.BlockChainStore;
+import io.yggdrash.core.store.BlockChainStoreBuilder;
 import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.PbftBlockStoreMock;
-import io.yggdrash.core.store.StoreBuilder;
+import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -54,6 +60,9 @@ import java.util.List;
 
 public class BlockChainTestUtils {
     private static final GenesisBlock genesis;
+    private static final Logger log = LoggerFactory.getLogger(BlockChainTestUtils.class);
+    private ContractVersion stem;
+
 
     private BlockChainTestUtils() {
     }
@@ -61,6 +70,15 @@ public class BlockChainTestUtils {
     static {
         try (InputStream is = new FileInputStream(TestConstants.branchFile)) {
             genesis = GenesisBlock.of(is);
+            TestConstants.yggdrash();
+        } catch (Exception e) {
+            throw new InvalidSignatureException(e);
+        }
+    }
+
+    private static GenesisBlock generateGenesisBlockByFile(File file) {
+        try (InputStream is = new FileInputStream(file)) {
+            return GenesisBlock.of(is);
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
         }
@@ -77,6 +95,10 @@ public class BlockChainTestUtils {
         return new PbftBlockMock(genesis.getBlock());
     }
 
+    public static ConsensusBlock<PbftProto.PbftBlock> genesisBlock(File file) {
+        return new PbftBlockMock(generateGenesisBlockByFile(file).getBlock());
+    }
+
     public static ConsensusBlock<PbftProto.PbftBlock> createNextBlock() {
         return createNextBlock(new PbftBlockMock(genesis.getBlock()));
     }
@@ -90,6 +112,12 @@ public class BlockChainTestUtils {
         return new PbftBlockMock(BlockImpl.nextBlock(TestConstants.wallet(), blockBody, prevBlock));
     }
 
+    public static ConsensusBlock<PbftProto.PbftBlock> createNextBlock(Wallet wallet,
+                                                                      List<Transaction> blockBody,
+                                                                      ConsensusBlock prevBlock) {
+        return new PbftBlockMock(BlockImpl.nextBlock(wallet, blockBody, prevBlock));
+    }
+
     public static Transaction createBranchTx() {
         JsonObject json = ContractTestUtils.createSampleBranchJson();
 
@@ -97,8 +125,10 @@ public class BlockChainTestUtils {
     }
 
     private static Transaction createBranchTx(JsonObject json) {
+
+
         TransactionBuilder builder = new TransactionBuilder();
-        return builder.setTxBody(Constants.STEM_CONTRACT_VERSION, "create", json, false)
+        return builder.setTxBody(TestConstants.STEM_CONTRACT, "create", json, false)
                 .setWallet(TestConstants.wallet())
                 .setBranchId(genesis.getBranch().getBranchId())
                 .build();
@@ -108,7 +138,7 @@ public class BlockChainTestUtils {
                                              JsonObject branch) {
         TransactionBuilder builder = new TransactionBuilder();
 
-        return builder.setTxBody(Constants.STEM_CONTRACT_VERSION, method, branch, false)
+        return builder.setTxBody(TestConstants.STEM_CONTRACT, method, branch, false)
                 .setWallet(TestConstants.wallet())
                 .setBranchId(branchId)
                 .build();
@@ -123,16 +153,18 @@ public class BlockChainTestUtils {
     }
 
     public static BlockChain createBlockChain(boolean isProductionMode) {
-        StoreBuilder storeBuilder;
-        if (isProductionMode) {
-            storeBuilder = StoreTestUtils.getProdMockBuilder();
-        } else {
-            storeBuilder = StoreBuilder.newBuilder().setConfig(new DefaultConfig());
-        }
-        storeBuilder.setBranchId(genesis.getBranch().getBranchId())
-                .setBlockStoreFactory(PbftBlockStoreMock::new);
+        log.debug("createBlockChain isProdMode : {}", isProductionMode);
+        log.debug("createBlockChain branchId : {}", genesis.getBranch().getBranchId().toString());
+        DefaultConfig config = new DefaultConfig();
+        BlockChainStoreBuilder builder = BlockChainStoreBuilder.newBuilder(genesis.getBranch().getBranchId())
+                .setBlockStoreFactory(PbftBlockStoreMock::new)
+                .withProductionMode(isProductionMode)
+                .withDataBasePath(config.getDatabasePath())
+        ;
+        BlockChainStore bcStore = builder.build();
 
-        ContractStore contractStore = storeBuilder.buildContractStore();
+
+        ContractStore contractStore = bcStore.getContractStore();
         ContractPolicyLoader contractPolicyLoader = new ContractPolicyLoader();
 
         ContractManager contractManager = ContractManagerBuilder.newInstance()
@@ -140,13 +172,12 @@ public class BlockChainTestUtils {
                 .withContractManagerConfig(contractPolicyLoader.getContractManagerConfig())
                 .withBranchId(genesis.getBranch().getBranchId().toString())
                 .withContractStore(contractStore)
-                .withConfig(new DefaultConfig())
+                .withDataBasePath(config.getDatabasePath())
+                .withOsgiPath(config.getOsgiPath())
+                .withContractPath(config.getContractPath())
                 .build();
 
-        BlockChainManager blockChainManager = new BlockChainManagerImpl(
-                storeBuilder.buildBlockStore(),
-                storeBuilder.buildTransactionStore(),
-                contractStore.getTransactionReceiptStore());
+        BlockChainManager blockChainManager = new BlockChainManagerImpl(bcStore);
 
         return BlockChainBuilder.newBuilder()
                 .setGenesis(genesis)
@@ -158,6 +189,7 @@ public class BlockChainTestUtils {
     }
 
     public static BranchGroup createBranchGroup() {
+        log.debug("createBranchGroup");
         BranchGroup branchGroup = new BranchGroup();
         BlockChain blockChain = createBlockChain(false);
         branchGroup.addBranch(blockChain);
@@ -223,6 +255,16 @@ public class BlockChainTestUtils {
                 .build();
     }
 
+    public static Transaction createTransferTx(BranchId branchId, ContractVersion contractVersion) {
+        JsonObject txBody = ContractTestUtils.transferTxBodyJson(
+                TestConstants.TRANSFER_TO, 100, contractVersion);
+        TransactionBuilder builder = new TransactionBuilder();
+        return builder.setTxBody(txBody)
+                .setWallet(TestConstants.wallet())
+                .setBranchId(branchId)
+                .build();
+    }
+
     public static Transaction createInvalidTransferTx(ContractVersion contractVersion) {
         JsonObject txBody = ContractTestUtils
                 .invalidTransferTxBodyJson(TestConstants.TRANSFER_TO, 100, contractVersion);
@@ -232,6 +274,12 @@ public class BlockChainTestUtils {
     public static Transaction createInvalidTransferTx(BranchId branchId, ContractVersion contractVersion) {
         JsonObject txBody = ContractTestUtils
                 .invalidTransferTxBodyJson(TestConstants.TRANSFER_TO, 100, contractVersion);
+        return createInvalidTx(branchId, Constants.EMPTY_BYTE8, txBody);
+    }
+
+    public static Transaction createInvalidTransferTx(BranchId branchId, ContractVersion contractVersion, long amount) {
+        JsonObject txBody = ContractTestUtils
+                .invalidTransferTxBodyJson(TestConstants.TRANSFER_TO, amount, contractVersion);
         return createInvalidTx(branchId, Constants.EMPTY_BYTE8, txBody);
     }
 

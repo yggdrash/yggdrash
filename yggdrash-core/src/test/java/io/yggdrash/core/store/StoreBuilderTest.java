@@ -38,33 +38,6 @@ public class StoreBuilderTest {
     }
 
     @Test
-    public void shouldBeBuiltMetaStore() {
-        ConsensusBlock block = BlockChainTestUtils.genesisBlock();
-        BranchStore store = builder.buildBranchStore();
-        store.setBestBlock(block);
-
-        assertThat(store.getBestBlockHash()).isEqualTo(block.getHash());
-    }
-
-    @Test
-    public void buildBlockStore() {
-        ConsensusBlock block = BlockChainTestUtils.genesisBlock();
-        ConsensusBlockStore store = builder.setBlockStoreFactory(PbftBlockStoreMock::new).buildBlockStore();
-        store.put(block.getHash(), block);
-        assertThat(store.contains(block.getHash())).isTrue();
-        assertThat(store.get(block.getHash())).isEqualTo(block);
-    }
-
-    @Test
-    public void buildTxStore() {
-        Transaction tx = BlockChainTestUtils.createTransferTx();
-        TransactionStore store = builder.buildTransactionStore();
-        store.put(tx.getHash(), tx);
-        assertThat(store.contains(tx.getHash())).isTrue();
-        assertThat(store.get(tx.getHash())).isEqualTo(tx);
-    }
-
-    @Test
     public void buildPeerStore() {
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
         PeerStore store = builder.buildPeerStore();

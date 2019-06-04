@@ -38,7 +38,8 @@ ext {
                     ",java.math" +
                     ",io.yggdrash.contract.core" +
                     ",io.yggdrash.contract.core.annotation" +
-                    ",io.yggdrash.contract.core.store"
+                    ",io.yggdrash.contract.core.store" +
+                    ",io.yggdrash.contract.core.channel"
 
 
     excludeList = ["META-INF/LICENSE", "META-INF/NOTICE", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/NOTICE"]
@@ -75,30 +76,6 @@ task contractsPackage(type: Jar) {
     archiveName "system-dpoa-contract-${manifest.attributes.get('Bundle-Version')}.jar"
 }
 
-task contractsClientPackage(type: Jar) {
-    //Add current module source
-    from(sourceSets.main.output) {
-        include "**"
-        exclude(["system-contracts"])
-    }
-
-    manifest {
-        attributes(
-                'Bundle-ManifestVersion': '2',
-                'Bundle-Name': 'DPoA Client Contract',
-                'Bundle-Description': 'DPoA Client Contract',
-                'Bundle-Vendor': 'YGGDRASH',
-                'Bundle-SymbolicName': 'io.yggdrash.contract.dpoa.DPoAClientContract',
-                'Bundle-Version': '1.0.0',
-                'Bundle-Activator': 'io.yggdrash.contract.dpoa.DPoAClientContract',
-                'Import-Package': "${importPackage},io.yggdrash.contract.dpoa"
-        )
-    }
-    exclude(excludeList)
-    preserveFileTimestamps = false
-    archiveName "system-dpoa-client-contract-${manifest.attributes.get('Bundle-Version')}.jar"
-
-}
 
 def generateSha1(File file) {
     MessageDigest md = MessageDigest.getInstance("SHA-1");
