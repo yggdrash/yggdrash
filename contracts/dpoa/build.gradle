@@ -38,7 +38,8 @@ ext {
                     ",java.math" +
                     ",io.yggdrash.contract.core" +
                     ",io.yggdrash.contract.core.annotation" +
-                    ",io.yggdrash.contract.core.store"
+                    ",io.yggdrash.contract.core.store" +
+                    ",io.yggdrash.contract.core.channel"
 
 
     excludeList = ["META-INF/LICENSE", "META-INF/NOTICE", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/NOTICE"]

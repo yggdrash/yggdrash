@@ -1,5 +1,6 @@
 package io.yggdrash.core.blockchain.osgi;
 
+import io.yggdrash.contract.core.annotation.ContractChannelMethod;
 import io.yggdrash.contract.core.annotation.ContractEndBlock;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
@@ -22,6 +23,8 @@ class ContractCache {
     //Map<contractVersion, Map<methodName, method>>
     private final Map<String, Map<String, Method>> queryMethods = new HashMap<>();
 
+    private final Map<String, Map<String, Method>> contractChannelMethods = new HashMap<>();
+
     private final Map<String, Map<String, Method>> endBlockMethods = new HashMap<>();
 
     Map<String, Map<Field, List<Annotation>>> getInjectingFields() {
@@ -34,6 +37,10 @@ class ContractCache {
 
     Map<String, Map<String, Method>> getQueryMethods() {
         return queryMethods;
+    }
+
+    Map<String, Map<String, Method>> getChannelMethods() {
+        return contractChannelMethods;
     }
 
     Map<String, Map<String, Method>> getEndBlockMethods() {
@@ -56,6 +63,14 @@ class ContractCache {
                     .filter(method -> Modifier.isPublic(method.getModifiers()))
                     .collect(Collectors.toMap(Method::getName, m -> m));
             invokeTransactionMethods.put(contractName, methods);
+        }
+
+        if (contractChannelMethods.get(contractName) == null) {
+            Map<String, Method> methods = Arrays.stream(service.getClass().getDeclaredMethods())
+                    .filter(method -> method.isAnnotationPresent(ContractChannelMethod.class))
+                    .filter(method -> Modifier.isPublic(method.getModifiers()))
+                    .collect(Collectors.toMap(Method::getName, m -> m));
+            contractChannelMethods.put(contractName, methods);
         }
 
         if (queryMethods.get(contractName) == null) {

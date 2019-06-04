@@ -17,6 +17,7 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;

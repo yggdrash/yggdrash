@@ -19,6 +19,7 @@ package io.yggdrash.contract.dpoa;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.vo.dpoa.ProposeValidatorSet;
 import io.yggdrash.common.contract.vo.dpoa.ProposeValidatorSet.Votable.Vote;
 import io.yggdrash.common.contract.vo.dpoa.Validator;
@@ -63,6 +64,7 @@ public class DPoAContractTest {
     @Before
     public void setUp() throws IllegalAccessException {
         StateStore store = new StateStore(new HashMapDbSource());
+
         BranchStateStore branchStateStore = new BranchStateStore() {
             ValidatorSet validators;
 
@@ -99,6 +101,11 @@ public class DPoAContractTest {
             @Override
             public boolean isValidator(String address) {
                 return validators.getValidatorMap().containsKey(address);
+            }
+
+            @Override
+            public List<BranchContract> getBranchContacts() {
+                return null;
             }
 
         };

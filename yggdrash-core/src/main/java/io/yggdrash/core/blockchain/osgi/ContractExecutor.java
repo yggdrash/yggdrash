@@ -8,9 +8,11 @@ import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptAdapter;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
+import io.yggdrash.contract.core.annotation.ContractChannelField;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.InjectEvent;
+import io.yggdrash.contract.core.channel.ContractMethodType;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
@@ -42,6 +44,7 @@ public class ContractExecutor {
     private final SystemProperties systemProperties;
     private final ContractCache contractCache;
     private TransactionReceiptAdapter trAdapter;
+    private ContractChannelCoupler coupler;
 
     ContractExecutor(Framework framework, ContractStore contractStore, SystemProperties systemProperties) {
         this.framework = framework;
@@ -49,6 +52,7 @@ public class ContractExecutor {
         this.systemProperties = systemProperties;
         contractCache = new ContractCache();
         trAdapter = new TransactionReceiptAdapter();
+        coupler = new ContractChannelCoupler();
     }
 
     void injectFields(Bundle bundle, Object service, boolean isSystemContract)
@@ -76,6 +80,10 @@ public class ContractExecutor {
                     field.set(service, trAdapter);
                 }
 
+                if (annotation.annotationType().equals(ContractChannelField.class)) {
+                    field.set(service, coupler);
+                }
+
                 if (systemProperties != null
                         && annotation.annotationType().equals(InjectEvent.class)
                         && field.getType().isAssignableFrom(systemProperties.getEventStore().getClass())) {
@@ -87,27 +95,21 @@ public class ContractExecutor {
         contractCache.cacheContract(bundle.getLocation(), service);
     }
 
-    private enum MethodType {
-        EndBlock,
-        Query,
-        InvokeTx
-    }
-
     private Object callContractMethod(String contractVersion, Object service, String methodName, JsonObject params,
-                                      MethodType methodType, TransactionReceipt txReceipt,
+                                      ContractMethodType methodType, TransactionReceipt txReceipt,
                                       JsonObject endBlockParams) {
 
         contractCache.cacheContract(contractVersion, service);
 
         Map<String, Method> methodMap = null;
         switch (methodType) {
-            case InvokeTx:
+            case INVOKE:
                 methodMap = contractCache.getInvokeTransactionMethods().get(contractVersion);
                 break;
-            case Query:
+            case QUERY:
                 methodMap = contractCache.getQueryMethods().get(contractVersion);
                 break;
-            case EndBlock:
+            case END_BLOCK:
                 methodMap = contractCache.getEndBlockMethods().get(contractVersion);
                 break;
             default:
@@ -121,7 +123,7 @@ public class ContractExecutor {
 
         Method method = methodMap.get(methodName);
         try {
-            if (methodType == MethodType.InvokeTx) {
+            if (methodType == ContractMethodType.INVOKE) {
                 //
                 trAdapter.setTransactionReceipt(txReceipt);
             }
@@ -129,7 +131,7 @@ public class ContractExecutor {
             if (method.getParameterCount() == 0) {
                 return method.invoke(service);
             } else {
-                if (methodType == MethodType.EndBlock) {
+                if (methodType == ContractMethodType.END_BLOCK) {
                     return method.invoke(service, endBlockParams);
                 } else {
                     return method.invoke(service, params);
@@ -146,14 +148,14 @@ public class ContractExecutor {
     public Object query(String contractVersion, Object service, String methodName, JsonObject params) {
 
         return callContractMethod(
-                contractVersion, service, methodName, params, MethodType.Query, null, null);
+                contractVersion, service, methodName, params, ContractMethodType.QUERY, null, null);
     }
 
     private Set<Map.Entry<String, JsonObject>> invoke(
             String contractVersion, Object service, JsonObject txBody, TransactionReceipt txReceipt) {
 
         callContractMethod(contractVersion, service, txBody.get("method").getAsString(),
-                txBody.getAsJsonObject("params"), MethodType.InvokeTx, txReceipt, null);
+                txBody.getAsJsonObject("params"), ContractMethodType.INVOKE, txReceipt, null);
         return contractStore.getTmpStateStore().changeValues();
     }
 
@@ -165,7 +167,7 @@ public class ContractExecutor {
             if (endBlockMethods != null) {
                 endBlockMethods.forEach((k, m) -> {
                     Object result = callContractMethod(
-                            location, service, k, null, MethodType.EndBlock, null, endBlockParams);
+                            location, service, k, null, ContractMethodType.END_BLOCK, null, endBlockParams);
                     if (result != null) {
                         results.add(result);
                     }
@@ -190,6 +192,9 @@ public class ContractExecutor {
     }
 
     BlockRuntimeResult executeTxs(Map<String, Object> serviceMap, ConsensusBlock nextBlock) {
+        // Set Coupler Contract and contractCache
+        coupler.setContract(serviceMap, contractCache);
+
         List<Transaction> txList = nextBlock.getBody().getTransactionList();
 
         if (nextBlock.getIndex() == 0) {
