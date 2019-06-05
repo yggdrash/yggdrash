@@ -33,7 +33,6 @@ public class JsonRpcConfig {
             String apiPath = proxyInterface.getSimpleName().toLowerCase().replace("api", "");
             URL url = null;
             if (server.indexOf("http://") > -1) {
-
                 // Server is api url
                 url = new URL(String.format("%s/%s",server.trim(),apiPath));
             }else {

@@ -5,8 +5,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
-import io.yggdrash.TestConstants;
-import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.crypto.HexUtil;
@@ -31,7 +29,6 @@ import io.yggdrash.node.api.JsonRpcConfig;
 import io.yggdrash.node.api.TransactionApi;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -168,10 +165,21 @@ public class NodeContractDemoClient {
         Optional<Map.Entry<String,BranchDto>> branch = branches.entrySet().stream().filter(ent ->
                 "YGGDRASH".equals(ent.getValue().name))
                 .findFirst();
-        yggdrash = TestConstants.yggdrash();
         if (branch.isPresent()) {
-            stemContract = TestConstants.STEM_CONTRACT;
-            yeedContract = TestConstants.YEED_CONTRACT;
+            Map.Entry<String, BranchDto> branchInfo = branch.get();
+            yggdrash = BranchId.of(branchInfo.getKey());
+
+            BranchDto branchDto = branchInfo.getValue();
+
+            branchDto.contracts.stream().forEach(mv -> {
+                if ("YEED".equals(mv.get("name"))) {
+                    yeedContract = ContractVersion.of((String)mv.get("contractVersion"));
+                } else if ("STEM".equals(mv.get("name"))) {
+                    stemContract = ContractVersion.of((String)mv.get("contractVersion"));
+                }
+            });
+        } else {
+            System.out.println("YGGDRASH BRANCH IS NOT EXIST");
         }
     }
 
@@ -289,7 +297,7 @@ public class NodeContractDemoClient {
             System.out.println("=> ");
             JsonObject params = JsonUtil.parseJsonObject(scan.nextLine());
 
-            txBody = ContractTestUtils.txBodyJson(TestConstants.YEED_CONTRACT, method, params, true);
+            txBody = ContractTestUtils.txBodyJson(NodeContractDemoClient.yeedContract, method, params, true);
         } else {
             switch (method) {
                 case "approve":
