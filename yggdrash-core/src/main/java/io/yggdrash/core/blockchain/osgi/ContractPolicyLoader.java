@@ -33,7 +33,9 @@ public class ContractPolicyLoader {
             + ",java.math"
             + ",io.yggdrash.contract.core"
             + ",io.yggdrash.contract.core.annotation"
-            + ",io.yggdrash.contract.core.store";
+            + ",io.yggdrash.contract.core.store"
+            + ",io.yggdrash.contract.core.channel"
+            ;
 
     private FrameworkFactory frameworkFactory;
     private Map<String, String> contractManagerConfig;

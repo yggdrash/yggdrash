@@ -17,11 +17,13 @@ import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
+import io.yggdrash.contract.core.annotation.ContractChannelField;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.Genesis;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
+import io.yggdrash.contract.core.channel.ContractChannel;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -90,6 +92,10 @@ public class StemContract implements BundleActivator, ServiceListener {
 
         @ContractTransactionReceipt
         TransactionReceipt txReceipt;
+
+        @ContractChannelField
+        public ContractChannel channel;
+
 
         @Genesis
         @InvokeTransaction // TODO remove InvokeTransaction

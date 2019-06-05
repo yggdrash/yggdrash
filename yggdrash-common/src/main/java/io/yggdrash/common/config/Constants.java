@@ -82,9 +82,4 @@ public final class Constants {
         public static final String GATEWAY = "gateway"; // monitoring only
     }
 
-    private static final String STEM_CONTRACT_STR = "74df17611373672371cb3872e8a5d4a2e8733fb1";
-    public static final ContractVersion STEM_CONTRACT_VERSION = ContractVersion.of(STEM_CONTRACT_STR);
-
-    private static final String YEED_CONTRACT_STR = "d79ab8e1d735090d2a7ef4f16d13a910457c0d93";
-    public static final ContractVersion YEED_CONTRACT_VERSION = ContractVersion.of(YEED_CONTRACT_STR);
 }
