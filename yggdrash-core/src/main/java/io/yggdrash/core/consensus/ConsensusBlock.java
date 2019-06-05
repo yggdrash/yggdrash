@@ -10,6 +10,8 @@ public interface ConsensusBlock<T> extends Block, ProtoObject<T> {
 
     Object getConsensusMessages();
 
+    JsonObject getConsensusMessagesJsonObject();
+
     JsonObject toJsonObjectByProto();
 
     int getSerializedSize();
