@@ -14,14 +14,29 @@ package io.yggdrash.core.store;
 
 import com.google.common.primitives.Longs;
 import io.yggdrash.common.store.datasource.DbSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.ByteBuffer;
 
 public class LogStore {
+    private static final Logger log = LoggerFactory.getLogger(LogStore.class);
     private final DbSource<byte[], byte[]> db;
     private long index;
 
     public LogStore(DbSource<byte[], byte[]> db) { //<logIndex : txId + indexOfReceipt>
-        this.index = 0;
         this.db = db.init();
+        this.index = getIndex();
+        log.debug("Current Log Index : {}", index);
+    }
+
+    private long getIndex() {
+        byte[] originIndex = db.get("index".getBytes());
+        return originIndex != null ? ByteBuffer.wrap(originIndex).getLong() : 0;
+    }
+
+    private void putIndex() {
+        db.put("index".getBytes(), Longs.toByteArray(index));
     }
 
     public void put(String value) {
@@ -41,6 +56,8 @@ public class LogStore {
     }
 
     public void close() {
+        putIndex();
+        log.debug("Close LogStore. Current Log Index : {}", index);
         this.db.close();
     }
 }

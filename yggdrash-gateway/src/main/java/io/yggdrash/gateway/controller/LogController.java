@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
@@ -36,14 +37,14 @@ public class LogController {
 
     @GetMapping("/{index}")
     public ResponseEntity getLog(@PathVariable(name = BRANCH_ID) String branchId,
-                                 @PathVariable long index) {
+                                 @RequestParam long index) {
         return ResponseEntity.ok(branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getLog(index));
     }
 
     @GetMapping("/{start}/{offset}")
     public ResponseEntity getLogs(@PathVariable(name = BRANCH_ID) String branchId,
-                                  @PathVariable long start,
-                                  @PathVariable long offset) {
+                                  @RequestParam long start,
+                                  @RequestParam long offset) {
         return ResponseEntity.ok(branchGroup.getBranch(BranchId.of(branchId)).getContractManager()
                 .getLogs(start, offset));
     }

@@ -13,42 +13,68 @@
 package io.yggdrash.core.store;
 
 import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
-import org.junit.Before;
+import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class LogStoreTest {
+    private static final Logger log = LoggerFactory.getLogger(LogStoreTest.class);
     private LogStore store;
-
-    @Before
-    public void setUp() throws Exception {
-        store = new LogStore(new HashMapDbSource());
-    }
+    private boolean prodMode;
 
     @Test
-    public void putAndGetTest() {
+    public void prodTest() {
+        isProdMode(false);
+        putAndGetTest();
+        isProdMode(true);
+        putAndGetTest();
+    }
+
+    private void putAndGetTest() {
+        long curIndex = store.curIndex();
+
+        if (!prodMode) {
+            assertEquals(0, curIndex);
+        }
+
         String txId = BlockChainTestUtils.createTransferTx().getHash().toString();
         String keyFormat = "%s/%d";
 
         String val0 = String.format(keyFormat, txId, 0);
-        String val1 = String.format(keyFormat, txId, 0);
-        String val2 = String.format(keyFormat, txId, 0);
+        String val1 = String.format(keyFormat, txId, 1);
+        String val2 = String.format(keyFormat, txId, 2);
+
+        log.debug("\nput : {}\nput : {}\nput : {}", val0, val1, val2);
 
         store.put(val0);
         store.put(val1);
         store.put(val2);
 
-        assertTrue(store.contains(0));
-        assertTrue(store.contains(1));
-        assertTrue(store.contains(2));
+        assertTrue(store.contains(curIndex));
+        assertTrue(store.contains(curIndex + 1));
+        assertTrue(store.contains(curIndex + 2));
 
-        assertEquals(val0, store.get(0));
-        assertEquals(val1, store.get(1));
-        assertEquals(val2, store.get(2));
+        assertEquals(val0, store.get(curIndex));
+        assertEquals(val1, store.get(curIndex + 1));
+        assertEquals(val2, store.get(curIndex + 2));
 
-        assertEquals(3, store.curIndex());
+        assertEquals(curIndex + 3, store.curIndex());
+
+        store.close();
+    }
+
+    private void isProdMode(boolean prod) {
+        this.prodMode = prod;
+        if (prod) {
+            store = new LogStore(new LevelDbDataSource(new DefaultConfig().getDatabasePath(), "log"));
+        } else {
+            store = new LogStore(new HashMapDbSource());
+        }
     }
 }
