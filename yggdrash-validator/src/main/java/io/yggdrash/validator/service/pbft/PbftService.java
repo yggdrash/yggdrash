@@ -34,7 +34,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftService.class);
 
-    private static final int FAIL_COUNT = 2;
+    private static final int FAIL_COUNT = 3;
 
     private final DefaultConfig defaultConfig;
     private final Wallet wallet;
@@ -55,7 +55,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     private boolean isPrePrepared;
     private boolean isPrepared;
     private boolean isCommitted;
-    private boolean isViewChanged;
 
     private boolean isPrimary;
     private long viewNumber;
@@ -87,7 +86,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         this.isPrePrepared = false;
         this.isPrepared = false;
         this.isCommitted = false;
-        this.isViewChanged = false;
         this.failCount = 0;
 
         this.viewNumber = this.blockChain.getBlockChainManager().getLastIndex() + 1;
@@ -229,7 +227,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         log.debug("isPrePrepared= " + this.isPrePrepared);
         log.debug("isPrepared= " + this.isPrepared);
         log.debug("isCommitted= " + this.isCommitted);
-        log.debug("isViewChanged= " + this.isViewChanged);
 
         log.debug("unConfirmedMsgMap size= " + this.blockChain.getUnConfirmedData().size());
         if (log.isTraceEnabled()) {
@@ -326,25 +323,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
             return this.viewNumber;
         }
         return newViewNumber;
-    }
-
-    private long getNextActiveValidatorIndex(long index) {
-        long validatorCount = this.totalValidatorMap.size();
-        log.trace("Before ValidatorIndex: " + index + " " + validatorCount);
-
-        for (long l = index + 1; l <= index + validatorCount; l++) {
-            // next validator sequence 0 ~ n
-            int validatorSeq = (int) (l % validatorCount);
-            PbftClientStub client =
-                    (PbftClientStub) this.totalValidatorMap.values().toArray()[validatorSeq];
-            if (client.isRunning()) {
-                log.trace("NextActiveValidatorIndex: " + l);
-                return l;
-            }
-        }
-
-        log.error("Cannot get next active validator index!");
-        return -1L;
     }
 
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
@@ -455,7 +433,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
             return null;
         }
 
-        long index = this.blockChain.getBlockChainManager().getLastIndex() + 1;
         PbftMessage prePrepareMsg = null;
         Map<String, PbftMessage> prepareMessageMap = new TreeMap<>();
         Map<String, PbftMessage> commitMessageMap = new TreeMap<>();
@@ -465,14 +442,15 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedData().get(key);
             if (pbftMessage == null) {
                 this.blockChain.getUnConfirmedData().remove(key);
-            } else if (pbftMessage.getSeqNumber() < index) {
+            } else if (pbftMessage.getSeqNumber() < this.seqNumber
+                    || pbftMessage.getViewNumber() < this.viewNumber) {
                 pbftMessage.clear();
                 this.blockChain.getUnConfirmedData().remove(key);
-            } else if (pbftMessage.getSeqNumber() == index) {
+            } else if (pbftMessage.getSeqNumber() == this.seqNumber
+                    || pbftMessage.getViewNumber() == this.viewNumber) {
                 switch (pbftMessage.getType()) {
                     case "PREPREPA":
                         if (prePrepareMsg != null) {
-                            // todo: for debugging log
                             log.warn("PrePrepare msg is duplicated.");
                             pbftMessage.clear();
                             this.blockChain.getUnConfirmedData().remove(key);
@@ -538,9 +516,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         Block block = this.blockChain.getBlockChainManager().getLastConfirmedBlock().getBlock();
         log.trace("block" + block.toString());
         long newViewNumber = this.viewNumber + 1;
-        if (newViewNumber < 0) {
-            return null;
-        }
 
         PbftMessage viewChangeMsg = new PbftMessage(
                 "VIEWCHAN",
@@ -556,7 +531,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         }
 
         this.blockChain.getUnConfirmedData().put(viewChangeMsg.getSignatureHex(), viewChangeMsg);
-        this.isViewChanged = true;
 
         log.warn("ViewChanged"
                 + " ("
@@ -587,9 +561,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         this.isPrepared = false;
         this.isCommitted = false;
         this.failCount = 0;
-        this.isViewChanged = false;
 
-        this.viewNumber = index + 1;
+        this.viewNumber = (this.viewNumber > index + 1 ? this.viewNumber : index + 1);
         this.seqNumber = index + 1;
     }
 
@@ -610,7 +583,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         long checkViewNumber = getCurrentViewNumber();
         if (checkViewNumber > this.viewNumber) {
             this.viewNumber = checkViewNumber;
-            this.failCount = 0;
+            resetUnConfirmedMessage(this.viewNumber, this.seqNumber);
         }
 
         int primaryIndex = (int) (this.viewNumber % totalValidatorMap.size());
@@ -624,16 +597,20 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         this.isPrimary = currentPrimaryAddr.equals(this.myNode.getAddr());
     }
 
-    private Map<String, PbftMessage> getViewChangeMsgMap(long index) {
-        Map<String, PbftMessage> viewChangeMsgMap = new TreeMap<>();
+    private void resetUnConfirmedMessage(long viewNumber, long seqNumber) {
         for (String key : this.blockChain.getUnConfirmedData().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedData().get(key);
-            if (pbftMessage.getSeqNumber() == index
-                    && pbftMessage.getType().equals("VIEWCHAN")) {
-                viewChangeMsgMap.put(key, pbftMessage);
+            if (pbftMessage.getViewNumber() < viewNumber
+                    || pbftMessage.getSeqNumber() < seqNumber) {
+                pbftMessage.clear();
+                this.blockChain.getUnConfirmedData().remove(key);
             }
         }
-        return viewChangeMsgMap;
+
+        this.isPrePrepared = false;
+        this.isPrepared = false;
+        this.isCommitted = false;
+        this.failCount = 0;
     }
 
     public void checkNode() {
@@ -740,8 +717,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         }
 
         if (newPbftMessage.getType().equals("PREPREPA")
-                && newPbftMessage.getSeqNumber()
-                == this.blockChain.getBlockChainManager().getLastIndex() + 1) {
+                && newPbftMessage.getSeqNumber() == this.seqNumber
+                && newPbftMessage.getViewNumber() == this.viewNumber) {
             this.isPrePrepared = true;
         }
     }
@@ -757,7 +734,9 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         Map<String, PbftMessage> pbftMessageMap = new TreeMap<>();
         for (String key : this.blockChain.getUnConfirmedData().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedData().get(key);
-            if (pbftMessage != null && pbftMessage.getSeqNumber() == index + 1) {
+            if (pbftMessage != null
+                    && pbftMessage.getSeqNumber() == index + 1
+                    && pbftMessage.getViewNumber() == this.viewNumber) {
                 pbftMessageMap.put(key, pbftMessage.clone());
             }
         }
@@ -771,7 +750,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         log.info("wallet pubKey: {}", Hex.toHexString(wallet.getPubicKey()));
         log.info("isValidator: {}", isValidator());
     }
-
 
     private List<Peer> initValidatorConfigList() {
         List<Peer> peerList = new ArrayList<>();
@@ -871,7 +849,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         return count;
     }
 
-    // todo: check security
     @Override
     public ReentrantLock getLock() {
         return lock;
