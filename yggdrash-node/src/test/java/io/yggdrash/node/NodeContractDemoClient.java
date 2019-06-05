@@ -168,7 +168,7 @@ public class NodeContractDemoClient {
         Optional<Map.Entry<String,BranchDto>> branch = branches.entrySet().stream().filter(ent ->
                 "YGGDRASH".equals(ent.getValue().name))
                 .findFirst();
-        TestConstants.yggdrash();
+        yggdrash = TestConstants.yggdrash();
         if (branch.isPresent()) {
             stemContract = TestConstants.STEM_CONTRACT;
             yeedContract = TestConstants.YEED_CONTRACT;
@@ -383,12 +383,16 @@ public class NodeContractDemoClient {
         if ("".equals(txHash)) {
             txHash = lastTransactionId;
         }
-        TransactionReceiptDto txr = rpc.proxyOf(TARGET_SERVER, TransactionApi.class)
-                .getTransactionReceipt(branchId, txHash);
+        try {
+            TransactionReceiptDto txr = rpc.proxyOf(TARGET_SERVER, TransactionApi.class)
+                    .getTransactionReceipt(branchId, txHash);
 
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String prettyJsonString = gson.toJson(txr);
-        System.out.println(prettyJsonString);
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            String prettyJsonString = gson.toJson(txr);
+            System.out.println(prettyJsonString);
+        } catch (NullPointerException e) {
+            System.out.println(String.format("%s %s", "error get TxReceipt", txHash));
+        }
     }
 
     private static void deployBranch() throws Exception {
