@@ -180,6 +180,7 @@ public class NodeContractDemoClient {
             });
         } else {
             System.out.println("YGGDRASH BRANCH IS NOT EXIST");
+            System.exit(-1);
         }
     }
 
