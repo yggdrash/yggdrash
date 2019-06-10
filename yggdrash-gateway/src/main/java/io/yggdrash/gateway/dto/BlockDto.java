@@ -43,7 +43,7 @@ public class BlockDto {
     public List<TransactionDto> body;
     public String author;
     public String blockId;
-    public Object consensusMessages;
+    public String consensusMessages;
 
     public JsonObject toJsonObject() {
         return JsonUtil.parseJsonObject(this);
@@ -72,7 +72,8 @@ public class BlockDto {
         }
         blockDto.author = block.getBlock().getAddress().toString();
         blockDto.blockId = block.getHash().toString();
-        blockDto.consensusMessages = block.getConsensusMessages();
+        blockDto.consensusMessages = block.getConsensusMessagesJsonObject().toString();
+        // TODO add consensus messages
         return blockDto;
     }
 

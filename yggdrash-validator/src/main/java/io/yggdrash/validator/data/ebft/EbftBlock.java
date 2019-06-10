@@ -61,6 +61,19 @@ public class EbftBlock extends AbstractConsensusBlock<EbftProto.EbftBlock> {
     }
 
     @Override
+    public JsonObject getConsensusMessagesJsonObject() {
+        JsonArray consensusJsonArray = new JsonArray();
+        for (ByteString consensus : consensusList) {
+            consensusJsonArray.add(consensus.toString());
+        }
+
+        JsonObject consensusJsonObject = new JsonObject();
+        consensusJsonObject.add("consensus", consensusJsonArray);
+
+        return consensusJsonObject;
+    }
+
+    @Override
     public EbftProto.EbftBlock getInstance() {
         EbftProto.ConsensusList list = EbftProto.ConsensusList.newBuilder().addAllConsensus(consensusList).build();
         return EbftProto.EbftBlock.newBuilder().setBlock(getProtoBlock()).setConsensusList(list).build();
