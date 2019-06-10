@@ -131,6 +131,7 @@ public class PbftStatus {
 
     public static boolean verify(PbftStatus status) {
         if (status == null || status.getSignature() == null) {
+            log.debug("PbftStatus is null.");
             return false;
         }
 
@@ -138,11 +139,13 @@ public class PbftStatus {
         byte[] signature = status.getSignature();
         if (hashData == null
                 || !Wallet.verify(hashData, signature, true)) {
+            log.debug("PbftStatus is not verified.");
             return false;
         }
 
         for (PbftMessage pbftMessage : status.unConfirmedPbftMessageMap.values()) {
             if (!PbftVerifier.INSTANCE.verify(pbftMessage)) {
+                log.debug("PbftMessage is not verified. {}", pbftMessage.toJsonObject().toString());
                 return false;
             }
         }
