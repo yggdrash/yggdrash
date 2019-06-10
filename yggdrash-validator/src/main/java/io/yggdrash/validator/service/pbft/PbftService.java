@@ -725,7 +725,12 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
     public void updateUnconfirmedMsgMap(Map<String, PbftMessage> newPbftMessageMap) {
         for (Map.Entry<String, PbftMessage> entry : newPbftMessageMap.entrySet()) {
-            updateUnconfirmedMsg(entry.getValue());
+            PbftMessage pbftMessage = entry.getValue();
+
+            if (pbftMessage.getViewNumber() >= this.viewNumber
+                    || pbftMessage.getSeqNumber() >= this.seqNumber) {
+                updateUnconfirmedMsg(entry.getValue());
+            }
         }
     }
 
