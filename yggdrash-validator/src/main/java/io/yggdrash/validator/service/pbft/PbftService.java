@@ -319,6 +319,20 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     private long getCurrentViewNumber() {
         long newViewNumber = this.viewNumber + 1;
         Map<String, PbftMessage> viewChangeMsgMap = getMsgMap(newViewNumber, this.seqNumber, "VIEWCHAN");
+
+        for (int i = 0; i < viewChangeMsgMap.size(); i++) {
+            PbftMessage firstMsg = (PbftMessage) viewChangeMsgMap.values().toArray()[i];
+            for (int j = i + 1; j < viewChangeMsgMap.size(); j++) {
+                PbftMessage secondMsg = (PbftMessage) viewChangeMsgMap.values().toArray()[j];
+                if (firstMsg.getAddress().equals(secondMsg.getAddress())) {
+                    log.debug("Messages are duplicated by {}", secondMsg.getAddress());
+                    log.debug("First Message {}", firstMsg.toJsonObject().toString());
+                    log.debug("Second Message {}", secondMsg.toJsonObject().toString());
+                    viewChangeMsgMap.remove(secondMsg.getSignatureHex());
+                }
+            }
+        }
+
         if (viewChangeMsgMap.size() < consensusCount) {
             return this.viewNumber;
         }
@@ -626,6 +640,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
             if (pongTime > 0L) {
                 checkNodeStatus(client);
             } else {
+                log.debug("Cannot connect to {}", client.toString());
                 client.setIsRunning(false);
             }
         }
@@ -635,7 +650,11 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     private void checkNodeStatus(PbftClientStub client) {
-        PbftStatus pbftStatus = client.exchangePbftStatus(PbftStatus.toProto(getMyNodeStatus()));
+        PbftStatus myStatus = getMyNodeStatus();
+        log.trace("My PbftStatus is {}", myStatus.toJsonObject().toString());
+        PbftStatus pbftStatus = client.exchangePbftStatus(PbftStatus.toProto(myStatus));
+        log.trace("Client {} PbftStatus is {}", client.toString(), myStatus.toJsonObject().toString());
+
         updateStatus(client, pbftStatus);
         pbftStatus.clear();
     }
@@ -740,8 +759,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         for (String key : this.blockChain.getUnConfirmedData().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedData().get(key);
             if (pbftMessage != null
-                    && pbftMessage.getSeqNumber() == index + 1
-                    && pbftMessage.getViewNumber() == this.viewNumber) {
+                    && pbftMessage.getSeqNumber() > index
+                    && pbftMessage.getViewNumber() >= this.viewNumber) {
                 pbftMessageMap.put(key, pbftMessage.clone());
             }
         }
