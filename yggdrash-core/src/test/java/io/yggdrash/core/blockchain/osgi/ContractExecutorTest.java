@@ -26,6 +26,7 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.exception.errorcode.SystemError;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.BlockChainStore;
@@ -37,14 +38,19 @@ import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertEquals;
@@ -58,7 +64,7 @@ public class ContractExecutorTest {
     private ConsensusBlock<PbftProto.PbftBlock> genesisBlock;
     private Transaction genesisTx;
     private BranchId branchId;
-    private ContractVersion contractVersion = ContractVersion.of("748c36013fd609409827744eee8279fd2baa042f");
+    private ContractVersion contractVersion = ContractVersion.of("9d14652cc916ba619da27b4a7809113bfd01d216");
     private ContractStore contractStore;
     private ContractManager manager;
     private ContractExecutor executor;
@@ -79,7 +85,7 @@ public class ContractExecutorTest {
     @Test
     public void executeTxTest() {
         //success tx
-        Transaction tx = generateTx(100); //method => transfer
+        Transaction tx = generateTx(BigInteger.valueOf(100)); //method => transfer
         TransactionRuntimeResult res = manager.executeTx(tx); //executeTx -> invoke -> callContractMethod
 
         assertEquals(ExecuteStatus.SUCCESS, res.getReceipt().getStatus());
@@ -95,8 +101,7 @@ public class ContractExecutorTest {
         assertFalse(contractStore.getTransactionReceiptStore().contains(tx.getHash().toString()));
 
         //error tx [insufficient funds of the sender]
-        long amount = Long.valueOf("10000000");
-        Transaction errTx = generateTx(amount);
+        Transaction errTx = generateTx(BigInteger.valueOf(10000000));
         res = manager.executeTx(errTx);
 
         assertEquals(ExecuteStatus.ERROR, res.getReceipt().getStatus());
@@ -109,16 +114,84 @@ public class ContractExecutorTest {
     }
 
     @Test
+    public void executeTxsExceptionTest1() {
+        // Block contains same success txs
+        List<Transaction> txs = IntStream.range(0, 10)
+                .mapToObj(i -> generateTx(BigInteger.valueOf(100))).collect(Collectors.toList());
+        ConsensusBlock<PbftProto.PbftBlock> nextBlock = BlockChainTestUtils.createNextBlock(wallet, txs, genesisBlock);
+        BlockRuntimeResult res = manager.executeTxs(nextBlock);
+
+        res.getTxReceipts().forEach(r -> assertEquals(ExecuteStatus.SUCCESS, r.getStatus()));
+        assertEquals("1000",
+                res.getBlockResult().get(
+                        getNamespaceKey(TestConstants.TRANSFER_TO)).get(BALANCE).getAsString());
+        assertEquals("999000",
+                res.getBlockResult().get(
+                        getNamespaceKey(txs.get(0).getAddress().toString())).get(BALANCE).getAsString());
+        assertEquals(10, res.getTxReceipts().size());
+        assertEquals(2, res.getBlockResult().size());
+
+        //tx not yet committed
+        assertEquals(0, contractStore.getTmpStateStore().changeValues().size()); //revert after checkTx
+        assertEquals(10, contractStore.getStateStore().getStateSize()); //same with origin state
+        assertFalse(contractStore.getTransactionReceiptStore().contains(txs.get(0).getHash().toString()));
+
+        manager.commitBlockResult(res);
+
+        assertEquals(20, manager.getCurLogIndex());
+        assertEquals(0, contractStore.getTmpStateStore().changeValues().size()); //revert after checkTx
+        //changed values have been updated (issuer had been allocated coin when initializing genesis)
+        assertEquals(11, contractStore.getStateStore().getStateSize());
+
+        txs.stream().map(tx -> contractStore.getTransactionReceiptStore() //tx hashes have been stored in receiptStore
+                .contains(tx.getHash().toString()))
+                .forEach(Assert::assertTrue);
+    }
+
+    @Test
+    public void executeTxsExceptionTest2() {
+        // Block contains both successTxs and errorTx
+        Transaction successTx1 = generateTx(BigInteger.valueOf(100));
+        Transaction successTx2 = generateTx(BigInteger.valueOf(100));
+        Transaction errTx1 = generateTx(BigInteger.valueOf(10000000)); //[insufficient funds of the sender]
+        Transaction errTx2 = generateTx(BigInteger.valueOf(100), ContractVersion.of(
+                Hex.encodeHexString("Wrong ContractVersion".getBytes()))); //[contract is not exist]
+
+        List<Transaction> txs = new ArrayList<>();
+        txs.add(successTx1);
+        txs.add(errTx1);
+        txs.add(errTx2);
+        txs.add(successTx2);
+
+        ConsensusBlock<PbftProto.PbftBlock> nextBlock = BlockChainTestUtils.createNextBlock(wallet, txs, genesisBlock);
+        BlockRuntimeResult res = manager.executeTxs(nextBlock);
+
+        assertEquals(ExecuteStatus.SUCCESS, res.getTxReceipts().get(0).getStatus());
+        assertEquals(ExecuteStatus.ERROR, res.getTxReceipts().get(1).getStatus());
+        assertEquals(ExecuteStatus.ERROR, res.getTxReceipts().get(2).getStatus());
+        assertEquals(ExecuteStatus.SUCCESS, res.getTxReceipts().get(3).getStatus());
+
+        assertEquals("200",
+                res.getBlockResult().get(
+                        getNamespaceKey(TestConstants.TRANSFER_TO)).get(BALANCE).getAsString());
+        assertEquals("999800",
+                res.getBlockResult().get(
+                        getNamespaceKey(txs.get(0).getAddress().toString())).get(BALANCE).getAsString());
+
+        assertTrue(res.getTxReceipts().get(1).getTxLog().contains("Insufficient funds"));
+    }
+
+    @Test
     public void executeTxsTest() {
         //error tx [contract is not exist]
         ContractVersion notExistedVersion = ContractVersion.of(
                 Hex.encodeHexString("Wrong ContractVersion".getBytes()));
-        Transaction errTx = generateTx(100, notExistedVersion);
+        Transaction errTx = generateTx(BigInteger.valueOf(100), notExistedVersion);
 
         ConsensusBlock<PbftProto.PbftBlock> nextBlock = BlockChainTestUtils.createNextBlock(
                 wallet, Collections.singletonList(errTx), genesisBlock);
 
-        String errLog = "contract is not exist";
+        String errLog = SystemError.CONTRACT_VERSION_NOT_FOUND.toString();
         BlockRuntimeResult res = manager.executeTxs(nextBlock);
 
         assertEquals(ExecuteStatus.ERROR, res.getTxReceipts().get(0).getStatus());
@@ -135,25 +208,23 @@ public class ContractExecutorTest {
         assertEquals(0, res.getBlockResult().size());
 
         manager.commitBlockResult(res);
-        assertEquals(11, manager.getCurLogIndex());
 
-        assertEquals(0, contractStore.getTmpStateStore().changeValues().size()); //revert after checkTx
-        assertEquals(10, contractStore.getStateStore().getStateSize()); //same with origin state
+        assertEquals(11, manager.getCurLogIndex());
+        assertEquals(0, contractStore.getTmpStateStore().changeValues().size());
         //TransactionReceiptStore contains errorReceipt
         assertTrue(contractStore.getTransactionReceiptStore().contains(errTx.getHash().toString()));
 
         //success tx
-        Transaction tx = generateTx(100); //method => transfer
+        Transaction tx = generateTx(BigInteger.valueOf(100)); //method => transfer
         nextBlock = BlockChainTestUtils.createNextBlock(wallet, Collections.singletonList(tx), genesisBlock);
         res = manager.executeTxs(nextBlock);
 
         manager.commitBlockResult(res);
-        assertEquals(12, manager.getCurLogIndex());
 
+        assertEquals(12, manager.getCurLogIndex());
         assertEquals(ExecuteStatus.SUCCESS, res.getTxReceipts().get(0).getStatus());
         assertEquals(2, res.getBlockResult().size());
-        assertEquals(11, contractStore.getStateStore().getStateSize());
-        assertEquals(0, contractStore.getTmpStateStore().changeValues().size()); //revert to origin state
+        assertEquals(0, contractStore.getTmpStateStore().changeValues().size());
         assertTrue(contractStore.getTransactionReceiptStore().contains(errTx.getHash().toString()));
     }
 
@@ -173,6 +244,7 @@ public class ContractExecutorTest {
                 .withContractManagerConfig(loader.getContractManagerConfig())
                 .withBranchId(branchId.toString())
                 .withContractStore(contractStore)
+                .withOsgiPath(config.getOsgiPath())
                 .withContractPath(config.getContractPath())
                 .withLogStore(bcStore.getLogStore())
                 .build();
@@ -180,15 +252,14 @@ public class ContractExecutorTest {
     }
 
     private void createBundle() throws Exception {
-        String contractVersion = "748c36013fd609409827744eee8279fd2baa042f"; //coinContract
         String filePath = Objects.requireNonNull(
                 getClass().getClassLoader().getResource(String.format("contracts/%s.jar", contractVersion))).getFile();
         File coinContractFile = new File(filePath);
 
         assert coinContractFile.exists();
 
-        if (!checkExistContract(contractVersion)) {
-            long bundle = manager.installContract(ContractVersion.of(contractVersion), coinContractFile, true);
+        if (!checkExistContract(contractVersion.toString())) {
+            long bundle = manager.installContract(contractVersion, coinContractFile, true);
         } else {
             manager.reloadInject();
         }
@@ -242,6 +313,7 @@ public class ContractExecutorTest {
     }
 
     private void commitBlockResult(BlockRuntimeResult res) {
+        log.debug("commitBlockResult : blockResultSize = {}", res.getBlockResult().size());
         manager.commitBlockResult(res);
 
         TransactionReceiptStore receiptStore = contractStore.getTransactionReceiptStore();
@@ -264,11 +336,11 @@ public class ContractExecutorTest {
         assertEquals(10, manager.getCurLogIndex());
     }
 
-    private Transaction generateTx(long amount) {
+    private Transaction generateTx(BigInteger amount) {
         return generateTx(amount, contractVersion);
     }
 
-    private Transaction generateTx(long amount, ContractVersion contractVersion) {
+    private Transaction generateTx(BigInteger amount, ContractVersion contractVersion) {
         JsonObject txBody = ContractTestUtils.transferTxBodyJson(TestConstants.TRANSFER_TO, amount, contractVersion);
         TransactionBuilder builder = new TransactionBuilder();
         return builder.setTxBody(txBody).setWallet(wallet).setBranchId(branchId).build();

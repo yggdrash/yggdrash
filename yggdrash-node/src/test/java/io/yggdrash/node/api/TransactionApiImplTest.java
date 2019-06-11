@@ -22,6 +22,7 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.VerifierUtils;
+import io.yggdrash.contract.core.exception.errorcode.ApplicationError;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.gateway.dto.TransactionDto;
@@ -33,10 +34,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.math.BigInteger;
+import java.util.Arrays;
 
 import static io.yggdrash.node.api.JsonRpcConfig.BLOCK_API;
 import static io.yggdrash.node.api.JsonRpcConfig.TX_API;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -163,14 +167,49 @@ public class TransactionApiImplTest {
     }
 
     @Test
+    public void unExecutableTransactionTest() {
+        //error tx [insufficient funds of the sender]
+        Transaction appErrTx = BlockChainTestUtils.createTransferTx(
+                BigInteger.valueOf(999999999999999999L), TestConstants.COIN_CONTRACT);
+        try {
+            TransactionResponseDto res = TX_API.sendTransaction(TransactionDto.createBy(appErrTx));
+            assertFalse(res.status);
+            assertEquals(appErrTx.getHash().toString(), res.txHash);
+            assertTrue(res.logs.size() > 0);
+            assertTrue(res.logs.get("ApplicationError").size() > 0);
+            assertTrue(res.logs.get("ApplicationError").contains(ApplicationError.INSUFFICIENT_FUNDS.toString()));
+        } catch (Exception e) {
+            log.debug("\n\nunExecutableTransactionTest :: ERR => {}", e.getMessage());
+        }
+    }
+
+    @Test
     public void sendRawTransactionTest() {
         // Request Transaction with byteArr
         try {
+            //success tx
             byte[] input = createTx().toRawTransaction();
             // Convert byteArray to Transaction
-            assertThat(TX_API.sendRawTransaction(input)).isNotEmpty();
+            byte[] res = TX_API.sendRawTransaction(input);
+            assertThat(res).isNotEmpty();
+            assertArrayEquals(TransactionImpl.parseFromRaw(input).getHash().getBytes(), res);
         } catch (Exception e) {
             log.debug(e.getMessage());
+        }
+    }
+
+    @Test
+    public void unExecutableRawTransactionTest() {
+        //error tx [insufficient funds of the sender]
+        Transaction appErrTx = BlockChainTestUtils.createTransferTx(
+                BigInteger.valueOf(999999999999999999L), TestConstants.COIN_CONTRACT);
+        try {
+            byte[] input = appErrTx.toRawTransaction();
+            byte[] res = TX_API.sendRawTransaction(input);
+            assertFalse(Arrays.equals(TransactionImpl.parseFromRaw(input).getHash().getBytes(), res));
+            assertEquals("ApplicationError=[Insufficient funds]", new String(res));
+        } catch (Exception e) {
+            log.debug("\n\nunExecutableTransactionTest :: ERR => {}", e.getMessage());
         }
     }
 

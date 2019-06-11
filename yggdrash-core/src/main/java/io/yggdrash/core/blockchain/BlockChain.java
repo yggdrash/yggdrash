@@ -16,13 +16,14 @@
 
 package io.yggdrash.core.blockchain;
 
-import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.contract.BranchContract;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 
 import java.util.List;
+import java.util.Map;
 
 public interface BlockChain<T, V> extends ConsensusBlockChain<T, V> {
 
@@ -30,7 +31,7 @@ public interface BlockChain<T, V> extends ConsensusBlockChain<T, V> {
 
     ConsensusBlock<T> addBlock(ConsensusBlock<T> block, boolean broadcast);
 
-    int addTransaction(Transaction tx); //return error code
+    Map<String, List<String>> addTransaction(Transaction tx); //return errorLogs
 
     ContractManager getContractManager();
 

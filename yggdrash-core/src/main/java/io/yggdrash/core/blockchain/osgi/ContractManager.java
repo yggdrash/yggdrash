@@ -304,7 +304,7 @@ public class ContractManager {
             }
 
         } catch (IOException e) {
-            log.error("Contract file don't Load [{}]", e.getMessage()); //TODO Throw Runtime Exception
+            log.error("Contract file don't Load [{}]", e.getMessage()); //TODO Throw Runtime exception
             return bundleId;
         }
         bundleId = install(contract, contractFile, isSystem);

@@ -28,7 +28,10 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigInteger;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static io.yggdrash.TestConstants.PerformanceTest;
 import static io.yggdrash.TestConstants.TRANSFER_TO;
@@ -60,10 +63,10 @@ public class BranchGroupTest {
     @Test
     public void addTransaction() {
         // should be existed tx on genesis block
-        assertThat(branchGroup.getRecentTxs(tx.getBranchId()).size()).isEqualTo(3);
-        assertThat(branchGroup.countOfTxs(tx.getBranchId())).isEqualTo(3);
+        assertThat(branchGroup.getRecentTxs(tx.getBranchId()).size()).isEqualTo(4);
+        assertThat(branchGroup.countOfTxs(tx.getBranchId())).isEqualTo(4);
 
-        Assert.assertEquals(32000, branchGroup.addTransaction(tx));
+        Assert.assertEquals(branchGroup.addTransaction(tx).size(), 0);
         Transaction foundTxBySha3 = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
         assertThat(foundTxBySha3.getHash()).isEqualTo(tx.getHash());
 
@@ -74,11 +77,17 @@ public class BranchGroupTest {
 
         Transaction invalidTx1 = BlockChainTestUtils
                 .createInvalidTransferTx(BranchId.of("696e76616c6964"), ContractVersion.of("696e76616c696420"));
-        Assert.assertEquals(33001, branchGroup.addTransaction(invalidTx1));
+        Map<String, List<String>> errLogs = branchGroup.addTransaction(invalidTx1);
+        Assert.assertEquals(1, errLogs.size());
+        Assert.assertTrue(errLogs.containsKey("SystemError"));
+        Assert.assertTrue(errLogs.get("SystemError").contains("Branch doesn't exist"));
 
         Transaction invalidTx2 = BlockChainTestUtils
                 .createInvalidTransferTx(ContractVersion.of("696e76616c696420"));
-        Assert.assertEquals(33002, branchGroup.addTransaction(invalidTx2));
+        errLogs = branchGroup.addTransaction(invalidTx2);
+        System.out.println(errLogs);
+        Assert.assertTrue(errLogs.containsKey("SystemError"));
+        Assert.assertTrue(errLogs.get("SystemError").contains("ContractVersion doesn't exist"));
     }
 
     @Test
@@ -101,7 +110,7 @@ public class BranchGroupTest {
         PerformanceTest.apply();
         BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
         for (int i = 0; i < 100; i++) {
-            Transaction tx = createTx(i);
+            Transaction tx = createTx(BigInteger.valueOf(i));
             blockChain.addTransaction(tx);
         }
 
@@ -140,7 +149,7 @@ public class BranchGroupTest {
         }
     }
 
-    private Transaction createTx(int amount) {
+    private Transaction createTx(BigInteger amount) {
         JsonObject txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, amount);
         return BlockChainTestUtils.createTx(yggdrash(), txBody);
     }

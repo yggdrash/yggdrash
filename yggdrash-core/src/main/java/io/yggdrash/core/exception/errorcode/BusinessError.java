@@ -13,7 +13,9 @@
 package io.yggdrash.core.exception.errorcode;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public enum BusinessError {
     //The errors are appended to the transactionResponseDto.
@@ -71,5 +73,11 @@ public enum BusinessError {
         }
 
         return errorLogs;
+    }
+
+    public static Map<String, List<String>> getErrorLogsMap(int code) {
+        Map<String, List<String>> errLogs = new HashMap<>();
+        errLogs.put("BusinessError", errorLogs(code));
+        return errLogs;
     }
 }

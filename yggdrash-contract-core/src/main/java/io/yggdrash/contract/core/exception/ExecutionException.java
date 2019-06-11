@@ -10,23 +10,24 @@
  * limitations under the License
  */
 
-package io.yggdrash.gateway.dto;
+package io.yggdrash.contract.core.exception;
 
-import java.util.List;
-import java.util.Map;
+import io.yggdrash.contract.core.exception.errorcode.ApplicationError;
 
-public class TransactionResponseDto {
+public class ExecutionException extends Exception {
 
-    public String txHash;
-    public boolean status;
-    public Map<String, List<String>> logs;
+    public static final int CODE = ApplicationError.EXECUTION_FAILED.toValue();
+    private static final String MSG = ApplicationError.EXECUTION_FAILED.toString();
 
-    public static TransactionResponseDto createBy(String txHash, boolean status, Map<String, List<String>> logs) {
-        TransactionResponseDto txResDto = new TransactionResponseDto();
-        txResDto.txHash = txHash;
-        txResDto.status = status;
-        txResDto.logs = logs;
+    public ExecutionException() {
+        super(MSG);
+    }
 
-        return txResDto;
+    public ExecutionException(String s) {
+        super(String.format("%s : (%s)", MSG, s));
+    }
+
+    public int getCode() {
+        return CODE;
     }
 }

@@ -17,6 +17,7 @@ import io.yggdrash.core.blockchain.LogIndexer;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.exception.errorcode.SystemError;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.ContractStore;
@@ -28,8 +29,10 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.launch.Framework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -153,9 +156,11 @@ public class ContractExecutor {
                     return method.invoke(service, params);
                 }
             }
-        } catch (Exception e) {
-            contractStore.revertTmpStateStore();
-            log.error("Call contract method : {} and bundle {} ", methodName, contractVersion);
+        } catch (IllegalAccessException e) {
+            log.error("CallContractMethod : {} and bundle {} ", methodName, contractVersion);
+        } catch (InvocationTargetException e) {
+            log.debug("CallContractMethod ApplicationErrorLog : {}", e.getCause().toString());
+            trAdapter.addLog(e.getCause().getMessage());
         }
 
         return null;
@@ -203,7 +208,7 @@ public class ContractExecutor {
 
         //invoke transaction
         txRuntimeResult.setChangeValues(invoke(contractVersion, service, txBody, txReceipt));
-        contractStore.getTmpStateStore().close();
+        contractStore.getTmpStateStore().close(); // clear(revert) tmpStateStore
         return txRuntimeResult;
     }
 
@@ -235,18 +240,18 @@ public class ContractExecutor {
 
             if (service != null) {
                 blockRuntimeResult.setBlockResult(invoke(contractVersion, service, txBody, txReceipt));
-                contractStore.getTmpStateStore().close();
             } else {
                 txReceipt.setStatus(ExecuteStatus.ERROR);
-                txReceipt.addLog("contract is not exist");
+                txReceipt.addLog(SystemError.CONTRACT_VERSION_NOT_FOUND.toString());
             }
 
             //TODO Q. Where will the contractResult be used?
 
-            log.debug("{} is {}", txReceipt.getTxId(), txReceipt.isSuccess());
+            log.debug("{} : {}", txReceipt.getTxId(), txReceipt.isSuccess());
 
             blockRuntimeResult.addTxReceipt(txReceipt);
         }
+        contractStore.getTmpStateStore().close(); // clear(revert) tmpStateStore
         return blockRuntimeResult;
     }
 
