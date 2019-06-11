@@ -32,7 +32,16 @@ public class JsonRpcConfig {
     public <T> T proxyOf(String server, Class<T> proxyInterface) {
         try {
             String apiPath = proxyInterface.getSimpleName().toLowerCase().replace("api", "");
-            URL url = new URL(String.format("http://%s:8080/api/%s", server, apiPath));
+            URL url = null;
+            if (server.indexOf("http://") > -1) {
+                // Server is api url
+                url = new URL(String.format("%s/%s",server.trim(),apiPath));
+            }else {
+                // Server is just ip address
+                url = new URL(String.format("http://%s:8080/api/%s", server, apiPath));
+            }
+
+
             return ProxyUtil.createClientProxy(getClass().getClassLoader(),
                     proxyInterface, getJsonRpcHttpClient(url));
         } catch (MalformedURLException exception) {

@@ -42,6 +42,11 @@ public class PbftBlockMock extends AbstractConsensusBlock<PbftProto.PbftBlock> {
     }
 
     @Override
+    public JsonObject getConsensusMessagesJsonObject() {
+        return new JsonObject();
+    }
+
+    @Override
     public PbftProto.PbftBlock getInstance() {
         return PbftProto.PbftBlock.newBuilder().setBlock(getProtoBlock()).build();
     }

@@ -46,7 +46,7 @@
       "name": "YEED"
     },
     {
-      "contractVersion": "71f423dadbb6d201616f4b7e0f30a3f0d55d5674",
+      "contractVersion": "30783a1311b9c68dd3a92596d650ae6914b01658",
       "isSystem": true,
       "init": {
         "validators": [
