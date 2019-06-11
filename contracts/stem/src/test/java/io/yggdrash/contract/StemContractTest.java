@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -65,7 +66,7 @@ public class StemContractTest {
     StateStore stateStore;
 
     ContractCache cache;
-    Map<String, Object> contractMap;
+    Map<String, Object> contractMap = new HashMap<>();
     ContractChannelCoupler coupler;
 
 
@@ -112,6 +113,10 @@ public class StemContractTest {
         }
 
         cache.cacheContract("STEM", stemContract);
+        cache.cacheContract("YEED", testYeed);
+
+        contractMap.put("STEM", stemContract);
+        contractMap.put("YEED", testYeed);
 
     }
 
@@ -279,6 +284,8 @@ public class StemContractTest {
     private TransactionReceipt createReceipt() {
         TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setIssuer("101167aaf090581b91c08480f6e559acdd9a3ddd");
+        receipt.setBlockHeight(100L);
+        receipt.setContractVersion("ba6909cb36c786ef876b9c5d69301399346a138f");
         return receipt;
     }
 

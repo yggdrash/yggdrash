@@ -4,11 +4,14 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.standard.CoinStandard;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.annotation.ContractChannelMethod;
+import io.yggdrash.contract.core.annotation.ContractQuery;
+import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TestYeed implements CoinStandard {
+public class TestYeed  {
 
     Map<String, BigInteger> amount = new HashMap<>();
     private TransactionReceipt txReceipt;
@@ -16,29 +19,30 @@ public class TestYeed implements CoinStandard {
     public TestYeed() {
         amount.put("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94", new BigInteger("100000000000"));
         amount.put("1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e", new BigInteger("100000000000"));
+        amount.put("101167aaf090581b91c08480f6e559acdd9a3ddd", new BigInteger("100000000000000"));
     }
 
     public void setTxReceipt(TransactionReceipt txReceipt) {
         this.txReceipt = txReceipt;
     }
 
-    @Override
+    @ContractQuery
     public BigInteger totalSupply() {
         return null;
     }
 
-    @Override
+    @ContractQuery
     public BigInteger balanceOf(JsonObject params) {
         return amount.get(params.get("address").getAsString());
     }
 
-    @Override
+    @ContractQuery
     public BigInteger allowance(JsonObject params) {
         return null;
     }
 
-    @Override
-    public TransactionReceipt transfer(JsonObject params) {
+    @InvokeTransaction
+    public boolean transfer(JsonObject params) {
         String from = txReceipt.getIssuer();
         String to = params.get("to").getAsString();
         BigInteger transferAmount = params.get("amount").getAsBigInteger();
@@ -60,21 +64,49 @@ public class TestYeed implements CoinStandard {
                 txReceipt.setStatus(ExecuteStatus.FALSE);
                 txReceipt.addLog("has no balance");
             }
+            txReceipt.setStatus(ExecuteStatus.SUCCESS);
         } else {
             txReceipt.setStatus(ExecuteStatus.FALSE);
             txReceipt.addLog("has no balance");
         }
 
-        return txReceipt;
+        return txReceipt.getStatus() == ExecuteStatus.SUCCESS;
     }
 
-    @Override
+    @InvokeTransaction
     public TransactionReceipt approve(JsonObject params) {
         return null;
     }
 
-    @Override
+    @InvokeTransaction
     public TransactionReceipt transferFrom(JsonObject params) {
         return null;
+    }
+
+
+    @ContractChannelMethod
+    public boolean contractWithdraw(JsonObject params) {
+        // TODO contract withdraw by name (not version)
+        String contractVersion = this.txReceipt.getContractVersion();
+
+        // add contract version
+        String from = contractVersion;
+        String to = params.get("to").getAsString();
+        BigInteger amount = params.get("amount").getAsBigInteger();
+
+        // check account
+        BigInteger contractBalance = this.amount.get(from);
+
+        if (contractBalance.compareTo(amount) > 0) {
+            BigInteger toBalance = this.amount.get(to);
+            toBalance = toBalance.add(amount);
+            contractBalance = contractBalance.subtract(amount);
+
+            this.amount.put(contractVersion, contractBalance);
+            this.amount.put(from, toBalance);
+            return true;
+        } else {
+            return false;
+        }
     }
 }
