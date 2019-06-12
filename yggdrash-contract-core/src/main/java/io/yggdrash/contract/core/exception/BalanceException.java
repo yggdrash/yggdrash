@@ -10,23 +10,24 @@
  * limitations under the License
  */
 
-package io.yggdrash.gateway.dto;
+package io.yggdrash.contract.core.exception;
 
-import java.util.List;
-import java.util.Map;
+import io.yggdrash.contract.core.exception.errorcode.ApplicationError;
 
-public class TransactionResponseDto {
+public class BalanceException extends Exception {
 
-    public String txHash;
-    public boolean status;
-    public Map<String, List<String>> logs;
+    public static final int CODE = ApplicationError.INSUFFICIENT_FUNDS.toValue();
+    private static final String MSG = ApplicationError.INSUFFICIENT_FUNDS.toString();
 
-    public static TransactionResponseDto createBy(String txHash, boolean status, Map<String, List<String>> logs) {
-        TransactionResponseDto txResDto = new TransactionResponseDto();
-        txResDto.txHash = txHash;
-        txResDto.status = status;
-        txResDto.logs = logs;
+    public BalanceException() {
+        super(MSG);
+    }
 
-        return txResDto;
+    public BalanceException(long required) {
+        super(String.format("%s (Required : %d)", MSG, required));
+    }
+
+    public int getCode() {
+        return CODE;
     }
 }

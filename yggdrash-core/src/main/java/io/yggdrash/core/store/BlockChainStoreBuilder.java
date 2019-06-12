@@ -70,6 +70,10 @@ public class BlockChainStoreBuilder {
         return new TransactionReceiptStore(getDbSource(branchId + "/txreceipt"));
     }
 
+    private LogStore buildLogStore() {
+        return new LogStore(getDbSource(branchId + "/log"));
+    }
+
     public ConsensusBlockStore buildBlockStore() {
         DbSource dbSource = getDbSource(branchId + "/blocks");
         return blockStoreFactory.create(consensusAlgorithm, dbSource);
@@ -83,13 +87,15 @@ public class BlockChainStoreBuilder {
         // State Store and Branch Store is merged
         StoreAdapter adapter = new StoreAdapter(stateStore, "branch");
         BranchStore branchStore = buildBranchStore(adapter);
+        LogStore logStore = buildLogStore();
 
         BlockChainStore blockChainStore = new BlockChainStore(
                 txStore,
                 txrStore,
                 stateStore,
                 blockStore,
-                branchStore
+                branchStore,
+                logStore
         );
 
         return blockChainStore;

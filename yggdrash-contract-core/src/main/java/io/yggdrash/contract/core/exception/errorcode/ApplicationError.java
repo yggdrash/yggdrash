@@ -10,10 +10,12 @@
  * limitations under the License
  */
 
-package io.yggdrash.contract.coin;
+package io.yggdrash.contract.core.exception.errorcode;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public enum ApplicationError {
     //The errors are appended to the transactionReceipt.
@@ -41,19 +43,38 @@ public enum ApplicationError {
         return code;
     }
 
+    public String toString() {
+        if (code == INVALID_PARAMS.code) {
+            return "Params not allowed";
+        }
+        if (code == INSUFFICIENT_FUNDS.code) {
+            return "Insufficient funds";
+        }
+        if (code == EXECUTION_FAILED.code) {
+            return "Execution failed";
+        }
+        return "";
+    }
+
     public static List<String> errorLogs(int code) {
-        List<String> errorLongs = new ArrayList<>();
+        List<String> errorLogs = new ArrayList<>();
 
         if ((code & INVALID_PARAMS.code) == INVALID_PARAMS.code) {
-            errorLongs.add("Params not allowed");
+            errorLogs.add(INVALID_PARAMS.toString());
         }
         if ((code & INSUFFICIENT_FUNDS.code) == INSUFFICIENT_FUNDS.code) {
-            errorLongs.add("Insufficient funds (Required: XX)");
+            errorLogs.add(INSUFFICIENT_FUNDS.toString());
         }
         if ((code & EXECUTION_FAILED.code) == EXECUTION_FAILED.code) {
-            errorLongs.add("Execution failed");
+            errorLogs.add(EXECUTION_FAILED.toString());
         }
 
-        return errorLongs;
+        return errorLogs;
+    }
+
+    public static Map<String, List<String>> getErrorLogsMap(List<String> logs) {
+        Map<String, List<String>> errLogs = new HashMap<>();
+        errLogs.put("SystemError", logs);
+        return errLogs;
     }
 }

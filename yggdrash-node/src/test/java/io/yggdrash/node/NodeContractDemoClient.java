@@ -203,7 +203,7 @@ public class NodeContractDemoClient {
         int times = getSendTimes();
         int amount = 1;
         for (int i = 0; i < times; i++) {
-            JsonObject txBody = ContractTestUtils.transferTxBodyJson("", amount);
+            JsonObject txBody = ContractTestUtils.transferTxBodyJson("", BigInteger.valueOf(amount));
             Transaction tx = createTx(BranchId.of(branchId), txBody);
             sendTransaction(tx);
         }
@@ -357,7 +357,7 @@ public class NodeContractDemoClient {
     private static void sendYeedTx(String address, long amount) {
         int times = getSendTimes();
         for (int i = 0; i < times; i++) {
-            JsonObject txBody = ContractTestUtils.transferTxBodyJson(address, amount);
+            JsonObject txBody = ContractTestUtils.transferTxBodyJson(address, BigInteger.valueOf(amount));
             Transaction tx = createTx(yggdrash, txBody);
             sendTransaction(tx);
         }

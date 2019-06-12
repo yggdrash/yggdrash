@@ -13,20 +13,13 @@
 package io.yggdrash.validator.data;
 
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BlockChainManagerImpl;
-import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.store.BlockChainStore;
-import io.yggdrash.core.store.BlockChainStoreBuilder;
-import io.yggdrash.core.store.BlockStoreFactory;
-import io.yggdrash.core.store.ConsensusBlockStore;
-import io.yggdrash.core.store.TransactionReceiptStore;
-import io.yggdrash.core.store.TransactionStore;
 
 import java.util.Collection;
 import java.util.List;
@@ -60,8 +53,8 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     }
 
     @Override
-    public int addTransaction(Transaction tx) {
-        return  blockChainManager.addTransaction(tx);
+    public void addTransaction(Transaction tx) {
+        blockChainManager.addTransaction(tx);
     }
 
     @Override

@@ -17,8 +17,10 @@
 package io.yggdrash.common.contract.standard;
 
 import com.google.gson.JsonObject;
-
 import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.exception.BalanceException;
+import io.yggdrash.contract.core.exception.ParamException;
+
 import java.math.BigInteger;
 
 public interface CoinStandard {
@@ -32,9 +34,9 @@ public interface CoinStandard {
 
 
     // Transaction
-    TransactionReceipt transfer(JsonObject params);
+    TransactionReceipt transfer(JsonObject params) throws ParamException, BalanceException;
 
-    TransactionReceipt approve(JsonObject params);
+    TransactionReceipt approve(JsonObject params) throws ParamException, BalanceException;
 
-    TransactionReceipt transferFrom(JsonObject params);
+    TransactionReceipt transferFrom(JsonObject params) throws ParamException, BalanceException;
 }

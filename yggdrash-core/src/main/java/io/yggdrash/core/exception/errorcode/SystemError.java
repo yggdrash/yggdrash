@@ -13,7 +13,9 @@
 package io.yggdrash.core.exception.errorcode;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public enum SystemError {
     //Errors are included in the exception handling message.
@@ -39,15 +41,32 @@ public enum SystemError {
         return code;
     }
 
+    public String toString() {
+        if (code == BRANCH_NOT_FOUND.code) {
+            return "Branch doesn't exist";
+        }
+        if (code == CONTRACT_VERSION_NOT_FOUND.code) {
+            return "ContractVersion doesn't exist";
+        }
+
+        return "";
+    }
+
     public static List<String> errorLogs(int code) {
         List<String> errorLogs = new ArrayList<>();
         if ((code & BRANCH_NOT_FOUND.code) == BRANCH_NOT_FOUND.code) {
-            errorLogs.add("Branch doesn't exist");
+            errorLogs.add(BRANCH_NOT_FOUND.toString());
         }
         if ((code & CONTRACT_VERSION_NOT_FOUND.code) == CONTRACT_VERSION_NOT_FOUND.code) {
-            errorLogs.add("ContractVersion doesn't exist");
+            errorLogs.add(CONTRACT_VERSION_NOT_FOUND.toString());
         }
 
         return errorLogs;
+    }
+
+    public static Map<String, List<String>> getErrorLogsMap(int code) {
+        Map<String, List<String>> errLogs = new HashMap<>();
+        errLogs.put("SystemError", errorLogs(code));
+        return errLogs;
     }
 }

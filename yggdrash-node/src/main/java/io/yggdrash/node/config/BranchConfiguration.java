@@ -46,6 +46,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.EnableScheduling;
+
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -130,7 +131,8 @@ public class BranchConfiguration {
                     .setConsensusAlgorithm(consensus.getAlgorithm())
             ;
             BlockChainStore blockChainStore = builder.build();
-            BlockChain blockChain = getBlockChain(defaultConfig, genesis, blockChainStore, policyLoader, branchId, systemProperties);
+            BlockChain blockChain =
+                    getBlockChain(defaultConfig, genesis, blockChainStore, policyLoader, branchId, systemProperties);
 
             log.info("Branch is Ready {}", blockChain.getBranchId());
 
@@ -161,6 +163,7 @@ public class BranchConfiguration {
                 .withDataBasePath(config.getDatabasePath())
                 .withContractPath(config.getContractPath())
                 .withSystemProperties(systemProperties)
+                .withLogStore(blockChainStore.getLogStore())
                 .build();
 
         return BlockChainBuilder.newBuilder()

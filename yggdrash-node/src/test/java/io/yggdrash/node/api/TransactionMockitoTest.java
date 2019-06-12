@@ -149,7 +149,7 @@ public class TransactionMockitoTest {
         TransactionImpl testTx = new TransactionImpl(tx.getInstance());
         byte[] res = txApiImpl.sendRawTransaction(testTx.toRawTransaction());
         log.debug("\n\nres :: " + Hex.encodeHexString(res));
-        assertThat(res).isNotEqualTo(testTx.getHash().getBytes());
+        assertThat(res).isEqualTo(testTx.getHash().getBytes()); //success tx
     }
 
     @Test

@@ -18,6 +18,8 @@ import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.Genesis;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.annotation.ParamValidation;
+import io.yggdrash.contract.core.exception.BalanceException;
+import io.yggdrash.contract.core.exception.ParamException;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -26,6 +28,7 @@ import org.osgi.framework.ServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
+
 import java.math.BigInteger;
 import java.util.Hashtable;
 import java.util.Map;
@@ -126,35 +129,25 @@ public class CoinContract implements BundleActivator, ServiceListener {
         @InvokeTransaction
         @ParamValidation
         @Override
-        public TransactionReceipt transfer(JsonObject params) {
+        public TransactionReceipt transfer(JsonObject params) throws ParamException, BalanceException {
             log.debug("\ntransfer :: params => {}", params);
 
-            String to = params.get("to").getAsString().toLowerCase();
-            BigInteger amount = params.get(AMOUNT).getAsBigInteger();
+            String to = getAsString(params, "to").toLowerCase();
+            BigInteger amount = getAsBigInteger(params, AMOUNT);
 
             String sender = this.txReceipt.getIssuer();
-            if (getBalance(sender).compareTo(BigInteger.ZERO) == 0) {
-                txReceipt.addLog(sender + " has no balance");
-                return txReceipt;
-            }
-
             BigInteger senderBalance = getBalance(sender);
             log.debug("sender : {}", senderBalance);
-            if (isTransferable(senderBalance, amount)) {
+
+            if (require(senderBalance, amount)) {
                 senderBalance = senderBalance.subtract(amount);
                 addBalanceTo(to, amount);
                 putBalance(sender, senderBalance);
                 txReceipt.setStatus(ExecuteStatus.SUCCESS);
-                log.debug("\n[Transferred] Transfer {} from {} to {}", amount, sender, to);
-                log.debug("\nBalance of From ({}) : {}"
-                        + "\nBalance of To   ({}) : ", sender, getBalance(sender), to, getBalance(to));
-
-                txReceipt.addLog("Transfer " + amount + " from " + sender + " to " + to);
-
-            } else {
-                log.debug("{} transfer Error", sender);
-                txReceipt.setStatus(ExecuteStatus.ERROR);
+                txReceipt.addLog(String.format("[Transfer] Transferred %d to %s from %s", amount, to, sender));
+                Transfer(amount, sender, to);
             }
+
             return txReceipt;
         }
 
@@ -168,28 +161,24 @@ public class CoinContract implements BundleActivator, ServiceListener {
         @InvokeTransaction
         @ParamValidation
         @Override
-        public TransactionReceipt approve(JsonObject params) {
+        public TransactionReceipt approve(JsonObject params) throws ParamException, BalanceException {
             log.debug("\napprove :: params => {}", params);
 
-            String spender = params.get("spender").getAsString().toLowerCase();
-            BigInteger amount = params.get(AMOUNT).getAsBigInteger();
+            String spender = getAsString(params, "spender").toLowerCase();
+            BigInteger amount = getAsBigInteger(params, AMOUNT);
 
             String sender = txReceipt.getIssuer();
-
-            if (getBalance(sender).compareTo(BigInteger.ZERO) == 0) {
-                log.debug("\n[ERR] {} has no balance!", sender);
-                return txReceipt;
-            }
-
             BigInteger senderBalance = getBalance(sender);
-            if (isTransferable(senderBalance, amount)) {
+            log.debug("sender : {}", senderBalance);
+
+            if (require(senderBalance, amount)) {
                 String approveKey = approveKey(sender, spender);
                 putBalance(approveKey, amount);
                 log.debug("approve Key : {}", approveKey);
                 txReceipt.setStatus(ExecuteStatus.SUCCESS);
-                log.debug("\n[Approved] Approve {} to {} from {}", spender, getBalance(approveKey), sender);
-            } else {
-                log.debug("\n[ERR] {} has no enough balance!", sender);
+                txReceipt.addLog(
+                        String.format("[Approved] Approve %d to %s from %s", getBalance(approveKey), spender, sender));
+                Approve(approveKey, spender, sender);
             }
 
             return txReceipt;
@@ -206,39 +195,31 @@ public class CoinContract implements BundleActivator, ServiceListener {
         @InvokeTransaction
         @ParamValidation
         @Override
-        public TransactionReceipt transferFrom(JsonObject params) {
+        public TransactionReceipt transferFrom(JsonObject params) throws ParamException, BalanceException {
             log.debug("\ntransferFrom :: params => {}", params);
 
-            String from = params.get("from").getAsString().toLowerCase();
-            String to = params.get("to").getAsString().toLowerCase();
+            String from = getAsString(params, "from").toLowerCase();
+            String to = getAsString(params, "to").toLowerCase();
+            BigInteger amount = getAsBigInteger(params, AMOUNT);
 
             String sender = txReceipt.getIssuer();
             String approveKey = approveKey(from, sender);
             log.debug("approve Key : {}", approveKey);
-            if (getBalance(approveKey).compareTo(BigInteger.ZERO) == 0) {
-                log.debug("\n[ERR] {} has no balance!", from);
-                return txReceipt;
-            }
-            // check from amount
-            BigInteger fromValue = getBalance(from);
-            BigInteger approveValue = getBalance(approveKey);
-            BigInteger amount = params.get(AMOUNT).getAsBigInteger();
 
-            if (isTransferable(fromValue, amount) && isTransferable(approveValue, amount)) {
-                fromValue = fromValue.subtract(amount);
-                approveValue = approveValue.subtract(amount);
+            BigInteger approveBalance = getBalance(approveKey);
+            BigInteger fromBalance = getBalance(from);
 
+            if (require(fromBalance, amount) && require(approveBalance, amount)) {
+                fromBalance = fromBalance.subtract(amount);
+                approveBalance = approveBalance.subtract(amount);
                 addBalanceTo(to, amount);
-                putBalance(from, fromValue);
-                putBalance(approveKey, approveValue);
+                putBalance(from, fromBalance);
+                putBalance(approveKey, approveBalance);
                 txReceipt.setStatus(ExecuteStatus.SUCCESS);
-                log.debug("\n[Transferred] Transfer {} from {} to {}", amount, from, to);
-                log.debug("\nAllowed amount of Sender ({}) : {}", sender, approveValue);
-                log.debug("\nBalance of From ({}) : {}"
-                        + "\nBalance of To   ({}) : {}", from, fromValue, to, getBalance(to));
-            } else {
-                log.debug("\n[ERR] {} has no enough balance!", from);
+                txReceipt.addLog(String.format("[Transferred] Transfer %d from %s to %s", amount, from, to));
+                TransferFrom(amount, from, to, sender, approveBalance);
             }
+
             return txReceipt;
         }
 
@@ -251,27 +232,26 @@ public class CoinContract implements BundleActivator, ServiceListener {
          */
         @Genesis
         @InvokeTransaction
-        public TransactionReceipt init(JsonObject params) {
+        public TransactionReceipt init(JsonObject params) throws ParamException {
             log.debug("\ngenesis :: params => {}", params);
 
             //totalSupply 는 alloc 의 balance 를 모두 더한 값으로 세팅
             BigInteger totalSupply = BigInteger.ZERO;
-            JsonObject alloc = params.getAsJsonObject("alloc");
+            JsonObject alloc = getAsJsonObject(params, "alloc");
             for (Map.Entry<String, JsonElement> entry : alloc.entrySet()) {
                 String frontier = entry.getKey();
                 JsonObject value = entry.getValue().getAsJsonObject();
-                BigInteger balance = value.get(BALANCE).getAsBigInteger();
+                BigInteger balance = getAsBigInteger(value, BALANCE);
+
                 totalSupply = totalSupply.add(balance);
                 addBalanceTo(frontier, balance);
-
                 putBalance(frontier, balance);
 
                 JsonObject mintLog = new JsonObject();
                 mintLog.addProperty("to", frontier);
                 mintLog.addProperty(BALANCE, balance.toString());
                 txReceipt.addLog(mintLog.toString());
-                log.debug("\nAddress of Frontier : {}"
-                        + "\nBalance of Frontier : {}", frontier, getBalance(frontier));
+                Init(frontier);
             }
             // TODO Validator will call by contract channel
             // boolean isSuccess = saveInitValidator(params.getAsJsonArray("validator"));
@@ -328,16 +308,68 @@ public class CoinContract implements BundleActivator, ServiceListener {
             store.put(key, storeValue);
         }
 
-
         private String approveKey(String sender, String spender) {
             byte[] approveKeyByteArray = ByteUtil.merge(sender.getBytes(), spender.getBytes());
             byte[] approveKey = HashUtil.sha3(approveKeyByteArray);
             return Hex.toHexString(approveKey);
         }
 
-        private boolean isTransferable(BigInteger targetBalance, BigInteger amount) {
-            // same is  0, more is 1
-            return targetBalance.subtract(amount).compareTo(BigInteger.ZERO) >= 0;
+        private boolean require(BigInteger targetBalance, BigInteger amount) throws BalanceException {
+            if (targetBalance.subtract(amount).compareTo(BigInteger.ZERO) >= 0) { // same is  0, more is 1
+                return true;
+            } else {
+                txReceipt.setStatus(ExecuteStatus.ERROR);
+                throw new BalanceException();
+            }
+        }
+
+        private String getAsString(JsonObject params, String prop) throws ParamException {
+            if (params.has(prop)) {
+                return params.get(prop).getAsString();
+            } else {
+                txReceipt.setStatus(ExecuteStatus.ERROR);
+                throw new ParamException();
+            }
+        }
+
+        private BigInteger getAsBigInteger(JsonObject params, String prop) throws ParamException {
+            if (params.has(prop)) {
+                return params.get(prop).getAsBigInteger();
+            } else {
+                txReceipt.setStatus(ExecuteStatus.ERROR);
+                throw new ParamException();
+            }
+        }
+
+        private JsonObject getAsJsonObject(JsonObject params, String prop) throws ParamException {
+            if (params.has(prop)) {
+                return params.getAsJsonObject(prop);
+            } else {
+                txReceipt.setStatus(ExecuteStatus.ERROR);
+                throw new ParamException();
+            }
+        }
+
+        private void Transfer(BigInteger amount, String sender, String to) {
+            log.debug("\n[Transferred] Transfer {} from {} to {}", amount, sender, to);
+            log.debug("\nBalance of From ({}) : {}"
+                    + "\nBalance of To   ({}) : {}", sender, getBalance(sender), to, getBalance(to));
+        }
+
+        private void Approve(String approveKey, String spender, String sender) {
+            log.debug("\n[Approved] Approve {} to {} from {}", getBalance(approveKey), spender, sender);
+        }
+
+        private void TransferFrom(BigInteger amount, String from, String to, String sender, BigInteger approveBalance) {
+            log.debug("\n[Transferred] Transfer {} from {} to {}", amount, from, to);
+            log.debug("\nAllowed amount of Sender ({}) : {}", sender, approveBalance);
+            log.debug("\nBalance of From ({}) : {}"
+                    + "\nBalance of To   ({}) : {}", from, getBalance(from), to, getBalance(to));
+        }
+
+        private void Init(String frontier) {
+            log.debug("\nAddress of Frontier : {}"
+                    + "\nBalance of Frontier : {}", frontier, getBalance(frontier));
         }
     }
 }

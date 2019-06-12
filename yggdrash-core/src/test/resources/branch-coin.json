@@ -5,7 +5,7 @@
   "description": "CoinContract for test",
   "contracts": [
     {
-      "contractVersion": "748c36013fd609409827744eee8279fd2baa042f",
+      "contractVersion": "9d14652cc916ba619da27b4a7809113bfd01d216",
       "isSystem": true,
       "init": {
         "alloc": {

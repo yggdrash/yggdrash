@@ -76,13 +76,13 @@ public class BranchGroup {
         return branches.values();
     }
 
-    public int addTransaction(Transaction tx) {
+    public Map<String, List<String>> addTransaction(Transaction tx) {
         String version = tx.getBody().getBody().get("contractVersion").getAsString();
-        int res = verify(tx.getBranchId(), version);
-        if (res == SystemError.VALID.toValue()) {
+        int verifyResult = verify(tx.getBranchId(), version);
+        if (verifyResult == SystemError.VALID.toValue()) {
             return branches.get(tx.getBranchId()).addTransaction(tx);
         }
-        return res;
+        return SystemError.getErrorLogsMap(verifyResult);
     }
 
     public long getLastIndex(BranchId id) {

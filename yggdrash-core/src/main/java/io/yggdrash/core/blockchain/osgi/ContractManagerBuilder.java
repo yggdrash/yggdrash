@@ -3,7 +3,9 @@ package io.yggdrash.core.blockchain.osgi;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.store.ContractStore;
+import io.yggdrash.core.store.LogStore;
 import org.osgi.framework.launch.FrameworkFactory;
+
 import java.util.Map;
 
 public class ContractManagerBuilder {
@@ -11,6 +13,7 @@ public class ContractManagerBuilder {
     private Map<String, String> contractManagerConfig;
     private String branchId;
     private ContractStore contractStore;
+    private LogStore logStore;
 
     private SystemProperties systemProperties;
 
@@ -45,6 +48,11 @@ public class ContractManagerBuilder {
         this.contractStore = contractStore;
         return this;
 
+    }
+
+    public ContractManagerBuilder withLogStore(LogStore logStore) {
+        this.logStore = logStore;
+        return this;
     }
 
     @Deprecated
@@ -96,7 +104,8 @@ public class ContractManagerBuilder {
                 this.osgiPath,
                 this.databasePath,
                 this.contractPath,
-                this.systemProperties
+                this.systemProperties,
+                this.logStore
         );
     }
 

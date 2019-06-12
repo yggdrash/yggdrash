@@ -10,8 +10,6 @@ import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.core.exception.errorcode.BusinessError;
-import io.yggdrash.core.exception.errorcode.SystemError;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
 import io.yggdrash.gateway.dto.TransactionResponseDto;
@@ -22,8 +20,9 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @AutoJsonRpcServiceImpl
@@ -89,28 +88,30 @@ public class TransactionApiImpl implements TransactionApi {
     @Override
     public TransactionResponseDto sendTransaction(TransactionDto tx) {
         Transaction transaction = TransactionDto.of(tx);
-        List<String> errorLogs = new ArrayList<>();
-        int verifyResult = branchGroup.addTransaction(transaction);
-        if (verifyResult > SystemError.VALID.toValue() || verifyResult > BusinessError.VALID.toValue()) {
-            log.error("Error Code[{}]", verifyResult);
-            errorLogs.addAll(SystemError.errorLogs(verifyResult));
-            errorLogs.addAll(BusinessError.errorLogs(verifyResult));
-            return TransactionResponseDto.createBy(tx.txId, false, errorLogs);
+        Map<String, List<String>> errorLogs = branchGroup.addTransaction(transaction);
+
+        if (errorLogs.size() > 0) {
+            log.debug("sendTransaction Error : {}", errorLogs);
         }
 
-        return TransactionResponseDto.createBy(tx.txId, true, errorLogs);
+        return errorLogs.size() > 0 ? TransactionResponseDto.createBy(tx.txId, false, errorLogs)
+                : TransactionResponseDto.createBy(tx.txId, true, errorLogs);
     }
 
     @Override
-    public byte[] sendRawTransaction(byte[] bytes) { //TODO consider return type (no error logs)
+    public byte[] sendRawTransaction(byte[] bytes) {
         Transaction transaction = TransactionImpl.parseFromRaw(bytes);
-        if (branchGroup.getBranch(transaction.getBranchId()) != null) {
-            // TODO Transaction Validate
-            branchGroup.addTransaction(transaction);
-            return transaction.getHash().getBytes();
+        Map<String, List<String>> errorLogs = branchGroup.addTransaction(transaction);
+
+        if (errorLogs.size() > 0) {
+            log.debug("SendRawTransaction Error : {}", errorLogs);
         } else {
-            return "No branch existed".getBytes();
+            log.debug("SendRawTransaction Success : {}", transaction.getHash());
         }
+
+        return errorLogs.size() > 0
+                ? errorLogs.entrySet().stream().map(Object::toString).collect(Collectors.joining(",")).getBytes()
+                : transaction.getHash().getBytes();
     }
 
     /* filter */

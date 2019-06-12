@@ -48,50 +48,62 @@ public class TransactionReceiptImpl implements TransactionReceipt {
         this.contractVersion = contractVersion;
     }
 
+    @Override
     public void addLog(String log) {
         txLog.add(log);
     }
 
+    @Override
     public ExecuteStatus getStatus() {
         return status;
     }
 
+    @Override
     public void setStatus(ExecuteStatus status) {
         this.status = status;
     }
 
+    @Override
     public String getTxId() {
         return txId;
     }
 
+    @Override
     public Long getTxSize() {
         return txSize;
     }
 
+    @Override
     public void setTxId(String txId) {
         this.txId = txId;
     }
 
+    @Override
     public String getBlockId() {
         return blockId;
     }
 
+    @Override
     public void setBlockId(String blockId) {
         this.blockId = blockId;
     }
 
+    @Override
     public Long getBlockHeight() {
         return blockHeight;
     }
 
+    @Override
     public void setBlockHeight(Long blockHeight) {
         this.blockHeight = blockHeight;
     }
 
+    @Override
     public String getBranchId() {
         return branchId;
     }
 
+    @Override
     public void setBranchId(String branchId) {
         this.branchId = branchId;
     }
@@ -106,8 +118,24 @@ public class TransactionReceiptImpl implements TransactionReceipt {
         this.contractVersion = contractVersion;
     }
 
+    @Override
     public List<String> getTxLog() {
         return txLog;
+    }
+
+    @Override
+    public boolean isSuccess() {
+        return status == ExecuteStatus.SUCCESS;
+    }
+
+    @Override
+    public String getIssuer() {
+        return issuer;
+    }
+
+    @Override
+    public void setIssuer(String issuer) {
+        this.issuer = issuer;
     }
 
     public String transactionMethod() {
@@ -116,17 +144,5 @@ public class TransactionReceiptImpl implements TransactionReceipt {
 
     public void setTransactionMethod(String methodName) {
         this.methodName = methodName;
-    }
-
-    public boolean isSuccess() {
-        return status == ExecuteStatus.SUCCESS;
-    }
-
-    public String getIssuer() {
-        return issuer;
-    }
-
-    public void setIssuer(String issuer) {
-        this.issuer = issuer;
     }
 }

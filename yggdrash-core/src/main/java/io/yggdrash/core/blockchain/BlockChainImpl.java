@@ -1,17 +1,20 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.exception.FailedOperationException;
-import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.util.VerifierUtils;
+import io.yggdrash.contract.core.ExecuteStatus;
+import io.yggdrash.contract.core.exception.errorcode.ApplicationError;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.exception.errorcode.BusinessError;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
+import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.BlockKeyStore;
 import io.yggdrash.core.store.BranchStore;
 import org.slf4j.Logger;
@@ -19,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,8 +39,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
     private final BlockChainManager<T> blockChainManager;
     private final ContractManager contractManager;
-    private final BranchStore branchStore; //TODO merge with stateStore + branchStateStore
-    //private final Map<OutputType, OutputStore> outputStores; //TODO move to gw module
+    private final BranchStore branchStore;
 
     private final Consensus consensus;
     private final ReentrantLock lock = new ReentrantLock();
@@ -212,16 +215,28 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     }
 
     @Override
-    public int addTransaction(Transaction tx) {
+    public Map<String, List<String>> addTransaction(Transaction tx) {
         return addTransaction(tx, true);
     }
 
-    public int addTransaction(Transaction tx, boolean broadcast) {
-        int res = blockChainManager.addTransaction(tx);
-        if (res == BusinessError.VALID.toValue() && !listenerList.isEmpty() && broadcast) {
-            listenerList.forEach(listener -> listener.receivedTransaction(tx));
+    public Map<String, List<String>> addTransaction(Transaction tx, boolean broadcast) {
+        int verifyResult = blockChainManager.verify(tx);
+        if (verifyResult == BusinessError.VALID.toValue()) {
+            TransactionRuntimeResult txResult = contractManager.executeTx(tx); //checkTx
+            if (txResult.getReceipt().getStatus() != ExecuteStatus.ERROR) {
+                blockChainManager.addTransaction(tx);
+
+                if (!listenerList.isEmpty() && broadcast) {
+                    listenerList.forEach(listener -> listener.receivedTransaction(tx));
+                }
+
+                return new HashMap<>();
+            } else {
+                return ApplicationError.getErrorLogsMap(txResult.getReceipt().getTxLog());
+            }
+        } else {
+            return BusinessError.getErrorLogsMap(verifyResult);
         }
-        return res;
     }
 
     @Override

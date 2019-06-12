@@ -37,6 +37,7 @@ import org.spongycastle.crypto.InvalidCipherTextException;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.security.SignatureException;
 
 import static io.yggdrash.TestConstants.TRANSFER_TO;
@@ -288,7 +289,7 @@ public class TransactionTest extends SlowTest {
     }
 
     private Transaction createTx(Wallet wallet) {
-        JsonObject txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, 100);
+        JsonObject txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, BigInteger.valueOf(100));
         TransactionBuilder builder = new TransactionBuilder();
         return builder.setWallet(wallet)
                 .setBranchId(TestConstants.yggdrash())

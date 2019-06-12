@@ -18,30 +18,38 @@ package io.yggdrash.core.blockchain.osgi;
 
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.store.BlockChainStore;
+import io.yggdrash.core.store.BlockChainStoreBuilder;
+import io.yggdrash.core.store.ContractStore;
+import io.yggdrash.core.store.PbftBlockStoreMock;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 public class ContractManagerBuilderTest {
     private static final Logger log = LoggerFactory.getLogger(ContractManagerBuilderTest.class);
 
     @Test
     public void build() {
-        // check builder config
         DefaultConfig config = new DefaultConfig();
-        ContractPolicyLoader loader = new ContractPolicyLoader();
-
-        ContractManager manager = ContractManagerBuilder.newInstance()
-                .withOsgiPath(config.getOsgiPath())
-                .withContractPath(config.getContractPath())
+        BlockChainStore bcStore = BlockChainStoreBuilder.newBuilder(BranchId.of("test".getBytes()))
                 .withDataBasePath(config.getDatabasePath())
+                .withProductionMode(config.isProductionMode())
+                .setConsensusAlgorithm(null)
+                .setBlockStoreFactory(PbftBlockStoreMock::new)
+                .build();
+        ContractStore contractStore = bcStore.getContractStore();
+        ContractPolicyLoader loader = new ContractPolicyLoader();
+        ContractManager manager = ContractManagerBuilder.newInstance()
                 .withFrameworkFactory(loader.getFrameworkFactory())
                 .withContractManagerConfig(loader.getContractManagerConfig())
                 .withBranchId("test")
+                .withContractStore(contractStore)
+                .withContractPath(config.getContractPath())
+                .withLogStore(bcStore.getLogStore())
                 .build();
 
         assert manager != null;
