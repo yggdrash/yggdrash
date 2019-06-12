@@ -2,6 +2,7 @@ package io.yggdrash.contract;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.standard.CoinStandard;
+import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.annotation.ContractChannelMethod;
@@ -47,6 +48,12 @@ public class TestYeed  {
         String to = params.get("to").getAsString();
         BigInteger transferAmount = params.get("amount").getAsBigInteger();
 
+        return transfer(from, to, transferAmount, BigInteger.ZERO);
+    }
+
+
+    private boolean transfer(String from, String to, BigInteger transferAmount, BigInteger fee) {
+
         if (amount.get(from) != null) {
             BigInteger fromAmount = amount.get(from);
             BigInteger toAmount = BigInteger.ZERO;
@@ -72,6 +79,7 @@ public class TestYeed  {
 
         return txReceipt.getStatus() == ExecuteStatus.SUCCESS;
     }
+
 
     @InvokeTransaction
     public TransactionReceipt approve(JsonObject params) {
@@ -109,4 +117,33 @@ public class TestYeed  {
             return false;
         }
     }
+
+    @ContractChannelMethod
+    public boolean transferChannel(JsonObject params) {
+        // call other contract to transfer
+
+        // contract Name base
+        String contractName = "STEM";
+
+        // deposit or withdraw
+        String fromAccount = params.get("from").getAsString();
+        String toAccount = params.get("to").getAsString();
+        BigInteger amount = params.get("amount").getAsBigInteger();
+        String contractAccount = String.format("%s%s", PrefixKeyEnum.CONTRACT_ACCOUNT, contractName);
+
+        if (toAccount.equalsIgnoreCase(contractName)) { // deposit
+            // check from is issuer
+            if (fromAccount.equalsIgnoreCase(this.txReceipt.getIssuer())) {
+                return transfer(fromAccount, contractAccount, amount, BigInteger.ZERO);
+            } else {
+                return false;
+            }
+
+        } else if (fromAccount.equalsIgnoreCase(contractName)) { // withdraw
+            return transfer(contractAccount, toAccount, amount, BigInteger.ZERO);
+        }
+        // if not contract call deposit or withdraw
+        return false;
+    }
+
 }

@@ -17,7 +17,7 @@ public enum PrefixKeyEnum {
     STEM_BRANCH("sb-"),
     STEM_META("sm-"),
     STEM_BRANCH_VALIDATOR("sbv-"),
-
+    CONTRACT_ACCOUNT("ca-")
     ;
 
     private final String value;
