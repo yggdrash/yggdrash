@@ -14,16 +14,11 @@ package io.yggdrash.core.blockchain;
 
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.common.config.Constants;
-import io.yggdrash.common.store.datasource.DbSource;
-import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
 import io.yggdrash.core.store.BlockStoreFactory;
-import io.yggdrash.core.store.ConsensusBlockStore;
 import io.yggdrash.core.store.PbftBlockStoreMock;
-import io.yggdrash.core.store.TransactionReceiptStore;
-import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.proto.PbftProto;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,11 +49,18 @@ public class BlockChainManagerImplTest {
     @Test
     public void addTransactionTest() {
         Transaction tx = BlockChainTestUtils.createTransferTx();
+
+        assertEquals(32000, blockChainManager.verify(tx)); // valid (success)
+        blockChainManager.addTransaction(tx);
+
+        assertEquals(32016, blockChainManager.verify(tx)); // duplicated
+        blockChainManager.addTransaction(tx);
+
         Transaction invalidTx = BlockChainTestUtils.createInvalidTransferTx();
 
-        assertEquals(32000, blockChainManager.addTransaction(tx)); // valid (success)
-        assertEquals(32016, blockChainManager.addTransaction(tx)); // duplicated
-        assertEquals(32035, blockChainManager.addTransaction(invalidTx)); //timeout, invalid format, untrusted
+        assertEquals(32035, blockChainManager.verify(invalidTx)); //timeout, invalid format, untrusted
+        // invalidTx couldn't be added to blockChain (refer to BlockChainImpl)
+
         assertEquals(0, blockChainManager.getRecentTxs().size()); // haven't done batchTx yet
         assertEquals(0, blockChainManager.countOfTxs());
         assertEquals(1, blockChainManager.getUnconfirmedTxs().size()); // txPool only contains valid tx

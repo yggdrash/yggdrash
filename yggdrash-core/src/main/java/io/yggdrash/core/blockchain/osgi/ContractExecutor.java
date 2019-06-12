@@ -13,12 +13,15 @@ import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.InjectEvent;
 import io.yggdrash.contract.core.channel.ContractMethodType;
+import io.yggdrash.core.blockchain.LogIndexer;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.exception.errorcode.SystemError;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.ContractStore;
+import io.yggdrash.core.store.LogStore;
 import io.yggdrash.core.store.StoreAdapter;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.apache.commons.codec.binary.Base64;
@@ -29,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,15 +48,30 @@ public class ContractExecutor {
     private final SystemProperties systemProperties;
     private final ContractCacheImpl contractCache;
     private TransactionReceiptAdapter trAdapter;
+    private final LogIndexer logIndexer;
     private ContractChannelCoupler coupler;
 
-    ContractExecutor(Framework framework, ContractStore contractStore, SystemProperties systemProperties) {
+    ContractExecutor(Framework framework, ContractStore contractStore, SystemProperties systemProperties,
+                     LogStore logStore) {
         this.framework = framework;
         this.contractStore = contractStore;
         this.systemProperties = systemProperties;
+        this.logIndexer = new LogIndexer(logStore, contractStore.getTransactionReceiptStore());
         contractCache = new ContractCacheImpl();
         trAdapter = new TransactionReceiptAdapter();
         coupler = new ContractChannelCoupler();
+    }
+
+    String getLog(long index) {
+        return logIndexer.getLog(index);
+    }
+
+    List<String> getLogs(long start, long offset) {
+        return logIndexer.getLogs(start, offset);
+    }
+
+    long getCurLogIndex() {
+        return logIndexer.curIndex();
     }
 
     void injectFields(Bundle bundle, Object service, boolean isSystemContract)
@@ -124,9 +143,11 @@ public class ContractExecutor {
                     return method.invoke(service, params);
                 }
             }
-        } catch (Exception e) {
-            contractStore.revertTmpStateStore();
-            log.error("Call contract method : {} and bundle {} ", methodName, contractVersion);
+        } catch (IllegalAccessException e) {
+            log.error("CallContractMethod : {} and bundle {} ", methodName, contractVersion);
+        } catch (InvocationTargetException e) {
+            log.debug("CallContractMethod ApplicationErrorLog : {}", e.getCause().toString());
+            trAdapter.addLog(e.getCause().getMessage());
         }
 
         return null;
@@ -176,7 +197,7 @@ public class ContractExecutor {
 
         //invoke transaction
         txRuntimeResult.setChangeValues(invoke(contractVersion, service, txBody, txReceipt));
-        contractStore.getTmpStateStore().close();
+        contractStore.getTmpStateStore().close(); // clear(revert) tmpStateStore
         return txRuntimeResult;
     }
 
@@ -208,18 +229,18 @@ public class ContractExecutor {
 
             if (service != null) {
                 blockRuntimeResult.setBlockResult(invoke(contractVersion, service, txBody, txReceipt));
-                contractStore.getTmpStateStore().close();
             } else {
                 txReceipt.setStatus(ExecuteStatus.ERROR);
-                txReceipt.addLog("contract is not exist");
+                txReceipt.addLog(SystemError.CONTRACT_VERSION_NOT_FOUND.toString());
             }
 
             //TODO Q. Where will the contractResult be used?
 
-            log.debug("{} is {}", txReceipt.getTxId(), txReceipt.isSuccess());
+            log.debug("{} : {}", txReceipt.getTxId(), txReceipt.isSuccess());
 
             blockRuntimeResult.addTxReceipt(txReceipt);
         }
+        contractStore.getTmpStateStore().close(); // clear(revert) tmpStateStore
         return blockRuntimeResult;
     }
 
@@ -228,6 +249,7 @@ public class ContractExecutor {
         Map<String, JsonObject> changes = result.getBlockResult();
         TransactionReceiptStore transactionReceiptStore = contractStore.getTransactionReceiptStore();
         result.getTxReceipts().forEach(transactionReceiptStore::put);
+        result.getTxReceipts().forEach(receipt -> logIndexer.put(receipt.getTxId(), receipt.getTxLog().size()));
         if (!changes.isEmpty()) {
             StateStore stateStore = contractStore.getStateStore();
             changes.forEach(stateStore::put);

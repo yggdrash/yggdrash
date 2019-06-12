@@ -36,6 +36,7 @@ public class TestConstants {
 
     public static ContractVersion STEM_CONTRACT;
     public static ContractVersion YEED_CONTRACT;
+    //public static ContractVersion COIN_CONTRACT;
     public static Branch TEST_BRANCH;
     public static File branchFile;
 
@@ -80,6 +81,11 @@ public class TestConstants {
                 if ("YEED".equals(bc.getName())) {
                     YEED_CONTRACT = bc.getContractVersion();
                 }
+                /*
+                if ("COIN".equals(bc.getName())) {
+                    COIN_CONTRACT = bc.getContractVersion();
+                }
+                */
             }
         } catch (IOException e) {
             e.printStackTrace();

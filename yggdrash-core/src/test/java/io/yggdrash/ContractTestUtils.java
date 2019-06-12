@@ -26,6 +26,7 @@ import io.yggdrash.core.wallet.Wallet;
 import org.spongycastle.util.encoders.Hex;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 public class ContractTestUtils {
 
@@ -35,7 +36,7 @@ public class ContractTestUtils {
         return params;
     }
 
-    public static JsonObject transferTxBodyJson(String to, long amount) {
+    public static JsonObject transferTxBodyJson(String to, BigInteger amount) {
         JsonObject params = new JsonObject();
         params.addProperty("to", to);
         params.addProperty("amount", amount);
@@ -43,7 +44,7 @@ public class ContractTestUtils {
         return txBodyJson(TestConstants.YEED_CONTRACT, "transfer", params, true);
     }
 
-    public static JsonObject transferTxBodyJson(String to, long amount, ContractVersion contractVersion) {
+    public static JsonObject transferTxBodyJson(String to, BigInteger amount, ContractVersion contractVersion) {
         JsonObject params = new JsonObject();
         params.addProperty("to", to);
         params.addProperty("amount", amount);
@@ -51,7 +52,7 @@ public class ContractTestUtils {
         return txBodyJson(contractVersion, "transfer", params, true);
     }
 
-    public static JsonObject invalidTransferTxBodyJson(String to, long amount, ContractVersion contractVersion) {
+    public static JsonObject invalidTransferTxBodyJson(String to, BigInteger amount, ContractVersion contractVersion) {
         JsonObject params = new JsonObject();
         params.addProperty("to", to);
         params.addProperty("amount", amount);

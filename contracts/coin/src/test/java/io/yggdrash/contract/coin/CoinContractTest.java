@@ -9,6 +9,9 @@ import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
+import io.yggdrash.contract.core.exception.BalanceException;
+import io.yggdrash.contract.core.exception.ParamException;
+import io.yggdrash.contract.core.exception.errorcode.ApplicationError;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -62,6 +65,9 @@ public class CoinContractTest {
             coinContract.init(createParams(genesisStr));
         } catch (IllegalAccessException e) {
             log.warn(e.getMessage());
+        } catch (ParamException e) {
+            log.warn(e.getMessage());
+            result.addLog(e.getMessage());
         }
 
         assertTrue(result.isSuccess());
@@ -93,85 +99,186 @@ public class CoinContractTest {
     }
 
     @Test
-    public void transfer() {
-        final String paramStr = "{\"to\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\",\"amount\" : \"10\"}";
-
-        // tx 가 invoke 되지 않아 baseContract 에 sender 가 세팅되지 않아서 설정해줌
-        log.debug("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94:{}", coinContract.balanceOf(createParams(ADDRESS_JSON_1)));
-        log.debug("1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e:{}", coinContract.balanceOf(createParams(ADDRESS_JSON_2)));
-
-        JsonObject param = createParams(paramStr);
+    public void transferExceptionTest() { // Handling ParamException & BalanceException
+        String invalidParamStr = "{\"hello\" : \"yggdrash\",\"this\" : \"is for test\"}";
 
         TransactionReceipt result = new TransactionReceiptImpl();
-        result.setIssuer(ADDRESS_1);
+        result.setIssuer(ADDRESS_1); // Sender is not set in baseContract because tx is not invoked yet
+
         try {
             txReceiptField.set(coinContract, result);
-            result = coinContract.transfer(param);
+            result = coinContract.transfer(createParams(invalidParamStr));
         } catch (IllegalAccessException e) {
-            log.warn(e.getMessage());
+            log.warn("Set receipt failed : {}", e.getMessage()); // Setting txReceipt to coinContract failed
+        } catch (ParamException | BalanceException e) {
+            log.debug(e.getMessage());
+            result.addLog(e.getMessage());
+        }
+
+        String appErrLog = ApplicationError.INVALID_PARAMS.toString();
+        assertTrue(result.getTxLog().contains(appErrLog));
+        assertFalse(result.isSuccess()); // No change account balance
+        assertEquals(BigInteger.valueOf(1000000000), coinContract.balanceOf(createParams(ADDRESS_JSON_1)));
+        assertEquals(BigInteger.valueOf(1000000000), coinContract.balanceOf(createParams(ADDRESS_JSON_2)));
+
+        invalidParamStr
+                = String.format("{\"to\" : \"%s\",\"amount\" : \"10000000000000000000\"}", ADDRESS_2);
+
+        try {
+            result = coinContract.transfer(createParams(invalidParamStr));
+        } catch (ParamException | BalanceException e) {
+            log.debug(e.getMessage());
+            result.addLog(e.getMessage());
+        }
+
+        appErrLog = ApplicationError.INSUFFICIENT_FUNDS.toString();
+        assertTrue(result.getTxLog().contains(appErrLog));
+        assertFalse(result.isSuccess()); // No change account balance
+        assertEquals(BigInteger.valueOf(1000000000), coinContract.balanceOf(createParams(ADDRESS_JSON_1)));
+        assertEquals(BigInteger.valueOf(1000000000), coinContract.balanceOf(createParams(ADDRESS_JSON_2)));
+
+        log.debug("{}:{}", ADDRESS_1, coinContract.balanceOf(createParams(ADDRESS_JSON_1)));
+        log.debug("{}:{}", ADDRESS_1, coinContract.balanceOf(createParams(ADDRESS_JSON_2)));
+
+        String validParamStr = String.format("{\"to\" : \"%s\",\"amount\" : \"10\"}", ADDRESS_2);
+        JsonObject validParamObj = createParams(validParamStr);
+
+        try {
+            result = coinContract.transfer(validParamObj);
+        } catch (ParamException | BalanceException e) {
+            log.debug(e.getMessage());
+            result.addLog(e.getMessage());
         }
 
         assertTrue(result.isSuccess());
-
         assertEquals(BigInteger.valueOf(999999990), coinContract.balanceOf(createParams(ADDRESS_JSON_1)));
         assertEquals(BigInteger.valueOf(1000000010), coinContract.balanceOf(createParams(ADDRESS_JSON_2)));
 
-        // To many amount
-        addAmount(param, BigInteger.valueOf(1000000010));
-        result = coinContract.transfer(param);
-        assertFalse(result.isSuccess());
-
         // Same amount
-        addAmount(param, BigInteger.valueOf(999999990));
-        result = coinContract.transfer(param);
+        addAmount(validParamObj, BigInteger.valueOf(999999990));
+        try {
+            result = coinContract.transfer(validParamObj);
+        } catch (ParamException | BalanceException e) {
+            log.debug(e.getMessage());
+            result.addLog(e.getMessage());
+        }
         assertTrue(result.isSuccess());
     }
 
     @Test
-    public void transferFrom() {
-        String owner = ADDRESS_1;
-        String spender = ADDRESS_2;
-        String to = "cee3d4755e47055b530deeba062c5bd0c17eb00f";
-
-        approveByOwner(to, owner, spender, "1000");
-
-        String transferParams = "{\"from\" : \"" + owner + "\", \"to\" : \"" + to + "\",\"amount\" : \"700\"}";
-
-        JsonObject transferFromObject = createParams(transferParams);
+    public void approveTest() {
+        String invalidParamStr = "{\"hello\" : \"yggdrash\",\"this\" : \"is for test\"}";
 
         TransactionReceipt result = new TransactionReceiptImpl();
-        result.setIssuer(spender);
+        result.setIssuer(ADDRESS_1); // Sender is not set in baseContract because tx is not invoked yet
+
         try {
             txReceiptField.set(coinContract, result);
-            result = coinContract.transferFrom(transferFromObject);
+            result = coinContract.approve(createParams(invalidParamStr));
         } catch (IllegalAccessException e) {
-            log.warn(e.getMessage());
+            log.warn("Set receipt failed : {}", e.getMessage()); // Setting txReceipt to coinContract failed
+        } catch (ParamException | BalanceException e) {
+            log.debug(e.getMessage());
+            result.addLog(e.getMessage());
+        }
+
+        String appErrLog = ApplicationError.INVALID_PARAMS.toString();
+        assertTrue(result.getTxLog().contains(appErrLog));
+        assertFalse(result.isSuccess());
+
+        invalidParamStr
+                = String.format("{\"spender\" : \"%s\",\"amount\" : \"10000000000000000000000000000000\"}", ADDRESS_2);
+
+        try {
+            result = coinContract.approve(createParams(invalidParamStr));
+        } catch (ParamException | BalanceException e) {
+            log.debug(e.getMessage());
+            result.addLog(e.getMessage());
+        }
+
+        appErrLog = ApplicationError.INSUFFICIENT_FUNDS.toString();
+        assertTrue(result.getTxLog().contains(appErrLog));
+        assertFalse(result.isSuccess());
+
+        String validParams = String.format("{\"spender\" : \"%s\",\"amount\" : \"1000\"}", ADDRESS_2);
+
+        try {
+            result = coinContract.approve(createParams(validParams));
+        } catch (ParamException | BalanceException e) {
+            log.debug(e.getMessage());
+            result.addLog(e.getMessage());
         }
 
         assertTrue(result.isSuccess());
-        assertEquals(BigInteger.valueOf(300), getAllowance(owner, spender));
-        String logFormat = "{}: {}";
-        log.debug(logFormat, to, getBalance(to));
-        log.debug(logFormat, owner, getBalance(owner));
-        log.debug(logFormat, spender, getBalance(spender));
-        log.debug("getAllowance : {}", getAllowance(owner, spender));
+        assertEquals(BigInteger.valueOf(1000000000), coinContract.balanceOf(createParams(ADDRESS_JSON_1)));
+        assertEquals(BigInteger.valueOf(1000000000), coinContract.balanceOf(createParams(ADDRESS_JSON_2)));
+    }
 
-        TransactionReceipt result2 = new TransactionReceiptImpl();
+    @Test
+    public void transferFromTest() {
+        String sender = ADDRESS_1;
+        String spender = ADDRESS_2;
+        String to = "cee3d4755e47055b530deeba062c5bd0c17eb00f";
+
+        approveBySender(spender, sender, "1000");
+        assertTransferFrom(to, sender, spender);
+
+        String invalidParamStr = "{\"hello\" : \"yggdrash\",\"this\" : \"is for test\"}";
+
+        TransactionReceipt result = new TransactionReceiptImpl();
+        result.setIssuer(spender);
+
         try {
             txReceiptField.set(coinContract, result);
-            coinContract.transferFrom(transferFromObject);
+            result = coinContract.transferFrom(createParams(invalidParamStr));
         } catch (IllegalAccessException e) {
-            log.warn(e.getMessage());
+            log.warn("Set receipt failed : {}", e.getMessage()); // Setting txReceipt to coinContract failed
+        } catch (ParamException | BalanceException e) {
+            log.debug(e.getMessage());
+            result.addLog(e.getMessage());
+        }
+        String appErrLog = ApplicationError.INVALID_PARAMS.toString();
+        assertTrue(result.getTxLog().contains(appErrLog));
+        assertFalse(result.isSuccess());
+
+        invalidParamStr = String.format("{\"from\" : \"%s\",\"to\" : \"%s\",\"amount\" : \"1000000000\"}", sender, to);
+
+        try {
+            result = coinContract.transferFrom(createParams(invalidParamStr));
+        } catch (ParamException | BalanceException e) {
+            log.debug(e.getMessage());
+            result.addLog(e.getMessage());
+        }
+        appErrLog = ApplicationError.INSUFFICIENT_FUNDS.toString();
+        assertTrue(result.getTxLog().contains(appErrLog));
+        assertFalse(result.isSuccess());
+
+        String validParamStr = String.format("{\"from\" : \"%s\",\"to\" : \"%s\",\"amount\" : \"700\"}", sender, to);
+
+        try {
+            result = coinContract.transferFrom(createParams(validParamStr));
+        } catch (ParamException | BalanceException e) {
+            log.debug(e.getMessage());
+            result.addLog(e.getMessage());
+        }
+        assertTrue(result.isSuccess());
+        assertEquals(BigInteger.valueOf(998000000700L), getBalance(to));
+        assertEquals(BigInteger.valueOf(999999300), getBalance(sender));
+        assertEquals(BigInteger.valueOf(1000000000), getBalance(spender));
+        assertEquals(BigInteger.valueOf(300), getAllowance(sender, spender));
+
+        validParamStr = String.format(
+                "{\"from\" : \"%s\",\"to\" : \"%s\",\"amount\" : \"%d\"}", sender, to, getAllowance(sender, spender));
+
+        try {
+            result = coinContract.transferFrom(createParams(validParamStr));
+        } catch (ParamException | BalanceException e) {
+            log.debug(e.getMessage());
+            result.addLog(e.getMessage());
         }
 
-        // not enough amount allowed
-        assertFalse(result2.isSuccess());
-
-        addAmount(transferFromObject, getAllowance(owner, spender));
-        result2 = coinContract.transferFrom(transferFromObject);
-        assertTrue(result2.isSuccess());
-        // reset
-        assertEquals(BigInteger.ZERO, getAllowance(owner, spender));
+        assertTrue(result.isSuccess());
+        assertEquals(BigInteger.ZERO, getAllowance(sender, spender));
     }
 
     @Test
@@ -180,41 +287,40 @@ public class CoinContractTest {
         assertTrue(metaCoinContract.hello(new JsonObject()).isSuccess());
     }
 
-    private void approveByOwner(String to, String owner, String spender, String amount) {
-        String approveParams = "{\"spender\" : \"" + spender + "\","
-                + "\"amount\" : \"" + amount + "\"}";
+    private void approveBySender(String spender, String sender, String amount) {
+        String params = String.format("{\"spender\" : \"%s\",\"amount\" : \"%s\"}", ADDRESS_2, amount);
 
         TransactionReceipt result = new TransactionReceiptImpl();
-        result.setIssuer(owner);
+        result.setIssuer(sender);
+
         try {
             txReceiptField.set(coinContract, result);
-            coinContract.approve(createParams(approveParams));
+            result = coinContract.approve(createParams(params));
         } catch (IllegalAccessException e) {
-            log.warn(e.getMessage());
+            log.warn("Set receipt failed : {}", e.getMessage()); // Setting txReceipt to coinContract failed
+        } catch (ParamException | BalanceException e) {
+            result.addLog(e.getMessage());
         }
 
         assertTrue(result.isSuccess());
-
         String spenderParams = String.format(ADDRESS_FORMAT, spender);
-        String senderParams = String.format(ADDRESS_FORMAT, owner);
+        String senderParams = String.format(ADDRESS_FORMAT, sender);
 
         assertEquals(BigInteger.valueOf(1000000000),
                 coinContract.balanceOf(createParams(spenderParams)));
         assertEquals(BigInteger.valueOf(1000000000),
                 coinContract.balanceOf(createParams(senderParams)));
-
-        assertTransferFrom(to, owner, spender);
     }
 
-    private void assertTransferFrom(String to, String owner, String spender) {
+    private void assertTransferFrom(String to, String sender, String spender) {
 
-        String allowanceParams = "{\"owner\" : \"" + owner + "\", \"spender\" : \"" + spender + "\"}";
+        String allowanceParams = "{\"owner\" : \"" + sender + "\", \"spender\" : \"" + spender + "\"}";
         assertEquals(BigInteger.valueOf(1000), coinContract.allowance(createParams(allowanceParams)));
 
         String toParams = String.format(ADDRESS_FORMAT, to);
         assertEquals(BigInteger.valueOf(998000000000L), coinContract.balanceOf(createParams(toParams)));
 
-        String fromParams = String.format(ADDRESS_FORMAT, owner);
+        String fromParams = String.format(ADDRESS_FORMAT, sender);
         assertEquals(BigInteger.valueOf(1000000000), coinContract.balanceOf(createParams(fromParams)));
 
         String spenderParams = String.format(ADDRESS_FORMAT, spender);

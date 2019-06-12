@@ -20,6 +20,7 @@ import io.yggdrash.node.api.ContractApi;
 import io.yggdrash.node.api.ContractApiImplTest;
 import io.yggdrash.node.api.JsonRpcConfig;
 
+import java.math.BigInteger;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -78,7 +79,7 @@ public class YeedContractDemoClient {
 
     private static void sendTx() {
         String address = getTargetAddress();
-        JsonObject txBody = ContractTestUtils.transferTxBodyJson(address, TRANSFER_AMOUNT);
+        JsonObject txBody = ContractTestUtils.transferTxBodyJson(address, BigInteger.valueOf(TRANSFER_AMOUNT));
         lastTxId = ContractDemoClientUtils.sendTx(txBody);
     }
 

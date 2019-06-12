@@ -48,9 +48,11 @@ public class ContractStore {
         return this.txReceiptStore;
     }
 
+    /*
     public void revertTmpStateStore() {
         this.tmpStateStore = new TempStateStore(stateStore);
     }
+    */
 
     public void close() {
         this.branchStore.close();

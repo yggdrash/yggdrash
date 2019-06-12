@@ -29,7 +29,7 @@ public interface BlockChainManager<T> {
 
     ConsensusBlock<T> addBlock(ConsensusBlock<T> nextBlock);
 
-    int addTransaction(Transaction tx);
+    void addTransaction(Transaction tx);
 
     void updateTxCache(Block block);
 

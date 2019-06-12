@@ -140,18 +140,13 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
         transactionStore.batch(keys);
     }
 
-    // return businessError code
     @Override
-    public int addTransaction(Transaction tx) {
-        int verifyResult = verify(tx);
-        if (verifyResult == BusinessError.VALID.toValue()) {
-            try {
-                transactionStore.addTransaction(tx);
-            } catch (Exception e) {
-                throw new FailedOperationException(e);
-            }
+    public void addTransaction(Transaction tx) {
+        try {
+            transactionStore.addTransaction(tx);
+        } catch (Exception e) {
+            throw new FailedOperationException(e);
         }
-        return verifyResult;
     }
 
     @Override
