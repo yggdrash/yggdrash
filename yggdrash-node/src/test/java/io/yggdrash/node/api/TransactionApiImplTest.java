@@ -22,7 +22,6 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.VerifierUtils;
-import io.yggdrash.contract.core.exception.errorcode.ApplicationError;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.gateway.dto.TransactionDto;
@@ -34,8 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.math.BigInteger;
-import java.util.Arrays;
 
 import static io.yggdrash.node.api.JsonRpcConfig.BLOCK_API;
 import static io.yggdrash.node.api.JsonRpcConfig.TX_API;
@@ -166,6 +163,7 @@ public class TransactionApiImplTest {
         }
     }
 
+    /*
     @Test
     public void unExecutableTransactionTest() {
         //error tx [insufficient funds of the sender]
@@ -184,21 +182,6 @@ public class TransactionApiImplTest {
     }
 
     @Test
-    public void sendRawTransactionTest() {
-        // Request Transaction with byteArr
-        try {
-            //success tx
-            byte[] input = createTx().toRawTransaction();
-            // Convert byteArray to Transaction
-            byte[] res = TX_API.sendRawTransaction(input);
-            assertThat(res).isNotEmpty();
-            assertArrayEquals(TransactionImpl.parseFromRaw(input).getHash().getBytes(), res);
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-        }
-    }
-
-    @Test
     public void unExecutableRawTransactionTest() {
         //error tx [insufficient funds of the sender]
         Transaction appErrTx = BlockChainTestUtils.createTransferTx(
@@ -210,6 +193,22 @@ public class TransactionApiImplTest {
             assertEquals("ApplicationError=[Insufficient funds]", new String(res));
         } catch (Exception e) {
             log.debug("\n\nunExecutableTransactionTest :: ERR => {}", e.getMessage());
+        }
+    }
+    */
+
+    @Test
+    public void sendRawTransactionTest() {
+        // Request Transaction with byteArr
+        try {
+            //success tx
+            byte[] input = createTx().toRawTransaction();
+            // Convert byteArray to Transaction
+            byte[] res = TX_API.sendRawTransaction(input);
+            assertThat(res).isNotEmpty();
+            assertArrayEquals(TransactionImpl.parseFromRaw(input).getHash().getBytes(), res);
+        } catch (Exception e) {
+            log.debug(e.getMessage());
         }
     }
 

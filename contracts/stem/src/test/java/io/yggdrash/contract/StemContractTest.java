@@ -153,7 +153,7 @@ public class StemContractTest {
         Set<JsonObject> contracts = stemContract.getContract(param);
         contracts.stream()
                 .forEach(c -> log.debug(c.getAsJsonObject().get("contractVersion").getAsString()));
-        assertTrue("Contract Size", contracts.size() == 4);
+        assertTrue("Contract Size", contracts.size() == 3);
     }
 
     @Test

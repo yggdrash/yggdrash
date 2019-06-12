@@ -90,6 +90,6 @@ public class BranchTest {
         log.debug(JsonUtil.prettyFormat(block.getBlock().toJsonObject()));
 
         // TODO Genesis Block has more by Transaction Type
-        Assert.assertEquals(4L, block.getBlock().getBody().getCount());
+        Assert.assertEquals(3L, block.getBlock().getBody().getCount());
     }
 }

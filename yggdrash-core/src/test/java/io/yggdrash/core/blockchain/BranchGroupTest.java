@@ -63,8 +63,8 @@ public class BranchGroupTest {
     @Test
     public void addTransaction() {
         // should be existed tx on genesis block
-        assertThat(branchGroup.getRecentTxs(tx.getBranchId()).size()).isEqualTo(4);
-        assertThat(branchGroup.countOfTxs(tx.getBranchId())).isEqualTo(4);
+        assertThat(branchGroup.getRecentTxs(tx.getBranchId()).size()).isEqualTo(3);
+        assertThat(branchGroup.countOfTxs(tx.getBranchId())).isEqualTo(3);
 
         Assert.assertEquals(branchGroup.addTransaction(tx).size(), 0);
         Transaction foundTxBySha3 = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
