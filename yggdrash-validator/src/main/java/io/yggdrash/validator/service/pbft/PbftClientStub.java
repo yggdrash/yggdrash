@@ -58,7 +58,7 @@ public class PbftClientStub {
 
         try {
             PbftProto.PbftBlockList protoBlockList = blockingStub
-                    .withDeadlineAfter(3, TimeUnit.SECONDS)
+                    .withDeadlineAfter(10, TimeUnit.SECONDS)
                     .getPbftBlockList(
                             CommonProto.Offset.newBuilder().setIndex(index).setCount(10L).build());
 
@@ -87,7 +87,7 @@ public class PbftClientStub {
         CommonProto.PongTime pongTime;
         try {
             pongTime = blockingStub
-                    .withDeadlineAfter(1, TimeUnit.SECONDS)
+                    .withDeadlineAfter(2, TimeUnit.SECONDS)
                     .pingPongTime(pingTime);
             if (Context.current().isCancelled()) {
                 return 0L;
