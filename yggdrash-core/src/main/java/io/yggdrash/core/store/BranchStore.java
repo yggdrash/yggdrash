@@ -230,7 +230,7 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
             return new ArrayList<>();
         } else {
             JsonArray contractArray = contract.get("contracts").getAsJsonArray();
-            for (int i=0; i < contractArray.size(); i++) {
+            for (int i = 0; i < contractArray.size(); i++) {
                 JsonObject contractObject = contractArray.get(i).getAsJsonObject();
                 contracts.add(BranchContract.of(contractObject));
             }

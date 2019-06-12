@@ -17,15 +17,14 @@
 package io.yggdrash;
 
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.blockchain.Branch;
-import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.wallet.Wallet;
 import org.junit.Assume;
 import org.junit.BeforeClass;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

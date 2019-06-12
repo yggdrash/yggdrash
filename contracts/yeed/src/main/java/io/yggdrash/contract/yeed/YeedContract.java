@@ -200,6 +200,26 @@ public class YeedContract implements BundleActivator, ServiceListener {
             return txReceipt;
         }
 
+        // Transfer A to B include fee
+        protected boolean transfer(String from, String to, BigInteger amount, BigInteger fee) {
+            BigInteger fromBalance = getBalance(from);
+            BigInteger feeAmount = amount.add(fee);
+
+            // check from account balance
+            if (isTransferable(fromBalance, feeAmount)) {
+                fromBalance = fromBalance.subtract(feeAmount);
+                addBalanceTo(to, amount);
+                putBalance(from, fromBalance);
+                // fee account
+                addBalanceTo(txReceipt.getBranchId(), fee);
+                txReceipt.addLog(String.format("Transfer from %s to %s value %s fee %s ",
+                        from, to, amount, fee));
+                return true;
+            } else {
+                txReceipt.addLog(String.format("%s transfer Error", from));
+                return false;
+            }
+        }
 
         @ContractChannelMethod
         public boolean transferChannel(JsonObject params) {
@@ -230,26 +250,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
             return false;
         }
 
-        // Transfer A to B include fee
-        protected boolean transfer(String from, String to, BigInteger amount, BigInteger fee) {
-            BigInteger fromBalance = getBalance(from);
-            BigInteger feeAmount = amount.add(fee);
 
-            // check from account balance
-            if (isTransferable(fromBalance, feeAmount)) {
-                fromBalance = fromBalance.subtract(feeAmount);
-                addBalanceTo(to, amount);
-                putBalance(from, fromBalance);
-                // fee account
-                addBalanceTo(txReceipt.getBranchId(), fee);
-                txReceipt.addLog(String.format("Transfer from %s to %s value %s fee %s ",
-                        from, to, amount, fee));
-                return true;
-            } else {
-                txReceipt.addLog(String.format("%s transfer Error", from));
-                return false;
-            }
-        }
 
         protected boolean transferFee(String from, BigInteger fee) {
             if (fee.compareTo(BigInteger.ZERO) > 0) {

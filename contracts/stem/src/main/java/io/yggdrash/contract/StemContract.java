@@ -218,7 +218,8 @@ public class StemContract implements BundleActivator, ServiceListener {
             // Get Contract Version in branch
             String yeedContractVersion = this.branchStateStore.getContractName("YEED");
             log.debug("YEED Contract {}", yeedContractVersion);
-            JsonObject result = this.channel.call(yeedContractVersion, ContractMethodType.CHANNEL_METHOD, "transferChannel", transfer);
+            JsonObject result = this.channel.call(yeedContractVersion,
+                    ContractMethodType.CHANNEL_METHOD, "transferChannel", transfer);
 
             boolean transferResult = result.get("result").getAsBoolean();
             if (transferResult) {
@@ -227,7 +228,7 @@ public class StemContract implements BundleActivator, ServiceListener {
                     TODO write branch fee in stem
                  */
                 // TODO Save Branch YEED
-                
+
                 this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
                 this.txReceipt.addLog(String.format("Branch %s is created", branchId));
             } else {
