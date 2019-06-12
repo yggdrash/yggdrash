@@ -87,7 +87,7 @@ public class ContractCacheImpl implements ContractCache {
             case END_BLOCK:
                 return this.endBlockMethods.get(contractVersion);
             case CHANNEL_METHOD:
-                return this.endBlockMethods.get(contractVersion);
+                return this.contractChannelMethods.get(contractVersion);
             default:
                 return new HashMap<>();
         }
