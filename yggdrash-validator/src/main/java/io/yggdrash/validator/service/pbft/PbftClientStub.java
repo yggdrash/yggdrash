@@ -54,7 +54,7 @@ public class PbftClientStub {
     }
 
     public List<PbftBlock> getBlockList(long index) {
-        log.debug("getBlockList with {}", this.id);
+        log.trace("getBlockList with {}", this.id);
 
         try {
             PbftProto.PbftBlockList protoBlockList = blockingStub
@@ -80,7 +80,7 @@ public class PbftClientStub {
     }
 
     public long pingPongTime(long timestamp) {
-        log.debug("pingPongTime with {}", this.id);
+        log.trace("pingPongTime with {}", this.id);
 
         CommonProto.PingTime pingTime =
                 CommonProto.PingTime.newBuilder().setTimestamp(timestamp).build();
@@ -101,7 +101,7 @@ public class PbftClientStub {
     }
 
     public PbftStatus exchangePbftStatus(PbftProto.PbftStatus pbftStatus) {
-        log.debug("exchangePbftStatus with {}", this.id);
+        log.trace("exchangePbftStatus with {}", this.id);
 
         try {
             this.pbftStatus = new PbftStatus(blockingStub
