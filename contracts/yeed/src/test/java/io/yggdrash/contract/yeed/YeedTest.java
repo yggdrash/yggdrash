@@ -108,6 +108,16 @@ public class YeedTest {
                 return null;
             }
 
+            @Override
+            public String getContractVersion(String contractName) {
+                return null;
+            }
+
+            @Override
+            public String getContractName(String contractVersion) {
+                return null;
+            }
+
             public void setValidators(ValidatorSet validatorSet) {
                 this.set = validatorSet;
             }

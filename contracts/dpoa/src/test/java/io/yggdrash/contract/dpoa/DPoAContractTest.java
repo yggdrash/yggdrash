@@ -108,6 +108,16 @@ public class DPoAContractTest {
                 return null;
             }
 
+            @Override
+            public String getContractVersion(String contractName) {
+                return null;
+            }
+
+            @Override
+            public String getContractName(String contractVersion) {
+                return null;
+            }
+
         };
 
         dPoAService = new DPoAContract.DPoAService();
