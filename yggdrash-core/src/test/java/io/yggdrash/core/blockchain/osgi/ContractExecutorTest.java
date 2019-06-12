@@ -64,7 +64,7 @@ public class ContractExecutorTest {
     private ConsensusBlock<PbftProto.PbftBlock> genesisBlock;
     private Transaction genesisTx;
     private BranchId branchId;
-    private ContractVersion contractVersion = ContractVersion.of("9d14652cc916ba619da27b4a7809113bfd01d216");
+    private ContractVersion contractVersion = ContractVersion.of("8c65bc05e107aab9ceaa872bbbb2d96d57811de4");
     private ContractStore contractStore;
     private ContractManager manager;
     private ContractExecutor executor;
@@ -178,7 +178,7 @@ public class ContractExecutorTest {
                 res.getBlockResult().get(
                         getNamespaceKey(txs.get(0).getAddress().toString())).get(BALANCE).getAsString());
 
-        assertTrue(res.getTxReceipts().get(1).getTxLog().contains("Insufficient funds"));
+        assertTrue(res.getTxReceipts().get(1).getTxLog().contains("Error Code:34002, Msg:Insufficient funds"));
     }
 
     @Test

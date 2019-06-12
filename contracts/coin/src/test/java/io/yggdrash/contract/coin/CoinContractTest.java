@@ -9,9 +9,7 @@ import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
-import io.yggdrash.contract.core.exception.BalanceException;
-import io.yggdrash.contract.core.exception.ParamException;
-import io.yggdrash.contract.core.exception.errorcode.ApplicationError;
+import io.yggdrash.contract.core.exception.ContractException;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -34,6 +32,8 @@ public class CoinContractTest {
     private static final String ADDRESS_FORMAT = "{\"address\" : \"%s\"}";
     private static final String ADDRESS_JSON_1 = String.format(ADDRESS_FORMAT, ADDRESS_1);
     private static final String ADDRESS_JSON_2 = String.format(ADDRESS_FORMAT, ADDRESS_2);
+    private static final String INVALID_PARAMS = "Error Code:34001, Msg:Params not allowed";
+    private static final String INSUFFICIENT_FUNDS = "Error Code:34002, Msg:Insufficient funds";
     private Field txReceiptField;
 
     @Before
@@ -65,7 +65,7 @@ public class CoinContractTest {
             coinContract.init(createParams(genesisStr));
         } catch (IllegalAccessException e) {
             log.warn(e.getMessage());
-        } catch (ParamException e) {
+        } catch (ContractException e) {
             log.warn(e.getMessage());
             result.addLog(e.getMessage());
         }
@@ -110,13 +110,12 @@ public class CoinContractTest {
             result = coinContract.transfer(createParams(invalidParamStr));
         } catch (IllegalAccessException e) {
             log.warn("Set receipt failed : {}", e.getMessage()); // Setting txReceipt to coinContract failed
-        } catch (ParamException | BalanceException e) {
-            log.debug(e.getMessage());
+        } catch (ContractException e) {
+            log.debug("ContractException : {}", e.getMessage());
             result.addLog(e.getMessage());
         }
 
-        String appErrLog = ApplicationError.INVALID_PARAMS.toString();
-        assertTrue(result.getTxLog().contains(appErrLog));
+        assertTrue(result.getTxLog().contains(INVALID_PARAMS));
         assertFalse(result.isSuccess()); // No change account balance
         assertEquals(BigInteger.valueOf(1000000000), coinContract.balanceOf(createParams(ADDRESS_JSON_1)));
         assertEquals(BigInteger.valueOf(1000000000), coinContract.balanceOf(createParams(ADDRESS_JSON_2)));
@@ -126,13 +125,12 @@ public class CoinContractTest {
 
         try {
             result = coinContract.transfer(createParams(invalidParamStr));
-        } catch (ParamException | BalanceException e) {
-            log.debug(e.getMessage());
+        } catch (ContractException e) {
+            log.debug("ContractException : {}", e.getMessage());
             result.addLog(e.getMessage());
         }
 
-        appErrLog = ApplicationError.INSUFFICIENT_FUNDS.toString();
-        assertTrue(result.getTxLog().contains(appErrLog));
+        assertTrue(result.getTxLog().contains(INSUFFICIENT_FUNDS));
         assertFalse(result.isSuccess()); // No change account balance
         assertEquals(BigInteger.valueOf(1000000000), coinContract.balanceOf(createParams(ADDRESS_JSON_1)));
         assertEquals(BigInteger.valueOf(1000000000), coinContract.balanceOf(createParams(ADDRESS_JSON_2)));
@@ -145,8 +143,8 @@ public class CoinContractTest {
 
         try {
             result = coinContract.transfer(validParamObj);
-        } catch (ParamException | BalanceException e) {
-            log.debug(e.getMessage());
+        } catch (ContractException e) {
+            log.debug("ContractException : {}", e.getMessage());
             result.addLog(e.getMessage());
         }
 
@@ -158,8 +156,8 @@ public class CoinContractTest {
         addAmount(validParamObj, BigInteger.valueOf(999999990));
         try {
             result = coinContract.transfer(validParamObj);
-        } catch (ParamException | BalanceException e) {
-            log.debug(e.getMessage());
+        } catch (ContractException e) {
+            log.debug("ContractException : {}", e.getMessage());
             result.addLog(e.getMessage());
         }
         assertTrue(result.isSuccess());
@@ -177,13 +175,12 @@ public class CoinContractTest {
             result = coinContract.approve(createParams(invalidParamStr));
         } catch (IllegalAccessException e) {
             log.warn("Set receipt failed : {}", e.getMessage()); // Setting txReceipt to coinContract failed
-        } catch (ParamException | BalanceException e) {
-            log.debug(e.getMessage());
+        } catch (ContractException e) {
+            log.debug("ContractException : {}", e.getMessage());
             result.addLog(e.getMessage());
         }
 
-        String appErrLog = ApplicationError.INVALID_PARAMS.toString();
-        assertTrue(result.getTxLog().contains(appErrLog));
+        assertTrue(result.getTxLog().contains(INVALID_PARAMS));
         assertFalse(result.isSuccess());
 
         invalidParamStr
@@ -191,21 +188,20 @@ public class CoinContractTest {
 
         try {
             result = coinContract.approve(createParams(invalidParamStr));
-        } catch (ParamException | BalanceException e) {
-            log.debug(e.getMessage());
+        } catch (ContractException e) {
+            log.debug("ContractException : {}", e.getMessage());
             result.addLog(e.getMessage());
         }
 
-        appErrLog = ApplicationError.INSUFFICIENT_FUNDS.toString();
-        assertTrue(result.getTxLog().contains(appErrLog));
+        assertTrue(result.getTxLog().contains(INSUFFICIENT_FUNDS));
         assertFalse(result.isSuccess());
 
         String validParams = String.format("{\"spender\" : \"%s\",\"amount\" : \"1000\"}", ADDRESS_2);
 
         try {
             result = coinContract.approve(createParams(validParams));
-        } catch (ParamException | BalanceException e) {
-            log.debug(e.getMessage());
+        } catch (ContractException e) {
+            log.debug("ContractException : {}", e.getMessage());
             result.addLog(e.getMessage());
         }
 
@@ -233,32 +229,32 @@ public class CoinContractTest {
             result = coinContract.transferFrom(createParams(invalidParamStr));
         } catch (IllegalAccessException e) {
             log.warn("Set receipt failed : {}", e.getMessage()); // Setting txReceipt to coinContract failed
-        } catch (ParamException | BalanceException e) {
-            log.debug(e.getMessage());
+        } catch (ContractException e) {
+            log.debug("ContractException : {}", e.getMessage());
             result.addLog(e.getMessage());
         }
-        String appErrLog = ApplicationError.INVALID_PARAMS.toString();
-        assertTrue(result.getTxLog().contains(appErrLog));
+
+        assertTrue(result.getTxLog().contains(INVALID_PARAMS));
         assertFalse(result.isSuccess());
 
         invalidParamStr = String.format("{\"from\" : \"%s\",\"to\" : \"%s\",\"amount\" : \"1000000000\"}", sender, to);
 
         try {
             result = coinContract.transferFrom(createParams(invalidParamStr));
-        } catch (ParamException | BalanceException e) {
-            log.debug(e.getMessage());
+        } catch (ContractException e) {
+            log.debug("ContractException : {}", e.getMessage());
             result.addLog(e.getMessage());
         }
-        appErrLog = ApplicationError.INSUFFICIENT_FUNDS.toString();
-        assertTrue(result.getTxLog().contains(appErrLog));
+
+        assertTrue(result.getTxLog().contains(INSUFFICIENT_FUNDS));
         assertFalse(result.isSuccess());
 
         String validParamStr = String.format("{\"from\" : \"%s\",\"to\" : \"%s\",\"amount\" : \"700\"}", sender, to);
 
         try {
             result = coinContract.transferFrom(createParams(validParamStr));
-        } catch (ParamException | BalanceException e) {
-            log.debug(e.getMessage());
+        } catch (ContractException e) {
+            log.debug("ContractException : {}", e.getMessage());
             result.addLog(e.getMessage());
         }
         assertTrue(result.isSuccess());
@@ -272,8 +268,8 @@ public class CoinContractTest {
 
         try {
             result = coinContract.transferFrom(createParams(validParamStr));
-        } catch (ParamException | BalanceException e) {
-            log.debug(e.getMessage());
+        } catch (ContractException e) {
+            log.debug("ContractException : {}", e.getMessage());
             result.addLog(e.getMessage());
         }
 
@@ -298,7 +294,8 @@ public class CoinContractTest {
             result = coinContract.approve(createParams(params));
         } catch (IllegalAccessException e) {
             log.warn("Set receipt failed : {}", e.getMessage()); // Setting txReceipt to coinContract failed
-        } catch (ParamException | BalanceException e) {
+        } catch (ContractException e) {
+            log.debug("ContractException : {}", e.getMessage());
             result.addLog(e.getMessage());
         }
 

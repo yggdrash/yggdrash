@@ -7,7 +7,6 @@ import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.exception.errorcode.ApplicationError;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.consensus.ConsensusBlock;
@@ -232,7 +231,9 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
                 return new HashMap<>();
             } else {
-                return ApplicationError.getErrorLogsMap(txResult.getReceipt().getTxLog());
+                Map<String, List<String>> applicationError = new HashMap<>();
+                applicationError.put("SystemError", txResult.getReceipt().getTxLog());
+                return applicationError;
             }
         } else {
             return BusinessError.getErrorLogsMap(verifyResult);
