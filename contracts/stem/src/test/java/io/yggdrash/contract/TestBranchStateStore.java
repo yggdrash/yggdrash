@@ -44,6 +44,16 @@ public class TestBranchStateStore implements BranchStateStore {
         return null;
     }
 
+    @Override
+    public String getContractVersion(String contractName) {
+        return contractName;
+    }
+
+    @Override
+    public String getContractName(String contractVersion) {
+        return contractVersion;
+    }
+
     public void setValidators(ValidatorSet validatorSet) {
         this.set = validatorSet;
     }
