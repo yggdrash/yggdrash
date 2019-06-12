@@ -16,7 +16,11 @@ import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
+import io.yggdrash.contract.core.annotation.ContractChannelField;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
+import io.yggdrash.core.blockchain.osgi.ContractCache;
+import io.yggdrash.core.blockchain.osgi.ContractCacheImpl;
+import io.yggdrash.core.blockchain.osgi.ContractChannelCoupler;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,7 +35,9 @@ import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
@@ -122,6 +128,21 @@ public class StemContractValidatorTest {
         receipt.setIssuer(proposer);
         setUpReceipt(receipt);
 
+        ContractChannelCoupler coupler = new ContractChannelCoupler();
+        ContractCache cache = new ContractCacheImpl();
+        Map<String, Object> contractMap = new HashMap<>();
+        coupler.setContract(contractMap, cache);
+
+        for (Field f : ContractUtils.contractFields(stemContract, ContractChannelField.class)) {
+            f.setAccessible(true);
+            f.set(stemContract, coupler);
+        }
+
+        cache.cacheContract("STEM", stemContract);
+        cache.cacheContract("YEED", testYeed);
+
+        contractMap.put("STEM", stemContract);
+        contractMap.put("YEED", testYeed);
 
         stemContract.create(param);
         assertTrue("Branch Create Success", receipt.isSuccess());
