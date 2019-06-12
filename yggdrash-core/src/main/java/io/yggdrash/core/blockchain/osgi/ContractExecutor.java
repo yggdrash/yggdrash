@@ -148,6 +148,10 @@ public class ContractExecutor {
         } catch (InvocationTargetException e) {
             log.debug("CallContractMethod ApplicationErrorLog : {}", e.getCause().toString());
             trAdapter.addLog(e.getCause().getMessage());
+
+            if (log.isDebugEnabled()) {
+                e.printStackTrace();
+            }
         }
 
         return null;
@@ -203,6 +207,7 @@ public class ContractExecutor {
 
     BlockRuntimeResult executeTxs(Map<String, Object> serviceMap, ConsensusBlock nextBlock) {
         // Set Coupler Contract and contractCache
+        log.debug("Service Map Size : {} ", serviceMap.size());
         coupler.setContract(serviceMap, contractCache);
 
         List<Transaction> txList = nextBlock.getBody().getTransactionList();

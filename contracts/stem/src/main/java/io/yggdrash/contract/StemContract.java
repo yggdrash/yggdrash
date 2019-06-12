@@ -216,7 +216,7 @@ public class StemContract implements BundleActivator, ServiceListener {
             transfer.addProperty("amount", fee);
 
             // Get Contract Version in branch
-            String yeedContractVersion = this.branchStateStore.getContractName("YEED");
+            String yeedContractVersion = this.branchStateStore.getContractVersion("YEED");
             log.debug("YEED Contract {}", yeedContractVersion);
             JsonObject result = this.channel.call(yeedContractVersion,
                     ContractMethodType.CHANNEL_METHOD, "transferChannel", transfer);

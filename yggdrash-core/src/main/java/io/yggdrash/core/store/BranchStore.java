@@ -268,7 +268,7 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
                 .filter(c -> contractVersion.equalsIgnoreCase(c.getContractVersion().toString()))
                 .findFirst();
         if (contract.isPresent()) {
-            return contract.get().getContractVersion().toString();
+            return contract.get().getName();
         }
 
         return null;
