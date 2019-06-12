@@ -1,6 +1,5 @@
 package io.yggdrash.common.config;
 
-import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.SerializationUtil;
 
@@ -80,6 +79,7 @@ public final class Constants {
         // role base
         public static final String VALIDATOR = "validator";
         public static final String GATEWAY = "gateway"; // monitoring only
+        public static final String MASTER = "master"; // test only
     }
 
 }

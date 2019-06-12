@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Scanner;
 
-class ContractDemoClientUtils {
+public class ContractDemoClientUtils {
 
     static final String TRANSFER_TO = "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e";
     static final int TRANSFER_AMOUNT = 1;
@@ -71,7 +71,14 @@ class ContractDemoClientUtils {
         return stemContract;
     }
 
-    Wallet getWallet() {
+    public static Wallet getWallet() {
+        if (wallet == null) {
+            try {
+                setWallet();
+            } catch (Exception e) {
+                return null;
+            }
+        }
         return wallet;
     }
 
@@ -121,7 +128,7 @@ class ContractDemoClientUtils {
         }
     }
 
-    private void setWallet() throws Exception {
+    private static void setWallet() throws Exception {
         String testWalletFile = NodeContractDemoClient.class.getClassLoader()
                 .getResource("keys/101167aaf090581b91c08480f6e559acdd9a3ddd.json")
                 .getFile();
