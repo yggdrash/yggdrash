@@ -12,22 +12,9 @@
 
 package io.yggdrash.contract.core.exception;
 
-import io.yggdrash.contract.core.exception.errorcode.ApplicationError;
+public class ContractException extends RuntimeException {
 
-public class ExecutionException extends Exception {
-
-    public static final int CODE = ApplicationError.EXECUTION_FAILED.toValue();
-    private static final String MSG = ApplicationError.EXECUTION_FAILED.toString();
-
-    public ExecutionException() {
-        super(MSG);
-    }
-
-    public ExecutionException(String s) {
-        super(String.format("%s : (%s)", MSG, s));
-    }
-
-    public int getCode() {
-        return CODE;
+    public ContractException(int code, String msg) {
+        super(String.format("Error Code:%d, Msg:%s", code, msg));
     }
 }
