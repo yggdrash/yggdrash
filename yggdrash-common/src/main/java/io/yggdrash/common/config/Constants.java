@@ -79,7 +79,6 @@ public final class Constants {
         // role base
         public static final String VALIDATOR = "validator";
         public static final String GATEWAY = "gateway"; // monitoring only
-        public static final String MASTER = "master"; // test only
     }
 
 }

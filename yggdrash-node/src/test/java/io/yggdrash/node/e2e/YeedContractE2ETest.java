@@ -17,7 +17,6 @@
 package io.yggdrash.node.e2e;
 
 import io.yggdrash.TestConstants;
-import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.node.ContractDemoClientUtils;
@@ -44,8 +43,9 @@ import java.util.Map;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = YggdrashNodeApp.class, webEnvironment = RANDOM_PORT)
-@ActiveProfiles(Constants.ActiveProfiles.MASTER)
+@SpringBootTest(classes = YggdrashNodeApp.class, webEnvironment = RANDOM_PORT,
+        properties = {"yggdrash.node.chain.gen=true"})
+@ActiveProfiles("debug")
 public class YeedContractE2ETest extends TestConstants.SlowTest {
     private static String branchId = TestConstants.yggdrash().toString();
     private static Wallet wallet = ContractDemoClientUtils.getWallet();
