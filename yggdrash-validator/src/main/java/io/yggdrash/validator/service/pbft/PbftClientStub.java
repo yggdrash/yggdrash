@@ -9,12 +9,15 @@ import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
 import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftStatus;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class PbftClientStub {
+
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftClientStub.class);
 
     private boolean myclient;
     private final String addr;
@@ -51,36 +54,46 @@ public class PbftClientStub {
     }
 
     public List<PbftBlock> getBlockList(long index) {
-        PbftProto.PbftBlockList protoBlockList = blockingStub
-                .withDeadlineAfter(3, TimeUnit.SECONDS)
-                .getPbftBlockList(
-                        CommonProto.Offset.newBuilder().setIndex(index).setCount(10L).build());
+        log.trace("getBlockList with {}", this.id);
 
-        if (Context.current().isCancelled()) {
+        try {
+            PbftProto.PbftBlockList protoBlockList = blockingStub
+                    .withDeadlineAfter(10, TimeUnit.SECONDS)
+                    .getPbftBlockList(
+                            CommonProto.Offset.newBuilder().setIndex(index).setCount(10L).build());
+
+            if (Context.current().isCancelled()) {
+                return null;
+            }
+
+            List<PbftBlock> newPbftBlockList = new ArrayList<>();
+            for (PbftProto.PbftBlock protoPbftBlock : protoBlockList.getPbftBlockList()) {
+                newPbftBlockList.add(new PbftBlock(protoPbftBlock));
+            }
+
+            return newPbftBlockList;
+
+        } catch (Exception e) {
+            log.debug(e.getMessage());
             return null;
         }
-
-        List<PbftBlock> newPbftBlockList = new ArrayList<>();
-        for (PbftProto.PbftBlock protoPbftBlock : protoBlockList.getPbftBlockList()) {
-            newPbftBlockList.add(new PbftBlock(protoPbftBlock));
-        }
-
-        return newPbftBlockList;
     }
 
     public long pingPongTime(long timestamp) {
+        log.trace("pingPongTime with {}", this.id);
+
         CommonProto.PingTime pingTime =
                 CommonProto.PingTime.newBuilder().setTimestamp(timestamp).build();
         CommonProto.PongTime pongTime;
         try {
             pongTime = blockingStub
-                    .withDeadlineAfter(1, TimeUnit.SECONDS)
+                    .withDeadlineAfter(2, TimeUnit.SECONDS)
                     .pingPongTime(pingTime);
-        } catch (StatusRuntimeException e) {
-            return 0L;
-        }
+            if (Context.current().isCancelled()) {
+                return 0L;
+            }
 
-        if (Context.current().isCancelled()) {
+        } catch (StatusRuntimeException e) {
             return 0L;
         }
 
@@ -88,12 +101,20 @@ public class PbftClientStub {
     }
 
     public PbftStatus exchangePbftStatus(PbftProto.PbftStatus pbftStatus) {
-        this.pbftStatus = new PbftStatus(blockingStub
-                .withDeadlineAfter(3, TimeUnit.SECONDS)
-                .exchangePbftStatus(pbftStatus));
-        if (Context.current().isCancelled()) {
+        log.trace("exchangePbftStatus with {}", this.id);
+
+        try {
+            this.pbftStatus = new PbftStatus(blockingStub
+                    .withDeadlineAfter(3, TimeUnit.SECONDS)
+                    .exchangePbftStatus(pbftStatus));
+            if (Context.current().isCancelled()) {
+                return null;
+            }
+        } catch (Exception e) {
+            log.debug(e.getMessage());
             return null;
         }
+
         return this.pbftStatus;
     }
 

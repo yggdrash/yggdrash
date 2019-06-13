@@ -640,7 +640,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
             if (pongTime > 0L) {
                 checkNodeStatus(client);
             } else {
-                log.debug("Cannot connect to {}", client.toString());
+                log.debug("Cannot connect to {} ping {} pong {}", client.toString(), pingTime, pongTime);
                 client.setIsRunning(false);
             }
         }
@@ -652,7 +652,12 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     private void checkNodeStatus(PbftClientStub client) {
         PbftStatus myStatus = getMyNodeStatus();
         log.trace("My PbftStatus is {}", myStatus.toJsonObject().toString());
+
         PbftStatus pbftStatus = client.exchangePbftStatus(PbftStatus.toProto(myStatus));
+        if (pbftStatus == null) {
+            client.setIsRunning(false);
+            return;
+        }
         log.trace("Client {} PbftStatus is {}", client.toString(), myStatus.toJsonObject().toString());
 
         updateStatus(client, pbftStatus);
