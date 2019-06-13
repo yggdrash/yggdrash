@@ -34,7 +34,6 @@ public class ContractPolicyLoader {
             + ",io.yggdrash.contract.core"
             + ",io.yggdrash.contract.core.annotation"
             + ",io.yggdrash.contract.core.exception"
-            + ",io.yggdrash.contract.core.exception.errorcode"
             + ",io.yggdrash.contract.core.store"
             + ",io.yggdrash.contract.core.channel"
             ;

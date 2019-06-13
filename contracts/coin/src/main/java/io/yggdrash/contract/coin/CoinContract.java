@@ -18,8 +18,7 @@ import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.Genesis;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.annotation.ParamValidation;
-import io.yggdrash.contract.core.exception.BalanceException;
-import io.yggdrash.contract.core.exception.ParamException;
+import io.yggdrash.contract.core.exception.ContractException;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -129,7 +128,7 @@ public class CoinContract implements BundleActivator, ServiceListener {
         @InvokeTransaction
         @ParamValidation
         @Override
-        public TransactionReceipt transfer(JsonObject params) throws ParamException, BalanceException {
+        public TransactionReceipt transfer(JsonObject params) {
             log.debug("\ntransfer :: params => {}", params);
 
             String to = getAsString(params, "to").toLowerCase();
@@ -161,7 +160,7 @@ public class CoinContract implements BundleActivator, ServiceListener {
         @InvokeTransaction
         @ParamValidation
         @Override
-        public TransactionReceipt approve(JsonObject params) throws ParamException, BalanceException {
+        public TransactionReceipt approve(JsonObject params) {
             log.debug("\napprove :: params => {}", params);
 
             String spender = getAsString(params, "spender").toLowerCase();
@@ -195,7 +194,7 @@ public class CoinContract implements BundleActivator, ServiceListener {
         @InvokeTransaction
         @ParamValidation
         @Override
-        public TransactionReceipt transferFrom(JsonObject params) throws ParamException, BalanceException {
+        public TransactionReceipt transferFrom(JsonObject params) {
             log.debug("\ntransferFrom :: params => {}", params);
 
             String from = getAsString(params, "from").toLowerCase();
@@ -232,7 +231,7 @@ public class CoinContract implements BundleActivator, ServiceListener {
          */
         @Genesis
         @InvokeTransaction
-        public TransactionReceipt init(JsonObject params) throws ParamException {
+        public TransactionReceipt init(JsonObject params) {
             log.debug("\ngenesis :: params => {}", params);
 
             //totalSupply 는 alloc 의 balance 를 모두 더한 값으로 세팅
@@ -314,39 +313,39 @@ public class CoinContract implements BundleActivator, ServiceListener {
             return Hex.toHexString(approveKey);
         }
 
-        private boolean require(BigInteger targetBalance, BigInteger amount) throws BalanceException {
+        private boolean require(BigInteger targetBalance, BigInteger amount) throws ContractException {
             if (targetBalance.subtract(amount).compareTo(BigInteger.ZERO) >= 0) { // same is  0, more is 1
                 return true;
             } else {
                 txReceipt.setStatus(ExecuteStatus.ERROR);
-                throw new BalanceException();
+                throw new ContractException(Err.INSUFFICIENT_FUNDS.toValue(), Err.INSUFFICIENT_FUNDS.toString());
             }
         }
 
-        private String getAsString(JsonObject params, String prop) throws ParamException {
+        private String getAsString(JsonObject params, String prop) throws ContractException {
             if (params.has(prop)) {
                 return params.get(prop).getAsString();
             } else {
                 txReceipt.setStatus(ExecuteStatus.ERROR);
-                throw new ParamException();
+                throw new ContractException(Err.INVALID_PARAMS.toValue(), Err.INVALID_PARAMS.toString());
             }
         }
 
-        private BigInteger getAsBigInteger(JsonObject params, String prop) throws ParamException {
+        private BigInteger getAsBigInteger(JsonObject params, String prop) throws ContractException {
             if (params.has(prop)) {
                 return params.get(prop).getAsBigInteger();
             } else {
                 txReceipt.setStatus(ExecuteStatus.ERROR);
-                throw new ParamException();
+                throw new ContractException(Err.INVALID_PARAMS.toValue(), Err.INVALID_PARAMS.toString());
             }
         }
 
-        private JsonObject getAsJsonObject(JsonObject params, String prop) throws ParamException {
+        private JsonObject getAsJsonObject(JsonObject params, String prop) throws ContractException {
             if (params.has(prop)) {
                 return params.getAsJsonObject(prop);
             } else {
                 txReceipt.setStatus(ExecuteStatus.ERROR);
-                throw new ParamException();
+                throw new ContractException(Err.INVALID_PARAMS.toValue(), Err.INVALID_PARAMS.toString());
             }
         }
 
@@ -370,6 +369,37 @@ public class CoinContract implements BundleActivator, ServiceListener {
         private void Init(String frontier) {
             log.debug("\nAddress of Frontier : {}"
                     + "\nBalance of Frontier : {}", frontier, getBalance(frontier));
+        }
+
+        private enum Err {
+            //The errors are appended to the transactionReceipt.
+            INVALID_PARAMS(34001),          //1000010011010001
+            INSUFFICIENT_FUNDS(34002),      //1000010011010010
+            EXECUTION_FAILED(34004)         //1000010011010100
+            ;
+
+            private int code;
+
+            Err(int code) {
+                this.code = code;
+            }
+
+            public int toValue() {
+                return code;
+            }
+
+            public String toString() {
+                if (code == INVALID_PARAMS.code) {
+                    return "Params not allowed";
+                }
+                if (code == INSUFFICIENT_FUNDS.code) {
+                    return "Insufficient funds";
+                }
+                if (code == EXECUTION_FAILED.code) {
+                    return "Execution failed";
+                }
+                return "";
+            }
         }
     }
 }
