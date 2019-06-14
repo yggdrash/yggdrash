@@ -52,6 +52,12 @@ public class TestContract implements Contract {
         return txReceipt;
     }
 
+    protected boolean transfer(String from, String to, BigInteger amount, BigInteger fee) {
+        log.debug("Transfer from {} to {} value {} fee {} ", from, to, amount, fee);
+        return true;
+
+    }
+
     @ContractQuery
     public String someQuery() {
         return "";
@@ -111,13 +117,4 @@ public class TestContract implements Contract {
 
         return transfer(from, to, amount, fee);
     }
-
-    protected boolean transfer(String from, String to, BigInteger amount, BigInteger fee) {
-        log.debug("Transfer from {} to {} value {} fee {} ", from, to, amount, fee);
-        return true;
-
-    }
-
-
-
 }

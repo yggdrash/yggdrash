@@ -19,22 +19,25 @@ package io.yggdrash.core.store;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.Branch;
-import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.consensus.ConsensusBlock;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchStateStore {
 
     private final ReadWriterStore<String, JsonObject> store;
+
+    private List<BranchContract> contracts;
 
     BranchStore(ReadWriterStore<String, JsonObject> store) {
         this.store = store;
@@ -206,23 +209,69 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
         JsonObject contract = new JsonObject();
         contract.add("contracts", array);
         store.put(BlockchainMetaInfo.BRANCH_CONTRACTS.toString(), contract);
+
+        // init contracts
+        if (this.contracts != null) {
+            this.contracts = null;
+        }
     }
 
-    // Get Contracts
-    // Load Contracts initial values
+    /***
+     * Get Branch's Contract List
+     * @return Branch Contract List
+     */
     public List<BranchContract> getBranchContacts() {
-        List<BranchContract> contracts = new ArrayList<>();
+        if (this.contracts != null) {
+            return contracts.stream().collect(Collectors.toList());
+        }
+        contracts = new ArrayList<>();
         JsonObject contract = store.get(BlockchainMetaInfo.BRANCH_CONTRACTS.toString());
         if (contract == null) {
             return new ArrayList<>();
         } else {
             JsonArray contractArray = contract.get("contracts").getAsJsonArray();
-            for (int i=0; i < contractArray.size(); i++) {
+            for (int i = 0; i < contractArray.size(); i++) {
                 JsonObject contractObject = contractArray.get(i).getAsJsonObject();
                 contracts.add(BranchContract.of(contractObject));
             }
         }
-        return contracts;
+        return contracts.stream().collect(Collectors.toList());
+    }
+
+    /**
+     * Get branch Versions by Name
+     * @param contractName find contract Name
+     * @return contract version
+     */
+    @Override
+    public String getContractVersion(String contractName) {
+        Optional<BranchContract> contract = this.contracts.stream()
+                .filter(c -> contractName.equalsIgnoreCase(c.getName()))
+                .findFirst();
+
+        if (contract.isPresent()) {
+            return contract.get().getContractVersion().toString();
+        }
+        // TODO get branch Versions by Name
+        return null;
+    }
+
+    /**
+     * Get branch Versions by Name
+     * @param contractVersion find contract version
+     * @return contract name
+     */
+    @Override
+    public String getContractName(String contractVersion) {
+        // get branch Name by ContractVersion
+        Optional<BranchContract> contract = this.contracts.stream()
+                .filter(c -> contractVersion.equalsIgnoreCase(c.getContractVersion().toString()))
+                .findFirst();
+        if (contract.isPresent()) {
+            return contract.get().getName();
+        }
+
+        return null;
     }
 
     public enum  BlockchainMetaInfo {

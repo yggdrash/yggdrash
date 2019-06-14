@@ -68,6 +68,7 @@ public class ContractManager {
     private final String contractPath;
     private final SystemProperties systemProperties;
     private final Map<String, String> fullLocation; // => Map<contractVersion, fullLocation>
+    private final Map<String, Object> serviceMap;
 
     private ContractExecutor contractExecutor;
 
@@ -86,7 +87,7 @@ public class ContractManager {
 
         this.systemProperties = systemProperties;
         this.fullLocation = new HashMap<>();
-
+        this.serviceMap = new HashMap<>();
         newFramework();
     }
 
@@ -114,14 +115,14 @@ public class ContractManager {
         return contractExecutor.getCurLogIndex();
     }
 
-    private String getFullLocation(String contractName) {
-        return fullLocation.get(contractName);
+    private String getFullLocation(String contractVersion) {
+        return fullLocation.get(contractVersion);
     }
 
     private void setFullLocation(String location) {
         if (!fullLocation.containsValue(location)) {
-            String contractName = location.substring(location.lastIndexOf('/') + 1);
-            fullLocation.put(contractName, location);
+            String contractVersion = location.substring(location.lastIndexOf('/') + 1);
+            fullLocation.put(contractVersion, location);
         }
     }
 
@@ -400,8 +401,10 @@ public class ContractManager {
                 uninstall(bundle.getBundleId());
             }
             start(bundle.getBundleId());
-
             setFullLocation(bundle.getLocation());
+            // add Service Map
+            serviceMap.put(version.toString(), getService(bundle));
+
         } catch (Exception e) {
             log.error("Install bundle exception: branchID - {}, msg - {}", branchId, e.getMessage());
             throw new FailedOperationException(e);
@@ -450,7 +453,6 @@ public class ContractManager {
                         bundle.uninstall();
                         throw new FailedOperationException(e);
                     }
-
                     break;
                 case STOP:
                     bundle.stop();
@@ -489,7 +491,7 @@ public class ContractManager {
     }
 
     public BlockRuntimeResult executeTxs(ConsensusBlock nextBlock) {
-        Map<String, Object> serviceMap = new HashMap<>();   // => Map<contractVersion, service>
+//        Map<String, Object> serviceMap = new HashMap<>();   // => Map<contractVersion, service>
 
         for (Transaction tx : nextBlock.getBody().getTransactionList()) {
 

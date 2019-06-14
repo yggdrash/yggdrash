@@ -46,7 +46,7 @@ public class ContractExecutor {
     private final ContractStore contractStore;
 
     private final SystemProperties systemProperties;
-    private final ContractCache contractCache;
+    private final ContractCacheImpl contractCache;
     private TransactionReceiptAdapter trAdapter;
     private final LogIndexer logIndexer;
     private ContractChannelCoupler coupler;
@@ -57,7 +57,7 @@ public class ContractExecutor {
         this.contractStore = contractStore;
         this.systemProperties = systemProperties;
         this.logIndexer = new LogIndexer(logStore, contractStore.getTransactionReceiptStore());
-        contractCache = new ContractCache();
+        contractCache = new ContractCacheImpl();
         trAdapter = new TransactionReceiptAdapter();
         coupler = new ContractChannelCoupler();
     }
@@ -120,23 +120,10 @@ public class ContractExecutor {
 
         contractCache.cacheContract(contractVersion, service);
 
-        Map<String, Method> methodMap = null;
-        switch (methodType) {
-            case INVOKE:
-                methodMap = contractCache.getInvokeTransactionMethods().get(contractVersion);
-                break;
-            case QUERY:
-                methodMap = contractCache.getQueryMethods().get(contractVersion);
-                break;
-            case END_BLOCK:
-                methodMap = contractCache.getEndBlockMethods().get(contractVersion);
-                break;
-            default:
-                log.error("Method Type is not exist");
-                return null;
-        }
+        Map<String, Method> methodMap = contractCache.getContractMethodMap(contractVersion, methodType);
 
         if (methodMap == null || methodMap.get(methodName) == null) {
+            log.error("Method Type is not exist");
             return null;
         }
 
@@ -161,6 +148,10 @@ public class ContractExecutor {
         } catch (InvocationTargetException e) {
             log.debug("CallContractMethod ApplicationErrorLog : {}", e.getCause().toString());
             trAdapter.addLog(e.getCause().getMessage());
+
+            if (log.isDebugEnabled()) {
+                e.printStackTrace();
+            }
         }
 
         return null;
@@ -180,10 +171,12 @@ public class ContractExecutor {
         return contractStore.getTmpStateStore().changeValues();
     }
 
+    // TODO fix End Block call by excution
     private List<Object> endBlock(String location, Object service, JsonObject endBlockParams) {
         List<Object> results = new ArrayList<>();
         for (Bundle bundle : framework.getBundleContext().getBundles()) {
             contractCache.cacheContract(location, service);
+            // TODO change contract version
             Map<String, Method> endBlockMethods = contractCache.getEndBlockMethods().get(bundle.getLocation());
             if (endBlockMethods != null) {
                 endBlockMethods.forEach((k, m) -> {
@@ -214,6 +207,7 @@ public class ContractExecutor {
 
     BlockRuntimeResult executeTxs(Map<String, Object> serviceMap, ConsensusBlock nextBlock) {
         // Set Coupler Contract and contractCache
+        log.debug("Service Map Size : {} ", serviceMap.size());
         coupler.setContract(serviceMap, contractCache);
 
         List<Transaction> txList = nextBlock.getBody().getTransactionList();

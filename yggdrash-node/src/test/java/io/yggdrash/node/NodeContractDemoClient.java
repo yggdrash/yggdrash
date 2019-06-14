@@ -191,9 +191,18 @@ public class NodeContractDemoClient {
 
     private static void sendStemTx(JsonObject branch, String method) {
         int times = getSendTimes();
-        BranchId branchId = BranchId.of(branch);
+        JsonObject params = new JsonObject();
+        params.add("branch", branch);
+        params.addProperty("fee", BigInteger.valueOf(1000L));
+
+
+        JsonObject txBody = new JsonObject();
+        txBody.addProperty("contractVersion", stemContract.toString());
+        txBody.addProperty("method", method);
+        txBody.add("params", params);
+
         for (int i = 0; i < times; i++) {
-            Transaction tx = BlockChainTestUtils.createBranchTx(branchId, method, branch);
+            Transaction tx = createTx(yggdrash, txBody);
             sendTransaction(tx);
         }
     }

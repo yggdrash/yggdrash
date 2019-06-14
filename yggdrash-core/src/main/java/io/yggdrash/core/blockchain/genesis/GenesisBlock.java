@@ -1,17 +1,16 @@
 package io.yggdrash.core.blockchain.genesis;
 
 import io.yggdrash.common.config.Constants;
+import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
 import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.blockchain.Branch;
-import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.consensus.Consensus;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;

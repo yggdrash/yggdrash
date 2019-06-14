@@ -18,6 +18,7 @@ package io.yggdrash.contract.yeed;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.contract.standard.CoinStandard;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.common.crypto.HashUtil;
@@ -29,6 +30,7 @@ import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import io.yggdrash.contract.core.annotation.ContractChannelField;
+import io.yggdrash.contract.core.annotation.ContractChannelMethod;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
@@ -123,6 +125,12 @@ public class YeedContract implements BundleActivator, ServiceListener {
             return getBalance(address);
         }
 
+        @ContractQuery
+        public BigInteger balanceOfContract(JsonObject params) {
+            String contract = params.get("contract").getAsString();
+            return getBalance(PrefixKeyEnum.CONTRACT_ACCOUNT, contract);
+        }
+
         /**
          * Function to check the amount of coin that an owner allowed to a spender
          * params owner    The address which owns the funds.
@@ -178,7 +186,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
             BigInteger fee = params.has(FEE) ? params.get(FEE).getAsBigInteger() : BigInteger.ZERO;
             // amount, fee check
             if (amount.compareTo(BigInteger.ZERO) <= 0 || fee.compareTo(BigInteger.ZERO) < 0) {
-                txReceipt.addLog(String.format("{} Amount not enought", from));
+                txReceipt.addLog(String.format("{} Amount not enough", from));
                 return txReceipt;
             }
             log.debug("transfer {} {} {} {}",from, to, amount, fee);
@@ -213,6 +221,37 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 return false;
             }
         }
+
+        @ContractChannelMethod
+        public boolean transferChannel(JsonObject params) {
+            // call other contract to transfer
+
+            // contract Name base
+            String otherContract = this.txReceipt.getContractVersion();
+            String contractName = this.branchStateStore.getContractName(otherContract);
+
+            // deposit or withdraw
+            String fromAccount = params.get("from").getAsString();
+            String toAccount = params.get("to").getAsString();
+            BigInteger amount = params.get("amount").getAsBigInteger();
+            String contractAccount = String.format("%s%s", PrefixKeyEnum.CONTRACT_ACCOUNT, contractName);
+
+            if (toAccount.equalsIgnoreCase(contractName)) { // deposit
+                // check from is issuer
+                if (fromAccount.equalsIgnoreCase(this.txReceipt.getIssuer())) {
+                    return transfer(fromAccount, contractAccount, amount, BigInteger.ZERO);
+                } else {
+                    return false;
+                }
+
+            } else if (fromAccount.equalsIgnoreCase(contractName)) { // withdraw
+                return transfer(contractAccount, toAccount, amount, BigInteger.ZERO);
+            }
+            // if not contract call deposit or withdraw
+            return false;
+        }
+
+
 
         protected boolean transferFee(String from, BigInteger fee) {
             if (fee.compareTo(BigInteger.ZERO) > 0) {
@@ -388,14 +427,19 @@ public class YeedContract implements BundleActivator, ServiceListener {
         }
 
         public BigInteger getBalance(String address) {
-            address = PrefixKeyEnum.getAccountKey(address);
-            JsonObject storeValue = store.get(address);
+            return getBalance(PrefixKeyEnum.ACCOUNT, address);
+        }
+
+        private BigInteger getBalance(PrefixKeyEnum type, String address) {
+            String searchAddress = String.format("%s%s",type.toValue(),address);
+            JsonObject storeValue = store.get(searchAddress);
             if (storeValue != null && storeValue.has(BALANCE)) {
                 return storeValue.get(BALANCE).getAsBigInteger();
             } else {
                 return BigInteger.ZERO;
             }
         }
+
 
         private void putBalance(String address, BigInteger value) {
             JsonObject storeValue = new JsonObject();

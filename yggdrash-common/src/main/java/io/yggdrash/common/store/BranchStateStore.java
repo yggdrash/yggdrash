@@ -36,5 +36,9 @@ public interface BranchStateStore {
 
     boolean isValidator(String address);
 
-    public List<BranchContract> getBranchContacts();
+    List<BranchContract> getBranchContacts();
+
+    String getContractVersion(String contractName);
+
+    String getContractName(String contractVersion);
 }

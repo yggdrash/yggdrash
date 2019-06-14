@@ -5,11 +5,14 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.contract.core.channel.ContractChannel;
 import io.yggdrash.contract.core.channel.ContractMethodType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 
 public class ContractChannelCoupler implements ContractChannel {
+    private static final Logger log = LoggerFactory.getLogger(ContractChannelCoupler.class);
 
     Map<String, Object> contractMap;
     ContractCache cache;
@@ -21,21 +24,9 @@ public class ContractChannelCoupler implements ContractChannel {
 
     @Override
     public JsonObject call(String contractVersion, ContractMethodType type, String methodName, JsonObject params) {
-        Map<String, Method> contractMethodMap = null;
-        switch (type) {
-            case QUERY:
-                contractMethodMap = cache.getQueryMethods().get(contractVersion);
-                break;
-            case INVOKE:
-                contractMethodMap = cache.getInvokeTransactionMethods().get(contractVersion);
-                break;
-            case CHANNEL_METHOD:
-                contractMethodMap = cache.getChannelMethods().get(contractVersion);
-                break;
-            default:
-                return null;
-        }
-        if (contractMethodMap != null) {
+        log.debug("Call {} {} {} ", contractVersion, type, methodName);
+        Map<String, Method> contractMethodMap = cache.getContractMethodMap(contractVersion, type);
+        if (contractMethodMap != null && contractMethodMap.containsKey(methodName)) {
             Method targetMethod = contractMethodMap.get(methodName);
             Object contract = contractMap.get(contractVersion);
             if (targetMethod != null) {
@@ -56,6 +47,8 @@ public class ContractChannelCoupler implements ContractChannel {
                     e.printStackTrace();
                 }
             }
+        } else {
+            log.debug("Method is not exist {}", methodName);
         }
         return null;
     }

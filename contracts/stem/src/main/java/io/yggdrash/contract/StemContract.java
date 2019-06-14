@@ -24,6 +24,7 @@ import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.Genesis;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.channel.ContractChannel;
+import io.yggdrash.contract.core.channel.ContractMethodType;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -46,9 +47,6 @@ import static io.yggdrash.common.config.Constants.BRANCH_ID;
 public class StemContract implements BundleActivator, ServiceListener {
     private static final Logger log = LoggerFactory.getLogger(StemContract.class);
     //private ServiceRegistration registration;
-
-    // Get other Service
-    private CoinStandard asset;
 
     @Override
     public void start(BundleContext context) {
@@ -75,11 +73,6 @@ public class StemContract implements BundleActivator, ServiceListener {
         //
     }
 
-    public void setAsset(CoinStandard coinStandard) {
-        this.asset = coinStandard;
-    }
-
-
     public static class StemService implements Contract {
         private static final Logger log = LoggerFactory.getLogger(StemContract.class);
 
@@ -101,6 +94,10 @@ public class StemContract implements BundleActivator, ServiceListener {
         @InvokeTransaction // TODO remove InvokeTransaction
         public TransactionReceipt init(JsonObject param) {
             log.info("[StemContract | genesis] SUCCESS!");
+
+            // TODO save yeed contract version
+            // TODO set yeed contract version interface
+
             return txReceipt;
         }
 
@@ -206,14 +203,40 @@ public class StemContract implements BundleActivator, ServiceListener {
             // save Meta information
             saveBranchMeta(branchId, branchCopy);
 
+            //branchStateStore.getBranchContacts().stream().filter()
+
             // check fee
-            // check fee govonence
+            BigInteger fee = params.get("fee").getAsBigInteger();
+
+            // TODO check fee governance
+
+            JsonObject transfer = new JsonObject();
+            transfer.addProperty("from", this.txReceipt.getIssuer());
+            transfer.addProperty("to", "STEM");
+            transfer.addProperty("amount", fee);
+
+            // Get Contract Version in branch
+            String yeedContractVersion = this.branchStateStore.getContractVersion("YEED");
+            log.debug("YEED Contract {}", yeedContractVersion);
+            JsonObject result = this.channel.call(yeedContractVersion,
+                    ContractMethodType.CHANNEL_METHOD, "transferChannel", transfer);
+
+            boolean transferResult = result.get("result").getAsBoolean();
+            if (transferResult) {
+                /*
+                    TODO fee is transfer to stem contract
+                    TODO write branch fee in stem
+                 */
+                // TODO Save Branch YEED
+
+                this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
+                this.txReceipt.addLog(String.format("Branch %s is created", branchId));
+            } else {
+                this.txReceipt.setStatus(ExecuteStatus.ERROR);
+                this.txReceipt.addLog(String.format("Branch %s is not created", branchId));
+            }
             // get validator
             // get meta information
-
-            this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
-            this.txReceipt.addLog(String.format("Branch %s is created", branchId));
-
 
         }
 
