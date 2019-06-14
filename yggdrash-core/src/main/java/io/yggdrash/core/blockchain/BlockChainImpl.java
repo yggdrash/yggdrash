@@ -168,8 +168,15 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         try {
             lock.lock();
 
-            if (nextBlock.getIndex() != blockChainManager.getLastIndex() + 1
-                    || blockChainManager.verify(nextBlock) != BusinessError.VALID.toValue()) {
+            if (nextBlock.getIndex() != 0
+                    && nextBlock.getIndex() != blockChainManager.getLastIndex() + 1) {
+                log.trace("Addblock() failed. LastIndex {}, nextBlockIndex {}",
+                        blockChainManager.getLastIndex(),
+                        nextBlock.getBlock().toJsonObject().toString());
+                return null;
+            }
+
+            if (blockChainManager.verify(nextBlock) != BusinessError.VALID.toValue()) {
                 log.trace("Addblock() failed. {}", nextBlock.getBlock().toJsonObject().toString());
                 return null;
             }
