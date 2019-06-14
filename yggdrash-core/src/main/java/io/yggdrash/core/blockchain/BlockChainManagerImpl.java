@@ -22,6 +22,8 @@ import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.ConsensusBlockStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,13 +33,14 @@ import java.util.stream.Collectors;
 
 public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
 
-    private ConsensusBlock<T> lastConfirmedBlock;
+    private static final Logger log = LoggerFactory.getLogger(BlockChainManagerImpl.class);
 
     private final ConsensusBlockStore<T> blockStore;
     private final TransactionStore transactionStore;
     private final TransactionReceiptStore transactionReceiptStore;
     private final BlockChainStore blockChainStore;
 
+    private ConsensusBlock<T> lastConfirmedBlock;
 
     public BlockChainManagerImpl(BlockChainStore blockChainStore) {
         this.blockStore = blockChainStore.getConsensusBlockStore();
@@ -124,7 +127,6 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
         this.lastConfirmedBlock = nextBlock;
 
         batchTxs(nextBlock);
-
         return nextBlock;
 
     }

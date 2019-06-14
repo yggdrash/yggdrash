@@ -16,12 +16,19 @@
 
 package io.yggdrash.node.e2e;
 
+import com.google.gson.JsonObject;
+import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
-import io.yggdrash.common.config.Constants;
+import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.node.ContractDemoClientUtils;
 import io.yggdrash.node.YggdrashNodeApp;
+import io.yggdrash.node.api.BlockApi;
 import io.yggdrash.node.api.ContractApi;
 import io.yggdrash.node.api.ContractApiImplTest;
 import io.yggdrash.node.api.JsonRpcConfig;
@@ -32,6 +39,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
@@ -44,17 +54,28 @@ import java.util.Map;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = YggdrashNodeApp.class, webEnvironment = RANDOM_PORT)
-@ActiveProfiles(Constants.ActiveProfiles.MASTER)
+@SpringBootTest(classes = YggdrashNodeApp.class, webEnvironment = RANDOM_PORT,
+        properties = {"yggdrash.node.chain.gen=true"})
+@ActiveProfiles("debug")
 public class YeedContractE2ETest extends TestConstants.SlowTest {
-    private static String branchId = TestConstants.yggdrash().toString();
+
+    private static final Logger log = LoggerFactory.getLogger(YeedContractE2ETest.class);
+
+    private static BranchId branchId = TestConstants.yggdrash();
     private static Wallet wallet = ContractDemoClientUtils.getWallet();
+
+    private BlockChain bc;
+    private long blockIndex;
 
     private TransactionApi txJsonRpc;
     private ContractApi contractJsonRpc;
+    private BlockApi blockJsonRpc;
 
     @LocalServerPort
     private int randomServerPort;
+
+    @Autowired
+    private BranchGroup branchGroup;
 
     @BeforeClass
     public static void init() throws Exception {
@@ -69,6 +90,9 @@ public class YeedContractE2ETest extends TestConstants.SlowTest {
         String server = String.format("http://localhost:%d/api", randomServerPort);
         txJsonRpc = new JsonRpcConfig().proxyOf(server, TransactionApi.class);
         contractJsonRpc = new JsonRpcConfig().proxyOf(server, ContractApi.class);
+        blockJsonRpc = new JsonRpcConfig().proxyOf(server, BlockApi.class);
+
+        bc = branchGroup.getBranch(branchId);
     }
 
     @Test
@@ -88,17 +112,19 @@ public class YeedContractE2ETest extends TestConstants.SlowTest {
 
         // act
         for (int i = 0; i < txSendCount; i++) {
-            /*
-            TODO make 1 yeed transfer tx body
+            JsonObject txBody = ContractTestUtils.transferTxBodyJson(TestConstants.TRANSFER_TO, BigInteger.ONE);
             Transaction tx = builder.setTxBody(txBody)
                     .setWallet(wallet)
                     .setBranchId(branchId)
                     .build();
             txJsonRpc.sendTransaction(TransactionDto.createBy(tx));
-            */
+            log.debug("Send Transaction > Hash =  {}, index = {}", tx.getHash(), i);
         }
         // TODO wait for generating blocks by scheduler (every 10 seconds)
 
+        //Utils.sleep(20000);
+
+        //blockJsonRpc.blockNumber(branchId.toString());
 
         // assert
         BigInteger frontierExpected = new BigInteger("1000000000000000000000");
@@ -111,7 +137,7 @@ public class YeedContractE2ETest extends TestConstants.SlowTest {
 
     private BigInteger balanceOf(String address) {
         Map params = ContractApiImplTest.createParams("address", address);
-        return (BigInteger) contractJsonRpc.query(branchId,
+        return (BigInteger) contractJsonRpc.query(branchId.toString(),
                 TestConstants.YEED_CONTRACT.toString(), "balanceOf", params);
     }
 }

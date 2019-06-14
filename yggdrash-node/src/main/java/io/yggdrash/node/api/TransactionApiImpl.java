@@ -91,7 +91,7 @@ public class TransactionApiImpl implements TransactionApi {
         Map<String, List<String>> errorLogs = branchGroup.addTransaction(transaction);
 
         if (errorLogs.size() > 0) {
-            log.debug("sendTransaction Error : {}", errorLogs);
+            log.warn("sendTransaction Error : {}", errorLogs);
         }
 
         return errorLogs.size() > 0 ? TransactionResponseDto.createBy(tx.txId, false, errorLogs)
@@ -104,7 +104,7 @@ public class TransactionApiImpl implements TransactionApi {
         Map<String, List<String>> errorLogs = branchGroup.addTransaction(transaction);
 
         if (errorLogs.size() > 0) {
-            log.debug("SendRawTransaction Error : {}", errorLogs);
+            log.warn("SendRawTransaction Error : {}", errorLogs);
         } else {
             log.debug("SendRawTransaction Success : {}", transaction.getHash());
         }

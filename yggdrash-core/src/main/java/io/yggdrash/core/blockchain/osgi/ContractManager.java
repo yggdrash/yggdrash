@@ -484,7 +484,7 @@ public class ContractManager {
         for (Transaction tx : nextBlock.getBody().getTransactionList()) {
 
             String contractVersion = getContractVersion(tx);
-            log.debug("executeTxs contractVersion : {}", contractVersion);
+            //log.debug("executeTxs contractVersion : {}", contractVersion);
             // Not exist contract in map
             if (!serviceMap.containsKey(contractVersion)) {
                 Bundle bundle = getBundle(contractVersion);

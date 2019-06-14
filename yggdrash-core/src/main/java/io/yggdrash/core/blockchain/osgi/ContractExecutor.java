@@ -38,6 +38,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ContractExecutor {
     private static final Logger log = LoggerFactory.getLogger(ContractExecutor.class);
@@ -50,6 +52,11 @@ public class ContractExecutor {
     private TransactionReceiptAdapter trAdapter;
     private final LogIndexer logIndexer;
     private ContractChannelCoupler coupler;
+
+    private final ReentrantLock locker = new ReentrantLock();
+    private final Condition isBlockExecuting = locker.newCondition();
+
+    private boolean isTx = false;
 
     ContractExecutor(Framework framework, ContractStore contractStore, SystemProperties systemProperties,
                      LogStore logStore) {
@@ -193,6 +200,16 @@ public class ContractExecutor {
     }
 
     TransactionRuntimeResult executeTx(String contractVersion, Object service, Transaction tx) {
+        locker.lock();
+        while (!isTx) {
+            try {
+                isBlockExecuting.await();
+            } catch (InterruptedException e) {
+                log.warn("executeTx err : {}", e.getMessage());
+            }
+        }
+        isTx = true;
+
         TransactionReceipt txReceipt = createTransactionReceipt(tx);
         TransactionRuntimeResult txRuntimeResult = new TransactionRuntimeResult(tx);
         txRuntimeResult.setTransactionReceipt(txReceipt);
@@ -202,10 +219,13 @@ public class ContractExecutor {
         //invoke transaction
         txRuntimeResult.setChangeValues(invoke(contractVersion, service, txBody, txReceipt));
         contractStore.getTmpStateStore().close(); // clear(revert) tmpStateStore
+        locker.unlock();
         return txRuntimeResult;
     }
 
     BlockRuntimeResult executeTxs(Map<String, Object> serviceMap, ConsensusBlock nextBlock) {
+        locker.lock();
+        isTx = false;
         // Set Coupler Contract and contractCache
         log.debug("Service Map Size : {} ", serviceMap.size());
         coupler.setContract(serviceMap, contractCache);
@@ -219,7 +239,6 @@ public class ContractExecutor {
         }
 
         BlockRuntimeResult blockRuntimeResult = new BlockRuntimeResult(nextBlock);
-
         for (Transaction tx : txList) {
             // get all exceptions
             TransactionReceipt txReceipt = createTransactionReceipt(tx);
@@ -246,10 +265,12 @@ public class ContractExecutor {
             blockRuntimeResult.addTxReceipt(txReceipt);
         }
         contractStore.getTmpStateStore().close(); // clear(revert) tmpStateStore
+        locker.unlock();
         return blockRuntimeResult;
     }
 
     void commitBlockResult(BlockRuntimeResult result) {
+        locker.lock();
         // TODO store transaction by batch
         Map<String, JsonObject> changes = result.getBlockResult();
         TransactionReceiptStore transactionReceiptStore = contractStore.getTransactionReceiptStore();
@@ -259,6 +280,9 @@ public class ContractExecutor {
             StateStore stateStore = contractStore.getStateStore();
             changes.forEach(stateStore::put);
         }
+        isTx = true;
+        isBlockExecuting.signal();
+        locker.unlock();
         // TODO make transaction Receipt Event
     }
 
