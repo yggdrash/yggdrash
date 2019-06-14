@@ -11,7 +11,6 @@ import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.LogStore;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -32,14 +31,12 @@ import org.osgi.service.condpermadmin.ConditionalPermissionUpdate;
 import org.osgi.service.permissionadmin.PermissionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilePermission;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.ReflectPermission;
-import java.net.SocketPermission;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -250,10 +247,6 @@ public class ContractManager {
         List<PermissionInfo> systemPermissions = commonPermissions;
         // Add Branch File Write
         systemPermissions.add(new PermissionInfo(filePermissionName, branchStoreFile, allPermission));
-        if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getElasticsearchHost())) {
-            systemPermissions.add(new PermissionInfo(
-                    SocketPermission.class.getName(), systemProperties.getElasticsearchAddress(), "connect,resolve"));
-        }
         // Bundle 파일의 위치로 권한을 할당한다.
         // {BID}-container-permission-system-file
         infos.add(admin.newConditionalPermissionInfo(
@@ -271,11 +264,6 @@ public class ContractManager {
         List<PermissionInfo> userPermissions = commonPermissions;
         userPermissions.add(new PermissionInfo(filePermissionName, branchStoreFile, "read"));
 
-        if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getElasticsearchHost())) {
-            userPermissions.add(
-                    new PermissionInfo(SocketPermission.class.getName(),
-                            systemProperties.getElasticsearchAddress(), "connect,resolve"));
-        }
         infos.add(admin.newConditionalPermissionInfo(
                 String.format("%s-user-file", permissionKey),
                 new ConditionInfo[]{new ConditionInfo(BundleLocationCondition.class.getName(),
