@@ -160,8 +160,10 @@ public class BlockChainSyncManager implements SyncManager {
     // When broadcastBlock is called (BlockServiceConsumer)
     @Override
     public void catchUpRequest(ConsensusBlock block) {
+        log.trace("catchUpRequest() block {}", block.getBlock().toJsonObject().toString());
         BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
         if (blockChain == null) {
+            log.trace("catchUpRequest(): blockChain is null. {}", block.getBlock().getBranchId().toString());
             return;
         }
 
@@ -179,6 +181,7 @@ public class BlockChainSyncManager implements SyncManager {
     public void catchUpRequest(BranchId branchId, long offset) {
         BlockChain blockChain = branchGroup.getBranch(branchId);
         if (blockChain == null) {
+            log.trace("catchUpRequest(): blockChain is null. {}", branchId.toString());
             return;
         }
 
@@ -190,6 +193,7 @@ public class BlockChainSyncManager implements SyncManager {
     public void catchUpRequest(BranchId branchId, Peer from) {
         BlockChain blockChain = branchGroup.getBranch(branchId);
         if (blockChain == null) {
+            log.trace("catchUpRequest(): blockChain is null. {}", branchId.toString());
             return;
         }
 
@@ -215,6 +219,7 @@ public class BlockChainSyncManager implements SyncManager {
 
     private void reqSyncBlockToHandlers(BlockChain blockChain) {
         if (!nodeStatus.isUpStatus()) {
+            log.debug("NodeStatus is down.");
             return;
         }
         BranchId branchId = blockChain.getBranchId();
