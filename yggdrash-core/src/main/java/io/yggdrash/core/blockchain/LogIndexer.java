@@ -36,7 +36,7 @@ public class LogIndexer {
     }
 
     public void put(String txId, int size) { //TODO check log duplicated
-        log.debug("put logs : txId = {}, size = {}", txId, size);
+        //log.debug("put logs : txId = {}, size = {}", txId, size);
         IntStream.range(0, size).mapToObj(i -> String.format(keyFormat, txId, i)).forEach(logStore::put);
     }
 
