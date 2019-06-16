@@ -66,8 +66,8 @@ public class BlockChainSyncManager implements SyncManager {
             log.debug("[SyncManager] Synchronize reqStart={} receivedSize={}, receivedStart={} receivedEnd={} from={}",
                     offset,
                     blockList.size(),
-                    blockList.toArray()[0],
-                    blockList.toArray()[blockList.size() - 1],
+                    ((ConsensusBlock) blockList.toArray()[0]).getBlock().getIndex(),
+                    ((ConsensusBlock) blockList.toArray()[blockList.size() - 1]).getBlock().getIndex(),
                     peerHandler.getPeer().getYnodeUri());
 
             for (ConsensusBlock block : blockList) {
