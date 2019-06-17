@@ -57,8 +57,8 @@ public class DefaultConfig {
             File file = new File(referenceConfig.getString(YGG_DATA_PATH), "admin.conf");
             Config adminConfig = ConfigFactory.parseFile(file);
 
-            config = apiConfig
-                    .withFallback(adminConfig)
+            config = adminConfig
+                    .withFallback(apiConfig)
                     .withFallback(referenceConfig);
 
             Config javaSystemProperties = ConfigFactory.load("no-such-resource-only-system-props");
@@ -85,7 +85,7 @@ public class DefaultConfig {
         String yggDataPath = referenceConfig.getString(YGG_DATA_PATH);
         String path = basePath + File.separator + yggDataPath;
         path = path.replace("//", "/");
-        Config prodConfig = ConfigFactory.parseString(YGG_DATA_PATH + " = " + path);
+        Config prodConfig = ConfigFactory.parseFile(new File(path, "yggdrash.conf"));
 
         return prodConfig.withFallback(referenceConfig).resolve();
     }
