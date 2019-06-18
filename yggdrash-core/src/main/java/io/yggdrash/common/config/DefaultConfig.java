@@ -24,6 +24,8 @@ import static io.yggdrash.common.config.Constants.PROPERTY_NODE_NAME;
 import static io.yggdrash.common.config.Constants.PROPERTY_NODE_VER;
 import static io.yggdrash.common.config.Constants.VALIDATOR_DATABASE_PATH;
 import static io.yggdrash.common.config.Constants.VALIDATOR_PATH;
+import static io.yggdrash.common.config.Constants.YGG_ADMIN_CONF_PATH;
+import static io.yggdrash.common.config.Constants.YGG_CONF_PATH;
 import static io.yggdrash.common.config.Constants.YGG_DATA_PATH;
 
 /**
@@ -52,10 +54,8 @@ public class DefaultConfig {
     public DefaultConfig(Config apiConfig, boolean productionMode) {
         try {
             this.productionMode = productionMode;
-            Config referenceConfig = getReferenceConfig();
-
-            File file = new File(referenceConfig.getString(YGG_DATA_PATH), "admin.conf");
-            Config adminConfig = ConfigFactory.parseFile(file);
+            Config referenceConfig = getYggdrashConfig();
+            Config adminConfig = getAdminConfig();
 
             config = adminConfig
                     .withFallback(apiConfig)
@@ -69,23 +69,24 @@ public class DefaultConfig {
         }
     }
 
-    private Config getReferenceConfig() {
-        Config referenceConfig = ConfigFactory.parseResources("yggdrash.conf");
-
-        String userName = System.getProperty("user.name");
+    private Config getYggdrashConfig() {
         String basePath;
         if (productionMode) {
             basePath = System.getProperty("user.home");
         } else {
             basePath = System.getProperty("user.dir");
         }
+        return ConfigFactory.parseFile(new File(basePath + File.separator + YGG_CONF_PATH));
+    }
 
-        String yggDataPath = referenceConfig.getString(YGG_DATA_PATH);
-        String path = basePath + File.separator + yggDataPath;
-        path = path.replace("//", "/");
-        Config prodConfig = ConfigFactory.parseFile(new File(path, "yggdrash.conf"));
-
-        return prodConfig.withFallback(referenceConfig).resolve();
+    private Config getAdminConfig() {
+        String basePath;
+        if (productionMode) {
+            basePath = System.getProperty("user.home");
+        } else {
+            basePath = System.getProperty("user.dir");
+        }
+        return ConfigFactory.parseFile(new File(basePath + File.separator + YGG_ADMIN_CONF_PATH));
     }
 
     public Config getConfig() {
