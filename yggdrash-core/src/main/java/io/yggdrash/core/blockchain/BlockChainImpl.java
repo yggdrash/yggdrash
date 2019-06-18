@@ -169,6 +169,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             lock.lock();
 
             if (nextBlock.getIndex() != 0
+                    && blockChainManager.getLastIndex() != 0
                     && nextBlock.getIndex() != blockChainManager.getLastIndex() + 1) {
                 log.trace("Addblock() failed. LastIndex {}, nextBlockIndex {}",
                         blockChainManager.getLastIndex(),
