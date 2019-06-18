@@ -178,7 +178,7 @@ public class ContractExecutor {
         return contractStore.getTmpStateStore().changeValues();
     }
 
-    // TODO fix End Block call by excution
+    // TODO fix End Block call by execution
     private List<Object> endBlock(String location, Object service, JsonObject endBlockParams) {
         List<Object> results = new ArrayList<>();
         for (Bundle bundle : framework.getBundleContext().getBundles()) {
@@ -199,7 +199,7 @@ public class ContractExecutor {
         return results;
     }
 
-    TransactionRuntimeResult executeTx(String contractVersion, Object service, Transaction tx) {
+    TransactionRuntimeResult executeTx(Map<String, Object> serviceMap, Transaction tx) {
         locker.lock();
         while (!isTx) {
             try {
@@ -212,12 +212,18 @@ public class ContractExecutor {
 
         TransactionReceipt txReceipt = createTransactionReceipt(tx);
         TransactionRuntimeResult txRuntimeResult = new TransactionRuntimeResult(tx);
-        txRuntimeResult.setTransactionReceipt(txReceipt);
 
         JsonObject txBody = tx.getBody().getBody();
+        String contractVersion = txBody.get("contractVersion").getAsString();
+        Object service = serviceMap.get(contractVersion);
 
-        //invoke transaction
-        txRuntimeResult.setChangeValues(invoke(contractVersion, service, txBody, txReceipt));
+        if (service != null) {
+            txRuntimeResult.setChangeValues(invoke(contractVersion, service, txBody, txReceipt));
+        } else {
+            txReceipt.setStatus(ExecuteStatus.ERROR);
+            txReceipt.addLog(SystemError.CONTRACT_VERSION_NOT_FOUND.toString());
+        }
+        txRuntimeResult.setTransactionReceipt(txReceipt);
         contractStore.getTmpStateStore().close(); // clear(revert) tmpStateStore
         locker.unlock();
         return txRuntimeResult;
@@ -258,11 +264,8 @@ public class ContractExecutor {
                 txReceipt.addLog(SystemError.CONTRACT_VERSION_NOT_FOUND.toString());
             }
 
-            //TODO Q. Where will the contractResult be used?
-
-            log.debug("{} : {}", txReceipt.getTxId(), txReceipt.isSuccess());
-
             blockRuntimeResult.addTxReceipt(txReceipt);
+            log.debug("{} : {}", txReceipt.getTxId(), txReceipt.isSuccess());
         }
         contractStore.getTmpStateStore().close(); // clear(revert) tmpStateStore
         locker.unlock();

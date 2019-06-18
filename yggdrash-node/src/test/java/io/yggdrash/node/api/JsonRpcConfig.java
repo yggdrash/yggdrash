@@ -36,7 +36,7 @@ public class JsonRpcConfig {
             if (server.indexOf("http://") > -1) {
                 // Server is api url
                 url = new URL(String.format("%s/%s",server.trim(),apiPath));
-            }else {
+            } else {
                 // Server is just ip address
                 url = new URL(String.format("http://%s:8080/api/%s", server, apiPath));
             }
@@ -59,7 +59,8 @@ public class JsonRpcConfig {
             log.error(e.getMessage());
         }
         ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .configure(DeserializationFeature.USE_BIG_INTEGER_FOR_INTS, true);
         return new JsonRpcHttpClient(objectMapper, url, map);
     }
 }

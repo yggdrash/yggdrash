@@ -16,14 +16,18 @@
 
 package io.yggdrash.node.e2e;
 
-import com.google.gson.JsonObject;
+import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.blockchain.BlockChainManager;
+import io.yggdrash.core.blockchain.BranchEventListener;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;
+import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.node.ContractDemoClientUtils;
@@ -33,8 +37,8 @@ import io.yggdrash.node.api.ContractApi;
 import io.yggdrash.node.api.ContractApiImplTest;
 import io.yggdrash.node.api.JsonRpcConfig;
 import io.yggdrash.node.api.TransactionApi;
+import io.yggdrash.proto.PbftProto;
 import org.apache.commons.io.FileUtils;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -49,8 +53,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.File;
 import java.math.BigInteger;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
@@ -65,7 +75,7 @@ public class YeedContractE2ETest extends TestConstants.SlowTest {
     private static Wallet wallet = ContractDemoClientUtils.getWallet();
 
     private BlockChain bc;
-    private long blockIndex;
+    private BlockChainManager mgr;
 
     private TransactionApi txJsonRpc;
     private ContractApi contractJsonRpc;
@@ -93,6 +103,27 @@ public class YeedContractE2ETest extends TestConstants.SlowTest {
         blockJsonRpc = new JsonRpcConfig().proxyOf(server, BlockApi.class);
 
         bc = branchGroup.getBranch(branchId);
+        mgr = bc.getBlockChainManager();
+    }
+
+    @Test
+    public void addBlockWithoutSendTransaction() {
+        ConsensusBlock<PbftProto.PbftBlock> genesis = BlockChainTestUtils.genesisBlock();
+
+        assertEquals(1, mgr.countOfBlocks());
+        assertEquals(genesis.getBody().getTransactionList().size(), mgr.countOfTxs());
+        assertEquals(genesis.getBody().getTransactionList().size(), mgr.getRecentTxs().size());
+
+        ConsensusBlock<PbftProto.PbftBlock> block = BlockChainTestUtils.createNextBlock(createTxs(10), genesis);
+
+        bc.addBlock(block, false);
+
+        assertEquals(2, mgr.countOfBlocks());
+        assertEquals(13, bc.getBlockChainManager().countOfTxs());
+        assertEquals(13, bc.getBlockChainManager().getRecentTxs().size());
+        assertEquals(0, bc.getBlockChainManager().getUnconfirmedTxs().size());
+
+        block.getBody().getTransactionList().forEach(tx -> assertTrue(bc.getBlockChainManager().contains(tx)));
     }
 
     @Test
@@ -101,38 +132,55 @@ public class YeedContractE2ETest extends TestConstants.SlowTest {
         BigInteger balance = balanceOf(wallet.getHexAddress());
 
         // assert
-        Assert.assertEquals(new BigInteger("1000000000000000000000"), balance);
+        assertEquals(new BigInteger("1000000000000000000000"), balance);
     }
 
     @Test
     public void shouldTransferredYeed() {
+        int txSendCount = 300;
+        List<Transaction> txs = createTxs(txSendCount);
+
         // arrange
-        int txSendCount = 700;
-        TransactionBuilder builder = new TransactionBuilder();
+        bc.addListener(new BranchEventListener() {
+            @Override
+            public void chainedBlock(ConsensusBlock block) {
+                assertNotNull(block);
+                log.debug("The txs size of chained block : {}", block.getBlock().getBody().getTransactionList().size());
+                log.debug("The last index : {}", mgr.getLastIndex());
+            }
 
-        // act
-        for (int i = 0; i < txSendCount; i++) {
-            JsonObject txBody = ContractTestUtils.transferTxBodyJson(TestConstants.TRANSFER_TO, BigInteger.ONE);
-            Transaction tx = builder.setTxBody(txBody)
-                    .setWallet(wallet)
-                    .setBranchId(branchId)
-                    .build();
-            txJsonRpc.sendTransaction(TransactionDto.createBy(tx));
-            log.debug("Send Transaction > Hash =  {}, index = {}", tx.getHash(), i);
-        }
-        // TODO wait for generating blocks by scheduler (every 10 seconds)
+            @Override
+            public void receivedTransaction(Transaction tx) {
+                assertNotNull(tx);
+                assertTrue(txs.contains(tx));
+            }
+        });
 
-        //Utils.sleep(20000);
+        txs.forEach(tx -> txJsonRpc.sendTransaction(TransactionDto.createBy(tx)));
 
-        //blockJsonRpc.blockNumber(branchId.toString());
+        Utils.sleep(10000);
+
+        assertEquals(mgr.getLastIndex(), blockJsonRpc.blockNumber(branchId.toString()));
+        assertEquals(303, mgr.getRecentTxs().size());
+        assertEquals(303, mgr.getRecentTxs().size());
+        assertEquals(0, mgr.getUnconfirmedTxs().size());
 
         // assert
         BigInteger frontierExpected = new BigInteger("1000000000000000000000");
         frontierExpected = frontierExpected.subtract(BigInteger.valueOf(txSendCount));
 
-        // TODO assert frontier and transferredAddress
-        //Assert.assertEquals(frontierExpected, balanceOf(wallet.getHexAddress()));
-        //Assert.assertEquals(BigInteger.valueOf(txSendCount), balanceOf(transferredAddress));
+        assertEquals(frontierExpected, balanceOf(wallet.getHexAddress()));
+        assertEquals(BigInteger.valueOf(txSendCount), balanceOf(TestConstants.TRANSFER_TO));
+    }
+
+    private List<Transaction> createTxs(int cnt) {
+        return IntStream.range(0, cnt)
+                .mapToObj(i -> ContractTestUtils.transferTxBodyJson(TestConstants.TRANSFER_TO, BigInteger.ONE))
+                .map(txBody -> new TransactionBuilder().setTxBody(txBody)
+                        .setWallet(wallet)
+                        .setBranchId(branchId)
+                        .build())
+                .collect(Collectors.toList());
     }
 
     private BigInteger balanceOf(String address) {
