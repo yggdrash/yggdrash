@@ -54,6 +54,9 @@ public class DefaultConfigTest {
         } else {
             expectedDataPath = System.getProperty("user.home") + File.separator + ".yggdrash";
         }
+
+        log.debug("yggDataPath: {}", yggDataPath);
+        log.debug("expectedDataPath: {}", expectedDataPath);
         assertThat(yggDataPath).isEqualTo(expectedDataPath);
     }
 
