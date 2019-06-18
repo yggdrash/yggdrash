@@ -130,7 +130,8 @@ public class ContractExecutor {
         Map<String, Method> methodMap = contractCache.getContractMethodMap(contractVersion, methodType);
 
         if (methodMap == null || methodMap.get(methodName) == null) {
-            log.error("Method Type is not exist");
+            txReceipt.setStatus(ExecuteStatus.ERROR);
+            txReceipt.addLog("Method Type is not exist");
             return null;
         }
 

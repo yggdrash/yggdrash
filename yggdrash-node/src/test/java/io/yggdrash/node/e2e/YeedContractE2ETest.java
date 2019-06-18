@@ -26,7 +26,6 @@ import io.yggdrash.core.blockchain.BranchEventListener;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.gateway.dto.TransactionDto;
@@ -53,6 +52,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.File;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -127,6 +127,26 @@ public class YeedContractE2ETest extends TestConstants.SlowTest {
     }
 
     @Test
+    public void sendUnExecutableTxs() {
+        List<Transaction> txs = new ArrayList<>();
+        txs.addAll(createTxs(200));
+        txs.addAll(createInvalidFormatTxs(100));
+        txs.addAll(createInvalidMethodTxs(100));
+
+        txs.forEach(tx -> txJsonRpc.sendTransaction(TransactionDto.createBy(tx)));
+
+        Utils.sleep(10000);
+
+        assertEquals(203, mgr.getRecentTxs().size());
+        assertEquals(203, mgr.countOfTxs());
+        assertEquals(0, mgr.getUnconfirmedTxs().size());
+        BigInteger frontierExpected = new BigInteger("1000000000000000000000");
+        frontierExpected = frontierExpected.subtract(BigInteger.valueOf(200));
+        assertEquals(frontierExpected, balanceOf(wallet.getHexAddress()));
+        assertEquals(BigInteger.valueOf(200), balanceOf(TestConstants.TRANSFER_TO));
+    }
+
+    @Test
     public void shouldGetFrontierBalance() {
         // act
         BigInteger balance = balanceOf(wallet.getHexAddress());
@@ -162,7 +182,7 @@ public class YeedContractE2ETest extends TestConstants.SlowTest {
 
         assertEquals(mgr.getLastIndex(), blockJsonRpc.blockNumber(branchId.toString()));
         assertEquals(303, mgr.getRecentTxs().size());
-        assertEquals(303, mgr.getRecentTxs().size());
+        assertEquals(303, mgr.countOfTxs());
         assertEquals(0, mgr.getUnconfirmedTxs().size());
 
         // assert
@@ -176,10 +196,23 @@ public class YeedContractE2ETest extends TestConstants.SlowTest {
     private List<Transaction> createTxs(int cnt) {
         return IntStream.range(0, cnt)
                 .mapToObj(i -> ContractTestUtils.transferTxBodyJson(TestConstants.TRANSFER_TO, BigInteger.ONE))
-                .map(txBody -> new TransactionBuilder().setTxBody(txBody)
-                        .setWallet(wallet)
-                        .setBranchId(branchId)
-                        .build())
+                .map(txBody -> BlockChainTestUtils.buildTx(txBody, wallet, branchId))
+                .collect(Collectors.toList());
+    }
+
+    private List<Transaction> createInvalidFormatTxs(int cnt) {
+        List<Transaction> txs = new ArrayList<>();
+        IntStream.range(0, cnt)
+                .mapToObj(i -> BlockChainTestUtils.createInvalidTransferTx())
+                .forEach(txs::add);
+        return txs;
+    }
+
+    private List<Transaction> createInvalidMethodTxs(int cnt) {
+        return IntStream.range(0, cnt)
+                .mapToObj(i -> ContractTestUtils.invalidMethodTransferTxBodyJson(
+                        TestConstants.TRANSFER_TO, BigInteger.ONE))
+                .map(txBody -> BlockChainTestUtils.buildTx(txBody, wallet, branchId))
                 .collect(Collectors.toList());
     }
 

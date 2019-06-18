@@ -52,11 +52,11 @@ public class ContractTestUtils {
         return txBodyJson(contractVersion, "transfer", params, true);
     }
 
-    public static JsonObject invalidTransferTxBodyJson(String to, BigInteger amount, ContractVersion contractVersion) {
+    public static JsonObject invalidMethodTransferTxBodyJson(String to, BigInteger amount) {
         JsonObject params = new JsonObject();
         params.addProperty("to", to);
         params.addProperty("amount", amount);
-        return txBodyJson(contractVersion, "transfer", params, true);
+        return txBodyJson(TestConstants.YEED_CONTRACT, "create", params, true);
     }
 
     public static JsonObject createTxBodyJson(JsonObject branch) {
