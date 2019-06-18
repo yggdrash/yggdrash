@@ -2,7 +2,6 @@ package io.yggdrash.common.config;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import io.yggdrash.core.exception.NotValidateException;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -55,12 +54,7 @@ public class DefaultConfigTest {
         } else {
             expectedDataPath = System.getProperty("user.home") + File.separator + ".yggdrash";
         }
-
-        if (yggDataPath.equals(expectedDataPath)) {
-            // for debugging in travis
-            throw new NotValidateException("\n yggDataPath: " + yggDataPath
-                    + " \n expectedDataPath: {}" + expectedDataPath);
-        }
+        assertThat(yggDataPath).isEqualTo(expectedDataPath);
     }
 
     /**

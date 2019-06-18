@@ -150,7 +150,13 @@ project(':yggdrash-core') {
 
     test {
         dependsOn copyContractToCore
+
+        testLogging {
+            events "passed", "skipped", "failed"
+            exceptionFormat "full"
+        }
     }
+
 }
 
 project(':yggdrash-validator') {
