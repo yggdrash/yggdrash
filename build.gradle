@@ -39,6 +39,14 @@ ext {
     set('elasticsearch.version', '7.0.1')
 }
 
+test {
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+    }
+}
+
+
 allprojects {
     apply plugin: 'com.github.kt3k.coveralls'
     apply plugin: 'jacoco'
@@ -75,6 +83,11 @@ subprojects {
         failFast = true
         systemProperty('spring.profiles.active', project.properties.get('springProfiles'))
         systemProperty('key.password', 'Aa1234567890!')
+
+        testLogging {
+            events "passed", "skipped", "failed"
+            exceptionFormat "full"
+        }
     }
 }
 
@@ -105,7 +118,6 @@ task copyContractToProject(type: Copy) {
     into projectContractPath
 
 }
-
 
 project(':yggdrash-core') {
     apply plugin: 'com.google.protobuf'
@@ -156,7 +168,6 @@ project(':yggdrash-core') {
             exceptionFormat "full"
         }
     }
-
 }
 
 project(':yggdrash-validator') {
@@ -234,9 +245,14 @@ project(':yggdrash-node') {
         with bootJar
     }
     bootJar.dependsOn customJar
-
+    
     test {
         dependsOn copyContractToNode
+
+        testLogging {
+            events "passed", "skipped", "failed"
+            exceptionFormat "full"
+        }
     }
 }
 
