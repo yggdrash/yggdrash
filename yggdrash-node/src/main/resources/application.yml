@@ -49,11 +49,6 @@ yggdrash:
 
 spring.profiles: prod
 
-yggdrash:
-  node:
-    seed-peer-list:
-      - "ynode://8dfce06ba4681d70fa0adf9a39d1f1092e62ae46@54.180.186.118:32918"
-
 
 ---
 
