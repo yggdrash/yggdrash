@@ -27,6 +27,7 @@ import static io.yggdrash.common.config.Constants.VALIDATOR_PATH;
 import static io.yggdrash.common.config.Constants.YGG_ADMIN_CONF_PATH;
 import static io.yggdrash.common.config.Constants.YGG_CONF_PATH;
 import static io.yggdrash.common.config.Constants.YGG_DATA_PATH;
+import static io.yggdrash.common.config.Constants.YGG_DEFAULT_FILENAME;
 
 /**
  * Default Configuration Class.
@@ -70,13 +71,17 @@ public class DefaultConfig {
     }
 
     private Config getYggdrashConfig() {
+        Config defaultConfig = ConfigFactory.parseResources(YGG_DEFAULT_FILENAME);
+
         String basePath;
         if (productionMode) {
             basePath = System.getProperty("user.home");
         } else {
             basePath = System.getProperty("user.dir");
         }
-        return ConfigFactory.parseFile(new File(basePath + File.separator + YGG_CONF_PATH));
+        Config yggdrashConfig = ConfigFactory.parseFile(new File(basePath + File.separator + YGG_CONF_PATH));
+
+        return yggdrashConfig.withFallback(defaultConfig).resolve();
     }
 
     private Config getAdminConfig() {

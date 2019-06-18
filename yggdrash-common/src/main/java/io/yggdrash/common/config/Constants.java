@@ -44,7 +44,8 @@ public final class Constants {
     public static final int PASSWORD_MAX = 32;
 
     public static final String YGG_DATA_PATH = "YGG_DATA_PATH";
-    public static final String YGG_CONF_PATH = ".yggdrash" + File.separator + "yggdrash.conf";
+    public static final String YGG_DEFAULT_FILENAME = "yggdrash.conf";
+    public static final String YGG_CONF_PATH = ".yggdrash" + File.separator + YGG_DEFAULT_FILENAME;
     public static final String YGG_ADMIN_CONF_PATH = ".yggdrash" + File.separator + "admin.conf";
     public static final String PROPERTY_KEYPATH = "key.path";
     public static final String PROPERTY_KEKPASS = "key.password";
