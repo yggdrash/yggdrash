@@ -74,9 +74,7 @@ public class DefaultConfig {
 
         String userName = System.getProperty("user.name");
         String basePath;
-        if ("root".equals(userName)) {
-            basePath = System.getProperty("user.dir");
-        } else if (productionMode) {
+        if (productionMode) {
             basePath = System.getProperty("user.home");
         } else {
             basePath = System.getProperty("user.dir");
