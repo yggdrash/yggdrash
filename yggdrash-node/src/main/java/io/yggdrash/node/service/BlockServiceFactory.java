@@ -34,9 +34,11 @@ import io.yggdrash.validator.data.ebft.EbftBlock;
 import io.yggdrash.validator.data.pbft.PbftBlock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.util.List;
 
+@ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
 public class BlockServiceFactory {
     private static final CommonProto.Empty EMPTY = CommonProto.Empty.getDefaultInstance();
 
