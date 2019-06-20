@@ -48,7 +48,8 @@ public class BranchGroupTest {
     @Before
     public void setUp() {
         branchGroup = BlockChainTestUtils.createBranchGroup();
-        tx = BlockChainTestUtils.createBranchTx();
+        //tx = BlockChainTestUtils.createBranchTx(); //TODO Check createBranchTx(). Branch prop not exists.
+        tx = BlockChainTestUtils.createTransferTx();
         assertThat(branchGroup.getBranchSize()).isEqualTo(1);
         BlockChain bc = branchGroup.getBranch(tx.getBranchId());
         block = BlockChainTestUtils.createNextBlock(bc.getBlockChainManager().getLastConfirmedBlock());
@@ -66,28 +67,31 @@ public class BranchGroupTest {
         assertThat(branchGroup.getRecentTxs(tx.getBranchId()).size()).isEqualTo(3);
         assertThat(branchGroup.countOfTxs(tx.getBranchId())).isEqualTo(3);
 
-        Assert.assertEquals(branchGroup.addTransaction(tx).size(), 0);
+        Map<String, List<String>> errLogs = branchGroup.addTransaction(tx);
+        Assert.assertEquals(0, errLogs.size());
         Transaction foundTxBySha3 = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
         assertThat(foundTxBySha3.getHash()).isEqualTo(tx.getHash());
 
         Transaction foundTxByString = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash().toString());
         assertThat(foundTxByString.getHash()).isEqualTo(tx.getHash());
-
         assertThat(branchGroup.getUnconfirmedTxs(tx.getBranchId()).size()).isEqualTo(1);
+        log.debug("Add valid tx to branchGroup. ErrorLog = {}", errLogs);
 
         Transaction invalidTx1 = BlockChainTestUtils
                 .createInvalidTransferTx(BranchId.of("696e76616c6964"), ContractVersion.of("696e76616c696420"));
-        Map<String, List<String>> errLogs = branchGroup.addTransaction(invalidTx1);
+        errLogs = branchGroup.addTransaction(invalidTx1);
         Assert.assertEquals(1, errLogs.size());
         Assert.assertTrue(errLogs.containsKey("SystemError"));
         Assert.assertTrue(errLogs.get("SystemError").contains("Branch doesn't exist"));
+        log.debug("Add invalid tx to branchGroup. ErrorLog = {}", errLogs);
 
         Transaction invalidTx2 = BlockChainTestUtils
                 .createInvalidTransferTx(ContractVersion.of("696e76616c696420"));
         errLogs = branchGroup.addTransaction(invalidTx2);
-        System.out.println(errLogs);
+        Assert.assertEquals(1, errLogs.size());
         Assert.assertTrue(errLogs.containsKey("SystemError"));
         Assert.assertTrue(errLogs.get("SystemError").contains("ContractVersion doesn't exist"));
+        log.debug("Add invalid tx to branchGroup. ErrorLog = {}", errLogs);
     }
 
     @Test

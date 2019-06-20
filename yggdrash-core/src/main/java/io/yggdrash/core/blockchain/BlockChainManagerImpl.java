@@ -15,6 +15,7 @@ package io.yggdrash.core.blockchain;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.util.VerifierUtils;
+import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.errorcode.BusinessError;
@@ -97,6 +98,8 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
 
         check |= BusinessError.addCode(verifyBlockHeight(nextBlock), BusinessError.UNKNOWN_BLOCK_HEIGHT);
 
+        //TODO Return immediately if blockHeight validation is failed.
+
         check |= BusinessError.addCode(verifyBlockHash(nextBlock), BusinessError.INVALID_BLOCK_HASH);
 
         check |= BusinessError.addCode(VerifierUtils.verifySignature(nextBlock), BusinessError.UNTRUSTED);
@@ -122,13 +125,20 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
 
     @Override
     public ConsensusBlock<T> addBlock(ConsensusBlock<T> nextBlock) {
+        // A block may contain txs not received by txApi and those txs also have to be stored in the storage
+        for (Transaction tx : nextBlock.getBody().getTransactionList()) {
+            if (transactionReceiptStore.contains(tx.getHash().toString())
+                    && transactionReceiptStore.get(tx.getHash().toString()).getStatus() != ExecuteStatus.ERROR) {
+                addTransaction(tx);
+            }
+        }
+
         // Store Block Index and Block Data
         this.blockStore.addBlock(nextBlock);
         this.lastConfirmedBlock = nextBlock;
 
         batchTxs(nextBlock);
         return nextBlock;
-
     }
 
     private void batchTxs(ConsensusBlock<T> block) {

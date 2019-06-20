@@ -246,7 +246,7 @@ public class BlockChainTestUtils {
         return createTransferTx(TestConstants.TRANSFER_TO, BigInteger.valueOf(100));
     }
 
-    private static Transaction createTransferTx(String to, BigInteger amount) {
+    public static Transaction createTransferTx(String to, BigInteger amount) {
         JsonObject txBody = ContractTestUtils.transferTxBodyJson(to, amount);
         return buildTx(txBody, TestConstants.yggdrash());
     }
@@ -262,30 +262,34 @@ public class BlockChainTestUtils {
         return buildTx(txBody, TestConstants.yggdrash());
     }
 
-    public static Transaction buildTx(JsonObject txBody, BranchId branchId) {
+    private static Transaction buildTx(JsonObject txBody, BranchId branchId) {
+        return buildTx(txBody, TestConstants.wallet(), branchId);
+    }
+
+    public static Transaction buildTx(JsonObject txBody, Wallet wallet, BranchId branchId) {
         TransactionBuilder builder = new TransactionBuilder();
         return builder.setTxBody(txBody)
-                .setWallet(TestConstants.wallet())
+                .setWallet(wallet)
                 .setBranchId(branchId)
                 .build();
     }
 
     public static Transaction createInvalidTransferTx(ContractVersion contractVersion) {
         JsonObject txBody = ContractTestUtils
-                .invalidTransferTxBodyJson(TestConstants.TRANSFER_TO, BigInteger.valueOf(100), contractVersion);
+                .transferTxBodyJson(TestConstants.TRANSFER_TO, BigInteger.valueOf(100), contractVersion);
         return createInvalidTx(TestConstants.yggdrash(), Constants.EMPTY_BYTE8, txBody);
     }
 
     public static Transaction createInvalidTransferTx(BranchId branchId, ContractVersion contractVersion) {
         JsonObject txBody = ContractTestUtils
-                .invalidTransferTxBodyJson(TestConstants.TRANSFER_TO, BigInteger.valueOf(100), contractVersion);
+                .transferTxBodyJson(TestConstants.TRANSFER_TO, BigInteger.valueOf(100), contractVersion);
         return createInvalidTx(branchId, Constants.EMPTY_BYTE8, txBody);
     }
 
     public static Transaction createInvalidTransferTx(
             BranchId branchId, ContractVersion contractVersion, BigInteger amount) {
         JsonObject txBody = ContractTestUtils
-                .invalidTransferTxBodyJson(TestConstants.TRANSFER_TO, amount, contractVersion);
+                .transferTxBodyJson(TestConstants.TRANSFER_TO, amount, contractVersion);
         return createInvalidTx(branchId, Constants.EMPTY_BYTE8, txBody);
     }
 
