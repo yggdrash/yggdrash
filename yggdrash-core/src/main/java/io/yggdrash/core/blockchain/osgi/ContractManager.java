@@ -31,6 +31,7 @@ import org.osgi.service.condpermadmin.ConditionalPermissionUpdate;
 import org.osgi.service.permissionadmin.PermissionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilePermission;
@@ -479,33 +480,26 @@ public class ContractManager {
     }
 
     public BlockRuntimeResult executeTxs(ConsensusBlock nextBlock) {
-//        Map<String, Object> serviceMap = new HashMap<>();   // => Map<contractVersion, service>
-
-        for (Transaction tx : nextBlock.getBody().getTransactionList()) {
-
-            String contractVersion = getContractVersion(tx);
-            //log.debug("executeTxs contractVersion : {}", contractVersion);
-            // Not exist contract in map
-            if (!serviceMap.containsKey(contractVersion)) {
-                Bundle bundle = getBundle(contractVersion);
-                if (bundle == null) {
-                    log.debug("executeTxs bundle is null");
-                    serviceMap.put(contractVersion, null);
-                } else {
-                    serviceMap.put(contractVersion, getService(bundle));
-                }
-            }
-        }
-
+        nextBlock.getBody().getTransactionList().forEach(tx -> registerContract(getContractVersion(tx)));
         return contractExecutor.executeTxs(serviceMap, nextBlock);
     }
 
     public TransactionRuntimeResult executeTx(Transaction tx) {
-        String contractVersion = getContractVersion(tx);
-        Bundle bundle = getBundle(contractVersion);
+        registerContract(getContractVersion(tx));
+        return contractExecutor.executeTx(serviceMap, tx);
+    }
 
-        return bundle != null ? contractExecutor.executeTx(contractVersion, getService(bundle), tx)
-                : new TransactionRuntimeResult(tx);
+    private void registerContract(String contractVersion) { // Register contractVersion and service to serviceMap
+        Bundle bundle = getBundle(contractVersion);
+        if (!serviceMap.containsKey(contractVersion)) { // Check the version exists in serviceMap
+            if (bundle == null) {
+                serviceMap.put(contractVersion, null);
+                log.debug("[Contract not registered] : {} (Bundle is null)", contractVersion);
+            } else {
+                serviceMap.put(contractVersion, getService(bundle));
+                log.debug("[Contract registered] : {}", contractVersion);
+            }
+        }
     }
 
     public void commitBlockResult(BlockRuntimeResult result) {
