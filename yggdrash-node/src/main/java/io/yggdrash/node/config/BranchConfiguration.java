@@ -100,9 +100,12 @@ public class BranchConfiguration {
 
         BranchLoader branchLoader = new BranchLoader(defaultConfig.getBranchPath());
         boolean isValidator = Arrays.asList(env.getActiveProfiles()).contains(ActiveProfiles.VALIDATOR);
-        if (isValidator) {
+        boolean isBsNode = Arrays.asList(env.getActiveProfiles()).contains(ActiveProfiles.BOOTSTRAP);
+
+        if (isValidator || isBsNode) {
             return branchLoader;
         }
+
         // TODO check exist branch
         try {
             for (GenesisBlock genesis : branchLoader.getGenesisBlockList()) {
