@@ -30,75 +30,6 @@
         </encoder>
     </appender>
 
-     <!--ES Appender -->
-    <springProperty scope="context" name="elasticsearchHost" source="elasticsearch.host" defaultValue=""/>
-    <springProperty scope="context" name="elasticsearchPort" source="elasticsearch.port" defaultValue="9200"/>
-    <springProperty scope="context" name="elasticsearchPrefixIndex" source="elasticsearch.prefix.index" defaultValue="yggdrash"/>
-    <appender name="ES" class="com.internetitem.logback.elasticsearch.ElasticsearchAppender">
-        <url>http://${elasticsearchHost}:${elasticsearchPort}/_bulk</url>
-        <index>${elasticsearchPrefixIndex}-%date{yyyy-MM-dd}</index>
-        <type>_doc</type>
-        <loggerName>es-logger</loggerName> <!-- optional -->
-        <errorLoggerName>es-error-logger</errorLoggerName> <!-- optional -->
-        <connectTimeout>30000</connectTimeout> <!-- optional (in ms, default 30000) -->
-        <errorsToStderr>false</errorsToStderr> <!-- optional (default false) -->
-        <includeCallerData>false</includeCallerData> <!-- optional (default false) -->
-        <logsToStderr>false</logsToStderr> <!-- optional (default false) -->
-        <maxQueueSize>104857600</maxQueueSize> <!-- optional (default 104857600) -->
-        <maxRetries>1</maxRetries> <!-- optional (default 3) -->
-        <readTimeout>30000</readTimeout> <!-- optional (in ms, default 30000) -->
-        <sleepTime>250</sleepTime> <!-- optional (in ms, default 250) -->
-        <rawJsonMessage>false</rawJsonMessage> <!-- optional (default false) -->
-        <includeMdc>false</includeMdc> <!-- optional (default false) -->
-        <maxMessageSize>1000</maxMessageSize> <!-- optional (default -1 -->
-        <properties>
-            <property>
-                <name>host</name>
-                <value>${HOSTNAME}</value>
-                <allowEmpty>false</allowEmpty>
-            </property>
-            <property>
-                <name>level</name>
-                <value>%level</value>
-            </property>
-            <property>
-                <name>thread</name>
-                <value>%thread</value>
-            </property>
-            <property>
-                <name>stacktrace</name>
-                <value>%ex</value>
-            </property>
-            <property>
-                <name>logger</name>
-                <value>%logger</value>
-            </property>
-            <property>
-                <name>method</name>
-                <value>%method</value>
-            </property>
-            <property>
-                <name>line</name>
-                <value>%line</value>
-            </property>
-            <property>
-                <name>caller</name>
-                <value>%caller{1..3}</value>
-            </property>
-        </properties>
-        <headers>
-            <header>
-                <name>Content-Type</name>
-                <value>application/json</value>
-            </header>
-        </headers>
-    </appender>
-
-    <if condition='!property("esHost").equals("")'>
-        <then>
-            <logger name="es-logger" level="WARN"/>
-        </then>
-    </if>
 
     <!-- TRACE > DEBUG > INFO > WARN > ERROR -->
     <springProfile name="debug">
@@ -135,11 +66,6 @@
         <root level="INFO">
             <appender-ref ref="Console"/>
             <appender-ref ref="FILE"/>
-            <if condition='!property("elasticsearchHost").equals("")'>
-                <then>
-                    <appender-ref ref="ES"/>
-                </then>
-            </if>
         </root>
     </springProfile>
 </configuration>
