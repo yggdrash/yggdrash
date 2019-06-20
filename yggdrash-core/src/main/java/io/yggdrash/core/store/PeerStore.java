@@ -24,6 +24,8 @@ import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 import java.util.ArrayList;
@@ -31,6 +33,7 @@ import java.util.List;
 
 public class PeerStore implements ReadWriterStore<PeerId, Peer> {
 
+    private static final Logger log = LoggerFactory.getLogger(PeerStore.class);
     private static final byte[] TOTAL_SIZE = SerializationUtil.serializeString("TOTAL_SIZE");
 
     private final DbSource<byte[], byte[]> db;
@@ -63,7 +66,8 @@ public class PeerStore implements ReadWriterStore<PeerId, Peer> {
         if (foundedValue != null) {
             return Peer.valueOf(foundedValue);
         }
-        throw new NonExistObjectException(Hex.toHexString(key)); //TODO handling exception
+        log.warn(new NonExistObjectException(Hex.toHexString(key)).getMessage());
+        return null;
     }
 
     @Override
@@ -109,7 +113,12 @@ public class PeerStore implements ReadWriterStore<PeerId, Peer> {
             byte[] indexKey = getIndexKey(i);
             byte[] key = db.get(indexKey);
             Peer peer = get(key);
-            list.add(peer.getYnodeUri());
+            if (peer != null) {
+                list.add(peer.getYnodeUri());
+            } else {
+                // {PeerId:Peer} has been removed, but {IndexKey:PeerId} still remains
+                db.delete(indexKey);
+            }
         }
         return list;
     }
