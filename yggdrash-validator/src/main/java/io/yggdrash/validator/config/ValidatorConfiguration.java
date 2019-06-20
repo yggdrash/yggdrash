@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static io.yggdrash.common.config.Constants.VALIDATOR_PATH;
+
 @Configuration
 public class ValidatorConfiguration {
 
@@ -29,8 +31,7 @@ public class ValidatorConfiguration {
 
     @Bean
     public void makeValidatorService() throws IOException, InvalidCipherTextException {
-
-        File validatorPath = new File(new DefaultConfig().getString("yggdrash.validator.path"));
+        File validatorPath = new File(new DefaultConfig().getString(VALIDATOR_PATH));
         if (!validatorPath.exists() || validatorPath.listFiles() == null) {
             throw new FailedOperationException("Can't read validatorPath=" + validatorPath.getAbsolutePath());
         }
@@ -46,6 +47,5 @@ public class ValidatorConfiguration {
 
             validatorServiceList.add(new ValidatorService(validatorConfig, genesisBlock));
         }
-
     }
 }

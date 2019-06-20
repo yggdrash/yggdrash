@@ -1,5 +1,6 @@
 package io.yggdrash.node.service;
 
+import ch.qos.logback.classic.Level;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.yggdrash.common.config.DefaultConfig;
@@ -9,7 +10,6 @@ import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.BlockStoreFactory;
-import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.EbftProto;
 import io.yggdrash.proto.PbftProto;
@@ -23,6 +23,7 @@ import io.yggdrash.validator.service.pbft.PbftServerStub;
 import io.yggdrash.validator.service.pbft.PbftService;
 import io.yggdrash.validator.store.ebft.EbftBlockStore;
 import io.yggdrash.validator.store.pbft.PbftBlockStore;
+import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
@@ -45,6 +46,9 @@ public class ValidatorService {
         this.port = defaultConfig.getInt("yggdrash.validator.port");
         this.wallet = new Wallet(defaultConfig.getString("yggdrash.validator.key.path"),
                 defaultConfig.getString("yggdrash.validator.key.password"));
+
+        setLogLevel(defaultConfig);
+
         this.taskScheduler = threadPoolTaskScheduler();
 
         Consensus consensus = blockChain.getConsensus();
@@ -78,6 +82,12 @@ public class ValidatorService {
             default:
                 throw new NotValidateException(NOT_VALID_MSG);
         }
+    }
+
+    private void setLogLevel(DefaultConfig defaultConfig) {
+        String logLevel = defaultConfig.getString("yggdrash.validator.log.level");
+        ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger("io.yggdrash.validator"))
+                .setLevel(Level.toLevel(logLevel, Level.INFO));
     }
 
     private ThreadPoolTaskScheduler threadPoolTaskScheduler() {

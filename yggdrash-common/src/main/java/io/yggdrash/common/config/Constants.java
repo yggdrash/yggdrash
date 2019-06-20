@@ -3,6 +3,8 @@ package io.yggdrash.common.config;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.SerializationUtil;
 
+import java.io.File;
+
 public final class Constants {
 
     private Constants() {
@@ -42,6 +44,9 @@ public final class Constants {
     public static final int PASSWORD_MAX = 32;
 
     public static final String YGG_DATA_PATH = "YGG_DATA_PATH";
+    public static final String YGG_DEFAULT_FILENAME = "yggdrash.conf";
+    public static final String YGG_CONF_PATH = ".yggdrash" + File.separator + YGG_DEFAULT_FILENAME;
+    public static final String YGG_ADMIN_CONF_PATH = ".yggdrash" + File.separator + "admin.conf";
     public static final String PROPERTY_KEYPATH = "key.path";
     public static final String PROPERTY_KEKPASS = "key.password";
     public static final String PROPERTY_NODE_NAME = "node.name";

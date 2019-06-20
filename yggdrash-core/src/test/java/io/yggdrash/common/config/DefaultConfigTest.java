@@ -7,8 +7,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DefaultConfigTest {
@@ -42,19 +40,6 @@ public class DefaultConfigTest {
         log.debug("DefaultConfig network.port: "
                 + defaultConfig.getString("network.port"));
 
-    }
-
-    @Test
-    public void productionConfigTest() {
-        DefaultConfig productionConfig = new DefaultConfig(true);
-        String yggDataPath = productionConfig.getYggDataPath();
-        String expectedDataPath;
-        if ("root".equals(System.getProperty("user.name"))) {
-            expectedDataPath = System.getProperty("user.dir") + File.separator + ".yggdrash";
-        } else {
-            expectedDataPath = System.getProperty("user.home") + File.separator + ".yggdrash";
-        }
-        assertThat(yggDataPath).isEqualTo(expectedDataPath);
     }
 
     /**

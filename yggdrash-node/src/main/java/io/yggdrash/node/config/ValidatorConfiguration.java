@@ -15,7 +15,6 @@ import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
-import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.service.ValidatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,18 +87,18 @@ public class ValidatorConfiguration {
                 continue;
             }
 
-            Config referenceConfig = ConfigFactory.parseFile(validatorConfFile);
-            Config config = referenceConfig.withFallback(defaultConfig.getConfig()).resolve();
-            DefaultConfig validatorConfig = new DefaultConfig(config, defaultConfig.isProductionMode());
-            log.debug("{}:{}, key={}", validatorConfig.getString("yggdrash.validator.host"),
-                    validatorConfig.getString("yggdrash.validator.port"),
-                    validatorConfig.getString("yggdrash.validator.key.path"));
+            Config validatorConfig = ConfigFactory.parseFile(validatorConfFile);
+            Config fallbackConfig = validatorConfig.withFallback(defaultConfig.getConfig()).resolve();
+            DefaultConfig mergedConfig = new DefaultConfig(fallbackConfig, defaultConfig.isProductionMode());
+            log.debug("{}:{}, key={}", mergedConfig.getString("yggdrash.validator.host"),
+                    mergedConfig.getString("yggdrash.validator.port"),
+                    mergedConfig.getString("yggdrash.validator.key.path"));
             try {
                 BranchId branchId = genesis.getBranch().getBranchId();
 
                 BlockChainStoreBuilder builder = BlockChainStoreBuilder.newBuilder(branchId);
-                builder.withDataBasePath(defaultConfig.getDatabasePath())
-                        .withProductionMode(defaultConfig.isProductionMode())
+                builder.withDataBasePath(mergedConfig.getDatabasePath())
+                        .withProductionMode(mergedConfig.isProductionMode())
                         .setBlockStoreFactory(ValidatorService.blockStoreFactory())
                         .setConsensusAlgorithm(consensus.getAlgorithm())
                 ;
@@ -109,7 +108,7 @@ public class ValidatorConfiguration {
                         genesis, blockChainStore, policyLoader,
                         branchId, systemProperties);
 
-                validatorServiceList.add(new ValidatorService(validatorConfig, blockChain));
+                validatorServiceList.add(new ValidatorService(mergedConfig, blockChain));
             } catch (Exception e) {
                 log.warn("Load validatorService conf={}, err={}", validatorServicePath, e.getMessage());
             }
