@@ -8,6 +8,8 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.math.BigInteger;
 import java.util.Map;
 
 @Service
@@ -28,10 +30,14 @@ public class ContractApiImpl implements ContractApi {
         if (params != null && !params.isEmpty()) {
             jsonParams = JsonUtil.convertMapToJson(params);
         }
+
         Object result = branchGroup.query(BranchId.of(branchId), contractVersion, method, jsonParams);
         if (result instanceof JsonElement) {
             return JsonUtil.convertJsonToMap((JsonElement)result);
+        } else if (result instanceof BigInteger) {
+            return String.valueOf(result);
         }
+
         return result;
     }
 
