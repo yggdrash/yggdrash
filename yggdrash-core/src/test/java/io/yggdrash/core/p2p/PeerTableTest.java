@@ -26,7 +26,7 @@ public class PeerTableTest {
     @Test
     public void dropPeer() {
         // arrange
-        Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");
+        Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:33001");
         peerTable.addPeer(peer);
         assert peerTable.contains(peer);
 
@@ -39,7 +39,7 @@ public class PeerTableTest {
 
     @Test
     public void shouldReturnNullRevalidate() {
-        Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");
+        Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:33002");
         peerTable.addPeer(peer);
 
         // act
@@ -52,10 +52,10 @@ public class PeerTableTest {
     @Test
     public void shouldReturnRevalidate() {
         // arrange
-        Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");
+        Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:33003");
         peerTable.addPeer(peer);
         PeerBucket peerBucket = peerTable.getBucketByPeer(peer);
-        peerBucket.getReplacements().add(Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
+        peerBucket.getReplacements().add(Peer.valueOf("ynode://75bff16c@127.0.0.1:33004"));
 
         // act
         Peer peerForRevalidate = peerTable.peerToRevalidate();
@@ -68,12 +68,12 @@ public class PeerTableTest {
     public void getLatestPeers() {
         SlowTest.apply();
 
-        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");
+        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:33005");
         peerTable.addPeer(peer1);
 
         Utils.sleep(2000);
 
-        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32922");
+        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:33006");
         peerTable.addPeer(peer2);
 
         long touchedTime = peer2.getModified();
@@ -86,8 +86,8 @@ public class PeerTableTest {
 
     @Test
     public void getClosestPeers() {
-        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");
+        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:33007");
+        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:33008");
 
         peerTable.addPeer(peer1);
         peerTable.addPeer(peer2);
@@ -97,8 +97,8 @@ public class PeerTableTest {
 
     @Test
     public void getBucketByPeer() {
-        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");
+        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:33009");
+        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:33010");
         peerTable.addPeer(peer1);
         peerTable.addPeer(peer2);
         assertEquals(peerTable.getBucketByPeer(peer1).getDepth(), peerTable.getBucketByPeer(peer2).getDepth());
@@ -108,8 +108,8 @@ public class PeerTableTest {
     public void copyLiveNode() {
         TestConstants.SlowTest.apply();
         // arrange(1)
-        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32919");
+        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:33011");
+        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:33012");
         peerTable.addPeer(peer1);
         peerTable.addPeer(peer2);
         assertEquals(0, peerTable.getPeerStore().size());
@@ -127,9 +127,9 @@ public class PeerTableTest {
         assertEquals(2, peerTable.getPeerStore().size());
 
         // arrange(2)
-        Peer peer3 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
-        Peer peer4 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");
-        Peer peer5 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32922");
+        Peer peer3 = Peer.valueOf("ynode://75bff16c@127.0.0.1:33013");
+        Peer peer4 = Peer.valueOf("ynode://75bff16c@127.0.0.1:33014");
+        Peer peer5 = Peer.valueOf("ynode://75bff16c@127.0.0.1:33015");
         peerTable.addPeer(peer3);
         peerTable.addPeer(peer4);
         peerTable.addPeer(peer5);
@@ -148,9 +148,9 @@ public class PeerTableTest {
         KademliaOptions.BUCKET_SIZE = 2;
 
         // 32920 is the owner of the peerTable
-        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"); // bucketId => 158
-        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32932"); // bucketId => 158
-        Peer peer3 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32942"); // bucketId => 158
+        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:33016"); // bucketId => 158
+        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:33017"); // bucketId => 158
+        Peer peer3 = Peer.valueOf("ynode://75bff16c@127.0.0.1:33018"); // bucketId => 158
         peerTable.addPeer(peer1);
         peerTable.addPeer(peer2);
         peerTable.addPeer(peer3); // This will be added to the replacement list of the 158th bucket
