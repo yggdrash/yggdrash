@@ -40,15 +40,17 @@ public class BlockChainSyncManager implements SyncManager {
     @Override
     public void fullSync() {
         nodeStatus.sync();
-        for (BlockChain blockChain : branchGroup.getAllBranch()) {
-            List<BlockChainHandler> peerHandlerList = peerNetwork.getHandlerList(blockChain.getBranchId());
+        try {
+            for (BlockChain blockChain : branchGroup.getAllBranch()) {
+                List<BlockChainHandler> peerHandlerList = peerNetwork.getHandlerList(blockChain.getBranchId());
 
-            fullSyncBlock(blockChain, peerHandlerList);
+                fullSyncBlock(blockChain, peerHandlerList);
 
-            syncTransaction(blockChain, peerHandlerList);
+                syncTransaction(blockChain, peerHandlerList);
+            }
+        } finally {
+            nodeStatus.up();
         }
-        nodeStatus.up();
-
     }
 
     @Override
@@ -228,9 +230,12 @@ public class BlockChainSyncManager implements SyncManager {
         }
         BranchId branchId = blockChain.getBranchId();
         nodeStatus.sync();
-        for (BlockChainHandler peerHandler : peerNetwork.getHandlerList(branchId)) {
-            syncBlock(peerHandler, blockChain);
+        try {
+            for (BlockChainHandler peerHandler : peerNetwork.getHandlerList(branchId)) {
+                syncBlock(peerHandler, blockChain);
+            }
+        } finally {
+            nodeStatus.up();
         }
-        nodeStatus.up();
     }
 }
