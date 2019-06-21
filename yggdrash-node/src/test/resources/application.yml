@@ -2,6 +2,7 @@ yggdrash:
   node:
     grpc.host: "127.0.0.1"
     grpc.port: 0
+    chain.enabled: true
     seed-peer-list:
     - "ynode://00@localhost:8080"
 
@@ -12,7 +13,6 @@ management:
   endpoint:
     restart:
       enabled: true
-
 
 ---
 
