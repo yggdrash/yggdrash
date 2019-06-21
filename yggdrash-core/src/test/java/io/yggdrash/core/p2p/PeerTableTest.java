@@ -148,9 +148,9 @@ public class PeerTableTest {
         KademliaOptions.BUCKET_SIZE = 2;
 
         // 32920 is the owner of the peerTable
-        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:33016"); // bucketId => 158
-        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:33017"); // bucketId => 158
-        Peer peer3 = Peer.valueOf("ynode://75bff16c@127.0.0.1:33018"); // bucketId => 158
+        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32018"); // bucketId => 158
+        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32932"); // bucketId => 158
+        Peer peer3 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32942"); // bucketId => 158
         peerTable.addPeer(peer1);
         peerTable.addPeer(peer2);
         peerTable.addPeer(peer3); // This will be added to the replacement list of the 158th bucket
