@@ -53,6 +53,22 @@ public class PeerTask {
         this.peerDialer = peerDialer;
     }
 
+    @Scheduled(cron = "0 */1 * ? * * ")
+    public void keepAliveToBsNode() {
+        List<String> seedPeers = peerTableGroup.getSeedPeerList();
+        String ownerUri = peerTableGroup.getOwner().getYnodeUri();
+
+        if (seedPeers.contains(ownerUri)) {
+            return;
+        }
+
+        for (BranchId branchId : peerTableGroup.getAllBranchId()) {
+            seedPeers.forEach(seed -> peerDialer.healthCheck(branchId, peerTableGroup.getOwner(), Peer.valueOf(seed)));
+        }
+
+        log.debug("Keep-Alive to BS Node : {} -> {}", ownerUri, seedPeers);
+    }
+
     @Scheduled(fixedRate = 10000)
     public void healthCheck() { // ==> Task of PeerDialer?
         if (!nodeStatus.isUpStatus()) {

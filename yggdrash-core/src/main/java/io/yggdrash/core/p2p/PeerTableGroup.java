@@ -25,6 +25,8 @@ public interface PeerTableGroup extends PeerEventListener {
 
     void setSeedPeerList(List<String> seedPeerList);
 
+    List<String> getSeedPeerList();
+
     PeerTable createTable(BranchId branchId);
 
     Set<BranchId> getAllBranchId();
