@@ -12,8 +12,10 @@
 
 package io.yggdrash.common.util;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.trie.Trie;
@@ -132,9 +134,7 @@ public class VerifierUtils {
         TransactionHeader header = tx.getHeader();
 
         // TODO CheckByValidate By Code
-        boolean check = true;
-
-        check &= verifyCheckLengthNotNull(
+        boolean check = verifyCheckLengthNotNull(
                 header.getChain(), Constants.BRANCH_LENGTH, "chain");
         check &= verifyCheckLengthNotNull(
                 header.getVersion(), TransactionHeader.VERSION_LENGTH, "version");
@@ -146,6 +146,8 @@ public class VerifierUtils {
 
         TransactionBody body = tx.getBody();
         check &= verifyBodyLength(header.getBodyLength(), body.getLength());
+        check &= verifyTxBodyFormat(body);
+
         check &= verifyCheckLengthNotNull(tx.getSignature(), Constants.SIGNATURE_LENGTH, SIGNATURE);
 
         // check bodyHash
@@ -167,9 +169,7 @@ public class VerifierUtils {
         BlockHeader header = block.getHeader();
 
         // TODO CheckByValidate By Code
-        boolean check = true;
-
-        check &= verifyCheckLengthNotNull(
+        boolean check = verifyCheckLengthNotNull(
                 header.getChain(), Constants.BRANCH_LENGTH, "chain");
         check &= verifyCheckLengthNotNull(
                 header.getVersion(), BlockHeader.VERSION_LENGTH, "version");
@@ -192,11 +192,56 @@ public class VerifierUtils {
         return check;
     }
 
+    // TxBody format has not been fixed yet. The following validation is required until the TxBody is fixed.
+    public static boolean verifyTxBodyFormat(TransactionBody txBody) {
+        JsonObject body = txBody.getBody();
+
+        // check body size
+        if (body.size() != 3) {
+            log.debug("Verify txBody format : The body size should be 3, body size = {}", body.size());
+            return false;
+        }
+
+        // check keys exists
+        if (!body.has("contractVersion")) {
+            log.debug("Verify txBody format : The body has no 'contractVersion' key");
+            return false;
+        }
+        if (!body.has("method")) {
+            log.debug("Verify txBody format : The body has no 'method' key");
+            return false;
+        }
+        if (!body.has("params")) {
+            log.debug("Verify txBody format : The body has no 'params' key");
+            return false;
+        }
+
+        // check value types
+        if (!body.get("contractVersion").isJsonPrimitive()
+                || !body.get("contractVersion").getAsJsonPrimitive().isString()) {
+            log.debug("Verify txBody format : The value type of the 'contractVersion' must be a String.");
+            return false;
+        }
+        if (!body.get("method").isJsonPrimitive() || !body.get("method").getAsJsonPrimitive().isString()) {
+            log.debug("Verify txBody format : The value type of the 'method' must be a String.");
+            return false;
+        }
+
+        if (!body.get("params").isJsonObject()) {
+            log.debug("Verify txBody format : The value type of the 'params' must be a JsonObject.");
+            return false;
+        }
+
+        // contractVersion length check
+        return verifyCheckLengthNotNull(ContractVersion.of(body.get("contractVersion").getAsString()).getBytes(),
+                Constants.CONTRACT_VERSION_LENGTH, "contractVersion");
+    }
+
     private static boolean verifyCheckLengthNotNull(byte[] data, int length, String msg) {
         boolean result = !(data == null || data.length != length);
 
         if (!result) {
-            log.debug("{} is not valid.", msg);
+            log.debug("Verify length and null : {} is not valid.", msg);
         }
 
         return result;
