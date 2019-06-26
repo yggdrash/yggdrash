@@ -17,6 +17,8 @@
 package io.yggdrash.gateway;
 
 import com.google.gson.JsonObject;
+import com.google.protobuf.util.Timestamps;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchEventListener;
@@ -61,10 +63,8 @@ public class BlockChainCollector implements BranchEventListener {
         Map<String, JsonObject> transactionMap = new HashMap<>();
 
         for (Transaction tx : block.getBody().getTransactionList()) {
-            TransactionDto dto = TransactionDto.createBy(tx);
+            EsTransactionDto dto = new EsTransactionDto(tx);
             JsonObject json = dto.toJsonObject();
-            json.addProperty("rawTx",
-                    Hex.toHexString(tx.toRawTransaction()));
             transactionMap.put(tx.getHash().toString(), json);
         }
 
@@ -74,5 +74,37 @@ public class BlockChainCollector implements BranchEventListener {
     @Override
     public void receivedTransaction(Transaction tx) {
         log.trace("ignored");
+    }
+
+    class EsTransactionDto {
+        public String branchId;
+        public String version;
+        public String type;
+        public String timestamp;
+        public String bodyHash;
+        public long bodyLength;
+        public String signature;
+        public String body;
+        public String author;
+        public String txId;
+        public String rawTx;
+
+        public JsonObject toJsonObject() {
+            return JsonUtil.parseJsonObject(this);
+        }
+
+        public EsTransactionDto(Transaction tx) {
+            this.branchId = tx.getBranchId().toString();
+            this.version = Hex.toHexString(tx.getHeader().getVersion());
+            this.type = Hex.toHexString(tx.getHeader().getType());
+            this.timestamp = Timestamps.fromMillis(tx.getHeader().getTimestamp()).toString();
+            this.bodyHash = Hex.toHexString(tx.getBody().getHash());
+            this.bodyLength = tx.getBody().getLength();
+            this.signature = Hex.toHexString(tx.getSignature());
+            this.body = tx.getBody().toString();
+            this.author = tx.getAddress().toString();
+            this.txId = tx.getHash().toString();
+            this.rawTx = Hex.toHexString(tx.toRawTransaction());
+        }
     }
 }
