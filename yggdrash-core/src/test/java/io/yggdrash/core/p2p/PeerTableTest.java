@@ -145,15 +145,24 @@ public class PeerTableTest {
         assertEquals(3, peerTable.getPeerStore().size());
     }
 
-    @Ignore
+    /**
+     * 이 테스트는, 아래 피어들이 동일한 피어 버킷에 담기는 환경에 대한 테스트 입니다.
+     * 버킷사이즈가 초과되면 피어의 거리에 따라 대체되는 결과 확인을 목적으로 합니다.
+     * 아래 피어 아이디는 고정이며, 피어 아이디가 변경되면 버킷 아이디가 변경되어 테스트 결과가 달라질 수 있습니다.
+     * <p>
+     * This test is a test for the environment in which the following peers are placed in the same peer bucket.
+     * If the bucket size is exceeded, it will be replaced by the peer's distance.
+     * The below peer ID is fixed.
+     * The bucket ID is changed and the test result may be changed if the peer ID is changed.
+     */
     @Test
     public void pickReplacement() {
         KademliaOptions.BUCKET_SIZE = 2;
 
         // 32920 is the owner of the peerTable
-        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"); // bucketId => 158
-        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32932"); // bucketId => 158
-        Peer peer3 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32942"); // bucketId => 158
+        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:33016"); // bucketId => 159
+        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:33017"); // bucketId => 159
+        Peer peer3 = Peer.valueOf("ynode://75bff16c@127.0.0.1:33019"); // bucketId => 159
         peerTable.addPeer(peer1);
         peerTable.addPeer(peer2);
         peerTable.addPeer(peer3); // This will be added to the replacement list of the 158th bucket
@@ -163,9 +172,7 @@ public class PeerTableTest {
         //peer2 is the latest peer in the bucket so it will be replaced by peer3
         assertEquals(peer3, peerTable.pickReplacement(peer2));
         assertEquals(2, peerTable.getPeerUriList().size());
-        assertEquals(peerTable.getBucketByIndex(158), peerTable.getBucketByPeer(peer1));
-        assertEquals(2, peerTable.getBucketIdAndPeerList().get(158).size());
+        assertEquals(peerTable.getBucketByIndex(159), peerTable.getBucketByPeer(peer1));
+        assertEquals(2, peerTable.getBucketIdAndPeerList().get(159).size());
     }
-
-
 }
