@@ -77,7 +77,12 @@ public class BranchGroup {
     }
 
     public Map<String, List<String>> addTransaction(Transaction tx) {
-        String version = tx.getBody().getBody().get("contractVersion").getAsString();
+        // TxBody format has not been fixed yet. The following validation is required until the TxBody is fixed.
+        String version = !tx.getBody().getBody().has("contractVersion")
+                || (!tx.getBody().getBody().get("contractVersion").isJsonPrimitive()
+                || !tx.getBody().getBody().get("contractVersion").getAsJsonPrimitive().isString())
+                ? "" : tx.getBody().getBody().get("contractVersion").getAsString();
+
         int verifyResult = verify(tx.getBranchId(), version);
         if (verifyResult == SystemError.VALID.toValue()) {
             return branches.get(tx.getBranchId()).addTransaction(tx);

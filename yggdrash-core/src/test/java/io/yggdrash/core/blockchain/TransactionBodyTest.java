@@ -17,6 +17,8 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.common.utils.SerializationUtil;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -25,6 +27,8 @@ import org.spongycastle.util.encoders.Hex;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 
 public class TransactionBodyTest {
@@ -74,4 +78,61 @@ public class TransactionBodyTest {
         assertEquals(txBody1, txBody4);
     }
 
+    @Test
+    public void transactionBodyFormatValidation() {
+        String txBodyStr = "{\"contractVersion\":\"6a2371e34b780dd39bd56002b1d96c23689cc5dc\",\"method\":\"transfer\","
+                + "\"params\":{\"to\":\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\",\"amount\":1}}";
+        JsonObject txBodyObj = new JsonParser().parse(txBodyStr).getAsJsonObject();
+        TransactionBody txBody = new TransactionBody(txBodyObj);
+        assertTrue(VerifierUtils.verifyTxBodyFormat(txBody));
+
+        String str = "{\"contractVersion\":\"6a2371e34b780dd39bd56002b1d96c23689cc5dc\",\"method\":\"transfer\","
+                + "\"params\":{\"to\":\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\",\"amount\":1},\"hello\":\"hello\","
+                + "\"hi\":\"hi\",\"this\":\"this\",\"is\":\"is\",\"for\":\"for\",\"test\":\"test\"}";
+        txBodyObj = new JsonParser().parse(str).getAsJsonObject();
+        txBody = new TransactionBody(txBodyObj);
+        assertFalse(VerifierUtils.verifyTxBodyFormat(txBody));
+
+        str = "{\"ContractVersion\":\"6a2371e34b780dd39bd56002b1d96c23689cc5dc\",\"method\":\"transfer\","
+                + "\"params\":{\"to\":\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\",\"amount\":1}}";
+        txBodyObj = new JsonParser().parse(str).getAsJsonObject();
+        txBody = new TransactionBody(txBodyObj);
+        assertFalse(VerifierUtils.verifyTxBodyFormat(txBody));
+
+        str = "{\"contractVersion\":\"6a2371e34b780dd39bd56002b1d96c23689cc5dc\",\"Method\":\"transfer\","
+                + "\"params\":{\"to\":\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\",\"amount\":1}}";
+        txBodyObj = new JsonParser().parse(str).getAsJsonObject();
+        txBody = new TransactionBody(txBodyObj);
+        assertFalse(VerifierUtils.verifyTxBodyFormat(txBody));
+
+        str = "{\"contractVersion\":\"6a2371e34b780dd39bd56002b1d96c23689cc5dc\",\"method\":\"transfer\","
+                + "\"Params\":{\"to\":\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\",\"amount\":1}}";
+        txBodyObj = new JsonParser().parse(str).getAsJsonObject();
+        txBody = new TransactionBody(txBodyObj);
+        assertFalse(VerifierUtils.verifyTxBodyFormat(txBody));
+
+        str = "{\"contractVersion\":[\"6a2371e34b780dd39bd56002b1d96c23689cc5dc\","
+                + "\"63589382e2e183e2a6969ebf57bd784dcb29bd43\"],\"method\":[\"1\", \"2\", \"3\"],\"params\":\"abcd\"}";
+        txBodyObj = new JsonParser().parse(str).getAsJsonObject();
+        txBody = new TransactionBody(txBodyObj);
+        assertFalse(VerifierUtils.verifyTxBodyFormat(txBody));
+
+        str = "{\"contractVersion\":\"6a2371e34b780dd39bd56002b1d96c23689cc5dc\",\"method\":[\"1\", \"2\", \"3\"],"
+                + "\"params\":\"abcd\"}";
+        txBodyObj = new JsonParser().parse(str).getAsJsonObject();
+        txBody = new TransactionBody(txBodyObj);
+        assertFalse(VerifierUtils.verifyTxBodyFormat(txBody));
+
+        str = "{\"contractVersion\":\"6a2371e34b780dd39bd56002b1d96c23689cc5dc\",\"method\":\"haha\","
+                + "\"params\":\"abcd\"}";
+        txBodyObj = new JsonParser().parse(str).getAsJsonObject();
+        txBody = new TransactionBody(txBodyObj);
+        assertFalse(VerifierUtils.verifyTxBodyFormat(txBody));
+
+        str = "{\"contractVersion\":\"6a2371e34b780dd39bd56002b1d96c23689cc5dc\",\"method\":\"hello\","
+                + "\"params\":{\"hi\":\"hello\",\"world\":\"!\"}}";
+        txBodyObj = new JsonParser().parse(str).getAsJsonObject();
+        txBody = new TransactionBody(txBodyObj);
+        assertTrue(VerifierUtils.verifyTxBodyFormat(txBody));
+    }
 }

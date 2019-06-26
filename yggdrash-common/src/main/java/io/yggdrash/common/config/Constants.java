@@ -13,6 +13,7 @@ public final class Constants {
 
     public static final int BRANCH_LENGTH = 20;
     public static final int BRANCH_HEX_LENGTH = BRANCH_LENGTH * 2;
+    public static final int CONTRACT_VERSION_LENGTH = 20;
 
     public static final String YGGDRASH = "YGGDRASH";
     public static final String BRANCH_ID = "branchId";

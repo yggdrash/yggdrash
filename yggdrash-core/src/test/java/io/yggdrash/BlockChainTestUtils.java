@@ -125,8 +125,7 @@ public class BlockChainTestUtils {
     }
 
     private static Transaction createBranchTx(JsonObject json) {
-
-
+        //TODO stemContract test required
         TransactionBuilder builder = new TransactionBuilder();
         return builder.setTxBody(TestConstants.STEM_CONTRACT, "create", json, false)
                 .setWallet(TestConstants.wallet())
