@@ -75,7 +75,9 @@ public class BlockServiceConsumerTest {
     public void broadcastBlock() {
         assertEquals(0, branchGroup.getBranch(branchId).getBlockChainManager().getLastIndex());
 
-        blockServiceConsumer.broadcastBlock(BlockChainTestUtils.createNextBlock());
+        ConsensusBlock<PbftProto.PbftBlock> nextBlock = BlockChainTestUtils.createNextBlock();
+        blockServiceConsumer.broadcastBlock(nextBlock);
+        blockServiceConsumer.broadcastBlock(nextBlock);
 
         assertEquals(1, branchGroup.getBranch(branchId).getBlockChainManager().getLastIndex());
     }
