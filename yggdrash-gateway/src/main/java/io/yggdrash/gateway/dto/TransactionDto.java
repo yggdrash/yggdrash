@@ -18,15 +18,11 @@ package io.yggdrash.gateway.dto;
 
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.util.Timestamps;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionImpl;
-import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.Proto;
 import org.spongycastle.util.encoders.Hex;
-
-import java.text.ParseException;
 
 public class TransactionDto {
 

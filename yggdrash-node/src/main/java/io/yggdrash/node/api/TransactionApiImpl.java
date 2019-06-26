@@ -94,8 +94,8 @@ public class TransactionApiImpl implements TransactionApi {
             log.warn("sendTransaction Error : {}", errorLogs);
         }
 
-        return errorLogs.size() > 0 ? TransactionResponseDto.createBy(tx.txId, false, errorLogs)
-                : TransactionResponseDto.createBy(tx.txId, true, errorLogs);
+        return errorLogs.size() > 0 ? TransactionResponseDto.createBy(transaction.getHash().toString(), false, errorLogs)
+                : TransactionResponseDto.createBy(transaction.getHash().toString(), true, errorLogs);
     }
 
     @Override
