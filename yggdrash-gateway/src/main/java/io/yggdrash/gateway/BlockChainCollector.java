@@ -97,7 +97,7 @@ public class BlockChainCollector implements BranchEventListener {
             this.branchId = tx.getBranchId().toString();
             this.version = Hex.toHexString(tx.getHeader().getVersion());
             this.type = Hex.toHexString(tx.getHeader().getType());
-            this.timestamp = Timestamps.fromMillis(tx.getHeader().getTimestamp()).toString();
+            this.timestamp = Timestamps.toString(Timestamps.fromMillis(tx.getHeader().getTimestamp()));
             this.bodyHash = Hex.toHexString(tx.getBody().getHash());
             this.bodyLength = tx.getBody().getLength();
             this.signature = Hex.toHexString(tx.getSignature());
