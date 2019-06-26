@@ -37,6 +37,11 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
     }
 
     @Override
+    public List<String> getSeedPeerList() {
+        return this.seedPeerList;
+    }
+
+    @Override
     public PeerTable createTable(BranchId branchId) {
         if (tableMap.containsKey(branchId)) {
             return tableMap.get(branchId);

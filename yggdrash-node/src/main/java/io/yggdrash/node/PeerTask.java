@@ -23,6 +23,7 @@ import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
 import io.yggdrash.core.p2p.PeerTable;
 import io.yggdrash.core.p2p.PeerTableGroup;
+import io.yggdrash.node.config.NodeProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,10 +38,16 @@ public class PeerTask {
     private PeerTableGroup peerTableGroup;
     private PeerDialer peerDialer;
     private NodeStatus nodeStatus;
+    private NodeProperties nodeProperties;
 
     @Autowired
     public void setNodeStatus(NodeStatus nodeStatus) {
         this.nodeStatus = nodeStatus;
+    }
+
+    @Autowired
+    public void setNodeProperties(NodeProperties nodeProperties) {
+        this.nodeProperties = nodeProperties;
     }
 
     @Autowired
@@ -51,6 +58,22 @@ public class PeerTask {
     @Autowired
     public void setPeerDialer(PeerDialer peerDialer) {
         this.peerDialer = peerDialer;
+    }
+
+    @Scheduled(cron = "0 */1 * * * * ")
+    public void keepAliveToBsNode() {
+        if (nodeProperties.isSeed()) {
+            return;
+        }
+
+        List<String> seedPeers = peerTableGroup.getSeedPeerList();
+        String ownerUri = peerTableGroup.getOwner().getYnodeUri();
+
+        for (BranchId branchId : peerTableGroup.getAllBranchId()) {
+            seedPeers.forEach(seed -> peerDialer.healthCheck(branchId, peerTableGroup.getOwner(), Peer.valueOf(seed)));
+        }
+
+        log.debug("Keep-Alive to BS Node : {} -> {}", ownerUri, seedPeers);
     }
 
     @Scheduled(fixedRate = 10000)
