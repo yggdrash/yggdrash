@@ -62,20 +62,23 @@ public class BlockServiceConsumer<T> implements BlockConsumer<T> {
     @Override
     public void broadcastBlock(ConsensusBlock<T> block) {
         try {
-            long nextIndex = branchGroup.getLastIndex(block.getBranchId()) + 1;
+            BranchId branchId = block.getBranchId();
+            long nextIndex = branchGroup.getLastIndex(branchId) + 1;
             long receivedIndex = block.getIndex();
 
-            if (nextIndex < receivedIndex) {
+            if (receivedIndex < nextIndex) {
+                return;
+            } else if (receivedIndex == nextIndex) {
+                branchGroup.addBlock(block, true);
+            } else {
                 // Catchup Event!
                 if (listener != null) {
                     log.info("CatchUp required. received={} expected={}", receivedIndex, nextIndex);
                     listener.catchUpRequest(block);
                 }
-            } else {
-                branchGroup.addBlock(block, true);
             }
         } catch (Exception e) {
-            log.warn("BroadcastBlock ERR={}", e.getMessage());
+            log.debug("BroadcastBlock ERR={}", e.getMessage());
         }
     }
 
