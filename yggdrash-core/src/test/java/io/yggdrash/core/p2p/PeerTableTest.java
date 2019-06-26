@@ -5,7 +5,6 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.TestConstants.SlowTest;
 import io.yggdrash.common.util.Utils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -15,7 +14,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-@Ignore
 public class PeerTableTest {
     private KademliaPeerTable peerTable;
 
