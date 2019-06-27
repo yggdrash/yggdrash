@@ -883,5 +883,29 @@ public class YeedTest {
 
     }
 
+    @Test
+    public void faucetTest() {
+        String issuer = "691af5cbc92d8f4e5683246d27d199ccfa2548d6";
+        this.setTxReceipt("0x00", issuer, BRANCH_ID, 1);
+        JsonObject param = new JsonObject();
+        BigInteger totalSupply = yeedContract.totalSupply();
 
+        // TEST send fail
+        JsonObject testTransfer = new JsonObject();
+        testTransfer.addProperty("to","81b7e08f65bdf5648606c89998a9cc8164397647");
+        testTransfer.addProperty("amount", BigInteger.valueOf(100L));
+        yeedContract.transfer(testTransfer);
+        assert yeedContract.txReceipt.getStatus() == ExecuteStatus.ERROR;
+
+        yeedContract.faucet(param);
+        assert yeedContract.txReceipt.getStatus() == ExecuteStatus.SUCCESS;
+        assert yeedContract.totalSupply().compareTo(totalSupply) != 0;
+
+        // one more
+        yeedContract.faucet(param);
+        assert yeedContract.txReceipt.getStatus() == ExecuteStatus.ERROR;
+
+        yeedContract.transfer(testTransfer);
+        assert yeedContract.txReceipt.getStatus() == ExecuteStatus.SUCCESS;
+    }
 }

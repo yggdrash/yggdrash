@@ -92,21 +92,26 @@ public class TransactionControllerTest extends TestConstants.CiTest {
         TransactionDto req =
                 TransactionDto.createBy(BlockChainTestUtils.createTransferTx());
 
+        // Error Tx. Issuer has no balance!
         MockHttpServletResponse postResponse = mockMvc.perform(post(basePath)
                 .contentType(MediaType.APPLICATION_JSON).content(json.write(req).getJson()))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andDo(print())
                 .andReturn().getResponse();
 
-        assertThat(postResponse.getContentAsString()).contains("transfer");
-        String txId = json.parseObject(postResponse.getContentAsString()).txId;
+        boolean containTransfer = postResponse.getContentAsString().contains("transfer");
+        assertThat(containTransfer).isFalse();
 
-        MockHttpServletResponse getResponse = mockMvc.perform(get(basePath + "/" + txId))
-                .andExpect(status().isOk())
-                .andDo(print())
-                .andReturn().getResponse();
+        if (containTransfer) {
+            String txId = json.parseObject(postResponse.getContentAsString()).txId;
 
-        assertThat(postResponse.getContentAsString()).isEqualTo(getResponse.getContentAsString());
+            MockHttpServletResponse getResponse = mockMvc.perform(get(basePath + "/" + txId))
+                    .andExpect(status().isOk())
+                    .andDo(print())
+                    .andReturn().getResponse();
+
+            assertThat(postResponse.getContentAsString()).isEqualTo(getResponse.getContentAsString());
+        }
     }
 
     @Test

@@ -19,7 +19,10 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.contract.core.ExecuteStatus;
+import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.DuplicatedException;
 import org.junit.Assert;
@@ -68,14 +71,17 @@ public class BranchGroupTest {
         assertThat(branchGroup.countOfTxs(tx.getBranchId())).isEqualTo(3);
 
         Map<String, List<String>> errLogs = branchGroup.addTransaction(tx);
-        Assert.assertEquals(0, errLogs.size());
-        Transaction foundTxBySha3 = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
-        assertThat(foundTxBySha3.getHash()).isEqualTo(tx.getHash());
-
-        Transaction foundTxByString = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash().toString());
-        assertThat(foundTxByString.getHash()).isEqualTo(tx.getHash());
-        assertThat(branchGroup.getUnconfirmedTxs(tx.getBranchId()).size()).isEqualTo(1);
-        log.debug("Add valid tx to branchGroup. ErrorLog = {}", errLogs);
+        if (getBalance(tx.getAddress().toString()).equals(BigInteger.ZERO)) {
+            Assert.assertEquals(1, errLogs.size()); //no balance!
+        } else {
+            Assert.assertEquals(0, errLogs.size());
+            Transaction foundTxBySha3 = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
+            assertThat(foundTxBySha3.getHash()).isEqualTo(tx.getHash());
+            Transaction foundTxByString = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash().toString());
+            assertThat(foundTxByString.getHash()).isEqualTo(tx.getHash());
+            assertThat(branchGroup.getUnconfirmedTxs(tx.getBranchId()).size()).isEqualTo(1);
+            log.debug("Add valid tx to branchGroup. ErrorLog = {}", errLogs);
+        }
 
         Transaction invalidTx1 = BlockChainTestUtils
                 .createInvalidTransferTx(BranchId.of("696e76616c6964"), ContractVersion.of("696e76616c696420"));
@@ -96,14 +102,19 @@ public class BranchGroupTest {
 
     @Test
     public void generateBlock() {
-        branchGroup.addTransaction(tx);
+        Map<String, List<String>> errLogs = branchGroup.addTransaction(tx);
         BlockChainTestUtils.generateBlock(branchGroup, tx.getBranchId());
         long latest = branchGroup.getLastIndex(tx.getBranchId());
         ConsensusBlock chainedBlock = branchGroup.getBlockByIndex(tx.getBranchId(), latest);
         assertThat(latest).isEqualTo(1);
-        assertThat(chainedBlock.getBody().getCount()).isEqualTo(1);
-        assertThat(branchGroup.getTxByHash(tx.getBranchId(), tx.getHash()).getHash())
-                .isEqualTo(tx.getHash());
+
+        if (errLogs.size() == 0) {
+            assertThat(chainedBlock.getBody().getCount()).isEqualTo(1);
+            assertThat(branchGroup.getTxByHash(tx.getBranchId(), tx.getHash()).getHash())
+                    .isEqualTo(tx.getHash());
+        } else {
+            assertThat(chainedBlock.getBody().getCount()).isEqualTo(0); //no balance!
+        }
     }
 
     /**
@@ -124,7 +135,7 @@ public class BranchGroupTest {
 
     @Test
     public void addBlock() {
-        branchGroup.addTransaction(tx);
+        Map<String, List<String>> errLogs = branchGroup.addTransaction(tx);
         branchGroup.addBlock(block);
         ConsensusBlock newBlock = BlockChainTestUtils.createNextBlock(Collections.singletonList(tx), block);
         branchGroup.addBlock(newBlock);
@@ -132,8 +143,18 @@ public class BranchGroupTest {
         assertThat(branchGroup.getLastIndex(newBlock.getBranchId())).isEqualTo(2);
         assertThat(branchGroup.getBlockByIndex(newBlock.getBranchId(), 2).getHash())
                 .isEqualTo(newBlock.getHash());
-        Transaction foundTx = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
-        assertThat(foundTx.getHash()).isEqualTo(tx.getHash());
+
+        TransactionReceipt receipt = branchGroup.getBranch(tx.getBranchId()).getBlockChainManager()
+                .getTransactionReceipt(tx.getHash().toString());
+        if (getBalance(tx.getAddress().toString()).equals(BigInteger.ZERO)) {
+            assertThat(receipt.getStatus()).isEqualTo(ExecuteStatus.ERROR);
+            Assert.assertEquals(1, errLogs.size()); // no balance !
+        } else {
+            assertThat(receipt.getStatus()).isNotEqualTo(ExecuteStatus.ERROR);
+            Assert.assertEquals(0, errLogs.size());
+            Transaction foundTx = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
+            assertThat(foundTx.getHash()).isEqualTo(tx.getHash());
+        }
     }
 
     @Test
@@ -156,5 +177,12 @@ public class BranchGroupTest {
     private Transaction createTx(BigInteger amount) {
         JsonObject txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, amount);
         return BlockChainTestUtils.createTx(yggdrash(), txBody);
+    }
+
+    private BigInteger getBalance(String address) {
+        JsonObject qryParam = new JsonObject();
+        qryParam.addProperty("address", tx.getAddress().toString());
+        return (BigInteger) branchGroup.query(BranchId.of(tx.getBranchId().toString()),
+                TestConstants.YEED_CONTRACT.toString(), "balanceOf", qryParam);
     }
 }
