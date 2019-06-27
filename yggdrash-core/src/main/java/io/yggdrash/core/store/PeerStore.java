@@ -80,7 +80,9 @@ public class PeerStore implements ReadWriterStore<PeerId, Peer> {
         for (int i = 1; i <= peerSize; i++) {
             byte[] indexKey = getIndexKey(i);
             byte[] key = db.get(indexKey);
-            db.delete(key);
+            if (key != null) {
+                db.delete(key);
+            }
         }
         peerSize = 0L;
         // put all
@@ -112,7 +114,7 @@ public class PeerStore implements ReadWriterStore<PeerId, Peer> {
         for (int i = 1; i <= peerSize; i++) {
             byte[] indexKey = getIndexKey(i);
             byte[] key = db.get(indexKey);
-            Peer peer = get(key);
+            Peer peer = key != null ? get(key) : null;
             if (peer != null) {
                 list.add(peer.getYnodeUri());
             } else {
