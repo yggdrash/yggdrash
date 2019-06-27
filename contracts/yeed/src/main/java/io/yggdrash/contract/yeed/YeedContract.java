@@ -192,11 +192,11 @@ public class YeedContract implements BundleActivator, ServiceListener {
             log.debug("transfer {} {} {} {}",from, to, amount, fee);
             boolean isTransfer = transfer(from, to, amount, fee);
 
-            txReceipt.setStatus(isTransfer ? ExecuteStatus.SUCCESS : ExecuteStatus.FALSE);
+            txReceipt.setStatus(isTransfer ? ExecuteStatus.SUCCESS : ExecuteStatus.ERROR);
 
             if (log.isDebugEnabled() && isTransfer) {
                 log.debug("[Transferred] Transfer {} from {} to {}", amount, from, to);
-                log.debug("Balance of From ({}) : {} To ({}) : ", from, getBalance(from), to, getBalance(to));
+                log.debug("Balance of From ({}) : {} To ({}) : {}", from, getBalance(from), to, getBalance(to));
             }
             return txReceipt;
         }
@@ -357,7 +357,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                     putBalance(approveKey, approveValue);
                 }
 
-                txReceipt.setStatus(isTransfer ? ExecuteStatus.SUCCESS : ExecuteStatus.FALSE);
+                txReceipt.setStatus(isTransfer ? ExecuteStatus.SUCCESS : ExecuteStatus.ERROR);
                 log.debug("[Transferred] Transfer {} from {} to {}", amount, from, to);
                 log.debug("Allowed amount of Sender ({}) : {}", sender, approveValue);
                 log.debug("Balance of From ({}) : {} Balance of To   ({}) : {}", from, fromValue,
@@ -404,17 +404,9 @@ public class YeedContract implements BundleActivator, ServiceListener {
             // boolean isSuccess = saveInitValidator(params.getAsJsonArray("validator"));
             boolean isSuccess = true;
 
-            // FIXME convert to Json or something
-            try {
-                putBalance(TOTAL_SUPPLY, totalSupply);
-            } catch (Exception e) {
-                isSuccess = false;
-                log.warn(e.getMessage());
-            }
+            putBalance(TOTAL_SUPPLY, totalSupply);
             txReceipt.setStatus(isSuccess ? ExecuteStatus.SUCCESS : ExecuteStatus.FALSE);
-            JsonObject totalSupplyLog = new JsonObject();
-            totalSupplyLog.addProperty("totalSupply", totalSupply.toString());
-            txReceipt.addLog(totalSupplyLog.toString());
+            txReceipt.addLog(String.format("Total Supply is %s", totalSupply));
 
             return txReceipt;
         }
@@ -928,6 +920,34 @@ public class YeedContract implements BundleActivator, ServiceListener {
             }
             proposeProcessDone(propose, ProposeStatus.CLOSED, BigInteger.ZERO);
             txReceipt.setStatus(ExecuteStatus.SUCCESS);
+        }
+
+        @InvokeTransaction
+        public void faucet(JsonObject param) {
+            // THIS IS FAUCET IN TESTNET!!
+            String issuer = this.txReceipt.getIssuer();
+            String faucetKey = String.format("%s%s", "faucet", issuer);
+            BigInteger balance = this.getBalance(issuer);
+            // faucet is just first address
+            if (!this.store.contains(faucetKey) && balance.compareTo(BigInteger.ZERO) == 0) {
+                balance = balance.add(BigInteger.valueOf(1000L)); // Add 1000
+
+                // ADD TOTAL SUPPLY
+                BigInteger totalSupply = this.totalSupply();
+                totalSupply = totalSupply.add(balance);
+                // save total and faucet balance
+                putBalance(TOTAL_SUPPLY, totalSupply);
+                putBalance(issuer, balance);
+                this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
+                this.txReceipt.addLog(String.format("faucet method used only test network", issuer, balance.toString()));
+                this.txReceipt.addLog(String.format("%s has receive %s", issuer, balance.toString()));
+                return;
+            } else {
+                this.txReceipt.setStatus(ExecuteStatus.ERROR);
+                this.txReceipt.addLog(String.format("%s is already received or has balance", issuer));
+                return;
+            }
+
         }
     }
 }
