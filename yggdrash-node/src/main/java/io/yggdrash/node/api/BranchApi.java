@@ -7,7 +7,6 @@ import com.googlecode.jsonrpc4j.JsonRpcService;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.gateway.dto.BranchDto;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -23,7 +22,7 @@ public interface BranchApi {
     Map<String, BranchDto> getBranches();
 
     /**
-     * Returns the spec of all running branches in the node
+     * Returns the validators of all running branches in the node
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,

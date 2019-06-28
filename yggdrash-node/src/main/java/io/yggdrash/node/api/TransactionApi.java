@@ -135,16 +135,26 @@ public interface TransactionApi {
     TransactionReceiptDto getTransactionReceipt(@JsonRpcParam(value = BRANCH_ID) String branchId,
                                                 @JsonRpcParam(value = TX_ID) String txId);
 
+    /**
+     * Returns the information about a raw transaction requested by transaction hash.
+     *
+     * @param txId hash of transaction
+     */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.CODE)})
     String getRawTransaction(@JsonRpcParam(value = BRANCH_ID) String branchId,
-                                        @JsonRpcParam(value = TX_ID) String txId);
+                             @JsonRpcParam(value = TX_ID) String txId);
 
+    /**
+     * Returns the information about a raw transaction header requested by transaction hash.
+     *
+     * @param txId hash of transaction
+     */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.CODE)})
     String getRawTransactionHeader(@JsonRpcParam(value = BRANCH_ID) String branchId,
-                                                    @JsonRpcParam(value = TX_ID) String txId);
+                                   @JsonRpcParam(value = TX_ID) String txId);
 
 }
