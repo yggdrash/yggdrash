@@ -6,35 +6,35 @@
   * [Curl Examples Explained](#curl-examples-explained)
   * [JSON RPC API Reference](#json-rpc-api-reference)
      * Branch
-        * [getBranches](#getBranches)
-        * [getValidators](#getvalidators)
+        * [getBranches](#get-branches)
+        * [getValidators](#get-validators)
      * Block   
-         * [blockNumber](#blockNumber)
-         * [getBlockByHash](#getBlockByHash)
-         * [getBlockByNumber](#getBlockByNumber)
-         * [newBlockFilter](#newBlockFilter)
+         * [blockNumber](#block-number)
+         * [getBlockByHash](#get-block-by-hash)
+         * [getBlockByNumber](#get-block-by-number)
+         * [newBlockFilter](#new-block-filter)
      * Transaction
-         * [getTransactionCountByBlockHash](#getTransactionCountByBlockHash)
-         * [getTransactionCountByBlockNumber](#getTransactionCountByBlockNumber)
-         * [getTransactionByHash](#getTransactionByHash)
-         * [getTransactionByBlockHash](#getTransactionByBlockHash)
-         * [getTransactionByBlockNumber](#getTransactionByBlockNumber)
-         * [getTransactionReceipt](#getTransactionReceipt)
-         * [sendTransaction](#sendTransaction)
-         * [sendRawTransaction](#sendRawTransaction)
-         * [newPendingTransactionFilter](#newPendingTransactionFilter)
-         * [getTransactionReceipt](#getTransactionReceipt)     
+         * [getTransactionCountByBlockHash](#get-transaction-count-by-block-hash)
+         * [getTransactionCountByBlockNumber](#get-transaction-count-by-block-number)
+         * [getTransactionByHash](#get-transaction-by-hash)
+         * [getTransactionByBlockHash](#get-transaction-by-block-hash)
+         * [getTransactionByBlockNumber](#get-transaction-by-block-number)
+         * [getTransactionReceipt](#get-transaction-receipt)
+         * [sendTransaction](#send-transaction)
+         * [sendRawTransaction](#send-raw-transaction)
+         * [newPendingTransactionFilter](#new-pending-transaction-filter)
+         * [getTransactionReceipt](#get-transaction-receipt)     
      * Contract
          * [query](#query)
      * Log
-         * [getLog](#getLog)
-         * [getLogs](#getLogs)
-         * [curIndex](#curIndex)
+         * [getLog](#get-log)
+         * [getLogs](#get-logs)
+         * [curIndex](#curl-index)
      * Peer
-         * [getAllActivePeer](#getAllActivePeer)
+         * [getAllActivePeer](#get-all-active-peer)
      * Admin        
-         * [nodeHello](#nodeHello)
-         * [requestCommand](#requestcommand) 
+         * [nodeHello](#node-hello)
+         * [requestCommand](#request-command) 
 
 # JSON RPC API 
 
