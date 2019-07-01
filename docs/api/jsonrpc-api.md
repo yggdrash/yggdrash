@@ -5,31 +5,36 @@
   * [JSON-RPC Endpoint](#json-rpc-endpoint)
   * [Curl Examples Explained](#curl-examples-explained)
   * [JSON RPC API Reference](#json-rpc-api-reference)
-     * [createAccount](#createAccount)
-     * [accounts](#accounts)
-     * [balanceOf](#balanceOf)
-     * [getBalance](#getBalance)
-     * [blockNumber](#blockNumber)
-     * [getBlockByHash](#getBlockByHash)
-     * [getBlockByNumber](#getBlockByNumber)
-     * [newBlockFilter](#newBlockFilter)
-     * [getTransactionCountByBlockHash](#getTransactionCountByBlockHash)
-     * [getTransactionCountByBlockNumber](#getTransactionCountByBlockNumber)
-     * [getTransactionByHash](#getTransactionByHash)
-     * [getTransactionByBlockHash](#getTransactionByBlockHash)
-     * [getTransactionByBlockNumber](#getTransactionByBlockNumber)
-     * [getTransactionReceipt](#getTransactionReceipt)
-     * [sendTransaction](#sendTransaction)
-     * [sendRawTransaction](#sendRawTransaction)
-     * [newPendingTransactionFilter](#newPendingTransactionFilter)
-     * [getTransactionReceipt](#getTransactionReceipt)
-     * [getAllTransactionReceipt](#getAllTransactionReceipt)
-     * [[contract] query](#contract-query)
-     * [[peer] add](#peer-add)
-     * [[peer] getAll](#peer-getall)
-     * [[peer] getAllActivePeer](#peer-getAllActivePeer)
-     * [[admin] nodeHello](#admin-nodeHello)
-     * [[admin] requestCommand](#admin-requestcommand) 
+     * Branch
+        * [getBranches](#get-branches)
+        * [getValidators](#get-validators)
+     * Block   
+         * [blockNumber](#block-number)
+         * [getBlockByHash](#get-block-by-hash)
+         * [getBlockByNumber](#get-block-by-number)
+         * [newBlockFilter](#new-block-filter)
+     * Transaction
+         * [getTransactionCountByBlockHash](#get-transaction-count-by-block-hash)
+         * [getTransactionCountByBlockNumber](#get-transaction-count-by-block-number)
+         * [getTransactionByHash](#get-transaction-by-hash)
+         * [getTransactionByBlockHash](#get-transaction-by-block-hash)
+         * [getTransactionByBlockNumber](#get-transaction-by-block-number)
+         * [getTransactionReceipt](#get-transaction-receipt)
+         * [sendTransaction](#send-transaction)
+         * [sendRawTransaction](#send-raw-transaction)
+         * [newPendingTransactionFilter](#new-pending-transaction-filter)
+         * [getTransactionReceipt](#get-transaction-receipt)     
+     * Contract
+         * [query](#query)
+     * Log
+         * [getLog](#get-log)
+         * [getLogs](#get-logs)
+         * [curIndex](#curl-index)
+     * Peer
+         * [getAllActivePeer](#get-all-active-peer)
+     * Admin        
+         * [nodeHello](#node-hello)
+         * [requestCommand](#request-command) 
 
 # JSON RPC API 
 
@@ -60,148 +65,190 @@ If your node does complain, manually set the header by placing -H "Content-Type:
 The examples also do not include the URL/IP & port combination which must be the last argument given to curl e.x. 127.0.0.1:8080
 
 ## JSON RPC API Reference
-  
-### createAccount 
 
-Create a new account.
+### getBranches
+
+Returns the spec of all running branches in the node.
 
 **Parameter**
-
+  
 none
-
+  
 **Returns**
+  
+`DATA`-  The branch objects.
+  
+**Example** 
 
-`String`, 20 bytes - an address
-
-**Example**
+ ```
+// Request
+{  
+   "id":"1538349352",
+   "jsonrpc":"2.0",
+   "method":"getBranches"
+}
  
-```
-// Request
-{
-    "id":"1",
-    "jsonrpc":"2.0",
-    "method":"createAccount"
-}
-
 // Result
-{
-    "jsonrpc":"2.0",
-    "id":"1973130775",
-    "result":"eddc6ac0d1c6b4b84842f1b8f154aee07ead74b9"
+{  
+   "jsonrpc":"2.0",
+   "id":"1538349352",
+   "result":{  
+      "63589382e2e183e2a6969ebf57bd784dcb29bd43":{  
+         "name":"YGGDRASH",
+         "symbol":"YGGDRASH",
+         "property":"platform",
+         "description":"TRUST-based Multi-dimensional Blockchains",
+         "contracts":[  
+            {  
+               "contractVersion":"178b44b22d8c6d5bb08175fa2fcab15122ca8d1e",
+               "init":{  
+
+               },
+               "description":"The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.",
+               "name":"STEM",
+               "isSystem":true
+            },
+            {  
+               "contractVersion":"6a2371e34b780dd39bd56002b1d96c23689cc5dc",
+               "isSystem":true,
+               "init":{  
+                  "alloc":{  
+                     "101167aaf090581b91c08480f6e559acdd9a3ddd":{  
+                        "balance":"1000000000000000000000"
+                     },
+                     "ffcbff030ecfa17628abdd0ff1990be003da35a2":{  
+                        "balance":"1000000000000000000000"
+                     },
+                     "b0aee21c81bf6057efa9a321916f0f1a12f5c547":{  
+                        "balance":"1000000000000000000000"
+                     },
+                     "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e":{  
+                        "balance":"1000000000000000000000"
+                     },
+                     "57c6510966903044581c148bb67eb47dbbeebef1":{  
+                        "balance":"1000000000000000000000"
+                     },
+                     "d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95":{  
+                        "balance":"1000000000000000000000"
+                     },
+                     "cee3d4755e47055b530deeba062c5bd0c17eb00f":{  
+                        "balance":"994000000000000000000000"
+                     },
+                     "4e5cbe1d0db35add81e7f2840eeb250b5b469161":{  
+                        "balance":"994000000000000000000000"
+                     }
+                  }
+               },
+               "description":"YEED is the currency used inside YGGDRASH. The vitality of the new branch chain is decided by the amount of YEED, which will be consumed gradually.",
+               "name":"YEED"
+            },
+            {  
+               "contractVersion":"30783a1311b9c68dd3a92596d650ae6914b01658",
+               "isSystem":true,
+               "init":{  
+                  "validators":[  
+                     "101167aaf090581b91c08480f6e559acdd9a3ddd",
+                     "ffcbff030ecfa17628abdd0ff1990be003da35a2",
+                     "b0aee21c81bf6057efa9a321916f0f1a12f5c547",
+                     "4e5cbe1d0db35add81e7f2840eeb250b5b469161",
+                     "77283a04b3410fe21ba5ed04c7bd3ba89e70b78c",
+                     "9911fb4663637706811a53a0e0b4bcedeee38686",
+                     "2ee2eb80c93d031147c21ba8e2e0f0f4a33f5312",
+                     "51e2128e8deb622c2ec6dc38f9d895f0be044eb4",
+                     "047269a50640ed2b0d45d461488c13abad1e0fac",
+                     "21640f2116389a3e37462fd6b68b969e490b6a50",
+                     "63fef4912dc8b0781351b18eb9be450638ea2c17",
+                     "34e3b1fb13c865fd558e7aa1081377bb5dca43cb",
+                     "75fad0fa463b34e659d2bb3b9324b32faed67863",
+                     "af79407d6c55c950c09ba4a30f8eae55f05508a2",
+                     "f871740aedb55e0d4f110502d5221c4a648f4c27",
+                     "f0a714707c286ba16e32fe18e90c9e13922edf5d",
+                     "d6f2eae80c8dfedc279111b4ebf2298de9d62b02",
+                     "f18db7b37206c58eb7ff8b6a0bc903f76dfcd0d8",
+                     "ff50d378b0d6f642826efd475508f372aa2e858a",
+                     "ab5506912430d4fc539f21afb0f47d2244cdfa76",
+                     "70507099ee03b3e67b5b343d483e0e835018db4b",
+                     "e58d0858512a047b2debbcfeab318bb5eeec7dee",
+                     "5519a46223c025707a12dda2d3fffe9634b274c0",
+                     "8a99217f44c65287a9cc12523b80c3e57782afb1",
+                     "fc534627231364101088709fdf030d99f1c52d38"
+                  ]
+               },
+               "name":"DPoA",
+               "description":"This contract is for a validator."
+            }
+         ],
+         "timestamp":"000001674dc56231",
+         "consensus":{  
+            "algorithm":"pbft",
+            "period":"* * * * * *"
+         }
+      }
+   }
 }
-```  
-  
-------
-
-#### accounts
-
-Returns a list of addresses owned by client.
-
-**Parameter**
-
-none
-
-**Returns**
-
-`Array of DATA`, 20 bytes - addresses owned by the client
-
-**Example**
-
 ```
-// Request
-{
-    "id":"2051005236",
-    "jsonrpc":"2.0",
-    "method":"accounts"
-}
-
-// Result
-{
-    "jsonrpc":"2.0",
-    "id":"2051005236",
-    "result":["0xA6cf59D72cB6c253b3CFe10d498aC8615453689B","0x2Aa4BCaC31F7F67B9a15681D5e4De2FBc778066A","0x1662E2457A0e079B03214dc3D5009bA2137006C7"]
-}
-```  
-  
-------
-
-#### balanceOf
-
-Returns a balance of address
-
-**Parameter**
-
-`String of DATA` - query
-
-```
-params: {
-		"data": "{\"address\":\"a08ee962cd8b2bd0edbfee989c1a9f7884d26532\",\"method\":\"balanceOf\",\"params\":[{\"address\":\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\"}]}"
-}
-```
-
-**Returns**
-
-`String of DATA` - balance of address
-
-**Example**
-
-```
-// Request
-{
-	"id": "1241106686",
-	"jsonrpc": "2.0",
-	"method": "balanceOf",
-	"params": {
-		"data": "{\"address\":\"a08ee962cd8b2bd0edbfee989c1a9f7884d26532\",\"method\":\"balanceOf\",\"params\":[{\"address\":\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\"}]}"
-	}
-}
-
-// Response
-{
-	"jsonrpc": "2.0",
-	"id": "1241106686",
-	"result": "{\"result\":\"1000000000\"}"
-}
-```
-
  
-------
+-----
+ 
+#### getValidators
 
-#### getBalance
-
-Returns the balance of the account of given address.
+Returns the validators of all running branches in the node
 
 **Parameter**
 
-1. `DATA`, 20 bytes - address to check for balance.
-2. `QUANTITY | TAG` - integer block number, or the string `"latest"`, `"earliest"` or `"pending"`
+`DATA`, 20 Bytes - branchId
 
 **Returns**
 
-`QUANTITY` - integer of the current balance (i.e. Yeed)
+`Array`- A list of all validators
 
 **Example**
 
 ```
 // Request
-{
-    "id":"623943523",
-    "jsonrpc":"2.0",
-    "method":"getBalance",
-    "params":{
-                "address":"0x2Aa4BCaC31F7F67B9a15681D5e4De2FBc778066A",
-                "tag":"latest"
-              }
-}
-
+{  
+   "id":"182278868",
+   "jsonrpc":"2.0",
+   "method":"getValidators",
+   "params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43"
+   }
+ }
+ 
 // Result
-{
-    "jsonrpc":"2.0",
-    "id":"623943523",
-    "result":100000
+{  
+   "jsonrpc":"2.0",
+   "id":"182278868",
+   "result":[  
+      "101167aaf090581b91c08480f6e559acdd9a3ddd",
+      "e58d0858512a047b2debbcfeab318bb5eeec7dee",
+      "9911fb4663637706811a53a0e0b4bcedeee38686",
+      "ffcbff030ecfa17628abdd0ff1990be003da35a2",
+      "21640f2116389a3e37462fd6b68b969e490b6a50",
+      "34e3b1fb13c865fd558e7aa1081377bb5dca43cb",
+      "af79407d6c55c950c09ba4a30f8eae55f05508a2",
+      "75fad0fa463b34e659d2bb3b9324b32faed67863",
+      "4e5cbe1d0db35add81e7f2840eeb250b5b469161",
+      "2ee2eb80c93d031147c21ba8e2e0f0f4a33f5312",
+      "70507099ee03b3e67b5b343d483e0e835018db4b",
+      "b0aee21c81bf6057efa9a321916f0f1a12f5c547",
+      "047269a50640ed2b0d45d461488c13abad1e0fac",
+      "d6f2eae80c8dfedc279111b4ebf2298de9d62b02",
+      "ab5506912430d4fc539f21afb0f47d2244cdfa76",
+      "ff50d378b0d6f642826efd475508f372aa2e858a",
+      "5519a46223c025707a12dda2d3fffe9634b274c0",
+      "f18db7b37206c58eb7ff8b6a0bc903f76dfcd0d8",
+      "77283a04b3410fe21ba5ed04c7bd3ba89e70b78c",
+      "f871740aedb55e0d4f110502d5221c4a648f4c27",
+      "63fef4912dc8b0781351b18eb9be450638ea2c17",
+      "51e2128e8deb622c2ec6dc38f9d895f0be044eb4",
+      "8a99217f44c65287a9cc12523b80c3e57782afb1",
+      "fc534627231364101088709fdf030d99f1c52d38",
+      "f0a714707c286ba16e32fe18e90c9e13922edf5d"
+   ]
 }
-```  
-  
+```
+ 
 ------
 
 #### blockNumber
@@ -245,14 +292,15 @@ Returns information about a block by hash.
 
 **Parameter**
 
-1. `DATA`, 32 Bytes - Hash of a block.
-2. `Boolean` - If `true` it returns the full transaction objects, if `false` only the hashes of the transactions.
+1. `DATA`, 20 bytes - BranchId.
+2. `DATA`, 32 Bytes - Hash of a block.
+3. `Boolean` - If `true` it returns the full transaction objects, if `false` only the hashes of the transactions.
 
 ```
-params: {
- 		"branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
- 		"blockId": "ad7dd0552336ebf3b2f4f648c4a87d7c35ed74382219e2954047ad9138a247c5",
- 		"bool": true
+"params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "blockId":"a726170b6aa17429b79854dfff1519ac338deabc345c1a99a3a727fbc358c555",
+      "bool":true
 }
 ```
 
@@ -260,40 +308,41 @@ params: {
 
 `Object` - A block object, or `null` when no block was found:
 
-
 **Example**
 
 ```
-/// Request (to Stem chain)
- {
- 	"id": "888983999",
- 	"jsonrpc": "2.0",
- 	"method": "getBlockByHash",
- 	"params": {
- 		"branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
- 		"blockId": "ad7dd0552336ebf3b2f4f648c4a87d7c35ed74382219e2954047ad9138a247c5",
- 		"bool": true
- 	}
- }
+/// Request 
+{  
+   "id":"65210285",
+   "jsonrpc":"2.0",
+   "method":"getBlockByHash",
+   "params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "blockId":"a726170b6aa17429b79854dfff1519ac338deabc345c1a99a3a727fbc358c555",
+      "bool":true
+   }
+}
  
- // Result (from Stem chain)
- {
- 	"jsonrpc": "2.0",
- 	"id": "888983999",
- 	"result": {
- 		"chain": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
- 		"version": "0000000000000000",
- 		"type": "0000000000000000",
- 		"prevBlockHash": "7525186314769ae0cabfe8addafe5e40e1b4d92478d9afd13943a8d1112b201f",
- 		"index": 1,
- 		"timestamp": 1537435370004,
- 		"merkleRoot": "0000000000000000000000000000000000000000000000000000000000000000",
- 		"bodyLength": 0,
- 		"signature": "1c4fb772df3f7409c10b82af425b30a005cd38babd93cacd07726e09733abdd19d6e64c8ae03688a9e70ea3d751cd7e7dba3a182f6f567e2c7f1c542c1e95c8159",
- 		"body": [],
- 		"author": "aaa2aaab0fb041c5cb2a60a12291cbc3097352bb",
- 		"hash": "ad7dd0552336ebf3b2f4f648c4a87d7c35ed74382219e2954047ad9138a247c5"
- 	}
+ // Result
+ {  
+    "jsonrpc":"2.0",
+    "id":"65210285",
+    "result":{  
+       "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+       "version":"0000000000000000",
+       "type":"0000000000000000",
+       "prevBlockId":"6720d6fa7fb34265aed9fa6f791fdab9193209671b080b6b0b7519c67424cdd0",
+       "index":5806,
+       "timestamp":"2019-06-28T02:11:29.211Z",
+       "merkleRoot":"0000000000000000000000000000000000000000000000000000000000000000",
+       "bodyLength":0,
+       "txSize":0,
+       "signature":"1b04a8af7d6fb0313c9d8e302288894485499c2576668955f687dd9914b071b90b6fde2cbbe1d1dc0b538ebd6dfe72c8e7cc1a7c6fc6c18a14c1d016854d6f4722",
+       "body":[],
+       "author":"2ee2eb80c93d031147c21ba8e2e0f0f4a33f5312",
+       "blockId":"a726170b6aa17429b79854dfff1519ac338deabc345c1a99a3a727fbc358c555",
+       "consensusMessages":"{\"prePrepare\":{\"type\":\"PREPREPA\",\"viewNumber\":5806,\"seqNumber\":5806,\"hash\":\"a726170b6aa17429b79854dfff1519ac338deabc345c1a99a3a727fbc358c555\",\"signature\":\"1b4395dfdc8a581c0dde3dc2d60694b03d33c594813c94ffb97ee1eec7b079862e0785e16af53dbcf11c3fb4df81bb78e9a1d20286f7711f2e748e5b309b390855\",\"block\":{\"header\":{\"chain\":\"63589382e2e183e2a6969ebf57bd784dcb29bd43\",\"version\":\"0000000000000000\",\"type\":\"0000000000000000\",\"prevBlockHash\":\"6720d6fa7fb34265aed9fa6f791fdab9193209671b080b6b0b7519c67424cdd0\",\"index\":\"00000000000016ae\",\"timestamp\":\"0000016b9bda153b\",\"merkleRoot\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"bodyLength\":\"0000000000000000\"},\"signature\":\"1b04a8af7d6fb0313c9d8e302288894485499c2576668955f687dd9914b071b90b6fde2cbbe1d1dc0b538ebd6dfe72c8e7cc1a7c6fc6c18a14c1d016854d6f4722\",\"body\":[]}},\"prepareList\":[{\"type\":\"PREPAREM\",\"viewNumber\":5806,\"seqNumber\":5806,\"hash\":\"a726170b6aa17429b79854dfff1519ac338deabc345c1a99a3a727fbc358c555\",\"signature\":\"1b4b120dcfbfca700ab9daa9291028f27e1a3f86db300a6e5e6ed17ae64b06c993660c310ef19f63419afcf43644ef246a8fd3888d4ea98ed579581814bd84360b\"},{\"type\":\"PREPAREM\",\"viewNumber\":5806,\"seqNumber\":5806,\"hash\":\"a726170b6aa17429b79854dfff1519ac338deabc345c1a99a3a727fbc358c555\",\"signature\":\"1bf61e23085a3953f15e50c216bda32f8cd1e9972b5c736f93deff4b332d82cd9f0157346f79f626fed2b6cdcfd1d1672cf0b3d02f17040281c8d3f96c739b1ae6\"},{\"type\":\"PREPAREM\",\"viewNumber\":5806,\"seqNumber\":5806,\"hash\":\"a726170b6aa17429b79854dfff1519ac338deabc345c1a99a3a727fbc358c555\",\"signature\":\"1c0c6b42c0ab673941182dfa67878447f56b546876c8a441c93ea4db03d33b7f0933d8eb5483afbf9962b2f619c0127515cbfc7ecc71bc1d7ba0d93287c6b496bf\"},{\"type\":\"PREPAREM\",\"viewNumber\":5806,\"seqNumber\":5806,\"hash\":\"a726170b6aa17429b79854dfff1519ac338deabc345c1a99a3a727fbc358c555\",\"signature\":\"1c0d9a1aece7d1c30f57d3ee12b6537f0d3f1ab388b33774f1019fa017b1b6cf176d163ba63770fea2097d8088c914a31f79a1e837c0f197d04c87b14e4433499a\"},{\"type\":\"PREPAREM\",\"viewNumber\":5806,\"seqNumber\":5806,\"hash\":\"a726170b6aa17429b79854dfff1519ac338deabc345c1a99a3a727fbc358c555\",\"signature\":\"1c987220ed31860e9f680789e7790d5a309fb5d95e5ec3ce11608a7766c483b7d1752ea6900e790ee8b586ec7b748e6b4f851455b1c5719f207af8570ee117f436\"}],\"commitList\":[{\"type\":\"COMMITMS\",\"viewNumber\":5806,\"seqNumber\":5806,\"hash\":\"a726170b6aa17429b79854dfff1519ac338deabc345c1a99a3a727fbc358c555\",\"signature\":\"1b733d171c5cd2095cab473b09b9cf84fb87ccdccf5fce20366617a653d75a06816a6b42d5bb956064034304a27a76507291f6475d998ae0ec87ac85985da3d19f\"},{\"type\":\"COMMITMS\",\"viewNumber\":5806,\"seqNumber\":5806,\"hash\":\"a726170b6aa17429b79854dfff1519ac338deabc345c1a99a3a727fbc358c555\",\"signature\":\"1bb400a607135a80f536a6bd19095d7e4dd06ea7294793734ea894d26e3cee2b547598e8647233cbc37a936326d948d590ee1be4b72a9e619e088128300f841ccb\"},{\"type\":\"COMMITMS\",\"viewNumber\":5806,\"seqNumber\":5806,\"hash\":\"a726170b6aa17429b79854dfff1519ac338deabc345c1a99a3a727fbc358c555\",\"signature\":\"1bef88311ee002386a9d5586665b57d90a750528d27eea888023d329362eb55d602c35021a0fc77d02e39f212d275cbb213cb3cd8064f4544fa3c11dcc3e16efa3\"},{\"type\":\"COMMITMS\",\"viewNumber\":5806,\"seqNumber\":5806,\"hash\":\"a726170b6aa17429b79854dfff1519ac338deabc345c1a99a3a727fbc358c555\",\"signature\":\"1c573078bf89a7908521306876b14ccbf7cfba40483fc63b133252c271c895958205fc3e2ee2cc580cd82468b634995ad957504f2d5e71d81a48c0bf44e9a061a4\"},{\"type\":\"COMMITMS\",\"viewNumber\":5806,\"seqNumber\":5806,\"hash\":\"a726170b6aa17429b79854dfff1519ac338deabc345c1a99a3a727fbc358c555\",\"signature\":\"1cd97ee762f929d88618bfee7939fb6c17a36b746ad95e925de1bac9c1822fffea33f4a455208dab7cbe0e56105e6012ff1136f7129c2da4e35888eb007ebf6971\"}]}"
+    }
  }
 ```
   
@@ -305,13 +354,15 @@ Returns information about a block by block number.
 
 **Parameter**
 
-1. `QUANTITY|TAG` - integer of a block number, or the string `"earliest"`, `"latest"` or `"pending"`, as in the default block parameter.
-2. `Boolean` - If `true` it returns the full transaction objects, if `false` only the hashes of the transactions.
+1. `DATA`, 20 bytes - BranchId. 
+2. `QUANTITY|TAG` - integer of a block number, or the string `"earliest"`, `"latest"` or `"pending"`, as in the default block parameter.
+3. `Boolean` - If `true` it returns the full transaction objects, if `false` only the hashes of the transactions.
 
 ```
 params: [
-   true
-   '0xbbF5029Fd710d227630c8b7d338051B8E76d50B3'
+    "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+    "numOfBlock":6830,
+    "bool":true
 ]
 ```
 
@@ -322,83 +373,41 @@ See [getBlockByHash]()
 **Example**
 
 ```
-// Request (to Stem chain)
-{
-	"id": "988795691",
-	"jsonrpc": "2.0",
-	"method": "getBlockByNumber",
-	"params": {
-		"branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
-		"numOfBlock": 0,
-		"bool": true
-	}
-}
-
-// Result (from Stem chain)
-{
-	"jsonrpc": "2.0",
-	"id": "988795691",
-	"result": {
-		"chain": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
-		"version": "0000000000000000",
-		"type": "0000000000000000",
-		"prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
-		"index": 0,
-		"timestamp": 1537246807962,
-		"merkleRoot": "1cf4b39c9530026fb5294c8e53041304252749e9bdccc7014a6bc78985699d60",
-		"bodyLength": 1734,
-		"signature": "1c8d4fdb448e55ada01ec98add95a360d18e750cc3a5230a142b0027684e1b7642207ffc435a93a9408040b0466c7d6bc1045b9ec0d6bf31c0783a4fc2859fc3f0",
-		"body": [{
-			"chain": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
-			"version": "0000000000000000",
-			"type": "0000000000000000",
-			"timestamp": 1537246807962,
-			"bodyHash": "09ecdfc92e99c14e67ad93dd0d7b13c69042ff652206b2aea89878f045dd598c",
-			"bodyLength": 1585,
-			"signature": "1cf604a2e271344dacdfa3119e066a87966514b018d24980ca89b11b58e672b16949fd05f63f9178916489c39594819b0efd26801b8572b3c962ac9fc0f38d52f5",
-			"body": "[{\"method\":\"genesis\",\"branchId\":\"fe7b7c93dd23f78e12ad42650595bc0f874c88f7\",\"params\":[{\"branchId\":\"fe7b7c93dd23f78e12ad42650595bc0f874c88f7\",\"branch\":\"{\\\"name\\\":\\\"STEM\\\",\\\"symbol\\\":\\\"STEM\\\",\\\"property\\\":\\\"ecosystem\\\",\\\"type\\\":\\\"immunity\\\",\\\"description\\\":\\\"The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.\\\",\\\"tag\\\":0.1,\\\"version\\\":\\\"0xcc9612ff91ff844938acdb6608e58506a2f21b8a5d77e88726c0897e8d1d02c0\\\",\\\"reference_address\\\":\\\"\\\",\\\"reserve_address\\\":\\\"0xcee3d4755e47055b530deeba062c5bd0c17eb00f\\\",\\\"owner\\\":\\\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\\\",\\\"timestamp\\\":1536755670444,\\\"version_history\\\":[\\\"0xcc9612ff91ff844938acdb6608e58506a2f21b8a5d77e88726c0897e8d1d02c0\\\"]}\"}],\"delegator\":{\"a7a9ad6f834bcc080586c55e9b1981b7ec39f31d\":{\"ip\":\"172.16.10.150\",\"port\":\"32918\"},\"50c7b8af63f57ddef4b954e38e7a1253c896b742\":{\"ip\":\"172.16.10.150\",\"port\":\"32919\"},\"5db10750e8caff27f906b41c71b3471057dd2002\":{\"ip\":\"100.100.100.3\",\"port\":\"32918\"},\"5db10750e8caff27f906b41c71b3471057dd2003\":{\"ip\":\"100.100.100.4\",\"port\":\"32918\"},\"5db10750e8caff27f906b41c71b3471057dd2004\":{\"ip\":\"100.100.100.5\",\"port\":\"32918\"}},\"node\":{\"5db10750e8caff27f906b41c71b3471057dd2006\":{\"ip\":\"100.100.100.6\",\"port\":\"32918\"},\"5db10750e8caff27f906b41c71b3471057dd2007\":{\"ip\":\"100.100.100.7\",\"port\":\"32918\"},\"5db10750e8caff27f906b41c71b3471057dd2008\":{\"ip\":\"100.100.100.8\",\"port\":\"32918\"},\"5db10750e8caff27f906b41c71b3471057dd2009\":{\"ip\":\"100.100.100.9\",\"port\":\"32918\"},\"5db10750e8caff27f906b41c71b3471057dd2010\":{\"ip\":\"100.100.100.10\",\"port\":\"32918\"}}}]",
-			"author": "e68dc7c57c52221b291cc7440becc025554082d9",
-			"hash": "76f2292411ea0c8233cc5302ccb7035d16e13d9b6f6c53cb26a8afd126cc9864"
-		}],
-		"author": "e68dc7c57c52221b291cc7440becc025554082d9",
-		"hash": "7525186314769ae0cabfe8addafe5e40e1b4d92478d9afd13943a8d1112b201f"
-	}
-}
-```
-  
------
-
-#### newBlockFilter
-
-Creates a filter in the node, to notify when a new block arrives.   
-(To check if the state has changed, call eth_getFilterChanges.)
-
-**Parameter**
-
-none 
-
-**Returns**
-
-`QUANTITY` - A filter id.
-
-**Example**
-  
-```
 // Request
-{
-    "id":"2075477934",
-    "jsonrpc":"2.0",
-    "method":"newBlockFilter"
+{  
+   "id":"2001111864",
+   "jsonrpc":"2.0",
+   "method":"getBlockByNumber",
+   "params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "numOfBlock":6830,
+      "bool":true
+   }
 }
-
-// Result
-{
-    "jsonrpc":"2.0",
-    "id":"2075477934",
-    "result":0
+ 
+// Result 
+{  
+   "jsonrpc":"2.0",
+   "id":"2001111864",
+   "result":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "version":"0000000000000000",
+      "type":"0000000000000000",
+      "prevBlockId":"bc0a19cbf558985cd2630f0f171d65c6da9d58561087d19db700b2aa3b149e7e",
+      "index":6830,
+      "timestamp":"2019-06-28T02:28:33.086Z",
+      "merkleRoot":"0000000000000000000000000000000000000000000000000000000000000000",
+      "bodyLength":0,
+      "txSize":0,
+      "signature":"1c7c8cc5c37a6851cdfad2798abdd3f6c6de759da4b497ed34ecae682f2dcece4258bdadb65689c4d5069e0a469ddb93ad79b25267fe4c99f043f414b39774fc44",
+      "body":[],
+      "author":"047269a50640ed2b0d45d461488c13abad1e0fac",
+      "blockId":"d2f03a22b83d096dd384a3b3d22c79397c8895158b66d988e3e67d970d547e15",
+      "consensusMessages":"{\"prePrepare\":{\"type\":\"PREPREPA\",\"viewNumber\":6830,\"seqNumber\":6830,\"hash\":\"d2f03a22b83d096dd384a3b3d22c79397c8895158b66d988e3e67d970d547e15\",\"signature\":\"1c546bdeffaad86d6c9076072cde171cca882261e3b532fd147af430ad0bbf05c11aa306ad74eda63ee8b9fc15c4e1a032b02ea29cec1c6953e07222238c518a34\",\"block\":{\"header\":{\"chain\":\"63589382e2e183e2a6969ebf57bd784dcb29bd43\",\"version\":\"0000000000000000\",\"type\":\"0000000000000000\",\"prevBlockHash\":\"bc0a19cbf558985cd2630f0f171d65c6da9d58561087d19db700b2aa3b149e7e\",\"index\":\"0000000000001aae\",\"timestamp\":\"0000016b9be9b4be\",\"merkleRoot\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"bodyLength\":\"0000000000000000\"},\"signature\":\"1c7c8cc5c37a6851cdfad2798abdd3f6c6de759da4b497ed34ecae682f2dcece4258bdadb65689c4d5069e0a469ddb93ad79b25267fe4c99f043f414b39774fc44\",\"body\":[]}},\"prepareList\":[{\"type\":\"PREPAREM\",\"viewNumber\":6830,\"seqNumber\":6830,\"hash\":\"d2f03a22b83d096dd384a3b3d22c79397c8895158b66d988e3e67d970d547e15\",\"signature\":\"1bc295b99caa9550600f30e4dc992504a65f09e912cafffca6282238b5a716a6e161e89dc1cde838dc09359b8fd392dbceb6ec19462f54f59b44b342605ea641fb\"},{\"type\":\"PREPAREM\",\"viewNumber\":6830,\"seqNumber\":6830,\"hash\":\"d2f03a22b83d096dd384a3b3d22c79397c8895158b66d988e3e67d970d547e15\",\"signature\":\"1bf8c94174cdd23e4fe77b4340ccf4b60ea5a3fa59fbe9c9f5f4a24cfc701552243642009591d62ed2eb0c99cdb4ee2db8a2a0e006e68fb97c0bcd907ea068299f\"},{\"type\":\"PREPAREM\",\"viewNumber\":6830,\"seqNumber\":6830,\"hash\":\"d2f03a22b83d096dd384a3b3d22c79397c8895158b66d988e3e67d970d547e15\",\"signature\":\"1c01108771614283e70e59dd9efa8d5211ef8991470ef8e811a6c1639c447378ff03154bc17cef85566009cea678a55ad5914e3103401cfb1ebacf53f08c6c0077\"},{\"type\":\"PREPAREM\",\"viewNumber\":6830,\"seqNumber\":6830,\"hash\":\"d2f03a22b83d096dd384a3b3d22c79397c8895158b66d988e3e67d970d547e15\",\"signature\":\"1c0a454cb1bc01fd5009d65c900518e6fca4c04dc9d21d80cee956ad716b19399a115d01b5763af86a5d5717a9949deb3757493fc010ce65db4eb71e1e2841de42\"},{\"type\":\"PREPAREM\",\"viewNumber\":6830,\"seqNumber\":6830,\"hash\":\"d2f03a22b83d096dd384a3b3d22c79397c8895158b66d988e3e67d970d547e15\",\"signature\":\"1cedb1b51ae62df3e23f48112b25d24619bc32b7f903b10ab861b39283faac940d7afc4cd5f2829ff139102312ec59d895791062a9dd0ee6da999f6649e92b45e1\"}],\"commitList\":[{\"type\":\"COMMITMS\",\"viewNumber\":6830,\"seqNumber\":6830,\"hash\":\"d2f03a22b83d096dd384a3b3d22c79397c8895158b66d988e3e67d970d547e15\",\"signature\":\"1b1b9d4744c9d92a957d192ef705a27abf7d15d4098a6c57bc5ef1e1b3cca993e61d65f281104267ccad8327f72888e57d526811a803dde071ba01608c7153e096\"},{\"type\":\"COMMITMS\",\"viewNumber\":6830,\"seqNumber\":6830,\"hash\":\"d2f03a22b83d096dd384a3b3d22c79397c8895158b66d988e3e67d970d547e15\",\"signature\":\"1b63e8ccf383ee474421e5cad8aa51660a008201e6f42f1846abeac4d1065778e0537a7d66ae870e4ded0c09325ecb85344de8779b0e79f29574a946b19d51c20a\"},{\"type\":\"COMMITMS\",\"viewNumber\":6830,\"seqNumber\":6830,\"hash\":\"d2f03a22b83d096dd384a3b3d22c79397c8895158b66d988e3e67d970d547e15\",\"signature\":\"1bedf224a61cf99adb9a93a50b58811af5c35d3b3c3bdb80916e6b88318f09d25123a32691ccb939144b20e989f1054600aa08830ab7ebe3ce84bee88cad5c4f6f\"},{\"type\":\"COMMITMS\",\"viewNumber\":6830,\"seqNumber\":6830,\"hash\":\"d2f03a22b83d096dd384a3b3d22c79397c8895158b66d988e3e67d970d547e15\",\"signature\":\"1c30104357a5db0c79a54d9eb3eee1c463ecf4ecb0d1f8fca46a97fa5762a87512162a07ec38e29ef1f357a20753626bc062eb77313b75a6f83ef2be702ae8e7f9\"},{\"type\":\"COMMITMS\",\"viewNumber\":6830,\"seqNumber\":6830,\"hash\":\"d2f03a22b83d096dd384a3b3d22c79397c8895158b66d988e3e67d970d547e15\",\"signature\":\"1c662152a5bf5a66f944483e4615e82323575e98c62c6eeec6c91281ef9d78ed646acd1dc98db6fc3df6df6d2af9e7c014eaa2fed4f472311e9f7b4d80eaf853f7\"}]}"
+   }
 }
 ```
- 
+  
 -----
 
 #### getTransactionCountByBlockHash
@@ -416,22 +425,22 @@ Returns the number of transactions in a block from a block matching the given bl
 **Example**
   
 ```
-// Request (to Stem chain)
-{
-	"id": "1327275333",
-	"jsonrpc": "2.0",
-	"method": "getTransactionCountByBlockHash",
-	"params": {
-		"branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
-		"blockId": "d52fffa14f5b88b141d05d8e28c90d8131db1aa63e076bfea9c28c3060049e12"
-	}
+// Request 
+{  
+   "id":"562768530",
+   "jsonrpc":"2.0",
+   "method":"getTransactionCountByBlockHash",
+   "params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "blockId":"7e18144fd6f943572b09e2e0ba6f22e68bf5fef3d8fd1d3d640276bca081a0dd"
+   }
 }
 
-// Result (from Stem chain)
-{
-	"jsonrpc": "2.0",
-	"id": "1327275333",
-	"result": 50
+// Result 
+{  
+   "jsonrpc":"2.0",
+   "id":"562768530",
+   "result":15
 }
 ```
  
@@ -443,19 +452,20 @@ Returns the number of transactions in a block matching the given block number.
 
 **Parameter**
 
-`QUANTITY|TAG` - integer of a block number, or the string `"earliest"`, `"latest"` or `"pending"`, as in the default block parameter.
-`QUANTITY` - the transaction index position.
+1. `DATA`, 20 bytes - BranchId.
+2. `QUANTITY|TAG` - integer of a block number, or the string `"earliest"`, `"latest"` or `"pending"`, as in the default block parameter.
+3. `QUANTITY` - the transaction index position.
 
 ```
-params: {
-		"branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
-		"blockNumber": 3
+"params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "blockNumber":7293
 }
 
-params: {
-		"branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
-		"txIndexPosition": 2,
-		"blockNumber": 31
+"params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "blockNumber":7293,
+      "txIndexPosition":2
 }
 ```
 
@@ -466,85 +476,84 @@ params: {
 **Example**
   
 ```
-// Request (to Stem chain)
-{
-	"id": "1322610796",
-	"jsonrpc": "2.0",
-	"method": "getTransactionCountByBlockNumber",
-	"params": {
-		"branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
-		"blockNumber": 3
-	}
+// Request 
+{  
+   "id":"1792293295",
+   "jsonrpc":"2.0",
+   "method":"getTransactionCountByBlockNumber",
+   "params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "blockNumber":7293
+   }
 }
 
-// Result (from Stem chain)
-{
-	"jsonrpc": "2.0",
-	"id": "1322610796",
-	"result": 50
+// Result
+{  
+   "jsonrpc":"2.0",
+   "id":"1792293295",
+   "result":15
 }
 
-// Request (to Stem chain)
-{
-	"id": "729387017",
-	"jsonrpc": "2.0",
-	"method": "getTransactionCountByBlockNumber",
-	"params": {
-		"branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
-		"txIndexPosition": 2,
-		"blockNumber": 31
-	}
+// Request
+{  
+   "id":"1109859650",
+   "jsonrpc":"2.0",
+   "method":"getTransactionByBlockNumber",
+   "params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "blockNumber":7293,
+      "txIndexPosition":2
+   }
 }
 
-// Result (from Stem chain)
-{
-	"jsonrpc": "2.0",
-	"id": "729387017",
-	"result": {
-		"chain": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
-		"version": "0000000000000000",
-		"type": "0000000000000000",
-		"timestamp": 1537426002627,
-		"bodyHash": "441a7570b535215b9d25f1a16f05e6c12fb33151d5fa74203f49aa74733a713e",
-		"bodyLength": 674,
-		"signature": "1c426c1b0579b0fd724548720c3927283abd00c564f48e2f08e7b0084bd95161c26793d586b401c3c5f5f38b70911c52847f7ae5ef4522f269dcc744e7eb277a52",
-		"body": "[{\"method\":\"create\",\"params\":[{\"branchId\":\"a08ee962cd8b2bd0edbfee989c1a9f7884d26532\",\"branch\":{\"name\":\"YEED\",\"owner\":\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\",\"symbol\":\"YEED\",\"property\":\"currency\",\"type\":\"immunity\",\"timestamp\":1536756751728,\"description\":\"YEED is the currency used inside YGGDRASH. The vitality of the new branch chain is decided by the amount of YEED, which will be consumed gradually.\",\"tag\":0.1,\"version\":\"0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025\",\"version_history\":[\"0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025\"],\"reference_address\":\"\",\"reserve_address\":\"0x9cc060690705a13078634637b1d2a5f2fe1b8096\"}}]}]",
-		"author": "aaa2aaab0fb041c5cb2a60a12291cbc3097352bb",
-		"hash": "3799a13a481b5df87a4fb18db20286754a638d784d397f962ed4e4dba54cb52d"
-	}
+// Result
+{  
+   "jsonrpc":"2.0",
+   "id":"1109859650",
+   "result":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "version":"0000000000000000",
+      "type":"0000000000000000",
+      "timestamp":1561689372950,
+      "bodyHash":"4365a707da15a6bb7427f67453c8b70fe6757b17cb3159cc1324123cd8f7e7a6",
+      "bodyLength":152,
+      "signature":"1bda6b072adcf11aac3edc92523bed27a0d178d0b834765efba4c209df67e20cbf45172101b0f092181dd335ecaa28fc3de817e0682a65d84ed84f11e46d5053d8",
+      "body":"{\"contractVersion\":\"6a2371e34b780dd39bd56002b1d96c23689cc5dc\",\"method\":\"transfer\",\"params\":{\"to\":\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\",\"amount\":1}}",
+      "author":"101167aaf090581b91c08480f6e559acdd9a3ddd",
+      "txId":"ce1b1c0a2f5076a41e6077134cf9fb9042a1a566c769f2fa81b90abe4b19f078"
+   }
 }
 
-// Request (to Stem chain)
-{
-	"id": "1480899822",
-	"jsonrpc": "2.0",
-	"method": "getTransactionCountByBlockNumber",
-	"params": {
-		"branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
-		"txIndexPosition": 2,
-		"tag": "latest"
-	}
+// Request
+{  
+   "id":"654256854",
+   "jsonrpc":"2.0",
+   "method":"getTransactionByBlockNumber",
+   "params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "tag":"latest",
+      "txIndexPosition":2
+   }
 }
 
-// Result (from Stem chain)
-{
-	"jsonrpc": "2.0",
-	"id": "1480899822",
-	"result": {
-		"chain": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
-		"version": "0000000000000000",
-		"type": "0000000000000000",
-		"timestamp": 1537426969582,
-		"bodyHash": "441a7570b535215b9d25f1a16f05e6c12fb33151d5fa74203f49aa74733a713e",
-		"bodyLength": 674,
-		"signature": "1bafca750fb41b187b04194e6cfb21b19add3cc7ae2fdff37e6dfdef6cc19b6cd25684b00fa31f7de6b326592ab467d0eda85b0c6ec1b24681cf40173a920c57a7",
-		"body": "[{\"method\":\"create\",\"params\":[{\"branchId\":\"a08ee962cd8b2bd0edbfee989c1a9f7884d26532\",\"branch\":{\"name\":\"YEED\",\"owner\":\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\",\"symbol\":\"YEED\",\"property\":\"currency\",\"type\":\"immunity\",\"timestamp\":1536756751728,\"description\":\"YEED is the currency used inside YGGDRASH. The vitality of the new branch chain is decided by the amount of YEED, which will be consumed gradually.\",\"tag\":0.1,\"version\":\"0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025\",\"version_history\":[\"0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025\"],\"reference_address\":\"\",\"reserve_address\":\"0x9cc060690705a13078634637b1d2a5f2fe1b8096\"}}]}]",
-		"author": "aaa2aaab0fb041c5cb2a60a12291cbc3097352bb",
-		"hash": "4ab3e4397b8235820e3f3d8e0ed802daefd93ce68cb726dff1edd30603f74a6d"
-	}
+// Result
+{  
+   "jsonrpc":"2.0",
+   "id":"654256854",
+   "result":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "version":"0000000000000000",
+      "type":"0000000000000000",
+      "timestamp":1561689372950,
+      "bodyHash":"4365a707da15a6bb7427f67453c8b70fe6757b17cb3159cc1324123cd8f7e7a6",
+      "bodyLength":152,
+      "signature":"1bda6b072adcf11aac3edc92523bed27a0d178d0b834765efba4c209df67e20cbf45172101b0f092181dd335ecaa28fc3de817e0682a65d84ed84f11e46d5053d8",
+      "body":"{\"contractVersion\":\"6a2371e34b780dd39bd56002b1d96c23689cc5dc\",\"method\":\"transfer\",\"params\":{\"to\":\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\",\"amount\":1}}",
+      "author":"101167aaf090581b91c08480f6e559acdd9a3ddd",
+      "txId":"ce1b1c0a2f5076a41e6077134cf9fb9042a1a566c769f2fa81b90abe4b19f078"
+   }
 }
 ```
- 
  
 -----
 
@@ -557,9 +566,9 @@ Returns the information about a transaction requested by transaction hash.
 `DATA`, 32 Bytes - hash of a transaction
 
 ```
-params: {
- 		"branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
- 		"txId": "f5912fde84c6a3a44b4e529077ca9bf28feccd847137e44a77cd17e9fb9c1353"
+"params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "txId":"bce793985a1cde7791acbbeb16037d7b86b967df4213329b2e3cc45995fecd68"
 }
 ```
 
@@ -570,33 +579,32 @@ params: {
 **Example**
  
 ```
-// Request (to Stem chain)
-{
-	"id": "759202303",
-	"jsonrpc": "2.0",
-	"method": "getTransactionByHash",
-	"params": {
-		"branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
-		"txId": "f5912fde84c6a3a44b4e529077ca9bf28feccd847137e44a77cd17e9fb9c1353"
-	}
+// Request 
+{  
+   "id":"1947689513",
+   "jsonrpc":"2.0",
+   "method":"getTransactionByHash",
+   "params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "txId":"bce793985a1cde7791acbbeb16037d7b86b967df4213329b2e3cc45995fecd68"
+   }
 }
 
-// Result (from Stem chain)
-{
-	"jsonrpc": "2.0",
-	"id": "759202303",
-	"result": {
-		"chain": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
-		"version": "0000000000000000",
-		"type": "0000000000000000",
-		"timestamp": 1537427095442,
-		"bodyHash": "1332ee7afc829126f40a50b42b075dd103e471e7446287af70923220ba45b9b7",
-		"bodyLength": 651,
-		"signature": "1bf43beb1f39c005e8372985a09cedb0fb9dec39619320bbb17fe44536ebb9518d437db0ff888cc2a9c5271d726ec412077fd060d81fada5e2d04e23a1777ada6c",
-		"body": "[{\"method\":\"create\",\"params\":[{\"branchId\":\"17024be871734c7d595a0ac7c5dfcc79396c7d7b\",\"branch\":{\"name\":\"Sacred Water\",\"owner\":\"aaa2aaab0fb041c5cb2a60a12291cbc3097352bb\",\"symbol\":\"SW\",\"property\":\"reputation\",\"type\":\"immunity\",\"timestamp\":1537340256736,\"description\":\"Reputation Score Evaluation Chain. Contribute your time and benefit the ecosystem to earn a higher reputation score.\",\"tag\":0.1,\"version\":\"0xebe69520b56c81e1ad2ceec4c2f9ed9405376fa56e9a9713a026fb305989e042\",\"reference_address\":\"\",\"reserve_address\":\"0x2831de120827570cf8c7cfcb9b788c222e307de4\",\"version_history\":[\"0xebe69520b56c81e1ad2ceec4c2f9ed9405376fa56e9a9713a026fb305989e042\"]}}]}]",
-		"author": "aaa2aaab0fb041c5cb2a60a12291cbc3097352bb",
-		"hash": "f5912fde84c6a3a44b4e529077ca9bf28feccd847137e44a77cd17e9fb9c1353"
-	}
+// Result
+{  
+   "jsonrpc":"2.0",
+   "id":"1947689513",
+   "result":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "version":"0000000000000000",
+      "type":"0000000000000000",
+      "timestamp":1561689373153,
+      "bodyHash":"4365a707da15a6bb7427f67453c8b70fe6757b17cb3159cc1324123cd8f7e7a6",
+      "bodyLength":152,
+      "signature":"1b24835190feef4c08d16962c7e58090254f799bcb1b188dee5c0b59aa71befcbd336ec1e6013c2b56da956f5c81aa4f94d4f63bb9bbeef61117b4e0b5e9f07a0e",
+      "body":"{\"contractVersion\":\"6a2371e34b780dd39bd56002b1d96c23689cc5dc\",\"method\":\"transfer\",\"params\":{\"to\":\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\",\"amount\":1}}",
+      "author":"101167aaf090581b91c08480f6e559acdd9a3ddd",
+      "txId":"bce793985a1cde7791acbbeb16037d7b86b967df4213329b2e3cc45995fecd68"
 }
 ```
  
@@ -614,7 +622,7 @@ Returns information about a transaction by block hash and transaction index posi
 ```
 params: [
    1,
-   '0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf' 
+   '7e18144fd6f943572b09e2e0ba6f22e68bf5fef3d8fd1d3d640276bca081a0dd' 
 ]
 ```
 
@@ -625,34 +633,34 @@ See [getTransactionByHash]()
 **Example**
   
 ```
-// Request (to Stem chain)
-{
-	"id": "1141387996",
-	"jsonrpc": "2.0",
-	"method": "getTransactionByBlockHash",
-	"params": {
-		"branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
-		"txIndexPosition": 2,
-		"blockId": "5ef71a90c6d99c7bc13bfbcaffb50cb89210678e99ed6626c9d2f378700b392c"
-	}
+// Request
+{  
+   "id":"1129606082",
+   "jsonrpc":"2.0",
+   "method":"getTransactionByBlockHash",
+   "params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "blockId":"7e18144fd6f943572b09e2e0ba6f22e68bf5fef3d8fd1d3d640276bca081a0dd",
+      "txIndexPosition":2
+   }
 }
 
-// Result (from Stem chain)
-{
-	"jsonrpc": "2.0",
-	"id": "1141387996",
-	"result": {
-		"chain": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
-		"version": "0000000000000000",
-		"type": "0000000000000000",
-		"timestamp": 1537427094634,
-		"bodyHash": "1332ee7afc829126f40a50b42b075dd103e471e7446287af70923220ba45b9b7",
-		"bodyLength": 651,
-		"signature": "1cb27a3625148c380ce0624b814c9f2c3ccad056351145c0d1e839328ed7a830b76b721423803e17f5090aa0814cf88c89919fb32254139b54c550253bcfe2c768",
-		"body": "[{\"method\":\"create\",\"params\":[{\"branchId\":\"17024be871734c7d595a0ac7c5dfcc79396c7d7b\",\"branch\":{\"name\":\"Sacred Water\",\"owner\":\"aaa2aaab0fb041c5cb2a60a12291cbc3097352bb\",\"symbol\":\"SW\",\"property\":\"reputation\",\"type\":\"immunity\",\"timestamp\":1537340256736,\"description\":\"Reputation Score Evaluation Chain. Contribute your time and benefit the ecosystem to earn a higher reputation score.\",\"tag\":0.1,\"version\":\"0xebe69520b56c81e1ad2ceec4c2f9ed9405376fa56e9a9713a026fb305989e042\",\"reference_address\":\"\",\"reserve_address\":\"0x2831de120827570cf8c7cfcb9b788c222e307de4\",\"version_history\":[\"0xebe69520b56c81e1ad2ceec4c2f9ed9405376fa56e9a9713a026fb305989e042\"]}}]}]",
-		"author": "aaa2aaab0fb041c5cb2a60a12291cbc3097352bb",
-		"hash": "98f2d644cedc38362f28cb8b624287ed014563c97d4eb0048270b7381daea7a1"
-	}
+// Result
+{  
+   "jsonrpc":"2.0",
+   "id":"1129606082",
+   "result":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "version":"0000000000000000",
+      "type":"0000000000000000",
+      "timestamp":1561689372950,
+      "bodyHash":"4365a707da15a6bb7427f67453c8b70fe6757b17cb3159cc1324123cd8f7e7a6",
+      "bodyLength":152,
+      "signature":"1bda6b072adcf11aac3edc92523bed27a0d178d0b834765efba4c209df67e20cbf45172101b0f092181dd335ecaa28fc3de817e0682a65d84ed84f11e46d5053d8",
+      "body":"{\"contractVersion\":\"6a2371e34b780dd39bd56002b1d96c23689cc5dc\",\"method\":\"transfer\",\"params\":{\"to\":\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\",\"amount\":1}}",
+      "author":"101167aaf090581b91c08480f6e559acdd9a3ddd",
+      "txId":"ce1b1c0a2f5076a41e6077134cf9fb9042a1a566c769f2fa81b90abe4b19f078"
+   }
 }
 ```
  
@@ -668,65 +676,41 @@ Creates new message call transaction or a contract creation, if the data field c
 
 **Returns**
 
-`DATA`, 32 Bytes - the transaction hash, or the zero hash if the transaction is not yet available.
+`DATA` - An object with transaction hash, status, and logs.
 
 **Example**
 
 ```
-// Request (to Stem chain)
-{
-	"id": "1634388869",
-	"jsonrpc": "2.0",
-	"method": "sendTransaction",
-	"params": {
-		"tx": {
-			"chain": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
-			"version": "0000000000000000",
-			"type": "0000000000000000",
-			"timestamp": 1537409777132,
-			"bodyHash": "441a7570b535215b9d25f1a16f05e6c12fb33151d5fa74203f49aa74733a713e",
-			"bodyLength": 674,
-			"signature": "1c84b0d2894b312043a91c4e61b768d62040ed7f4717d99d9aad9f774a0632d0f113a344ef1ade11b6ecae2b021972032508158f8b0ff919857f5da0773fb73c94",
-			"body": "[{\"method\":\"create\",\"params\":[{\"branchId\":\"a08ee962cd8b2bd0edbfee989c1a9f7884d26532\",\"branch\":{\"name\":\"YEED\",\"owner\":\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\",\"symbol\":\"YEED\",\"property\":\"currency\",\"type\":\"immunity\",\"timestamp\":1536756751728,\"description\":\"YEED is the currency used inside YGGDRASH. The vitality of the new branch chain is decided by the amount of YEED, which will be consumed gradually.\",\"tag\":0.1,\"version\":\"0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025\",\"version_history\":[\"0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025\"],\"reference_address\":\"\",\"reserve_address\":\"0x9cc060690705a13078634637b1d2a5f2fe1b8096\"}}]}]",
-			"author": "aaa2aaab0fb041c5cb2a60a12291cbc3097352bb",
-			"hash": "d7cf6612214effa4013ac6fee62894c1a0f9b47b1ddcffb2a62a6398b200ff31"
-		}
-	}
+// Request 
+{  
+   "id":"1805101289",
+   "jsonrpc":"2.0",
+   "method":"sendTransaction",
+   "params":{  
+      "tx":{  
+         "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+         "version":"0000000000000000",
+         "type":"0000000000000000",
+         "timestamp":1561690711866,
+         "bodyHash":"200cc3d2044283d0ee51309423a8454ccc9bf66cf2b7c59f36920b4099bd1ead",
+         "bodyLength":154,
+         "signature":"1c0d7f648c5e5da994d45cc32b5ab34594f1a5e1ec53a99380e61f4e75fe76799302825d32119c3ea6c46d427346ba7e3b0f1e4bc71b48957931bc8bfd537f7ac2",
+         "body":"{\"contractVersion\":\"6a2371e34b780dd39bd56002b1d96c23689cc5dc\",\"method\":\"transfer\",\"params\":{\"to\":\"e1980adeafbb9ac6c9be60955484ab1547ab0b76\",\"amount\":100}}",
+         "author":"2277af4fac56f6bab7dde6e28f21ae0d16d6a81e",
+         "txId":"abbe2cd619a867e0b82fa87ab385f520e8af54bbb1694059dc540ac9faa4cbe9"
+      }
+   }
 } 
 
-// Result (from Stem chain)
-{
-	"jsonrpc": "2.0",
-	"id": "1634388869",
-	"result": "d7cf6612214effa4013ac6fee62894c1a0f9b47b1ddcffb2a62a6398b200ff31"
-}
-
-// Request (to Yeed chain)
-{
-	"id": "905164516",
-	"jsonrpc": "2.0",
-	"method": "sendTransaction",
-	"params": {
-		"tx": {
-			"chain": "a08ee962cd8b2bd0edbfee989c1a9f7884d26532",
-			"version": "0000000000000000",
-			"type": "0000000000000000",
-			"timestamp": 1537409809998,
-			"bodyHash": "0e6c084a898864eac534a089a79247de8cf3325d076803d90e0cf94e59cb6bd2",
-			"bodyLength": 102,
-			"signature": "1ca3861872ae2ff66ad2c2bb9f6909a32ffcdac43299160908afeb4afff3b2147c714d36fbbcd85ebb60cc89b08fa8fb2145c5ca673fa1e006a50d93659ea13e0e",
-			"body": "[{\"method\":\"transfer\",\"params\":[{\"address\":\"e1980adeafbb9ac6c9be60955484ab1547ab0b76\",\"amount\":100}]}]",
-			"author": "aaa2aaab0fb041c5cb2a60a12291cbc3097352bb",
-			"hash": "a27cc5bd50672f04423110f76784d821536c24884b3f1425b25dba3831de3c56"
-		}
-	}
-}
-
-// Result (from Yeed chain)
-{
-	"jsonrpc": "2.0",
-	"id": "905164516",
-	"result": "a27cc5bd50672f04423110f76784d821536c24884b3f1425b25dba3831de3c56"
+// Result
+{  
+   "jsonrpc":"2.0",
+   "id":"1805101289",
+   "result":{  
+      "txHash":"abbe2cd619a867e0b82fa87ab385f520e8af54bbb1694059dc540ac9faa4cbe9",
+      "status":true,
+      "logs":{}
+   }
 } 
 ```
   
@@ -748,26 +732,26 @@ params: [
 
 **Returns**
 
-`DATA`, 32 Bytes - the transaction hash, or the zero hash if the transaction is not yet available.
+`DATA` - the transaction hash, or logs of the error transaction,
 
 **Example**
   
 ```
 // Request
-{
-    "id":"1797225445",
-    "jsonrpc":"2.0",
-    "method":"sendRawTransaction",
-    "params":{
-                "rawTx":"MDAwMDAwMDDefl5jdaRgKKIzV/pKUUBLyIzsEyZC3tU3JVTch7UJHAAAjbWEJtGkAAAAAAAAAAIcBVYKn9ycJe3+/lo0jbGC7ZsoPnNLOa+4J3haf3kiIy11MEuT1cR3SrLYid8GeJrbD9H6JAm8Qu601eckAiN36HsiaWQiOiIwIiwibmFtZSI6IlJhY2hhZWwiLCJhZ2UiOiIyNyJ9"
-             }
+{  
+   "id":"382853993",
+   "jsonrpc":"2.0",
+   "method":"sendRawTransaction",
+   "params":{  
+      "rawTx":"Y1iTguLhg+Kmlp6/V714TcspvUMAAAAAAAAAAAAAAAAAAAAAAAABa5wGwTYgDMPSBEKD0O5RMJQjqEVMzJv2bPK3xZ82kgtAmb0erQAAAAAAAACaG7AbGdTmut5WvvXfrMzuXwR1nxhcpA2q07QB6ChfOBQnVk5NeAj4Ta/WsqHN5ETfBUlLcLhtxmC+zQibI4uBVf57ImNvbnRyYWN0VmVyc2lvbiI6IjZhMjM3MWUzNGI3ODBkZDM5YmQ1NjAwMmIxZDk2YzIzNjg5Y2M1ZGMiLCJtZXRob2QiOiJ0cmFuc2ZlciIsInBhcmFtcyI6eyJ0byI6ImUxOTgwYWRlYWZiYjlhYzZjOWJlNjA5NTU0ODRhYjE1NDdhYjBiNzYiLCJhbW91bnQiOjEwMH19"
+   }
 }
 
 // Result
-{
-    "jsonrpc":"2.0",
-    "id":"1797225445",
-    "result":"3PAOrAaNlZYixCxMzeR25bYLsnJ2bykSxd5ZyDVzcgE="
+{  
+   "jsonrpc":"2.0",
+   "id":"382853993",
+   "result":"bhCzaumxN4o1tdJks0rhvNtj4jhBTby/2ilb735W1Qo="
 }
 ```
  
@@ -788,38 +772,21 @@ none
 **Example**
   
 ```
-// Request (to Stem chain)
-{
-	"id": "1823533023",
-	"jsonrpc": "2.0",
-	"method": "newPendingTransactionFilter",
-	"params": {
-		"branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7"
-	}
+// Request
+{  
+   "id":"858550036",
+   "jsonrpc":"2.0",
+   "method":"newPendingTransactionFilter",
+   "params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43"
+   }
 }
 
-// Result (from Stem chain)
-{
-	"jsonrpc": "2.0",
-	"id": "1823533023",
-	"result": 0
-}
-
-// Request (To Yeed chain)
-{
-	"id": "813535546",
-	"jsonrpc": "2.0",
-	"method": "newPendingTransactionFilter",
-	"params": {
-		"branchId": "a08ee962cd8b2bd0edbfee989c1a9f7884d26532"
-	}
-}
-
-// Result (from Yeed chain)
-{
-	"jsonrpc": "2.0",
-	"id": "813535546",
-	"result": 1
+// Result
+{  
+   "jsonrpc":"2.0",
+   "id":"858550036",
+   "result":0
 }
 ```
  
@@ -840,273 +807,114 @@ Returns the TransactionReceipt of transaction hash.
 **Example**
 
 ```
-// Request (to Stem chain)
-{
-	"id": "1224098261",
-	"jsonrpc": "2.0",
-	"method": "getTransactionReceipt",
-	"params": {
-		"branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
-		"txId": "d7cf6612214effa4013ac6fee62894c1a0f9b47b1ddcffb2a62a6398b200ff31"
-	}
+// Request 
+{  
+   "id":"99723131",
+   "jsonrpc":"2.0",
+   "method":"getTransactionReceipt",
+   "params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "txId":"bce793985a1cde7791acbbeb16037d7b86b967df4213329b2e3cc45995fecd68"
+   }
 }
 
-// Result (from Stem chain)
-{
-	"jsonrpc": "2.0",
-	"id": "1224098261",
-	"result": {
-		"transactionHash": "d7cf6612214effa4013ac6fee62894c1a0f9b47b1ddcffb2a62a6398b200ff31",
-		"transactionIndex": 1,
-		"blockHash": "0xc6ef2fc5426d6ad6fd9e2a26abeab0aa2411b7ab17f30a99d3cb96aed1d1055b",
-		"yeedUsed": 30000,
-		"branchAddress": "0xb60e8dd61c5d32be8058bb8eb970870f07233155",
-		"txLog": {
-			"method": "create",
-			"a08ee962cd8b2bd0edbfee989c1a9f7884d26532": {
-				"owner": "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
-				"reference_address": "",
-				"symbol": "YEED",
-				"reserve_address": "0x9cc060690705a13078634637b1d2a5f2fe1b8096",
-				"name": "YEED",
-				"property": "currency",
-				"description": "YEED is the currency used inside YGGDRASH. The vitality of the new branch chain is decided by the amount of YEED, which will be consumed gradually.",
-				"tag": 0.1,
-				"version_history": ["0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025"],
-				"type": "immunity",
-				"version": "0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025",
-				"timestamp": 1536756751728
-			}
-		},
-		"status": 1,
-		"success": true
-	}
-}
-
-// Request (to Yeed chain)
-{
-	"id": "1288216515",
-	"jsonrpc": "2.0",
-	"method": "getTransactionReceipt",
-	"params": {
-		"branchId": "a08ee962cd8b2bd0edbfee989c1a9f7884d26532",
-		"txId": "a27cc5bd50672f04423110f76784d821536c24884b3f1425b25dba3831de3c56"
-	}
-}
-
-// Result (from Stem chain)
-{
-	"jsonrpc": "2.0",
-	"id": "1288216515",
-	"result": {
-		"transactionHash": "a27cc5bd50672f04423110f76784d821536c24884b3f1425b25dba3831de3c56",
-		"transactionIndex": 1,
-		"blockHash": "0xc6ef2fc5426d6ad6fd9e2a26abeab0aa2411b7ab17f30a99d3cb96aed1d1055b",
-		"yeedUsed": 30000,
-		"branchAddress": "0xb60e8dd61c5d32be8058bb8eb970870f07233155",
-		"txLog": {
-			"amount": "100",
-			"method": "transfer",
-			"from": "aaa2aaab0fb041c5cb2a60a12291cbc3097352bb",
-			"to": "e1980adeafbb9ac6c9be60955484ab1547ab0b76"
-		},
-		"status": 0,
-		"success": false
-	}
+// Result
+{  
+   "jsonrpc":"2.0",
+   "id":"99723131",
+   "result":{  
+      "txId":"bce793985a1cde7791acbbeb16037d7b86b967df4213329b2e3cc45995fecd68",
+      "blockId":"7e18144fd6f943572b09e2e0ba6f22e68bf5fef3d8fd1d3d640276bca081a0dd",
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "txLog":[  
+         "Transfer from 101167aaf090581b91c08480f6e559acdd9a3ddd to 1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e value 1 fee 0 "
+      ],
+      "status":"SUCCESS",
+      "issuer":"101167aaf090581b91c08480f6e559acdd9a3ddd",
+      "contractVersion":"6a2371e34b780dd39bd56002b1d96c23689cc5dc",
+      "blockHeight":7293,
+      "methodName":null
+   }
 }
 ```
  
 -----
 
-#### getAllTransactionReceipt
+#### getRawTransaction
 
-Returns all TransactionReceipts.
+Returns the information about a raw transaction requested by transaction hash.
 
 **Parameter**
 
-None
+1. `DATA`, 20 bytes - branchId
+2. `DATA`, 32 Bytes - the transaction hash
 
 **Returns**
 
-`HashMap of DATA`, List of all TransactionReceipts
+`Object` - A raw transaction object, or `null` when no raw transaction was found:
 
 **Example**
 
 ```
-/ Request (to Stem chain)
-{
-  "id": "1890315358",
-  "jsonrpc": "2.0",
-  "method": "getTransactionReceipt",
-  "params": {
-    "txId": "2da7c6e0bbb35365a1b57c7cdb9b5a434a41c43b6374018d9303b87576c157a9"
-  }
+// Request
+{  
+   "id":"1963736878",
+   "jsonrpc":"2.0",
+   "method":"getRawTransaction",
+   "params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "txId":"bce793985a1cde7791acbbeb16037d7b86b967df4213329b2e3cc45995fecd68"
+   }
 }
 
-// Result (from Stem chain)
-{
-	"jsonrpc": "2.0",
-	"id": "395916987",
-	"result": {
-		"76f2292411ea0c8233cc5302ccb7035d16e13d9b6f6c53cb26a8afd126cc9864": {
-			"transactionHash": "76f2292411ea0c8233cc5302ccb7035d16e13d9b6f6c53cb26a8afd126cc9864",
-			"transactionIndex": 1,
-			"blockHash": "0xc6ef2fc5426d6ad6fd9e2a26abeab0aa2411b7ab17f30a99d3cb96aed1d1055b",
-			"yeedUsed": 30000,
-			"branchAddress": "0xb60e8dd61c5d32be8058bb8eb970870f07233155",
-			"txLog": {
-				"method": "genesis",
-				"fe7b7c93dd23f78e12ad42650595bc0f874c88f7": {
-					"reference_address": "",
-					"owner": "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
-					"symbol": "STEM",
-					"reserve_address": "0xcee3d4755e47055b530deeba062c5bd0c17eb00f",
-					"name": "STEM",
-					"property": "ecosystem",
-					"description": "The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.",
-					"tag": 0.1,
-					"version_history": ["0xcc9612ff91ff844938acdb6608e58506a2f21b8a5d77e88726c0897e8d1d02c0"],
-					"type": "immunity",
-					"version": "0xcc9612ff91ff844938acdb6608e58506a2f21b8a5d77e88726c0897e8d1d02c0",
-					"timestamp": 1536755670444
-				}
-			},
-			"status": 1,
-			"success": true
-		},
-		"5a0d54a81a43142c1292fa35c6d333279cf06e2a9d0886c6a713acd6163e0d72": {
-			"transactionHash": "5a0d54a81a43142c1292fa35c6d333279cf06e2a9d0886c6a713acd6163e0d72",
-			"transactionIndex": 1,
-			"blockHash": "0xc6ef2fc5426d6ad6fd9e2a26abeab0aa2411b7ab17f30a99d3cb96aed1d1055b",
-			"yeedUsed": 30000,
-			"branchAddress": "0xb60e8dd61c5d32be8058bb8eb970870f07233155",
-			"txLog": {
-				"method": "create",
-				"ee0adfb66a13b07d5520adb270f71979b508255d": {
-					"owner": "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
-					"reference_address": "",
-					"symbol": "TEST1",
-					"reserve_address": "0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3",
-					"name": "TEST1",
-					"property": "dex",
-					"description": "TEST1",
-					"tag": 0.1,
-					"version_history": ["0xe1980adeafbb9ac6c9be60955484ab1547ab0b76"],
-					"type": "immunity",
-					"version": "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76",
-					"timestamp": 1536756751728
-				}
-			},
-			"status": 1,
-			"success": true
-		},
-		"d7cf6612214effa4013ac6fee62894c1a0f9b47b1ddcffb2a62a6398b200ff31": {
-			"transactionHash": "d7cf6612214effa4013ac6fee62894c1a0f9b47b1ddcffb2a62a6398b200ff31",
-			"transactionIndex": 1,
-			"blockHash": "0xc6ef2fc5426d6ad6fd9e2a26abeab0aa2411b7ab17f30a99d3cb96aed1d1055b",
-			"yeedUsed": 30000,
-			"branchAddress": "0xb60e8dd61c5d32be8058bb8eb970870f07233155",
-			"txLog": {
-				"method": "create",
-				"a08ee962cd8b2bd0edbfee989c1a9f7884d26532": {
-					"owner": "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
-					"reference_address": "",
-					"symbol": "YEED",
-					"reserve_address": "0x9cc060690705a13078634637b1d2a5f2fe1b8096",
-					"name": "YEED",
-					"property": "currency",
-					"description": "YEED is the currency used inside YGGDRASH. The vitality of the new branch chain is decided by the amount of YEED, which will be consumed gradually.",
-					"tag": 0.1,
-					"version_history": ["0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025"],
-					"type": "immunity",
-					"version": "0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025",
-					"timestamp": 1536756751728
-				}
-			},
-			"status": 1,
-			"success": true
-		},
-		"216a54011c7234651002ead4610d5cb06a19d79ef0278df5251fffe3795b9196": {
-			"transactionHash": "216a54011c7234651002ead4610d5cb06a19d79ef0278df5251fffe3795b9196",
-			"transactionIndex": 1,
-			"blockHash": "0xc6ef2fc5426d6ad6fd9e2a26abeab0aa2411b7ab17f30a99d3cb96aed1d1055b",
-			"yeedUsed": 30000,
-			"branchAddress": "0xb60e8dd61c5d32be8058bb8eb970870f07233155",
-			"txLog": {
-				"method": "create",
-				"ee0adfb66a13b07d5520adb270f71979b508255d": {
-					"owner": "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
-					"reference_address": "",
-					"symbol": "TEST1",
-					"reserve_address": "0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3",
-					"name": "TEST1",
-					"property": "dex",
-					"description": "TEST1",
-					"tag": 0.1,
-					"version_history": ["0xe1980adeafbb9ac6c9be60955484ab1547ab0b76"],
-					"type": "immunity",
-					"version": "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76",
-					"timestamp": 1536756751728
-				}
-			},
-			"status": 1,
-			"success": true
-		}
-	}
-}
-
-// Request (to Yeed chain)
-{
-	"id": "660112712",
-	"jsonrpc": "2.0",
-	"method": "getAllTransactionReceipt",
-	"params": {
-		"branchId": "a08ee962cd8b2bd0edbfee989c1a9f7884d26532"
-	}
-}
-
-// Response (from Yeed chain)
-{
-	"jsonrpc": "2.0",
-	"id": "660112712",
-	"result": {
-		"70b7ad44389664f3cb70ec7d9de975bd58e7a52d5810091f8415715deb5119c5": {
-			"transactionHash": "70b7ad44389664f3cb70ec7d9de975bd58e7a52d5810091f8415715deb5119c5",
-			"transactionIndex": 1,
-			"blockHash": "0xc6ef2fc5426d6ad6fd9e2a26abeab0aa2411b7ab17f30a99d3cb96aed1d1055b",
-			"yeedUsed": 30000,
-			"branchAddress": "0xb60e8dd61c5d32be8058bb8eb970870f07233155",
-			"txLog": {
-				"balance[0]": 1000000000,
-				"method": "genesis",
-				"frontier[0]": "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94"
-			},
-			"status": 0,
-			"success": false
-		},
-		"a27cc5bd50672f04423110f76784d821536c24884b3f1425b25dba3831de3c56": {
-			"transactionHash": "a27cc5bd50672f04423110f76784d821536c24884b3f1425b25dba3831de3c56",
-			"transactionIndex": 1,
-			"blockHash": "0xc6ef2fc5426d6ad6fd9e2a26abeab0aa2411b7ab17f30a99d3cb96aed1d1055b",
-			"yeedUsed": 30000,
-			"branchAddress": "0xb60e8dd61c5d32be8058bb8eb970870f07233155",
-			"txLog": {
-				"amount": "100",
-				"method": "transfer",
-				"from": "aaa2aaab0fb041c5cb2a60a12291cbc3097352bb",
-				"to": "e1980adeafbb9ac6c9be60955484ab1547ab0b76"
-			},
-			"status": 0,
-			"success": false
-		}
-	}
+// Result
+{  
+   "jsonrpc":"2.0",
+   "id":"1963736878",
+   "result":"63589382e2e183e2a6969ebf57bd784dcb29bd43000000000000000000000000000000000000016b9bf0b9e14365a707da15a6bb7427f67453c8b70fe6757b17cb3159cc1324123cd8f7e7a600000000000000981b24835190feef4c08d16962c7e58090254f799bcb1b188dee5c0b59aa71befcbd336ec1e6013c2b56da956f5c81aa4f94d4f63bb9bbeef61117b4e0b5e9f07a0e7b22636f6e747261637456657273696f6e223a2236613233373165333462373830646433396264353630303262316439366332333638396363356463222c226d6574686f64223a227472616e73666572222c22706172616d73223a7b22746f223a2231613063646561643364316431646265656638343866656639303533623466306165303664623965222c22616d6f756e74223a317d7d"
 }
 ```
+ 
+-----
 
+#### getRawTransactionHeader
+
+Returns the information about a raw transaction header requested by transaction hash.
+
+**Parameter**
+
+1. `DATA`, 20 bytes - branchId
+2. `DATA`, 32 Bytes - the transaction hash
+
+**Returns**
+
+`Object` - A raw transaction header object, or `null` when no raw transaction header was found:
+
+**Example**
+
+```
+// Request
+{  
+   "id":"1346968245",
+   "jsonrpc":"2.0",
+   "method":"getRawTransactionHeader",
+   "params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "txId":"bce793985a1cde7791acbbeb16037d7b86b967df4213329b2e3cc45995fecd68"
+   }
+}
+
+// Result
+{  
+   "jsonrpc":"2.0",
+   "id":"1346968245",
+   "result":"63589382e2e183e2a6969ebf57bd784dcb29bd43000000000000000000000000000000000000016b9bf0b9e14365a707da15a6bb7427f67453c8b70fe6757b17cb3159cc1324123cd8f7e7a600000000000000981b24835190feef4c08d16962c7e58090254f799bcb1b188dee5c0b59aa71befcbd336ec1e6013c2b56da956f5c81aa4f94d4f63bb9bbeef61117b4e0b5e9f07a0e"
+}
+```
  
 ------
  
-#### [Contract] query
+#### query
 
 Handles all queries that are dispatched to the contract
 
@@ -1120,105 +928,191 @@ Handles all queries that are dispatched to the contract
 
 **Example**
 
+- TotalSupply
+- BalanceOf
+- Allowance
+
 ```
-//request
-{
-	"id": "706872067",
-	"jsonrpc": "2.0",
-	"method": "query",
-	"params": ["{\"address\":\"fe7b7c93dd23f78e12ad42650595bc0f874c88f7\",\"method\":\"view\",\"params\":[{\"branchId\":\"a08ee962cd8b2bd0edbfee989c1a9f7884d26532\"}]}"]
+// Request  
+{  
+   "id":"858711201",
+   "jsonrpc":"2.0",
+   "method":"query",
+   "params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "contractVersion":"6a2371e34b780dd39bd56002b1d96c23689cc5dc",
+      "method":"totalSupply",
+      "params":null
+   }
+}
+// Result
+{  
+   "jsonrpc":"2.0",
+   "id":"858711201",
+   "result":"1994000000000000000000000"
 }
 
-//result
-{
-	"jsonrpc": "2.0",
-	"id": "706872067",
-	"result": "{\"result\":\"{\\\"name\\\":\\\"YEED\\\",\\\"owner\\\":\\\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\\\",\\\"symbol\\\":\\\"YEED\\\",\\\"property\\\":\\\"currency\\\",\\\"type\\\":\\\"immunity\\\",\\\"timestamp\\\":1536756751728,\\\"description\\\":\\\"YEED is the currency used inside YGGDRASH. The vitality of the new branch chain is decided by the amount of YEED, which will be consumed gradually.\\\",\\\"tag\\\":0.1,\\\"version\\\":\\\"0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025\\\",\\\"version_history\\\":[\\\"0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025\\\"],\\\"reference_address\\\":\\\"\\\",\\\"reserve_address\\\":\\\"0x9cc060690705a13078634637b1d2a5f2fe1b8096\\\"}\"}"
+// Request
+{  
+   "id":"711450074",
+   "jsonrpc":"2.0",
+   "method":"query",
+   "params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "contractVersion":"6a2371e34b780dd39bd56002b1d96c23689cc5dc",
+      "method":"balanceOf",
+      "params":{  
+         "address":"cee3d4755e47055b530deeba062c5bd0c17eb00f"
+      }
+   }
+}
+// Result
+{  
+   "jsonrpc":"2.0",
+   "id":"711450074",
+   "result":"994000000000000000000000"
+}
+
+// Request
+{  
+   "id":"126654732",
+   "jsonrpc":"2.0",
+   "method":"query",
+   "params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "contractVersion":"6a2371e34b780dd39bd56002b1d96c23689cc5dc",
+      "method":"allowance",
+      "params":{  
+         "owner":"cee3d4755e47055b530deeba062c5bd0c17eb00f",
+         "spender":"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e"
+      }
+   }
+}
+// Result
+{  
+   "jsonrpc":"2.0",
+   "id":"126654732",
+   "result":"0"
 }
 ```
  
 ------
- 
-#### [Peer] add
- 
-Add Peer
+
+### getLog
+
+Returns the log of the index
+
+**Parameter**
+
+1. `DATA`, 20 bytes - branchId
+2. `QUANTITY` - integer of log index 
+
+**Returns**
+
+`DATA`, string - result of log string
+
+**Example**
+
+```
+// Request
+{  
+   "id":"1039655387",
+   "jsonrpc":"2.0",
+   "method":"getLog",
+   "params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "index":5
+   }
+}
+// Result
+{  
+   "jsonrpc":"2.0",
+   "id":"1039655387",
+   "result":"{\"to\":\"d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95\",\"balance\":\"1000000000000000000000\"}"
+}
+```
+
+------
+
+### getLogs
+
+Returns the logs of offset from start
  
 **Parameter**
  
-`Object` - Peer object
+1. `DATA`, 20 bytes - branchId
+2. `QUANTITY` - integer of start index
+3. `QUANTITY` - integer of offset 
  
 **Returns**
  
-`Object` -  Added peer object
+`DATA`, string - A list of log string
  
 **Example**
- 
-```
-// request
-{
-	"id": "548925121",
-	"jsonrpc": "2.0",
-	"method": "add",
-	"params": {
-		"peer": {
-			"host": "127.0.0.1",
-			"port": 32918,
-			"ynodeUri": "ynode://65bff16c@127.0.0.1:32918"
-		}
-	}
-}
 
-// result
-{
-	"jsonrpc": "2.0",
-	"id": "548925121",
-	"result": {
-		"host": "127.0.0.1",
-		"port": 32918,
-		"ynodeUri": "ynode://65bff16c@127.0.0.1:32918"
-	}
+```
+// Request
+{  
+   "id":"1276014628",
+   "jsonrpc":"2.0",
+   "method":"getLogs",
+   "params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
+      "start":0,
+      "offset":5
+   }
+}
+// Result
+{  
+   "jsonrpc":"2.0",
+   "id":"1276014628",
+   "result":[  
+      "{\"to\":\"101167aaf090581b91c08480f6e559acdd9a3ddd\",\"balance\":\"1000000000000000000000\"}",
+      "{\"to\":\"ffcbff030ecfa17628abdd0ff1990be003da35a2\",\"balance\":\"1000000000000000000000\"}",
+      "{\"to\":\"b0aee21c81bf6057efa9a321916f0f1a12f5c547\",\"balance\":\"1000000000000000000000\"}",
+      "{\"to\":\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\",\"balance\":\"1000000000000000000000\"}",
+      "{\"to\":\"57c6510966903044581c148bb67eb47dbbeebef1\",\"balance\":\"1000000000000000000000\"}"
+   ]
 }
 ```
- 
------
- 
-#### [Peer] getAll
- 
-Returns all peers
-  
+
+------
+
+### curIndex
+
+Returns the current index of logStore
+
 **Parameter**
-  
-None
-  
-**Returns**
-  
-`DATA` - List of all peers
-  
-**Example**
-  
-```
-// request
-{
-	"id": "1634791329",
-	"jsonrpc": "2.0",
-	"method": "getAll"
-}
+ 
+`DATA`, 20 bytes - branchId
 
-// result
-{
-	"jsonrpc": "2.0",
-	"id": "1634791329",
-	"result": [{
-		"host": "localhost",
-		"port": 32918,
-		"ynodeUri": "ynode://9ea9225f0b7db3c697c0a2e09cdd65046899058d16f73378c1559d61aa3e10cd5dc9337142728f5a02faadafab2b926e2998d5bc2b62c2183fab75ca996de2ce@localhost:32918"
-	}]
+**Returns**
+ 
+`QUANTITY` - integer of a current index of branch
+ 
+**Example**
+
+```
+// Request
+{  
+   "id":"737589190",
+   "jsonrpc":"2.0",
+   "method":"curIndex",
+   "params":{  
+      "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43"
+   }
+}
+// Result
+{  
+   "jsonrpc":"2.0",
+   "id":"737589190",
+   "result":617
 }
 ```
   
 -----
  
-#### [Peer] getAllActivePeer
+#### getAllActivePeer
  
 Returns all active peers
   
@@ -1228,29 +1122,31 @@ None
   
 **Returns**
   
-`DATA`- List of all active Peer as string
+`DATA`- A List of active peers
   
 **Example**
   
 ```
-// request
-{
-	"id": "1702019309",
-	"jsonrpc": "2.0",
-	"method": "getAllActivePeer"
+// Request
+{  
+   "id":"217115873",
+   "jsonrpc":"2.0",
+   "method":"getAllActivePeer"
 }
-
-// result
-{
-	"jsonrpc": "2.0",
-	"id": "1702019309",
-	"result": []
+// Result
+{  
+   "jsonrpc":"2.0",
+   "id":"217115873",
+   "result":[  
+      "ynode://d2d340076503834aa58b57df05354a7929f5ed3c@127.0.0.1:32918",
+      "ynode://77283a04b3410fe21ba5ed04c7bd3ba89e70b78c@127.0.0.1:32901"
+   ]
 }
 ```
  
 -----
 
-#### [admin] nodeHello
+#### nodeHello
 
 Returns a clientHello message(with nonce) for managing node. 
 
@@ -1265,7 +1161,7 @@ Returns a clientHello message(with nonce) for managing node.
 **Example**
   
 ```
-// request
+// Request
 {
     "id":"142596201",
     "jsonrpc":"2.0",
@@ -1278,8 +1174,7 @@ Returns a clientHello message(with nonce) for managing node.
         }
     }
 }
-
-// result
+// Result
 {
     "jsonrpc": "2.0",
     "id": "142596201",
@@ -1289,7 +1184,7 @@ Returns a clientHello message(with nonce) for managing node.
 
 -----
 
-#### [admin] requestCommand
+#### requestCommand
 
 Returns a responseCommand message(with nonce) for managing node. 
 
@@ -1304,7 +1199,7 @@ Returns a responseCommand message(with nonce) for managing node.
 **Example**
   
 ```
-// request
+// Request
 {
     "id":"142596201",
     "jsonrpc":"2.0",
@@ -1317,9 +1212,8 @@ Returns a responseCommand message(with nonce) for managing node.
         }
     }
 }
-
 or
-
+// Request
 {
     "id":"142596201",
     "jsonrpc":"2.0",
@@ -1332,13 +1226,12 @@ or
         }
     }
 }
-
-// result
+// Result
 {
     "jsonrpc": "2.0",
     "id": "142596201",
     "result": "{\"header\":{\"timestamp\":\"000001669b8df580\",\"nonce\":\"aaabb165899f988aecd8754326149367\",\"bodyHash\":\"2344c5b38540509e0babd9292553d001fde5bc4a52e8af09221fc7dedc493ee7\",\"bodyLength\":\"000000000000001e\"},\"signature\":\"1c36f6e720b32bd03d981388a0bc103ee5a4e4affee8481f175ab527ed4c189c045105aa4e99f78b64ed4e99f2d8a76fb430ebd88184e744378991a84f41b7650f\",\"body\":[{\"method\":\"responseCommand\"}]}"
 }
 ```
-
+ 
 -----
