@@ -258,4 +258,37 @@ public class TransactionApiImplTest {
     private Transaction createTx() {
         return BlockChainTestUtils.createTransferTx();
     }
+
+    @Test
+    public void getTransactionReceiptTest() {
+        try {
+            assertThat(TX_API.getTransactionReceipt(yggdrashBranch,
+                    "bce793985a1cde7791acbbeb16037d7b86b967df4213329b2e3cc45995fecd68"))
+                    .isNotNull();
+        } catch (Exception exception) {
+            log.debug("\n\ngetTransactionReceiptTest :: exception => " + exception);
+        }
+    }
+
+    @Test
+    public void getRawTransactionTest() {
+        try {
+            assertThat(TX_API.getRawTransaction(yggdrashBranch,
+                    "bce793985a1cde7791acbbeb16037d7b86b967df4213329b2e3cc45995fecd68"))
+                    .isNotNull();
+        } catch (Exception exception) {
+            log.debug("\n\ngetRawTransactionTest :: exception => " + exception);
+        }
+    }
+
+    @Test
+    public void getRawTransactionHeaderTest() {
+        try {
+            assertThat(TX_API.getRawTransactionHeader(yggdrashBranch,
+                    "bce793985a1cde7791acbbeb16037d7b86b967df4213329b2e3cc45995fecd68"))
+                    .isNotNull();
+        } catch (Exception exception) {
+            log.debug("\n\ngetRawTransactionHeaderTest :: exception => " + exception);
+        }
+    }
 }
