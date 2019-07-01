@@ -88,7 +88,7 @@ none
    "method":"getBranches"
 }
  
-// Response
+// Result
 {  
    "jsonrpc":"2.0",
    "id":"1538349352",
@@ -215,7 +215,7 @@ Returns the validators of all running branches in the node
    }
  }
  
-// Response
+// Result
 {  
    "jsonrpc":"2.0",
    "id":"182278868",
@@ -487,7 +487,7 @@ Returns the number of transactions in a block matching the given block number.
    }
 }
 
-// Response 
+// Result
 {  
    "jsonrpc":"2.0",
    "id":"1792293295",
@@ -506,7 +506,7 @@ Returns the number of transactions in a block matching the given block number.
    }
 }
 
-// Response
+// Result
 {  
    "jsonrpc":"2.0",
    "id":"1109859650",
@@ -536,7 +536,7 @@ Returns the number of transactions in a block matching the given block number.
    }
 }
 
-// Response
+// Result
 {  
    "jsonrpc":"2.0",
    "id":"654256854",
@@ -590,7 +590,7 @@ Returns the information about a transaction requested by transaction hash.
    }
 }
 
-// Result 
+// Result
 {  
    "jsonrpc":"2.0",
    "id":"1947689513",
@@ -702,7 +702,7 @@ Creates new message call transaction or a contract creation, if the data field c
    }
 } 
 
-// Response
+// Result
 {  
    "jsonrpc":"2.0",
    "id":"1805101289",
@@ -747,7 +747,7 @@ params: [
    }
 }
 
-// Response
+// Result
 {  
    "jsonrpc":"2.0",
    "id":"382853993",
@@ -782,7 +782,7 @@ none
    }
 }
 
-// Response
+// Result
 {  
    "jsonrpc":"2.0",
    "id":"858550036",
@@ -818,7 +818,7 @@ Returns the TransactionReceipt of transaction hash.
    }
 }
 
-// Response
+// Result
 {  
    "jsonrpc":"2.0",
    "id":"99723131",
@@ -867,7 +867,7 @@ Returns the information about a raw transaction requested by transaction hash.
    }
 }
 
-// Response
+// Result
 {  
    "jsonrpc":"2.0",
    "id":"1963736878",
@@ -904,7 +904,7 @@ Returns the information about a raw transaction header requested by transaction 
    }
 }
 
-// Response
+// Result
 {  
    "jsonrpc":"2.0",
    "id":"1346968245",
@@ -945,7 +945,7 @@ Handles all queries that are dispatched to the contract
       "params":null
    }
 }
-// Response
+// Result
 {  
    "jsonrpc":"2.0",
    "id":"858711201",
@@ -966,7 +966,7 @@ Handles all queries that are dispatched to the contract
       }
    }
 }
-// Response
+// Result
 {  
    "jsonrpc":"2.0",
    "id":"711450074",
@@ -988,7 +988,7 @@ Handles all queries that are dispatched to the contract
       }
    }
 }
-// Response
+// Result
 {  
    "jsonrpc":"2.0",
    "id":"126654732",
@@ -1014,6 +1014,7 @@ Returns the log of the index
 **Example**
 
 ```
+// Request
 {  
    "id":"1039655387",
    "jsonrpc":"2.0",
@@ -1022,7 +1023,9 @@ Returns the log of the index
       "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43",
       "index":5
    }
-}{  
+}
+// Result
+{  
    "jsonrpc":"2.0",
    "id":"1039655387",
    "result":"{\"to\":\"d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95\",\"balance\":\"1000000000000000000000\"}"
@@ -1048,6 +1051,7 @@ Returns the logs of offset from start
 **Example**
 
 ```
+// Request
 {  
    "id":"1276014628",
    "jsonrpc":"2.0",
@@ -1057,7 +1061,9 @@ Returns the logs of offset from start
       "start":0,
       "offset":5
    }
-}{  
+}
+// Result
+{  
    "jsonrpc":"2.0",
    "id":"1276014628",
    "result":[  
@@ -1087,6 +1093,7 @@ Returns the current index of logStore
 **Example**
 
 ```
+// Request
 {  
    "id":"737589190",
    "jsonrpc":"2.0",
@@ -1094,7 +1101,9 @@ Returns the current index of logStore
    "params":{  
       "branchId":"63589382e2e183e2a6969ebf57bd784dcb29bd43"
    }
-}{  
+}
+// Result
+{  
    "jsonrpc":"2.0",
    "id":"737589190",
    "result":617
@@ -1124,7 +1133,7 @@ None
    "jsonrpc":"2.0",
    "method":"getAllActivePeer"
 }
-// Response
+// Result
 {  
    "jsonrpc":"2.0",
    "id":"217115873",
@@ -1152,7 +1161,7 @@ Returns a clientHello message(with nonce) for managing node.
 **Example**
   
 ```
-// request
+// Request
 {
     "id":"142596201",
     "jsonrpc":"2.0",
@@ -1165,7 +1174,7 @@ Returns a clientHello message(with nonce) for managing node.
         }
     }
 }
-// result
+// Result
 {
     "jsonrpc": "2.0",
     "id": "142596201",
@@ -1217,7 +1226,7 @@ or
         }
     }
 }
-// Response
+// Result
 {
     "jsonrpc": "2.0",
     "id": "142596201",
