@@ -62,6 +62,16 @@ public final class Constants {
     public static final String VALIDATOR_DATABASE_PATH = "yggdrash.validator.database.path";
     public static final String VALIDATOR_PATH = "yggdrash.validator.path";
 
+    public static final String TIMEOUT_PING_PATH = "yggdrash.node.timeout.ping";
+    public static final String TIMEOUT_BLOCK_PATH = "yggdrash.node.timeout.block";
+    public static final String TIMEOUT_BLOCKLIST_PATH = "yggdrash.node.timeout.blocklist";
+    public static final String TIMEOUT_STATUS_PATH = "yggdrash.node.timeout.status";
+
+    public static final long TIMEOUT_PING = 2;
+    public static final long TIMEOUT_BLOCK = 3;
+    public static final long TIMEOUT_BLOCKLIST = 10;
+    public static final long TIMEOUT_STATUS = 5;
+
     public final class Limit {
         private Limit() {
         }
