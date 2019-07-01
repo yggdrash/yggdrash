@@ -15,6 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static io.yggdrash.common.config.Constants.TIMEOUT_BLOCK;
+import static io.yggdrash.common.config.Constants.TIMEOUT_BLOCKLIST;
+import static io.yggdrash.common.config.Constants.TIMEOUT_PING;
+import static io.yggdrash.common.config.Constants.TIMEOUT_STATUS;
+
 public class PbftClientStub {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftClientStub.class);
@@ -44,12 +49,12 @@ public class PbftClientStub {
     }
 
     public void multicastPbftMessage(PbftProto.PbftMessage pbftMessage) {
-        blockingStub.withDeadlineAfter(3, TimeUnit.SECONDS)
+        blockingStub.withDeadlineAfter(TIMEOUT_BLOCK, TimeUnit.SECONDS)
                 .multicastPbftMessage(pbftMessage);
     }
 
     public void broadcastPbftBlock(PbftProto.PbftBlock pbftBlock) {
-        blockingStub.withDeadlineAfter(3, TimeUnit.SECONDS)
+        blockingStub.withDeadlineAfter(TIMEOUT_BLOCK, TimeUnit.SECONDS)
                 .broadcastPbftBlock(pbftBlock);
     }
 
@@ -58,7 +63,7 @@ public class PbftClientStub {
 
         try {
             PbftProto.PbftBlockList protoBlockList = blockingStub
-                    .withDeadlineAfter(10, TimeUnit.SECONDS)
+                    .withDeadlineAfter(TIMEOUT_BLOCKLIST, TimeUnit.SECONDS)
                     .getPbftBlockList(
                             CommonProto.Offset.newBuilder().setIndex(index).setCount(10L).build());
 
@@ -87,7 +92,7 @@ public class PbftClientStub {
         CommonProto.PongTime pongTime;
         try {
             pongTime = blockingStub
-                    .withDeadlineAfter(2, TimeUnit.SECONDS)
+                    .withDeadlineAfter(TIMEOUT_PING, TimeUnit.SECONDS)
                     .pingPongTime(pingTime);
             if (Context.current().isCancelled()) {
                 return 0L;
@@ -105,7 +110,7 @@ public class PbftClientStub {
 
         try {
             this.pbftStatus = new PbftStatus(blockingStub
-                    .withDeadlineAfter(3, TimeUnit.SECONDS)
+                    .withDeadlineAfter(TIMEOUT_STATUS, TimeUnit.SECONDS)
                     .exchangePbftStatus(pbftStatus));
             if (Context.current().isCancelled()) {
                 return null;

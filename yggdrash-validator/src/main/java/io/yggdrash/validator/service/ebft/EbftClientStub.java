@@ -14,6 +14,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static io.yggdrash.common.config.Constants.TIMEOUT_BLOCK;
+import static io.yggdrash.common.config.Constants.TIMEOUT_BLOCKLIST;
+import static io.yggdrash.common.config.Constants.TIMEOUT_PING;
+import static io.yggdrash.common.config.Constants.TIMEOUT_STATUS;
+
 public class EbftClientStub {
 
     private boolean myclient;
@@ -50,7 +55,7 @@ public class EbftClientStub {
         CommonProto.PongTime pongTime;
         try {
             pongTime = blockingStub
-                    .withDeadlineAfter(1, TimeUnit.SECONDS)
+                    .withDeadlineAfter(TIMEOUT_PING, TimeUnit.SECONDS)
                     .pingPongTime(pingTime);
         } catch (StatusRuntimeException e) {
             return 0L;
@@ -66,7 +71,7 @@ public class EbftClientStub {
     public EbftStatus exchangeNodeStatus(EbftProto.EbftStatus nodeStatus) {
         this.ebftStatus =
                 new EbftStatus(blockingStub
-                        .withDeadlineAfter(3, TimeUnit.SECONDS)
+                        .withDeadlineAfter(TIMEOUT_STATUS, TimeUnit.SECONDS)
                         .exchangeEbftStatus(nodeStatus));
         if (Context.current().isCancelled()) {
             return null;
@@ -76,18 +81,18 @@ public class EbftClientStub {
     }
 
     public void multicastEbftBlock(EbftProto.EbftBlock block) {
-        blockingStub.withDeadlineAfter(3, TimeUnit.SECONDS)
+        blockingStub.withDeadlineAfter(TIMEOUT_BLOCK, TimeUnit.SECONDS)
                 .multicastEbftBlock(block);
     }
 
     public void broadcastEbftBlock(EbftProto.EbftBlock block) {
-        blockingStub.withDeadlineAfter(3, TimeUnit.SECONDS)
+        blockingStub.withDeadlineAfter(TIMEOUT_BLOCK, TimeUnit.SECONDS)
                 .broadcastEbftBlock(block);
     }
 
     public List<EbftBlock> getEbftBlockList(long index) {
         EbftProto.EbftBlockList protoEbftBlockList = blockingStub
-                .withDeadlineAfter(3, TimeUnit.SECONDS)
+                .withDeadlineAfter(TIMEOUT_BLOCKLIST, TimeUnit.SECONDS)
                 .getEbftBlockList(
                         CommonProto.Offset.newBuilder().setIndex(index).setCount(10L).build());
 
