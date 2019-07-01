@@ -42,6 +42,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import static io.yggdrash.common.config.Constants.TIMEOUT_BLOCK;
+import static io.yggdrash.common.config.Constants.TIMEOUT_BLOCKLIST;
+
 public class PeerHandlerProvider {
 
     private PeerHandlerProvider() {
@@ -69,7 +72,7 @@ public class PeerHandlerProvider {
 
         private final PbftServiceGrpc.PbftServiceBlockingStub blockingStub;
 
-        PbftPeerHandler(Peer peer) {
+        public PbftPeerHandler(Peer peer) {
             this(ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext().build(), peer);
         }
 
@@ -88,11 +91,12 @@ public class PeerHandlerProvider {
                     .setChain(ByteString.copyFrom(branchId.getBytes()))
                     .build();
 
-            PbftProto.PbftBlockList protoEbftBlockList = blockingStub.getPbftBlockList(request);
+            PbftProto.PbftBlockList protoPbftBlockList
+                    = blockingStub.withDeadlineAfter(TIMEOUT_BLOCKLIST, TimeUnit.SECONDS).getPbftBlockList(request);
 
             CompletableFuture<List<ConsensusBlock<PbftProto.PbftBlock>>> futureBlockList = new CompletableFuture<>();
             List<ConsensusBlock<PbftProto.PbftBlock>> newEbftBlockList = new ArrayList<>();
-            for (PbftProto.PbftBlock block : protoEbftBlockList.getPbftBlockList()) {
+            for (PbftProto.PbftBlock block : protoPbftBlockList.getPbftBlockList()) {
                 newEbftBlockList.add(new PbftBlock(block));
             }
 
@@ -106,7 +110,7 @@ public class PeerHandlerProvider {
         public void broadcastBlock(ConsensusBlock<PbftProto.PbftBlock> block) {
             log.debug("Broadcasting blocks -> {}", getPeer().getYnodeUri());
 
-            blockingStub.withDeadlineAfter(3, TimeUnit.SECONDS).broadcastPbftBlock(block.getInstance());
+            blockingStub.withDeadlineAfter(TIMEOUT_BLOCK, TimeUnit.SECONDS).broadcastPbftBlock(block.getInstance());
         }
     }
 
@@ -135,7 +139,9 @@ public class PeerHandlerProvider {
                     .setChain(ByteString.copyFrom(branchId.getBytes()))
                     .build();
 
-            EbftProto.EbftBlockList protoEbftBlockList = blockingStub.getEbftBlockList(request);
+            EbftProto.EbftBlockList protoEbftBlockList = blockingStub
+                    .withDeadlineAfter(TIMEOUT_BLOCKLIST, TimeUnit.SECONDS)
+                    .getEbftBlockList(request);
 
             CompletableFuture<List<ConsensusBlock<EbftProto.EbftBlock>>> futureBlockList = new CompletableFuture<>();
             List<ConsensusBlock<EbftProto.EbftBlock>> newEbftBlockList = new ArrayList<>();
@@ -155,7 +161,7 @@ public class PeerHandlerProvider {
         public void broadcastBlock(ConsensusBlock<EbftProto.EbftBlock> block) {
             log.debug("Broadcasting blocks -> {}", getPeer().getYnodeUri());
 
-            blockingStub.withDeadlineAfter(3, TimeUnit.SECONDS).broadcastEbftBlock(block.getInstance());
+            blockingStub.withDeadlineAfter(TIMEOUT_BLOCK, TimeUnit.SECONDS).broadcastEbftBlock(block.getInstance());
         }
     }
 
