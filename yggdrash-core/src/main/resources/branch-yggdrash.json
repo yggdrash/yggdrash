@@ -2,7 +2,7 @@
   "name": "YGGDRASH",
   "symbol": "YGGDRASH",
   "property": "platform",
-  "description": "TRUST-based Multi-dimensional Blockchains",
+  "description": "YGGDRASH TESTNET, TRUST-based Multi-dimensional Blockchain",
   "contracts": [
     {
       "contractVersion": "178b44b22d8c6d5bb08175fa2fcab15122ca8d1e",
@@ -39,6 +39,24 @@
           },
           "4e5cbe1d0db35add81e7f2840eeb250b5b469161": {
             "balance": "994000000000000000000000"
+          },
+          "415e01c639d83a13308264691330d4e9b68f1012": {
+            "balance": "1000000000000000000000"
+          },
+          "624d4ec36a83992d451b39ac9dd5b9cd36cde630": {
+            "balance": "1000000000000000000000"
+          },
+          "d8502005cd4154d8600fb6de4e1b84391b18c2d0": {
+            "balance": "1000000000000000000000"
+          },
+          "06afa0fdf4299e19e4bc084c1db7cbbfb5717272": {
+            "balance": "1000000000000000000000"
+          },
+          "be39c9238430846fe6bd94d883917d6c4f4d9620": {
+            "balance": "1000000000000000000000"
+          },
+          "8236e5ebc70a7fa47436b60b836454c1b2e4b88f": {
+            "balance": "1000000000000000000000"
           }
         }
       },
