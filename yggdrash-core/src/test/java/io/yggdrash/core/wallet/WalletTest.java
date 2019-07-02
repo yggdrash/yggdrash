@@ -31,6 +31,7 @@ import org.spongycastle.util.encoders.Hex;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.SecureRandom;
 
 import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
@@ -41,6 +42,11 @@ import static org.junit.Assert.assertNotNull;
 
 public class WalletTest {
     private static final Logger log = LoggerFactory.getLogger(WalletTest.class);
+
+    private final String ALPHA_CAPS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private final String ALPHA = "abcdefghijklmnopqrstuvwxyz";
+    private final String NUMERIC = "0123456789";
+    private final String SPECIAL_CHARS = "!@#$%^&*_=+-/";
 
     @Test
     public void testKeySave() throws IOException, InvalidCipherTextException {
@@ -242,4 +248,39 @@ public class WalletTest {
         assertEquals(wallet.getKeyPath(), keyPath);
         assertEquals(wallet.getKeyName(), keyName);
     }
+
+    @Test
+    public void createKeyFile() throws IOException, InvalidCipherTextException {
+        TestConstants.PerformanceTest.apply();
+
+        int count = 30;
+        int passwordLen = 20;
+        String keyPath = "newKeystore";
+        String keyFilePath = "/nodePri";
+        String passwordFilePath = "/password";
+
+        for (int i = 1; i <= count; i++) {
+            String password = generatePassword(passwordLen, ALPHA_CAPS + ALPHA + NUMERIC + SPECIAL_CHARS);
+
+            Wallet wallet = new Wallet((ECKey) null, keyPath + keyFilePath + i + ".key", password);
+            FileUtil.writeFile(keyPath, passwordFilePath + i + ".txt", password.getBytes());
+        }
+    }
+
+    private String generatePassword(int len, String dic) {
+        SecureRandom random = new SecureRandom();
+        String result = "";
+        result += ALPHA_CAPS.charAt(random.nextInt(1));
+        result += ALPHA.charAt(random.nextInt(1));
+        result += NUMERIC.charAt(random.nextInt(1));
+        result += SPECIAL_CHARS.charAt(random.nextInt(1));
+
+        for (int i = 0; i < len - 4; i++) {
+            int index = random.nextInt(dic.length());
+            result += dic.charAt(index);
+        }
+        return result;
+    }
+
+
 }
