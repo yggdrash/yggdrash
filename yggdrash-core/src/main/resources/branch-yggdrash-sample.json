@@ -1,0 +1,90 @@
+{
+  "name": "YGGDRASH",
+  "symbol": "YGGDRASH",
+  "property": "platform",
+  "description": "TRUST-based Multi-dimensional Blockchains",
+  "contracts": [
+    {
+      "contractVersion": "178b44b22d8c6d5bb08175fa2fcab15122ca8d1e",
+      "init": {},
+      "description": "The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.",
+      "name": "STEM",
+      "isSystem": true
+    },
+    {
+      "contractVersion": "19b9710dc8f0442d09a1b5e632f7200afe751d60",
+      "isSystem": true,
+      "init": {
+        "alloc": {
+          "101167aaf090581b91c08480f6e559acdd9a3ddd": {
+            "balance": "1000000000000000000000"
+          },
+          "ffcbff030ecfa17628abdd0ff1990be003da35a2": {
+            "balance": "1000000000000000000000"
+          },
+          "b0aee21c81bf6057efa9a321916f0f1a12f5c547": {
+            "balance": "1000000000000000000000"
+          },
+          "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e": {
+            "balance": "1000000000000000000000"
+          },
+          "57c6510966903044581c148bb67eb47dbbeebef1": {
+            "balance": "1000000000000000000000"
+          },
+          "d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95": {
+            "balance": "1000000000000000000000"
+          },
+          "cee3d4755e47055b530deeba062c5bd0c17eb00f": {
+            "balance": "994000000000000000000000"
+          },
+          "4e5cbe1d0db35add81e7f2840eeb250b5b469161": {
+            "balance": "994000000000000000000000"
+          }
+        }
+      },
+      "description": "YEED is the currency used inside YGGDRASH. The vitality of the new branch chain is decided by the amount of YEED, which will be consumed gradually.",
+      "name": "YEED"
+    },
+    {
+      "contractVersion": "30783a1311b9c68dd3a92596d650ae6914b01658",
+      "isSystem": true,
+      "init": {
+        "validators": [
+          "101167aaf090581b91c08480f6e559acdd9a3ddd",
+          "ffcbff030ecfa17628abdd0ff1990be003da35a2",
+          "b0aee21c81bf6057efa9a321916f0f1a12f5c547",
+          "4e5cbe1d0db35add81e7f2840eeb250b5b469161",
+          "77283a04b3410fe21ba5ed04c7bd3ba89e70b78c",
+          "9911fb4663637706811a53a0e0b4bcedeee38686",
+          "2ee2eb80c93d031147c21ba8e2e0f0f4a33f5312",
+          "51e2128e8deb622c2ec6dc38f9d895f0be044eb4",
+          "047269a50640ed2b0d45d461488c13abad1e0fac",
+          "21640f2116389a3e37462fd6b68b969e490b6a50",
+          "63fef4912dc8b0781351b18eb9be450638ea2c17",
+          "34e3b1fb13c865fd558e7aa1081377bb5dca43cb",
+          "75fad0fa463b34e659d2bb3b9324b32faed67863",
+          "af79407d6c55c950c09ba4a30f8eae55f05508a2",
+          "f871740aedb55e0d4f110502d5221c4a648f4c27",
+          "f0a714707c286ba16e32fe18e90c9e13922edf5d",
+          "d6f2eae80c8dfedc279111b4ebf2298de9d62b02",
+          "f18db7b37206c58eb7ff8b6a0bc903f76dfcd0d8",
+          "ff50d378b0d6f642826efd475508f372aa2e858a",
+          "ab5506912430d4fc539f21afb0f47d2244cdfa76",
+          "70507099ee03b3e67b5b343d483e0e835018db4b",
+          "e58d0858512a047b2debbcfeab318bb5eeec7dee",
+          "5519a46223c025707a12dda2d3fffe9634b274c0",
+          "8a99217f44c65287a9cc12523b80c3e57782afb1",
+          "fc534627231364101088709fdf030d99f1c52d38"
+        ]
+      },
+      "name": "DPoA",
+      "description": "This contract is for a validator."
+    }
+  ],
+  "timestamp": "000001674dc56231",
+  "consensus": {
+    "algorithm": "pbft",
+    "period": "* * * * * *"
+  },
+  "governanceContract": "DPoA"
+}

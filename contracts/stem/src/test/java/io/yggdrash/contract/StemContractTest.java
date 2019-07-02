@@ -39,6 +39,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -56,7 +57,8 @@ public class StemContractTest {
     private static final Logger log = LoggerFactory.getLogger(StemContractTest.class);
     private static final StemContract.StemService stemContract = new StemContract.StemService();
 
-    private static final File branchFile = new File("../../yggdrash-core/src/main/resources/branch-yggdrash.json");
+    private static final File branchFile
+            = new File("../../yggdrash-core/src/main/resources/branch-yggdrash-sample.json");
 
     private TransactionReceiptAdapter adapter;
     TestYeed testYeed;
@@ -133,7 +135,6 @@ public class StemContractTest {
 
         param.add("branch", branchSample);
         param.addProperty("fee", BigInteger.valueOf(1000000));
-
 
         stemContract.create(param);
         assertTrue("Branch Create Success", receipt.isSuccess());
