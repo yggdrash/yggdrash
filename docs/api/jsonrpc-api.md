@@ -5,36 +5,35 @@
   * [JSON-RPC Endpoint](#json-rpc-endpoint)
   * [Curl Examples Explained](#curl-examples-explained)
   * [JSON RPC API Reference](#json-rpc-api-reference)
-     * Branch
-        * [getBranches](#get-branches)
-        * [getValidators](#get-validators)
-     * Block   
-         * [blockNumber](#block-number)
-         * [getBlockByHash](#get-block-by-hash)
-         * [getBlockByNumber](#get-block-by-number)
-         * [newBlockFilter](#new-block-filter)
-     * Transaction
-         * [getTransactionCountByBlockHash](#get-transaction-count-by-block-hash)
-         * [getTransactionCountByBlockNumber](#get-transaction-count-by-block-number)
-         * [getTransactionByHash](#get-transaction-by-hash)
-         * [getTransactionByBlockHash](#get-transaction-by-block-hash)
-         * [getTransactionByBlockNumber](#get-transaction-by-block-number)
-         * [getTransactionReceipt](#get-transaction-receipt)
-         * [sendTransaction](#send-transaction)
-         * [sendRawTransaction](#send-raw-transaction)
-         * [newPendingTransactionFilter](#new-pending-transaction-filter)
-         * [getTransactionReceipt](#get-transaction-receipt)     
-     * Contract
+     * [Branch](#branch)
+        * [getBranches](#getbranches)
+        * [getValidators](#getvalidators)
+     * [Block](#block)   
+         * [blockNumber](#blocknumber)
+         * [getBlockByHash](#getblockbyhash)
+         * [getBlockByNumber](#getblockbynumber)        
+     * [Transaction](#transaction)
+         * [getTransactionCountByBlockHash](#gettransactioncountbyblockhash)
+         * [getTransactionCountByBlockNumber](#gettransactioncountbyblocknumber)
+         * [getTransactionByHash](#gettransactionbyhash)
+         * [getTransactionByBlockHash](#gettransactionbyblockhash)
+         * [getTransactionByBlockNumber](#gettransactionbyblocknumber)
+         * [getTransactionReceipt](#gettransactionreceipt)
+         * [sendTransaction](#sendtransaction)
+         * [sendRawTransaction](#sendrawtransaction)
+         * [newPendingTransactionFilter](#newpendingtransactionfilter)
+         * [getTransactionReceipt](#gettransactionreceipt)     
+     * [Contract](#contract)
          * [query](#query)
-     * Log
-         * [getLog](#get-log)
-         * [getLogs](#get-logs)
-         * [curIndex](#curl-index)
-     * Peer
-         * [getAllActivePeer](#get-all-active-peer)
-     * Admin        
-         * [nodeHello](#node-hello)
-         * [requestCommand](#request-command) 
+     * [Log](#log)
+         * [getLog](#getlog)
+         * [getLogs](#getlogs)
+         * [curIndex](#curlindex)
+     * [Peer](#peer)
+         * [getAllActivePeer](#getallactivepeer)
+     * [Admin](#admin)        
+         * [nodeHello](#nodehello)
+         * [requestCommand](#requestcommand) 
 
 # JSON RPC API 
 
@@ -54,7 +53,7 @@ Default JSON-RPC endpoints :
 
 | Client | URL                                            |
 | :----: | :--------------------------------------------: |
-| Java   | [http://localhost:8080](http://localhost:8080) |
+|        | [http://localhost:8080](http://localhost:8080) |
 
 ## Curl Examples Explained
 
@@ -66,7 +65,14 @@ The examples also do not include the URL/IP & port combination which must be the
 
 ## JSON RPC API Reference
 
-### getBranches
+### Branch 
+
+- **URL** : _`/api/branch`_ 
+
+ 
+-----
+
+#### getBranches
 
 Returns the spec of all running branches in the node.
 
@@ -251,6 +257,13 @@ Returns the validators of all running branches in the node
  
 ------
 
+### Block
+
+- **URL** : _`/api/block`_
+ 
+ 
+-----
+
 #### blockNumber
 
 Returns the number of most recent block.
@@ -408,6 +421,13 @@ See [getBlockByHash]()
 }
 ```
   
+-----
+
+### Transaction
+
+- **URL** : _`/api/transaction`_
+
+ 
 -----
 
 #### getTransactionCountByBlockHash
@@ -913,6 +933,13 @@ Returns the information about a raw transaction header requested by transaction 
 ```
  
 ------
+
+### Contract
+
+- **URL** : _`/api/contract`_
+
+ 
+-----
  
 #### query
 
@@ -998,7 +1025,14 @@ Handles all queries that are dispatched to the contract
  
 ------
 
-### getLog
+### Log
+
+- **URL** : _`/api/log`_
+
+ 
+-----
+
+#### getLog
 
 Returns the log of the index
 
@@ -1031,10 +1065,10 @@ Returns the log of the index
    "result":"{\"to\":\"d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95\",\"balance\":\"1000000000000000000000\"}"
 }
 ```
-
+ 
 ------
 
-### getLogs
+#### getLogs
 
 Returns the logs of offset from start
  
@@ -1075,10 +1109,10 @@ Returns the logs of offset from start
    ]
 }
 ```
-
+ 
 ------
 
-### curIndex
+#### curIndex
 
 Returns the current index of logStore
 
@@ -1111,7 +1145,14 @@ Returns the current index of logStore
 ```
   
 -----
+
+### Peer
+
+- **URL** : _`/api/peer`_
+
  
+-----
+
 #### getAllActivePeer
  
 Returns all active peers
@@ -1143,6 +1184,13 @@ None
    ]
 }
 ```
+ 
+-----
+
+### Admin
+
+- **URL** : _`/api/admin`_
+
  
 -----
 
@@ -1181,7 +1229,7 @@ Returns a clientHello message(with nonce) for managing node.
     "result": "{\"header\":{\"timestamp\":\"000001668a0a2bae\",\"nonce\":\"baabb165899f98a8b90b7251d88f2bcf\",\"bodyHash\":\"f5ef2617558e62b5a882187978f411a6ec1d437bb13a5d94e473e680d8ce7e7c\",\"bodyLength\":\"000000000000001a\"},\"signature\":\"1bab5fbd03a51cddd6b4aa0d2a68453b3073d2aa7aa58190073d1d6e647353bbaa0618d5e3f126fb5275a03f17b304b4a6afd293cf631fed6dfa31fb7c70db1c0d\",\"body\":[{\"method\":\"clientHello\"}]}"
 }
 ```
-
+ 
 -----
 
 #### requestCommand
