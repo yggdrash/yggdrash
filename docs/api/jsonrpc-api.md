@@ -51,9 +51,15 @@ It uses JSON ([RFC 4627](http://www.ietf.org/rfc/rfc4627.txt)) as data format.
 
 Default JSON-RPC endpoints : 
 
-| Client | URL                                            |
-| :----: | :--------------------------------------------: |
-|        | [http://localhost:8080](http://localhost:8080) |
+| Client | Category    | URL                                                                            |
+| :----: | :---------- | :----------------------------------------------------------------------------- |
+|        | Branch      | [http://localhost:8080/api/branch](http://localhost:8080/api/branch)           |
+|        | Block       | [http://localhost:8080/api/block](http://localhost:8080/api/block)             |
+|        | Transaction | [http://localhost:8080/api/transaction](http://localhost:8080/api/transaction) |
+|        | Contract    | [http://localhost:8080/api/contract](http://localhost:8080/api/contract)       |
+|        | Log         | [http://localhost:8080/api/log](http://localhost:8080/api/log)                 |
+|        | Peer        | [http://localhost:8080/api/peer](http://localhost:8080/api/peer)               |
+|        | Admin       | [http://localhost:8080/api/admin](http://localhost:8080/api/admin)             |
 
 ## Curl Examples Explained
 
@@ -69,7 +75,7 @@ The examples also do not include the URL/IP & port combination which must be the
 
 - **URL** : _`/api/branch`_ 
 
- 
+  
 -----
 
 #### getBranches
