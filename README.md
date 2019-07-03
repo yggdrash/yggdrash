@@ -6,11 +6,11 @@
 [![Coverage Status](https://coveralls.io/repos/github/yggdrash/yggdrash/badge.svg?branch=develop)](https://coveralls.io/github/yggdrash/yggdrash?branch=develop)
 [![codecov](https://codecov.io/gh/yggdrash/yggdrash/branch/develop/graph/badge.svg)](https://codecov.io/gh/yggdrash/yggdrash) [![Join the chat at https://gitter.im/yggdrash/yggdrash](https://badges.gitter.im/yggdrash/yggdrash.svg)](https://gitter.im/yggdrash/yggdrash?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-## What is yggdrash?
+## What is YGGDRASH?
 
 YGGDRASH is a trust-based multi-dimensional blockchains (branches) built with a vision to “Digitize everything into reality” and to connect everything and any blockchain networks.
 
-## Table of contents
+## Table of Contents
 
 * [Documentation](#documentation)
 * [Development](#development)
@@ -47,7 +47,7 @@ Yggdrash requires `JAVA` 1.8+ compiler to build. To install Java, follow this [l
 | 8.0.202-zulu  | 1.8  (recommended)  | ✅    | ✅  |
 | 8.0.201-oracle| 1.8                 | ✅    | ✅  |
 
-### Getting the source
+### Getting the Source
 
 Clone the yggdrash repo:
 
@@ -57,7 +57,7 @@ cd yggdrash
 ```
 > If you are unfamiliar with Git, [Download ZIP](https://github.com/yggdrash/yggdrash/archive/master.zip) (source code)
 
-### Running locally
+### Running Locally
 
 To run the cloned repository in the spring default profile, simply run:
 ```
@@ -82,7 +82,7 @@ You can also use other ports by providing options like `-p 8081:8080`
 
 The [Dockerfile](Dockerfile) is designed to build automatically the last release of the source code and will publish docker images to [dockerhub](https://hub.docker.com/r/yggdrash/yggdrash-node/) by release, feel free to fork and build Dockerfile for your own purpose.
 
-### Building for production
+### Building for Production
 
 To optimize the yggdrash application for production, run:
 ```
@@ -122,7 +122,7 @@ Once yggdrash node started, the blocks can be shown in your browser. e.g. [http:
 - refer to more [JSON RPC API](docs/api/jsonrpc-api.md)
 
 
-## Using Docker to simplify development (optional)
+## Using Docker to Simplify Development (optional)
 
 You can use docker to improve yggdrash development experience. A number of docker-compose configuration are available in the [docker](docker) folder to launch with third party services.
 
@@ -147,7 +147,7 @@ docker-compose -f docker/jenkins.yml up -d
 ```
 - Travis: refer to the [Travis Documentation](https://docs.travis-ci.com/user/getting-started/)
 
-### To configure CI for Yggdrash project in Jenkins, use the following configuration:
+### To Configure CI for YGGDRASH Project in Jenkins, Use the Following Configuration:
 ```
 * Project name: `Yggdrash`
 * Source Code Management
