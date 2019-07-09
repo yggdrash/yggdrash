@@ -194,7 +194,7 @@ public class Wallet {
                 }
             } catch (Exception e) {
                 log.error("Invalid key file or password"
-                        + "(length:12-32, 1 more lower/upper/digit/special");
+                        + "(length:12-32, 1 more lower/upper/digit/special)");
                 log.debug(e.getMessage());
                 throw new InvalidCipherTextException("Invalid key file or password");
             }
