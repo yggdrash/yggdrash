@@ -28,12 +28,17 @@ import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.consensus.ConsensusBlock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchStateStore {
+
+    private static final Logger log = LoggerFactory.getLogger(BranchStore.class);
 
     private final ReadWriterStore<String, JsonObject> store;
 
@@ -192,6 +197,9 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
         JsonObject jsonValidatorSet = get(PrefixKeyEnum.VALIDATORS.toValue());
         if (jsonValidatorSet != null) {
             validatorSet = JsonUtil.generateJsonToClass(jsonValidatorSet.toString(), ValidatorSet.class);
+        } else {
+            validatorSet = new ValidatorSet();
+            log.warn("Could not get ValidatorSet from branchStore. ValidatorSet=null");
         }
         return validatorSet;
     }
