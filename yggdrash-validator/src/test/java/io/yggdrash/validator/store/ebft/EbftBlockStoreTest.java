@@ -27,7 +27,7 @@ public class EbftBlockStoreTest {
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
-        wallet = new Wallet(new DefaultConfig(), "Password1234!");
+        wallet = new Wallet(new DefaultConfig(), "Aa1234567890!");
     }
 
     @Test

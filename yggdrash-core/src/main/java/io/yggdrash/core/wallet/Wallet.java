@@ -172,7 +172,7 @@ public class Wallet {
         } else if (!Password.passwordValid(keyPassword)) {
                 log.error("Invalid keyPassword format"
                         + "(length:12-32, 1 more lower/upper/digit/special");
-                throw new IOException("Invalid keyPassword format");
+            throw new InvalidCipherTextException("Invalid keyPassword format");
         } else {
             Path path = Paths.get(keyFilePathName);
             String keyPathStr = path.getParent().toString();
@@ -192,9 +192,10 @@ public class Wallet {
                     log.error("Error InvalidCipherTextException: {}", keyPathStr + keyNameStr);
                     throw new InvalidCipherTextException("Error InvalidCipherTextException");
                 }
-            } catch (InvalidCipherTextException ie) {
+            } catch (Exception e) {
                 log.error("Invalid key file or password"
                         + "(length:12-32, 1 more lower/upper/digit/special");
+                log.debug(e.getMessage());
                 throw new InvalidCipherTextException("Invalid key file or password");
             }
         }
