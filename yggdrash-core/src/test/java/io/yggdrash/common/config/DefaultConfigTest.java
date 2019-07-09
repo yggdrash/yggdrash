@@ -65,7 +65,7 @@ public class DefaultConfigTest {
         assertThat(defaultConfig.getNetworkP2PVersion()).isEqualTo("0.0.1");
         assertThat(defaultConfig.getNetwork()).isEqualTo(DefaultConfig.Network.TEST_NET);
         assertThat(defaultConfig.getNodeName()).isEqualTo("yggdrash");
-        assertThat(defaultConfig.getNodeVersion()).isEqualTo("0.0.2");
+        assertThat(defaultConfig.getNodeVersion()).isEqualTo("0.5.1");
     }
 
 }
