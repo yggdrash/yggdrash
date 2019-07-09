@@ -21,6 +21,8 @@ import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.utils.SerializationUtil;
 import org.spongycastle.util.encoders.Hex;
 
+import java.util.Arrays;
+
 public class RawTransaction  {
 
     private static final int HEADER_LENGTH = 84;
@@ -129,20 +131,21 @@ public class RawTransaction  {
         return body;
     }
 
-    private String printInputData(byte[] bytes) {
-        byte[] headerBytes = new byte[HEADER_LENGTH];
-        System.arraycopy(bytes, 0, headerBytes, 0, headerBytes.length);
+    private String printInputData(byte[] input) {
+        int inputLen = input.length;
+        int headerWithSigLen = HEADER_LENGTH + SIGNATURE_LENGTH;
 
-        byte[] sigBytes = new byte[SIGNATURE_LENGTH];
-        System.arraycopy(bytes, HEADER_LENGTH, sigBytes, 0, sigBytes.length);
+        if (bodyLength > 0 || inputLen > headerWithSigLen) {
+            byte[] header = Arrays.copyOfRange(input, 0, HEADER_LENGTH);
+            byte[] sig = Arrays.copyOfRange(input, HEADER_LENGTH, headerWithSigLen);
+            byte[] body = Arrays.copyOfRange(input, headerWithSigLen, inputLen);
 
-        byte[] bodyBytes = new byte[(int) bodyLength];
-        System.arraycopy(bytes, HEADER_LENGTH + SIGNATURE_LENGTH, bodyBytes, 0, bodyBytes.length);
-
-        return String.format("{header=(%s), signature=(%s), body=(%s)}",
-                Hex.toHexString(headerBytes),
-                Hex.toHexString(sigBytes),
-                SerializationUtil.deserializeString(bodyBytes));
+            return String.format("{header=(%s), signature=(%s), body=(%s)}",
+                    Hex.toHexString(header),
+                    Hex.toHexString(sig),
+                    SerializationUtil.deserializeString(body));
+        } else {
+            return Hex.toHexString(input);
+        }
     }
-
 }
