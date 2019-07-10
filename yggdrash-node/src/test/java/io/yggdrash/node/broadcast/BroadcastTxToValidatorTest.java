@@ -33,6 +33,7 @@ public class BroadcastTxToValidatorTest extends TcpNodeTesting {
     public void test() {
         // arrange
         // validator
+        //TODO Import the validator node service into the test
         TestNode validatorNode = createAndStartNode(32801, true);
         List<String> validatorList = Collections.singletonList(validatorNode.getPeer().getYnodeUri());
         // proxyNode

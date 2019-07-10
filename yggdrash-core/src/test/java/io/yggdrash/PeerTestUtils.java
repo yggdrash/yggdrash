@@ -27,11 +27,12 @@ import io.yggdrash.core.p2p.PeerTableGroupBuilder;
 import io.yggdrash.core.store.StoreBuilder;
 
 import java.util.Collections;
+import java.util.List;
 
 public class PeerTestUtils {
     public static final int SEED_PORT = 32918;
     public static final int OWNER_PORT = 32920;
-    private static final String NODE_URI_PREFIX = "ynode://75bff16c@127.0.0.1:";
+    public static final String NODE_URI_PREFIX = "ynode://75bff16c@127.0.0.1:";
     private static final StoreBuilder storeBuilder = StoreBuilder.newBuilder().setConfig(new DefaultConfig());
 
     private PeerTestUtils() {}
@@ -41,12 +42,16 @@ public class PeerTestUtils {
     }
 
     public static PeerTableGroup createTableGroup(int port, PeerDialer peerDialer) {
+        return createTableGroup(port, peerDialer, Collections.singletonList(NODE_URI_PREFIX + SEED_PORT));
+    }
+
+    public static PeerTableGroup createTableGroup(int port, PeerDialer peerDialer, List<String> seedPeerList) {
         Peer owner = Peer.valueOf(NODE_URI_PREFIX + port);
         return PeerTableGroupBuilder.newBuilder()
                 .setOwner(owner)
                 .setStoreBuilder(storeBuilder)
                 .setPeerDialer(peerDialer)
-                .setSeedPeerList(Collections.singletonList(NODE_URI_PREFIX + SEED_PORT))
+                .setSeedPeerList(seedPeerList)
                 .build();
     }
 

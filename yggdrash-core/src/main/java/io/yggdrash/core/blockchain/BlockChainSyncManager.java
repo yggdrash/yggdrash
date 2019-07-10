@@ -205,6 +205,7 @@ public class BlockChainSyncManager implements SyncManager {
 
         long bestBlock = from.getBestBlock();
         long curBestBlock = blockChain.getBlockChainManager().getLastIndex();
+        log.trace("catchUpRequest(): bestBlock from peer=({}), curBestBlock of branch=({})", bestBlock, curBestBlock);
 
         if (curBestBlock >= bestBlock) {
             return;
