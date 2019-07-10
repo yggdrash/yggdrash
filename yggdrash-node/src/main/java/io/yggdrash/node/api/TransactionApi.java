@@ -11,6 +11,8 @@ import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
 import io.yggdrash.gateway.dto.TransactionResponseDto;
 
+import java.util.List;
+
 import static io.yggdrash.common.config.Constants.BLOCK_ID;
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
 import static io.yggdrash.common.config.Constants.TX_ID;
@@ -121,8 +123,18 @@ public interface TransactionApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = RejectedAccessException.class,
                     code = RejectedAccessException.CODE)})
-    int newPendingTransactionFilter(
-            @JsonRpcParam(value = BRANCH_ID) String branchId);
+    int newPendingTransactionFilter(@JsonRpcParam(value = BRANCH_ID) String branchId);
+
+    /**
+     * Returns the list of pending transactions in the current blockChain
+     *
+     * @param branchId branchId
+     * @return The pending transaction hash list
+     */
+    @JsonRpcErrors( {
+            @JsonRpcError(exception = NonExistObjectException.class,
+                    code = NonExistObjectException.CODE)})
+    List<String> getPendingTransactionList(@JsonRpcParam(value = BRANCH_ID) String branchId);
 
     /**
      * Returns the TransactionReceipt of transaction hash

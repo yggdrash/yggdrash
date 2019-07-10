@@ -241,6 +241,15 @@ public class TransactionApiImplTest {
     }
 
     @Test
+    public void getPendingTransactionListTest() {
+        try {
+            TX_API.getPendingTransactionList(yggdrashBranch);
+        } catch (Exception e) {
+            log.debug("\n\ngetPendingTransactionListTest :: exception => " + e);
+        }
+    }
+
+    @Test
     public void txSigValidateTest() throws IOException {
         // Create Transaction
         Transaction tx = createTx();
