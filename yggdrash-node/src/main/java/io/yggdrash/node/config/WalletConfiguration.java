@@ -16,18 +16,19 @@
 
 package io.yggdrash.node.config;
 
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.Constants.ActiveProfiles;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.wallet.Wallet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
-import java.io.IOException;
 import java.util.Arrays;
+
+import static java.lang.System.exit;
 
 @Configuration
 public class WalletConfiguration {
@@ -42,7 +43,15 @@ public class WalletConfiguration {
     }
 
     @Bean
-    Wallet wallet(DefaultConfig defaultConfig) throws IOException, InvalidCipherTextException {
-        return new Wallet(defaultConfig);
+    Wallet wallet(DefaultConfig defaultConfig) {
+        Wallet wallet = null;
+        try {
+            wallet = new Wallet(defaultConfig);
+        } catch (Exception e) {
+            log.debug(defaultConfig.getString(Constants.PROPERTY_KEYPATH));
+            log.error("Key Password is not valid.");
+            exit(0);
+        }
+        return wallet;
     }
 }
