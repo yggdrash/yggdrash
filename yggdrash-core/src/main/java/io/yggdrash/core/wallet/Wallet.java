@@ -170,8 +170,8 @@ public class Wallet {
             log.error("Invalid keyPath or keyPassword");
             throw new IOException("Invalid keyPath or keyPassword");
         } else if (!Password.passwordValid(keyPassword)) {
-                log.error("Invalid keyPassword format"
-                        + "(length:12-32, 1 more lower/upper/digit/special");
+            log.error("Invalid keyPassword format"
+                    + "(length:12-32, 1 more lower/upper/digit/special");
             throw new InvalidCipherTextException("Invalid keyPassword format");
         } else {
             Path path = Paths.get(keyFilePathName);
@@ -180,6 +180,13 @@ public class Wallet {
 
             try {
                 decryptKeyFileInit(keyPathStr, keyNameStr, keyPassword);
+
+                Set<PosixFilePermission> perms = new HashSet<>();
+                perms.add(PosixFilePermission.OWNER_READ);
+                if (!Files.getPosixFilePermissions(Paths.get(keyFilePathName)).equals(perms)) {
+                    log.error("The key file's permission must set only OWNER_READ(400).");
+                    throw new InvalidCipherTextException("Invalid key file or password");
+                }
             } catch (IOException e) {
                 log.debug("Key file is not exist. Create New key file.");
 
@@ -199,7 +206,6 @@ public class Wallet {
                 throw new InvalidCipherTextException("Invalid key file or password");
             }
         }
-
         keyPassword = null; // for security
     }
 
