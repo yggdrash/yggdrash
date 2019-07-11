@@ -169,21 +169,18 @@ public class Wallet {
         if (Strings.isNullOrEmpty(keyFilePathName) || Strings.isNullOrEmpty(keyPassword)) {
             log.error("Invalid keyPath or keyPassword");
             throw new IOException("Invalid keyPath or keyPassword");
-        } else {
-            // check password validation
-            if (!Password.passwordValid(keyPassword)) {
+        } else if (!Password.passwordValid(keyPassword)) {
                 log.error("Invalid keyPassword format"
                         + "(length:12-32, 1 more lower/upper/digit/special");
-                throw new IOException("Invalid keyPassword format");
-            }
-
+            throw new InvalidCipherTextException("Invalid keyPassword format");
+        } else {
             Path path = Paths.get(keyFilePathName);
             String keyPathStr = path.getParent().toString();
             String keyNameStr = path.getFileName().toString();
 
             try {
                 decryptKeyFileInit(keyPathStr, keyNameStr, keyPassword);
-            } catch (Exception e) {
+            } catch (IOException e) {
                 log.debug("Key file is not exist. Create New key file.");
 
                 try {
@@ -195,13 +192,20 @@ public class Wallet {
                     log.error("Error InvalidCipherTextException: {}", keyPathStr + keyNameStr);
                     throw new InvalidCipherTextException("Error InvalidCipherTextException");
                 }
+            } catch (Exception e) {
+                log.error("Invalid key file or password"
+                        + "(length:12-32, 1 more lower/upper/digit/special)");
+                log.debug(e.getMessage());
+                throw new InvalidCipherTextException("Invalid key file or password");
             }
         }
+
+        keyPassword = null; // for security
     }
 
     public Wallet(DefaultConfig config, String password) throws IOException, InvalidCipherTextException {
         this(new DefaultConfig(
-                ConfigFactory.parseString(Constants.PROPERTY_KEKPASS + " = \"" + password + "\"")
+                ConfigFactory.parseString(Constants.PROPERTY_KEYPASSWORD + " = \"" + password + "\"")
                         .withFallback(config.getConfig()).resolve()));
     }
 
@@ -217,7 +221,7 @@ public class Wallet {
      *
      * @return keyPath
      */
-    String getKeyPath() {
+    public String getKeyPath() {
         return keyPath;
     }
 
@@ -226,7 +230,7 @@ public class Wallet {
      *
      * @return key name(filename)
      */
-    String getKeyName() {
+    public String getKeyName() {
         return keyName;
     }
 

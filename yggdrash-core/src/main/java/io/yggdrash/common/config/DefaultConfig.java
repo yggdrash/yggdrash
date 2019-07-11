@@ -16,7 +16,7 @@ import static io.yggdrash.common.config.Constants.BRANCH_PATH;
 import static io.yggdrash.common.config.Constants.CONTRACT_PATH;
 import static io.yggdrash.common.config.Constants.DATABASE_PATH;
 import static io.yggdrash.common.config.Constants.OSGI_PATH;
-import static io.yggdrash.common.config.Constants.PROPERTY_KEKPASS;
+import static io.yggdrash.common.config.Constants.PROPERTY_KEYPASSWORD;
 import static io.yggdrash.common.config.Constants.PROPERTY_KEYPATH;
 import static io.yggdrash.common.config.Constants.PROPERTY_NETWORK_ID;
 import static io.yggdrash.common.config.Constants.PROPERTY_NETWORK_P2P_VER;
@@ -129,7 +129,7 @@ public class DefaultConfig {
     }
 
     public String getKeyPassword() {
-        return config.hasPath(PROPERTY_KEKPASS) ? config.getString(PROPERTY_KEKPASS) : null;
+        return config.hasPath(PROPERTY_KEYPASSWORD) ? config.getString(PROPERTY_KEYPASSWORD) : null;
     }
 
     public String getNodeName() {

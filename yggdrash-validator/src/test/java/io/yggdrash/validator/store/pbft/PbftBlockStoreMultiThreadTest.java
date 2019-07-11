@@ -84,14 +84,15 @@ public class PbftBlockStoreMultiThreadTest {
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
+        String password = "Aa1234567890!";
         wallet = new Wallet(null, "tmp/",
-                "test1" + TimeUtils.time(), "Password1234!");
+                "test1" + TimeUtils.time(), password);
         wallet2 = new Wallet(null, "tmp/",
-                "test2" + TimeUtils.time(), "Password1234!");
+                "test2" + TimeUtils.time(), password);
         wallet3 = new Wallet(null, "tmp/",
-                "test3" + TimeUtils.time(), "Password1234!");
+                "test3" + TimeUtils.time(), password);
         wallet4 = new Wallet(null, "tmp/",
-                "test4" + TimeUtils.time(), "Password1234!");
+                "test4" + TimeUtils.time(), password);
 
         block = new TestUtils(wallet).sampleBlock();
         block2 = new TestUtils(wallet).sampleBlock(block.getIndex() + 1, block.getHash());
