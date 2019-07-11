@@ -197,9 +197,6 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
         JsonObject jsonValidatorSet = get(PrefixKeyEnum.VALIDATORS.toValue());
         if (jsonValidatorSet != null) {
             validatorSet = JsonUtil.generateJsonToClass(jsonValidatorSet.toString(), ValidatorSet.class);
-        } else {
-            validatorSet = new ValidatorSet();
-            log.warn("Could not get ValidatorSet from branchStore. ValidatorSet=null");
         }
         return validatorSet;
     }
