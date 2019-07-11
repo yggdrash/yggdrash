@@ -20,6 +20,7 @@ public class ContractManagerBuilder {
     private String osgiPath;
     private String databasePath;
     private String contractPath;
+    private String contractRepositoryUrl;
 
     private ContractManagerBuilder() {
 
@@ -83,6 +84,11 @@ public class ContractManagerBuilder {
         return this;
     }
 
+    public ContractManagerBuilder withContractRepository(String contractRepositoryUrl) {
+        this.contractRepositoryUrl = contractRepositoryUrl;
+        return this;
+    }
+
     public ContractManager build() {
         if (this.frameworkFactory == null) {
             throw new IllegalStateException("Must set frameworkFactory");
@@ -105,8 +111,8 @@ public class ContractManagerBuilder {
                 this.databasePath,
                 this.contractPath,
                 this.systemProperties,
-                this.logStore
-        );
+                this.logStore,
+                this.contractRepositoryUrl);
     }
 
 }

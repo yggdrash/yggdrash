@@ -11,6 +11,7 @@ import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.LogStore;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -32,12 +33,17 @@ import org.osgi.service.permissionadmin.PermissionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FilePermission;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.ReflectPermission;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -61,6 +67,7 @@ public class ContractManager {
     private final ContractStore contractStore;
     private final LogStore logStore;
 
+    private final String contractRepositoryUrl;
     private final String osgiPath;
     private final String databasePath;
     private final String contractPath;
@@ -72,7 +79,7 @@ public class ContractManager {
 
     ContractManager(FrameworkFactory frameworkFactory, Map<String, String> contractManagerConfig,
                     String branchId, ContractStore contractStore, String osgiPath, String databasePath,
-                    String contractPath, SystemProperties systemProperties, LogStore logStore) {
+                    String contractPath, SystemProperties systemProperties, LogStore logStore, String contractRepositoryUrl) {
         this.frameworkFactory = frameworkFactory;
         this.commonContractManagerConfig = contractManagerConfig;
         this.branchId = branchId;
@@ -84,6 +91,7 @@ public class ContractManager {
         this.contractPath = contractPath;
 
         this.systemProperties = systemProperties;
+        this.contractRepositoryUrl = contractRepositoryUrl;
         this.fullLocation = new HashMap<>();
         this.serviceMap = new HashMap<>();
         newFramework();
@@ -219,8 +227,8 @@ public class ContractManager {
 
         infos.add(admin.newConditionalPermissionInfo(
                 permissionKey,
-                new ConditionInfo[]{
-                        new ConditionInfo(BundleLocationCondition.class.getName(), new String[]{"*"})
+                new ConditionInfo[] {
+                        new ConditionInfo(BundleLocationCondition.class.getName(), new String[] {"*"})
                 },
                 defaultPermissions.toArray(new PermissionInfo[defaultPermissions.size()]),
                 ConditionalPermissionInfo.ALLOW));
@@ -252,8 +260,8 @@ public class ContractManager {
         // {BID}-container-permission-system-file
         infos.add(admin.newConditionalPermissionInfo(
                 String.format("%s-system-file", permissionKey),
-                new ConditionInfo[]{new ConditionInfo(BundleLocationCondition.class.getName(),
-                        new String[]{String.format("%s/*", SUFFIX_SYSTEM_CONTRACT)})
+                new ConditionInfo[] {new ConditionInfo(BundleLocationCondition.class.getName(),
+                        new String[] {String.format("%s/*", SUFFIX_SYSTEM_CONTRACT)})
                 },
                 systemPermissions.toArray(new PermissionInfo[systemPermissions.size()]),
                 ConditionalPermissionInfo.ALLOW));
@@ -267,8 +275,8 @@ public class ContractManager {
 
         infos.add(admin.newConditionalPermissionInfo(
                 String.format("%s-user-file", permissionKey),
-                new ConditionInfo[]{new ConditionInfo(BundleLocationCondition.class.getName(),
-                        new String[]{String.format("%s/*", SUFFIX_USER_CONTRACT)})
+                new ConditionInfo[] {new ConditionInfo(BundleLocationCondition.class.getName(),
+                        new String[] {String.format("%s/*", SUFFIX_USER_CONTRACT)})
                 },
                 userPermissions.toArray(new PermissionInfo[userPermissions.size()]),
                 ConditionalPermissionInfo.ALLOW));
@@ -295,6 +303,8 @@ public class ContractManager {
 
         } catch (IOException e) {
             log.error("Contract file don't Load [{}]", e.getMessage()); //TODO Throw Runtime exception
+
+
             return bundleId;
         }
         bundleId = install(contract, contractFile, isSystem);
@@ -510,4 +520,56 @@ public class ContractManager {
         contractStore.close();
         logStore.close();
     }
+
+    public boolean isContractFileExist(ContractVersion version) {
+        File contractFile = new File(this.getContractPath() + File.separator + version + ".jar");
+        if (!contractFile.canRead()) {
+            contractFile.setReadable(true, false);
+        }
+
+        return contractFile.isFile();
+    }
+
+
+    public File downloader(ContractVersion version) throws IOException {
+
+        int bufferSize = 1024;
+
+        try (OutputStream outputStream = new BufferedOutputStream(
+                new FileOutputStream(this.contractPath + File.separator + version + ".jar"))) {
+            log.info("-------Download Start------");
+            URL url = new URL(this.contractRepositoryUrl + version + ".jar");
+            byte[] buf = new byte[bufferSize];
+            int byteWritten = 0;
+
+            URLConnection connection = url.openConnection();
+            InputStream inputStream = connection.getInputStream();
+
+            int byteRead;
+            while ((byteRead = inputStream.read(buf)) != -1) {
+                outputStream.write(buf, 0, byteRead);
+                byteWritten += byteRead;
+            }
+
+            log.info("Download Successfully.");
+            log.info("File name : {}", version);
+            log.info("of bytes  : {}", byteWritten);
+            log.info("-------Download End--------");
+        }
+
+        return new File(this.contractPath + File.separator + version + ".jar");
+    }
+
+    public boolean verifyContractFile(File contractFile, ContractVersion contractVersion) {
+        // Contract Path + contract Version + .jar
+        // check contractVersion Hex
+        try (InputStream is = new FileInputStream(contractFile)) {
+            byte[] contractBinary = IOUtils.toByteArray(is);
+            ContractVersion checkVersion = ContractVersion.of(contractBinary);
+            return contractVersion.toString().equals(checkVersion.toString());
+        }  catch (IOException e) {
+            return false;
+        }
+    }
+
 }
