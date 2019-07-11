@@ -61,8 +61,31 @@ public class AbstractNodeTesting {
         this.factory = mockFactory();
     }
 
+    private void setFactory() {
+        if (factory == null) {
+            setUp();
+        }
+    }
+
     protected TestNode createAndStartNode(int port, boolean enableBranch) {
-        TestNode node = new TestNode(factory, port, enableBranch);
+        setFactory();
+        return createAndStartNode(new TestNode(factory, port, enableBranch));
+    }
+
+    protected TestNode createAndStartNode(int port, boolean enableBranch, List<String> seedPeerList) {
+        setFactory();
+        TestNode nodeWithSeedPeers = new TestNode(factory, port, enableBranch, seedPeerList);
+        return createAndStartNode(nodeWithSeedPeers);
+    }
+
+    protected TestNode createAndStartNode(
+            int port, boolean enableBranch, List<String> seedPeerList, List<String> validatorList) {
+        setFactory();
+        TestNode proxyNode = new TestNode(factory, port, enableBranch, seedPeerList, validatorList);
+        return createAndStartNode(proxyNode);
+    }
+
+    private TestNode createAndStartNode(TestNode node) {
         nodeList.add(node);
         createAndStartServer(node);
         grpcCleanup.register(node.server);
@@ -86,6 +109,7 @@ public class AbstractNodeTesting {
     }
 
     void addService(TestNode node, ServerBuilder builder) {
+        node.discoveryConsumer.setListener(node.getSyncManger());
         builder.addService(new DiscoveryService(node.discoveryConsumer));
         if (node.transactionService != null) {
             builder.addService(node.transactionService);
