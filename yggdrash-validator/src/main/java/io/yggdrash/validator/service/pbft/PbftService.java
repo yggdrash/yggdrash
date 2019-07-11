@@ -4,6 +4,7 @@ import com.typesafe.config.ConfigException;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.contract.vo.dpoa.Validator;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
@@ -41,8 +42,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     private final ConsensusBlockChain<PbftProto.PbftBlock, PbftMessage> blockChain;
 
     private final PbftClientStub myNode;
-    private final List<Peer> validatorConfigList;
-    private final Map<String, PbftClientStub> totalValidatorMap;
+    private final Map<String, Peer> validatorConfigMap;
+    private Map<String, PbftClientStub> totalValidatorMap;
     private final Map<String, PbftClientStub> proxyNodeMap;
 
     private final ReentrantLock lock = new ReentrantLock();
@@ -78,7 +79,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         this.grpcPort = grpcPort;
 
         this.myNode = initMyNode();
-        this.validatorConfigList = initValidatorConfigList();
+        this.validatorConfigMap = initValidatorConfigMap();
         this.totalValidatorMap = initTotalValidator();
         this.proxyNodeMap = initProxyNode();
         this.isActive = false;
@@ -100,6 +101,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     private void mainScheduler() {
+
         updateTotalValidatorMap();
 
         if (!isValidator()) {
@@ -171,27 +173,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         if (block != null) {
             broadcastBlock(block, this.proxyNodeMap);
         }
-    }
-
-    private void updateTotalValidatorMap() {
-        for (Peer peer: validatorConfigList) {
-            String address = peer.getPubKey().toString();
-            if (blockChain.isValidator(address)) {
-                if (!totalValidatorMap.containsKey(address)) {
-                    updateNodeMap(totalValidatorMap, address, peer.getHost(), peer.getPort());
-                }
-            } else if (totalValidatorMap.containsKey(address)) {
-                PbftClientStub stub = totalValidatorMap.remove(address);
-                try {
-                    stub.shutdown();
-                } catch (Exception e) {
-                    log.warn(e.getMessage());
-                }
-            }
-        }
-
-        this.bftCount = (totalValidatorMap.size() - 1) / 3;
-        this.consensusCount = bftCount * 2 + 1;
     }
 
     private boolean waitingForMessage(String message) {
@@ -630,7 +611,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     public void checkNode() {
         for (Map.Entry<String, PbftClientStub> entry : totalValidatorMap.entrySet()) {
             PbftClientStub client = entry.getValue();
-            if (client.isMyclient()) {
+            if (client.isMyclient() || client.getChannel() == null) {
                 continue;
             }
 
@@ -778,38 +759,49 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         log.info("wallet address: {}", wallet.getHexAddress());
         log.info("wallet pubKey: {}", Hex.toHexString(wallet.getPubicKey()));
         log.info("isValidator: {}", isValidator());
+        log.info("validatorList: {}", this.totalValidatorMap);
     }
 
-    private List<Peer> initValidatorConfigList() {
-        List<Peer> peerList = new ArrayList<>();
+    private Map<String, Peer> initValidatorConfigMap() {
+        Map<String, Peer> peerMap = new TreeMap<>();
 
         Map<String, Object> validatorInfoMap =
                 this.defaultConfig.getConfig().getConfig("yggdrash.validator.info").root().unwrapped();
         for (Map.Entry<String, Object> entry : validatorInfoMap.entrySet()) {
             String host = ((Map<String, String>) entry.getValue()).get("host");
             int port = ((Map<String, Integer>) entry.getValue()).get("port");
-            peerList.add(Peer.valueOf(entry.getKey(), host, port));
+            peerMap.put(entry.getKey(), Peer.valueOf(entry.getKey(), host, port));
         }
-        return peerList;
+        return peerMap;
     }
 
-    @SuppressWarnings("unchecked")
     private TreeMap<String, PbftClientStub> initTotalValidator() {
         TreeMap<String, PbftClientStub> nodeMap = new TreeMap<>();
         try {
-            for (Peer peer : validatorConfigList) {
-                String address = peer.getPubKey().toString();
-                if (!blockChain.isValidator(address)) {
-                    continue;
-                }
-                updateNodeMap(nodeMap, address, peer.getHost(), peer.getPort());
+            for (Validator validator : blockChain.getValidators().getValidatorMap().values()) {
+                String address = validator.getAddr();
+                Peer peer = validatorConfigMap.get(address);
+                updateNodeMap(nodeMap, address,
+                        peer != null ? peer.getHost() : "",
+                        peer != null ? peer.getPort() : 0);
             }
-            log.debug("ValidatorInfo: {}", nodeMap);
-        } catch (ConfigException ce) {
-            log.error("Validators is not set.");
-            throw new NotValidateException();
+            log.trace("ValidatorInfo: {}", nodeMap);
+        } catch (Exception e) {
+            log.error("Validator configuration is not valid");
+            throw new NotValidateException("Validator configuration is not valid");
         }
         return nodeMap;
+    }
+
+    private void updateTotalValidatorMap() {
+        if (totalValidatorMap.keySet().equals(blockChain.getValidators().getValidatorMap().keySet())) {
+            return;
+        }
+
+        this.totalValidatorMap = initTotalValidator();
+
+        this.bftCount = (totalValidatorMap.size() - 1) / 3;
+        this.consensusCount = bftCount * 2 + 1;
     }
 
     @SuppressWarnings("unchecked")
