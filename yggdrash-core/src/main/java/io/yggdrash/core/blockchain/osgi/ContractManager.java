@@ -531,7 +531,7 @@ public class ContractManager {
     }
 
 
-    public File downloader(ContractVersion version) throws IOException {
+    public boolean downloader(ContractVersion version) {
 
         int bufferSize = 1024;
 
@@ -555,9 +555,12 @@ public class ContractManager {
             log.info("File name : {}", version);
             log.info("of bytes  : {}", byteWritten);
             log.info("-------Download End--------");
+            return true;
+        } catch (IOException e) {
+            log.error(e.getMessage());
+            return false;
         }
 
-        return new File(this.contractPath + File.separator + version + ".jar");
     }
 
     public boolean verifyContractFile(File contractFile, ContractVersion contractVersion) {
@@ -568,6 +571,7 @@ public class ContractManager {
             ContractVersion checkVersion = ContractVersion.of(contractBinary);
             return contractVersion.toString().equals(checkVersion.toString());
         }  catch (IOException e) {
+            log.error(e.getMessage());
             return false;
         }
     }
