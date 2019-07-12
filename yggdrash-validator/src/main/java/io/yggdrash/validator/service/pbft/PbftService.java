@@ -82,6 +82,9 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         this.validatorConfigMap = initValidatorConfigMap();
         this.totalValidatorMap = initTotalValidator();
         this.proxyNodeMap = initProxyNode();
+        this.bftCount = (totalValidatorMap.size() - 1) / 3;
+        this.consensusCount = bftCount * 2 + 1;
+
         this.isActive = false;
         this.isSynced = false;
         this.isPrePrepared = false;
@@ -91,6 +94,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
         this.viewNumber = this.blockChain.getBlockChainManager().getLastIndex() + 1;
         this.seqNumber = this.blockChain.getBlockChainManager().getLastIndex() + 1;
+
 
         printInitInfo();
     }
@@ -114,7 +118,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         checkNode();
 
         if (!isActive) {
-            log.debug("Validators are not activate.");
+            log.info("Validators are not activated. {}/{}", getActiveNodeCount(), consensusCount);
             return;
         }
 
@@ -201,22 +205,18 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     private void loggingStatus() {
-        log.trace("loggingStatus");
-        log.debug("failCount= " + this.failCount);
-        log.debug("isActive=" + this.isActive);
-        log.debug("isSynced=" + this.isSynced);
-        log.debug("isPrePrepared= " + this.isPrePrepared);
-        log.debug("isPrepared= " + this.isPrepared);
-        log.debug("isCommitted= " + this.isCommitted);
-
-        log.debug("unConfirmedMsgMap size= " + this.blockChain.getUnConfirmedData().size());
+        log.info("Status: activeNode={}, "
+                        + "failCount={}, isActive={}, isSynced={}, isPrePrepared={}, isPrepared={}, isCommitted={} "
+                        + "unConfirmedMsgCount={}, unConfirmedTxCount={}",
+                getActiveNodeCount(),
+                this.failCount, this.isActive, this.isSynced, this.isPrePrepared, this.isPrepared, this.isCommitted,
+                this.blockChain.getUnConfirmedData().size(),
+                blockChain.getBlockChainManager().getUnconfirmedTxs().size());
         if (log.isTraceEnabled()) {
             for (PbftMessage message : this.blockChain.getUnConfirmedData().values()) {
                 log.trace(message.toJsonObject().toString());
             }
         }
-        log.debug("TxStore unConfirmed Tx.size= "
-                + this.blockChain.getBlockChainManager().getUnconfirmedTxs().size());
         log.debug("");
     }
 
@@ -583,11 +583,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
         int primaryIndex = (int) (this.viewNumber % totalValidatorMap.size());
         currentPrimaryAddr = (String) totalValidatorMap.keySet().toArray()[primaryIndex];
-
-        log.debug("viewNumber: " + this.viewNumber);
-        log.debug("seqNumber: " + this.seqNumber);
-        log.debug("Primary Index: " + primaryIndex);
-        log.debug("currentPrimaryAddr: " + currentPrimaryAddr);
+        log.debug("viewNumber={}, seqNumber={}, primaryIndex={}, primaryAddr={}",
+                this.viewNumber, this.seqNumber, primaryIndex, currentPrimaryAddr);
 
         this.isPrimary = currentPrimaryAddr.equals(this.myNode.getAddr());
     }
@@ -621,7 +618,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
             if (pongTime > 0L) {
                 checkNodeStatus(client);
             } else {
-                log.debug("Cannot connect to {} ping {} pong {}", client.toString(), pingTime, pongTime);
+                log.info("Cannot connect to {} ping {} pong {}", client.toString(), pingTime, pongTime);
                 client.setIsRunning(false);
             }
         }
@@ -793,10 +790,15 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         return nodeMap;
     }
 
+    // TODO: test more cases using DPoA contract
+    // TODO: consider excuting when adding the new block
     private void updateTotalValidatorMap() {
         if (totalValidatorMap.keySet().equals(blockChain.getValidators().getValidatorMap().keySet())) {
             return;
         }
+
+        log.trace("Current Validators: {}", totalValidatorMap.keySet());
+        log.trace("New Validators: {}", blockChain.getValidators().getValidatorMap().keySet());
 
         this.totalValidatorMap = initTotalValidator();
 
@@ -848,16 +850,14 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         if (runningNodeCount >= consensusCount) {
             if (!this.isActive) {
                 this.isActive = true;
-                log.info("Node is activated.");
+                log.info("ValidatorNode is activated.");
             }
         } else {
             if (this.isActive) {
                 this.isActive = false;
-                log.info("Node is deactivated.");
+                log.info("ValidatorNode is deactivated.");
             }
         }
-
-        log.debug("running node: " + runningNodeCount);
     }
 
     private int getActiveNodeCount() {
