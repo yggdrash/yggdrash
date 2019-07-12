@@ -109,7 +109,7 @@ none
    "id":"867639818",
    "result":{  
       "nodeName":"yggdrash",
-      "nodeVersion":"0.5.1",
+      "nodeVersion":"0.6.1",
       "status":[  
          {  
             "branchId":"a1d0ade6dcb5db356c2e8a5ee09d2568072eef09",
