@@ -94,7 +94,8 @@ public class TransactionApiImpl implements TransactionApi {
             log.warn("SendTransaction Error : {}", errorLogs);
         }
 
-        return errorLogs.size() > 0 ? TransactionResponseDto.createBy(transaction.getHash().toString(), false, errorLogs)
+        return errorLogs.size() > 0
+                ? TransactionResponseDto.createBy(transaction.getHash().toString(), false, errorLogs)
                 : TransactionResponseDto.createBy(transaction.getHash().toString(), true, errorLogs);
     }
 
@@ -118,6 +119,12 @@ public class TransactionApiImpl implements TransactionApi {
     @Override
     public int newPendingTransactionFilter(String branchId) {
         return branchGroup.getUnconfirmedTxs(BranchId.of(branchId)).size();
+    }
+
+    @Override
+    public List<String> getPendingTransactionList(String branchId) {
+        return branchGroup.getUnconfirmedTxs(BranchId.of(branchId))
+                .stream().map(tx -> tx.getHash().toString()).collect(Collectors.toList());
     }
 
     @Override

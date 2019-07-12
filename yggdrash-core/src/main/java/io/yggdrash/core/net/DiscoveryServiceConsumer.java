@@ -50,7 +50,6 @@ public class DiscoveryServiceConsumer implements DiscoveryConsumer {
         if ("Ping".equals(msg) && peerTableGroup.getOwner().toAddress().equals(to.toAddress())) {
             peerTableGroup.addPeer(branchId, from);
 
-            //TODO Test!
             if (listener != null) {
                 listener.catchUpRequest(branchId, from);
             }

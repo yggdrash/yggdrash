@@ -91,6 +91,7 @@ public class DiscoveryHandler<T> implements BlockChainHandler<T> {
                 .setFrom(owner.getYnodeUri())
                 .setTo(peer.getYnodeUri())
                 .setBranch(ByteString.copyFrom(branchId.getBytes()))
+                .setBestBlock(owner.getBestBlock())
                 .build();
         return peerBlockingStub.ping(request).getPong();
     }

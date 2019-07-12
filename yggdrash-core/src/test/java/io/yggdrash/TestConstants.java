@@ -16,19 +16,22 @@
 
 package io.yggdrash;
 
-import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.wallet.Wallet;
 import org.junit.Assume;
 import org.junit.BeforeClass;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class TestConstants {
 
@@ -55,7 +58,11 @@ public class TestConstants {
 
     static {
         try {
-            wallet = new Wallet(new DefaultConfig(), "Password1234!");
+            String keyPathName = "./tmp/" + new SimpleDateFormat("yyyyMMdd-hhmmss.SSS'.key'").format(new Date());
+            String password = "Aa1234567890!";
+            wallet = new Wallet((ECKey) null, keyPathName, password);
+
+            //wallet = new Wallet(new DefaultConfig(), "Aa1234567890!");
             branchFile = new File("../yggdrash-core/src/main/resources", "branch-yggdrash.json");
             if (!branchFile.exists()) {
                 branchFile = new File("yggdrash-core/src/main/resources", "branch-yggdrash.json");

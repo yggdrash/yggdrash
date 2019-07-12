@@ -53,7 +53,7 @@ public final class Constants {
     public static final String YGG_CONF_PATH = ".yggdrash" + File.separator + YGG_DEFAULT_FILENAME;
     public static final String YGG_ADMIN_CONF_PATH = ".yggdrash" + File.separator + "admin.conf";
     public static final String PROPERTY_KEYPATH = "key.path";
-    public static final String PROPERTY_KEKPASS = "key.password";
+    public static final String PROPERTY_KEYPASSWORD = "key.password";
     public static final String PROPERTY_NODE_NAME = "node.name";
     public static final String PROPERTY_NODE_VER = "node.version";
     public static final String PROPERTY_NETWORK_ID = "network.id";

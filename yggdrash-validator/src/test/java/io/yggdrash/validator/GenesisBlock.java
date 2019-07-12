@@ -66,7 +66,7 @@ class GenesisBlock {
                 txBody);
 
         DefaultConfig defaultConfig = new DefaultConfig();
-        Wallet wallet = new Wallet(defaultConfig, "Password1234!");
+        Wallet wallet = new Wallet(defaultConfig, "Aa1234567890!");
         Transaction tx = new TransactionImpl(txHeader, wallet, txBody);
         List<Transaction> txList = new ArrayList<>();
         txList.add(tx);

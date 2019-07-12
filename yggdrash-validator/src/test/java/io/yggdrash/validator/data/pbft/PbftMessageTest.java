@@ -40,7 +40,7 @@ public class PbftMessageTest {
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
-        wallet = new Wallet(new DefaultConfig(), "Password1234!");
+        wallet = new Wallet(new DefaultConfig(), "Aa1234567890!");
         block = new TestUtils(wallet).sampleBlock();
 
         prePrepare = new PbftMessage(PREPREPARE,

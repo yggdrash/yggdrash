@@ -17,6 +17,7 @@ import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.net.DiscoveryServiceConsumer;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.NodeStatusMock;
+import io.yggdrash.core.net.PeerNetwork;
 import io.yggdrash.core.p2p.BlockChainDialer;
 import io.yggdrash.core.p2p.BlockChainHandlerFactory;
 import io.yggdrash.core.p2p.Peer;
@@ -68,24 +69,46 @@ public class TestNode extends BootStrapNode {
     TestNode(BlockChainHandlerFactory factory, int port, boolean enableBranch) {
         this(factory, port, createNodeProperties(new ArrayList<>()));
         this.enableBranch = enableBranch;
-        config();
+        config(false);
+    }
+
+    TestNode(BlockChainHandlerFactory factory, int port, boolean enableBranch, List<String> seedPeerList) {
+        this(factory, port, createNodeProperties(seedPeerList, new ArrayList<>()));
+        this.enableBranch = enableBranch;
+        config(false);
+    }
+
+    TestNode(BlockChainHandlerFactory factory, int port, boolean enableBranch,
+             List<String> seedPeerList, List<String> validatorList) {
+        this(factory, port, createNodeProperties(seedPeerList, validatorList));
+        this.enableBranch = enableBranch;
+        config(true);
     }
 
     private static NodeProperties createNodeProperties(List<String> validatorList) {
+        return createNodeProperties(new ArrayList<>(), validatorList);
+    }
+
+    private static NodeProperties createNodeProperties(List<String> seedPeersList, List<String> validatorList) {
         NodeProperties nodeProperties = new NodeProperties();
+        nodeProperties.setSeedPeerList(seedPeersList);
         nodeProperties.setValidatorList(validatorList);
         return nodeProperties;
     }
 
-    private void config() {
+    private void config(boolean isProd) {
         p2pConfiguration();
-        branchConfiguration();
+        branchConfiguration(isProd);
         networkConfiguration();
     }
 
     private void p2pConfiguration() {
         this.peerDialer = new BlockChainDialer(factory);
-        this.peerTableGroup = PeerTestUtils.createTableGroup(port, peerDialer);
+        if (nodeProperties.getSeedPeerList().isEmpty()) {
+            this.peerTableGroup = PeerTestUtils.createTableGroup(port, peerDialer);
+        } else {
+            this.peerTableGroup = PeerTestUtils.createTableGroup(port, peerDialer, nodeProperties.getSeedPeerList());
+        }
         this.discoveryConsumer = new DiscoveryServiceConsumer(peerTableGroup);
 
         this.peerTask = new PeerTask();
@@ -94,14 +117,14 @@ public class TestNode extends BootStrapNode {
         peerTask.setPeerTableGroup(peerTableGroup);
     }
 
-    private void branchConfiguration() {
+    private void branchConfiguration(boolean isProd) {
         if (isSeed()) {
             return;
         } else if (!enableBranch) {
             peerTableGroup.createTable(TestConstants.yggdrash());
             return;
         }
-        BlockChain bc = BlockChainTestUtils.createBlockChain(false);
+        BlockChain bc = BlockChainTestUtils.createBlockChain(isProd);
         branchGroup.addBranch(bc);
         transactionService = new TransactionService(branchGroup);
     }
@@ -110,6 +133,10 @@ public class TestNode extends BootStrapNode {
         NetworkConfiguration config = new NetworkConfiguration(nodeProperties);
         this.peerNetwork = config.peerNetwork(peerTableGroup, peerDialer, branchGroup);
         setSyncManager(config.syncManager(nodeStatus, peerNetwork, branchGroup));
+    }
+
+    public PeerNetwork getPeerNetwork() {
+        return this.peerNetwork;
     }
 
     public Peer getPeer() {
@@ -177,7 +204,15 @@ public class TestNode extends BootStrapNode {
     public static TestNode createProxyNode(BlockChainHandlerFactory factory, List<String> validatorList) {
         NodeProperties nodeProperties = createNodeProperties(validatorList);
         TestNode node = new TestNode(factory, PeerTestUtils.OWNER_PORT, nodeProperties);
-        node.config();
+        node.config(false);
+        return node;
+    }
+
+    public static TestNode createProxyNode(
+            BlockChainHandlerFactory factory, List<String> seedPeerList, List<String> validatorList) {
+        NodeProperties nodeProperties = createNodeProperties(seedPeerList, validatorList);
+        TestNode node = new TestNode(factory, PeerTestUtils.OWNER_PORT, nodeProperties);
+        node.config(true);
         return node;
     }
 }
