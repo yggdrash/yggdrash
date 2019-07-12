@@ -755,8 +755,10 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         log.info("Node Started");
         log.info("wallet address: {}", wallet.getHexAddress());
         log.info("wallet pubKey: {}", Hex.toHexString(wallet.getPubicKey()));
-        log.info("isValidator: {}", isValidator());
         log.info("validatorList: {}", this.totalValidatorMap);
+        if (!isValidator()) {
+            log.error("This node is not validator. {}", myNode.toString());
+        }
     }
 
     private Map<String, Peer> initValidatorConfigMap() {
