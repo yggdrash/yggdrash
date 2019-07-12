@@ -167,6 +167,7 @@ public class BranchConfiguration {
                 .withContractPath(config.getContractPath())
                 .withSystemProperties(systemProperties)
                 .withLogStore(blockChainStore.getLogStore())
+                .withContractRepository(config.getContractRepositoryUrl())
                 .build();
 
         return BlockChainBuilder.newBuilder()

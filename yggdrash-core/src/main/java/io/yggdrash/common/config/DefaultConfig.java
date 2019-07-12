@@ -14,6 +14,7 @@ import java.util.NoSuchElementException;
 
 import static io.yggdrash.common.config.Constants.BRANCH_PATH;
 import static io.yggdrash.common.config.Constants.CONTRACT_PATH;
+import static io.yggdrash.common.config.Constants.CONTRACT_REPOSITORY_URL;
 import static io.yggdrash.common.config.Constants.DATABASE_PATH;
 import static io.yggdrash.common.config.Constants.OSGI_PATH;
 import static io.yggdrash.common.config.Constants.PROPERTY_KEYPASSWORD;
@@ -174,6 +175,10 @@ public class DefaultConfig {
 
     public String getValidatorPath() {
         return config.getString(VALIDATOR_PATH);
+    }
+
+    public String getContractRepositoryUrl() {
+        return config.getString(CONTRACT_REPOSITORY_URL);
     }
 
     enum Network {
