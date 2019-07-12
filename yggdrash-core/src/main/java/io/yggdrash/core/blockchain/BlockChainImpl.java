@@ -103,7 +103,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
             // step3. verifying contract File
             boolean isVerified = contractManager.verifyContractFile(contractFile, contractVersion);
-            if (isVerified) {
+            if (!isVerified) {
                 log.error("Verifying contract version {} has an error occurred.", contractVersion);
                 contractManager.deleteContractFile(contractFile);
                 continue;
