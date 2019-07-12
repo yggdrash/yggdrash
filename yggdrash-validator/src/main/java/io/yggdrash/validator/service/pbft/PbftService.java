@@ -799,8 +799,9 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
             return;
         }
 
-        log.trace("Current Validators: {}", totalValidatorMap.keySet());
-        log.trace("New Validators: {}", blockChain.getValidators().getValidatorMap().keySet());
+        log.info("ValidatorSet are changed.");
+        log.info("Previous validators: {}", totalValidatorMap.keySet());
+        log.info("New validators: {}", blockChain.getValidators().getValidatorMap().keySet());
 
         this.totalValidatorMap = initTotalValidator();
 
