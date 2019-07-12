@@ -39,6 +39,7 @@ public interface LogApi {
     /**
      * Returns the logs of offset from start
      *
+     * @param branchId branchId
      * @param start  start index
      * @param offset offset
      * @return corresponding logs
@@ -50,12 +51,29 @@ public interface LogApi {
                          @JsonRpcParam(value = "offset") long offset);
 
     /**
+     * Returns the logs of offset from start filtered by regex
+     *
+     * @param branchId branchId
+     * @param regex    logs filter condition
+     * @param start    start index
+     * @param offset   offset
+     * @return corresponding filtered logs
+     */
+    @JsonRpcErrors(
+            {@JsonRpcError(exception = NonExistObjectException.class, code = NonExistObjectException.CODE)})
+    List<String> getLogs(@JsonRpcParam(value = BRANCH_ID) String branchId,
+                         @JsonRpcParam(value = "regex") String regex,
+                         @JsonRpcParam(value = "start") long start,
+                         @JsonRpcParam(value = "offset") long offset);
+
+    /**
      * Returns the current index of logStore
      *
+     * @param branchId branchId
      * @return current index
      */
     @JsonRpcErrors(
-            {@JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.CODE)})
+            {@JsonRpcError(exception = NonExistObjectException.class, code = NonExistObjectException.CODE)})
     long curIndex(@JsonRpcParam(value = BRANCH_ID) String branchId);
+
 }
