@@ -32,10 +32,6 @@ public class DefaultConfigTest {
         log.debug("DefaultConfig java.vm.version: "
                 + defaultConfig.getString("java.vm.version"));
 
-        assertThat(defaultConfig.getString("node.name")).isEqualTo("yggdrash");
-        log.debug("DefaultConfig node.name: "
-                + defaultConfig.getString("node.name"));
-
         assertThat(defaultConfig.getString("network.port")).isEqualTo("32918");
         log.debug("DefaultConfig network.port: "
                 + defaultConfig.getString("network.port"));
