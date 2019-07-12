@@ -522,6 +522,13 @@ public class ContractManager {
     }
 
     public boolean isContractFileExist(ContractVersion version) {
+
+        File contractDir = new File(this.getContractPath());
+        if (!contractDir.exists()) {
+            contractDir.mkdirs();
+            return false;
+        }
+
         File contractFile = new File(this.getContractPath() + File.separator + version + ".jar");
         if (!contractFile.canRead()) {
             contractFile.setReadable(true, false);
@@ -529,7 +536,6 @@ public class ContractManager {
 
         return contractFile.isFile();
     }
-
 
     public boolean downloader(ContractVersion version) {
 
@@ -552,12 +558,14 @@ public class ContractManager {
             }
 
             log.info("Download Successfully.");
-            log.info("File name : {}", version);
-            log.info("of bytes  : {}", byteWritten);
+            log.info("Contract Version : {}\t of bytes : {}", version, byteWritten);
             log.info("-------Download End--------");
             return true;
         } catch (IOException e) {
             log.error(e.getMessage());
+            if (deleteContractFile(new File(this.contractPath + File.separator + version + ".jar"))) {
+                log.debug("Deleting contract file {} success", version);
+            }
             return false;
         }
 
@@ -574,6 +582,10 @@ public class ContractManager {
             log.error(e.getMessage());
             return false;
         }
+    }
+
+    public boolean deleteContractFile(File contractFile) {
+        return contractFile.delete();
     }
 
 }

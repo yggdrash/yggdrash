@@ -90,11 +90,12 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             ContractVersion contractVersion = branchContract.getContractVersion();
             // step2: file check
             if (!contractManager.isContractFileExist(contractVersion)) {
-                log.info("{}.jar does not exist ", contractVersion);
+                log.info("{} contract does not exist. ", branchContract.getName());
                 // step3. download file that does not exist.
                 boolean isDownloaded = contractManager.downloader(contractVersion);
                 if (!isDownloaded) {
-                    log.error("Downloading contractFile {} has an error occurred.", contractVersion);
+                    log.error("Downloading contract version {} has an error occurred.", contractVersion);
+                    continue;
                 }
             }
 
@@ -102,14 +103,16 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
             // step3. verifying contract File
             boolean isVerified = contractManager.verifyContractFile(contractFile, contractVersion);
-            if (!isVerified) {
-                log.error("Verifying contract file {} has an error occurred.", contractVersion);
+            if (isVerified) {
+                log.error("Verifying contract version {} has an error occurred.", contractVersion);
+                contractManager.deleteContractFile(contractFile);
+                continue;
             }
 
             // step4: install contract
             long result = contractManager.installContract(contractVersion, contractFile, branchContract.isSystem());
             if (result == -1) {
-                log.error("something wrong in installing contract version {}", contractVersion);
+                log.error("Installing contract version {} has an error occurred", contractVersion);
             }
         }
 
