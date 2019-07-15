@@ -65,7 +65,10 @@ public class NodeProperties {
     }
 
     public boolean isSeed() {
-        return seed;
+        if (System.getProperty("spring.profiles.active").contains("bootstrap")) {
+            return true;
+        }
+        return false;
     }
 
     public void setSeed(boolean seed) {
@@ -90,22 +93,16 @@ public class NodeProperties {
 
     public static class Chain {
         private boolean enabled;
-        private boolean gen;
 
         public boolean isEnabled() {
-            return enabled;
+            if (System.getProperty("spring.profiles.active").contains("node")) {
+                return true;
+            }
+            return false;
         }
 
         public void setEnabled(boolean enabled) {
             this.enabled = enabled;
-        }
-
-        public boolean isGen() {
-            return gen;
-        }
-
-        public void setGen(boolean gen) {
-            this.gen = gen;
         }
     }
 
@@ -131,7 +128,10 @@ public class NodeProperties {
         }
 
         public boolean isEnabled() {
-            return enabled;
+            if (!System.getProperty("spring.profiles.active").contains("validator")) {
+                return true;
+            }
+            return false;
         }
 
         public void setEnabled(boolean enabled) {
