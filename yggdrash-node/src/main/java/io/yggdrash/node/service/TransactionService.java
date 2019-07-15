@@ -73,7 +73,6 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
      */
     @Override
     public void sendTx(Proto.Transaction tx, StreamObserver<Proto.TransactionResponse> responseObserver) {
-        //super.sendTx(request, responseObserver);
         BranchId branchId = BranchId.of(tx.getHeader().getChain().toByteArray());
         log.debug("Received sendTx request branchId={}", branchId);
 
