@@ -95,6 +95,7 @@ public final class Constants {
         public static final String PROD = "prod";
         // role base
         public static final String BOOTSTRAP = "bootstrap";
+        public static final String NODE = "node";
         public static final String VALIDATOR = "validator";
         public static final String GATEWAY = "gateway"; // monitoring only
     }
