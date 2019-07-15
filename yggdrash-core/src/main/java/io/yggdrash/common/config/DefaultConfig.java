@@ -21,8 +21,6 @@ import static io.yggdrash.common.config.Constants.PROPERTY_KEYPASSWORD;
 import static io.yggdrash.common.config.Constants.PROPERTY_KEYPATH;
 import static io.yggdrash.common.config.Constants.PROPERTY_NETWORK_ID;
 import static io.yggdrash.common.config.Constants.PROPERTY_NETWORK_P2P_VER;
-import static io.yggdrash.common.config.Constants.PROPERTY_NODE_NAME;
-import static io.yggdrash.common.config.Constants.PROPERTY_NODE_VER;
 import static io.yggdrash.common.config.Constants.VALIDATOR_DATABASE_PATH;
 import static io.yggdrash.common.config.Constants.VALIDATOR_PATH;
 import static io.yggdrash.common.config.Constants.YGG_ADMIN_CONF_PATH;
@@ -131,14 +129,6 @@ public class DefaultConfig {
 
     public String getKeyPassword() {
         return config.hasPath(PROPERTY_KEYPASSWORD) ? config.getString(PROPERTY_KEYPASSWORD) : null;
-    }
-
-    public String getNodeName() {
-        return config.getString(PROPERTY_NODE_NAME);
-    }
-
-    public String getNodeVersion() {
-        return config.getString(PROPERTY_NODE_VER);
     }
 
     public Network getNetwork() {
