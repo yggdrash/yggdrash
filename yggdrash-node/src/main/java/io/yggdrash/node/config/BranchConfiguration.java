@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -72,8 +73,8 @@ public class BranchConfiguration {
     }
 
     // TODO Remove Default Branch Load
+    @Profile(ActiveProfiles.NODE)
     @Bean
-    @ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
     BlockChain yggdrash(BranchGroup branchGroup, ContractPolicyLoader policyLoader) throws IOException {
         GenesisBlock genesis = GenesisBlock.of(yggdrashResource.getInputStream());
         BlockChain yggdrash = branchGroup.getBranch(genesis.getBranchId());
