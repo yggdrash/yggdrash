@@ -4,7 +4,6 @@ import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.consensus.ConsensusBlock;
-import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.gateway.dto.BlockDto;
 import org.springframework.beans.factory.annotation.Autowired;

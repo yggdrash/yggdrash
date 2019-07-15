@@ -58,6 +58,12 @@ public class DiscoveryHandler<T> implements BlockChainHandler<T> {
     }
 
     @Override
+    public String gerConnectivityState() {
+        return channel.getState(false).toString();
+    }
+
+
+    @Override
     public void stop() {
         log.debug("Stop for peer={}", peer.getYnodeUri());
 
