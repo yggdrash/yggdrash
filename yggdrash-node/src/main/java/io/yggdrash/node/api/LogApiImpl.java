@@ -19,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @AutoJsonRpcServiceImpl
@@ -39,6 +41,13 @@ public class LogApiImpl implements LogApi {
     @Override
     public List<String> getLogs(String branchId, long start, long offset) {
         return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getLogs(start, offset);
+    }
+
+    @Override
+    public List<String> getLogs(String branchId, String regex, long start, long offset) {
+        return getLogs(branchId, start, offset).stream()
+                .filter(log -> Pattern.compile(regex).matcher(log).find())
+                .collect(Collectors.toList());
     }
 
     @Override

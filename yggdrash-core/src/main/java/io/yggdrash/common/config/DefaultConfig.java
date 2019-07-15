@@ -14,14 +14,13 @@ import java.util.NoSuchElementException;
 
 import static io.yggdrash.common.config.Constants.BRANCH_PATH;
 import static io.yggdrash.common.config.Constants.CONTRACT_PATH;
+import static io.yggdrash.common.config.Constants.CONTRACT_REPOSITORY_URL;
 import static io.yggdrash.common.config.Constants.DATABASE_PATH;
 import static io.yggdrash.common.config.Constants.OSGI_PATH;
 import static io.yggdrash.common.config.Constants.PROPERTY_KEYPASSWORD;
 import static io.yggdrash.common.config.Constants.PROPERTY_KEYPATH;
 import static io.yggdrash.common.config.Constants.PROPERTY_NETWORK_ID;
 import static io.yggdrash.common.config.Constants.PROPERTY_NETWORK_P2P_VER;
-import static io.yggdrash.common.config.Constants.PROPERTY_NODE_NAME;
-import static io.yggdrash.common.config.Constants.PROPERTY_NODE_VER;
 import static io.yggdrash.common.config.Constants.VALIDATOR_DATABASE_PATH;
 import static io.yggdrash.common.config.Constants.VALIDATOR_PATH;
 import static io.yggdrash.common.config.Constants.YGG_ADMIN_CONF_PATH;
@@ -132,14 +131,6 @@ public class DefaultConfig {
         return config.hasPath(PROPERTY_KEYPASSWORD) ? config.getString(PROPERTY_KEYPASSWORD) : null;
     }
 
-    public String getNodeName() {
-        return config.getString(PROPERTY_NODE_NAME);
-    }
-
-    public String getNodeVersion() {
-        return config.getString(PROPERTY_NODE_VER);
-    }
-
     public Network getNetwork() {
         return Network.valueOf(config.getInt(PROPERTY_NETWORK_ID));
     }
@@ -174,6 +165,10 @@ public class DefaultConfig {
 
     public String getValidatorPath() {
         return config.getString(VALIDATOR_PATH);
+    }
+
+    public String getContractRepositoryUrl() {
+        return config.getString(CONTRACT_REPOSITORY_URL);
     }
 
     enum Network {

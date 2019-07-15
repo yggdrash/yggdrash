@@ -54,7 +54,8 @@ public class LogIndexer {
     }
 
     public List<String> getLogs(long start, long offset) {
-        return LongStream.range(start, offset).mapToObj(this::getLog).collect(Collectors.toList());
+        long end = offset > curIndex() ? curIndex() : offset;
+        return LongStream.range(start, end).mapToObj(this::getLog).collect(Collectors.toList());
     }
 
     public long curIndex() {

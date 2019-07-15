@@ -64,25 +64,12 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     }
 
     private void init() {
-        // Check BlockChain is Ready
-        PrepareBlockchain prepareBlockchain = new PrepareBlockchain(contractManager.getContractPath());
-        // check block chain is ready
-        if (prepareBlockchain.checkBlockChainIsReady(this)) {
-            // install bundles
-            for (BranchContract contract : prepareBlockchain.getContractList()) {
-                File branchContractFile = prepareBlockchain.loadContractFile(contract.getContractVersion());
-                contractManager.installContract(contract.getContractVersion(), branchContractFile, contract.isSystem());
-            }
-            try {
-                contractManager.reloadInject();
-            } catch (IllegalAccessException e) {
-                log.error(e.getMessage());
-                throw new FailedOperationException("contract Inject Fail");
-            }
-        } else {
-            // TODO BlockChain ready fails
-            log.error("BlockChain is not Ready");
+        // step1: branch contract check
+        if (this.getBranchContracts().isEmpty()) {
+            log.error("This branch {} has no any contract information.", getBranch().getBranchId());
         }
+
+        initContract();
 
         // getGenesis Block by Store
         Sha3Hash blockHash = branchStore.getGenesisBlockHash();
@@ -95,6 +82,48 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             loadTransaction();
             // load contract
         }
+    }
+
+    private void initContract() {
+
+        for (BranchContract branchContract : this.getBranchContracts()) {
+            ContractVersion contractVersion = branchContract.getContractVersion();
+            // step2: file check
+            if (!contractManager.isContractFileExist(contractVersion)) {
+                log.info("{} contract does not exist. ", branchContract.getName());
+                // step3. download file that does not exist.
+                boolean isDownloaded = contractManager.downloader(contractVersion);
+                if (!isDownloaded) {
+                    log.error("Downloading contract version {} has an error occurred.", contractVersion);
+                    continue;
+                }
+            }
+
+            File contractFile = new File(contractManager.getContractPath() + File.separator + contractVersion + ".jar");
+
+            // step3. verifying contract File
+            boolean isVerified = contractManager.verifyContractFile(contractFile, contractVersion);
+            if (!isVerified) {
+                log.error("Verifying contract version {} has an error occurred.", contractVersion);
+                contractManager.deleteContractFile(contractFile);
+                continue;
+            }
+
+            // step4: install contract
+            long result = contractManager.installContract(contractVersion, contractFile, branchContract.isSystem());
+            if (result == -1) {
+                log.error("Installing contract version {} has an error occurred", contractVersion);
+            }
+        }
+
+        // step5. inject contract
+        try {
+            contractManager.reloadInject();
+        } catch (IllegalAccessException e) {
+            log.error(e.getMessage());
+            throw new FailedOperationException("contract Inject Fail");
+        }
+
     }
 
     private void initGenesis() {

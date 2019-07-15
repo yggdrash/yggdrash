@@ -5,6 +5,8 @@
   * [JSON-RPC Endpoint](#json-rpc-endpoint)
   * [Curl Examples Explained](#curl-examples-explained)
   * [JSON RPC API Reference](#json-rpc-api-reference)
+     * [Node](#node)
+        * [getNodeStatus](#getnodestatus)
      * [Branch](#branch)
         * [getBranches](#getbranches)
         * [getValidators](#getvalidators)
@@ -53,6 +55,7 @@ Default JSON-RPC endpoints :
 
 | Client | Category    | URL                                                                            |
 | :----: | :---------- | :----------------------------------------------------------------------------- |
+|        | Node        | [http://localhost:8080/api/node](http://localhost:8080/api/node)               |
 |        | Branch      | [http://localhost:8080/api/branch](http://localhost:8080/api/branch)           |
 |        | Block       | [http://localhost:8080/api/block](http://localhost:8080/api/block)             |
 |        | Transaction | [http://localhost:8080/api/transaction](http://localhost:8080/api/transaction) |
@@ -70,6 +73,64 @@ If your node does complain, manually set the header by placing -H "Content-Type:
 The examples also do not include the URL/IP & port combination which must be the last argument given to curl e.x. 127.0.0.1:8080
 
 ## JSON RPC API Reference
+
+### Node
+
+- **URL** : _`/api/node`_ 
+
+  
+-----
+
+#### getNodeStatus
+
+Returns the node status.
+
+**Parameter**
+  
+none
+  
+**Returns**
+  
+`DATA`-  The node status
+
+**Example** 
+
+```
+// Request
+{  
+   "id":"867639818",
+   "jsonrpc":"2.0",
+   "method":"getNodeStatus"
+}
+
+// Result
+{  
+   "jsonrpc":"2.0",
+   "id":"867639818",
+   "result":{  
+      "nodeName":"yggdrash",
+      "nodeVersion":"0.6.1",
+      "status":[  
+         {  
+            "branchId":"a1d0ade6dcb5db356c2e8a5ee09d2568072eef09",
+            "blockHeight":0,
+            "peerCount":0
+         },
+         {  
+            "branchId":"3b898581ef0a6f172d31740c9de024101f1293a6",
+            "blockHeight":731,
+            "peerCount":0
+         }
+      ],
+      "activePeerList":{  
+         "ynode://77283a04b3410fe21ba5ed04c7bd3ba89e70b78c@127.0.0.1:32901":"TRANSIENT_FAILURE"
+      }
+   }
+}
+```
+ 
+ 
+-----
 
 ### Branch 
 
@@ -1080,7 +1141,7 @@ Returns the logs of offset from start
  
 **Parameter**
  
-1. `DATA`, 20 bytes - branchId
+1. `DATA`, 20 bytes - branchId | `String` - regex
 2. `QUANTITY` - integer of start index
 3. `QUANTITY` - integer of offset 
  
@@ -1112,6 +1173,27 @@ Returns the logs of offset from start
       "{\"to\":\"b0aee21c81bf6057efa9a321916f0f1a12f5c547\",\"balance\":\"1000000000000000000000\"}",
       "{\"to\":\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\",\"balance\":\"1000000000000000000000\"}",
       "{\"to\":\"57c6510966903044581c148bb67eb47dbbeebef1\",\"balance\":\"1000000000000000000000\"}"
+   ]
+}
+
+// Request
+{  
+   "id":"619526193",
+   "jsonrpc":"2.0",
+   "method":"getLogs",
+   "params":{  
+      "branchId":"3b898581ef0a6f172d31740c9de024101f1293a6",
+      "regex":"\\W*(Total)\\W*",
+      "start":0,
+      "offset":100
+   }
+}
+// Resul
+{  
+   "jsonrpc":"2.0",
+   "id":"619526193",
+   "result":[  
+      "Total Supply is 1994000000000000000000000"
    ]
 }
 ```

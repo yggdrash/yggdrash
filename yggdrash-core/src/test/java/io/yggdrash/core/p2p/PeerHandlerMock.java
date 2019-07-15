@@ -16,6 +16,7 @@
 
 package io.yggdrash.core.p2p;
 
+import io.grpc.ConnectivityState;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
@@ -57,6 +58,11 @@ public class PeerHandlerMock implements BlockChainHandler {
             }
         }
         return result;
+    }
+
+    @Override
+    public String gerConnectivityState() {
+        return ConnectivityState.CONNECTING.toString();
     }
 
     @Override

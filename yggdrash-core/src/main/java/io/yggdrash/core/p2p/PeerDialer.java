@@ -19,6 +19,7 @@ package io.yggdrash.core.p2p;
 import io.yggdrash.core.blockchain.BranchId;
 
 import java.util.List;
+import java.util.Map;
 
 public interface PeerDialer {
 
@@ -37,6 +38,8 @@ public interface PeerDialer {
     List<String> getActivePeerList();
 
     List<String> getActiveAddressList();
+
+    Map<String, String> getActivePeerListWithStatus();
 
     List<BlockChainHandler> getHandlerList(BranchId branchId, List<Peer> peerList);
 
