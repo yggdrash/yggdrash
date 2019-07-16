@@ -79,7 +79,8 @@ public class ContractManager {
 
     ContractManager(FrameworkFactory frameworkFactory, Map<String, String> contractManagerConfig,
                     String branchId, ContractStore contractStore, String osgiPath, String databasePath,
-                    String contractPath, SystemProperties systemProperties, LogStore logStore, String contractRepositoryUrl) {
+                    String contractPath, SystemProperties systemProperties, LogStore logStore,
+                    String contractRepositoryUrl) {
         this.frameworkFactory = frameworkFactory;
         this.commonContractManagerConfig = contractManagerConfig;
         this.branchId = branchId;

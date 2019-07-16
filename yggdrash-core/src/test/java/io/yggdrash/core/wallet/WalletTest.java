@@ -49,10 +49,10 @@ import static org.junit.Assert.assertNotNull;
 public class WalletTest {
     private static final Logger log = LoggerFactory.getLogger(WalletTest.class);
 
-    private final String ALPHA_CAPS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    private final String ALPHA = "abcdefghijklmnopqrstuvwxyz";
-    private final String NUMERIC = "0123456789";
-    private final String SPECIAL_CHARS = "!@#$%^&*_=+-/";
+    private static final String ALPHA_CAPS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final String ALPHA = "abcdefghijklmnopqrstuvwxyz";
+    private static final String NUMERIC = "0123456789";
+    private static final String SPECIAL_CHARS = "!@#$%^&*_=+-/";
 
     @Test
     public void testKeySave() throws IOException, InvalidCipherTextException {
@@ -414,7 +414,8 @@ public class WalletTest {
         DefaultConfig newConfig1 =
                 new DefaultConfig(
                         ConfigFactory.parseString(keyParsingText).withFallback(
-                                ConfigFactory.parseString(keyPasswordParsingText1).withFallback(defaultConfig.getConfig()))
+                                ConfigFactory.parseString(keyPasswordParsingText1)
+                                        .withFallback(defaultConfig.getConfig()))
                                 .resolve());
 
         // create new wallet

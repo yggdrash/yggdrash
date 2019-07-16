@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.utils.JsonUtil;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -167,10 +168,10 @@ public class ProposeInterChain {
         }
 
         // 32byte proposal ID
-        byte[] proposalID = HashUtil.sha3(proposalData);
+        byte[] proposalId = HashUtil.sha3(proposalData);
         //System.out.println(Base64.getEncoder().encode(proposalID));
 
-        this.proposeId = HexUtil.toHexString(proposalID);
+        this.proposeId = HexUtil.toHexString(proposalId);
     }
 
     public JsonObject toJsonObject() {
