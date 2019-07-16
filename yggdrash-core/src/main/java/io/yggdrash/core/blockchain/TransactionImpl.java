@@ -180,6 +180,11 @@ public class TransactionImpl implements Transaction {
     }
 
     @Override
+    public Proto.Transaction getProtoTransaction() {
+        return this.protoTransaction;
+    }
+
+    @Override
     public byte[] toBinary() {
         return protoTransaction.toByteArray();
     }
