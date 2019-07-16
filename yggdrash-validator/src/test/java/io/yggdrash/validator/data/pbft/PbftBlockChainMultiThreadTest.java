@@ -66,14 +66,15 @@ public class PbftBlockChainMultiThreadTest {
     public void setUp() throws IOException, InvalidCipherTextException {
         defaultConfig = new DefaultConfig();
 
+        String password = "Aa1234567890!";
         wallet0 = new Wallet(null, "tmp/",
-                "test0" + TimeUtils.time(), "Password1234!");
+                "test0" + TimeUtils.time(), password);
         wallet1 = new Wallet(null, "tmp/",
-                "test1" + TimeUtils.time(), "Password1234!");
+                "test1" + TimeUtils.time(), password);
         wallet2 = new Wallet(null, "tmp/",
-                "test2" + TimeUtils.time(), "Password1234!");
+                "test2" + TimeUtils.time(), password);
         wallet3 = new Wallet(null, "tmp/",
-                "test3" + TimeUtils.time(), "Password1234!");
+                "test3" + TimeUtils.time(), password);
 
         block0 = this.genesisBlock();
         block1 = new TestUtils(wallet1).sampleBlock(block0.getIndex() + 1, block0.getHash());

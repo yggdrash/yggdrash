@@ -2,6 +2,7 @@ package io.yggdrash.node.service;
 
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.SyncManager;
 import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.node.springboot.grpc.GrpcService;
@@ -16,9 +17,17 @@ public class DiscoveryService extends DiscoveryServiceGrpc.DiscoveryServiceImplB
 
     private final DiscoveryConsumer discoveryConsumer;
 
+    private SyncManager syncManager;
+
     @Autowired
     public DiscoveryService(DiscoveryConsumer discoveryConsumer) {
         this.discoveryConsumer = discoveryConsumer;
+    }
+
+    @Autowired
+    private void setSyncManager(SyncManager syncManager) {
+        this.syncManager = syncManager;
+        discoveryConsumer.setListener(syncManager);
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
@@ -77,8 +78,8 @@ public class NodeHealthIndicator implements HealthIndicator, NodeStatus {
 
     private void updateDetail(Status status) {
         Health.Builder builder = Health.status(status);
-        builder.withDetail("name", defaultConfig.getNodeName());
-        builder.withDetail("version", defaultConfig.getNodeVersion());
+        builder.withDetail("name", Constants.NODE_NAME);
+        builder.withDetail("version", Constants.NODE_VERSION);
         builder.withDetail("p2pVersion", defaultConfig.getNetworkP2PVersion());
         builder.withDetail("network", defaultConfig.getNetwork());
         // Add Node BranchIds and block index

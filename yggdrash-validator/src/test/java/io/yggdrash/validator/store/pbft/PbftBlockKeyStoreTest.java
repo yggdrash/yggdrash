@@ -53,14 +53,16 @@ public class PbftBlockKeyStoreTest {
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
+        String password = "Aa1234567890!";
+
         wallet0 = new Wallet(null, "tmp/",
-                "test0" + TimeUtils.time(), "Password1234!");
+                "test0" + TimeUtils.time(), password);
         wallet1 = new Wallet(null, "tmp/",
-                "test1" + TimeUtils.time(), "Password1234!");
+                "test1" + TimeUtils.time(), password);
         wallet2 = new Wallet(null, "tmp/",
-                "test2" + TimeUtils.time(), "Password1234!");
+                "test2" + TimeUtils.time(), password);
         wallet3 = new Wallet(null, "tmp/",
-                "test3" + TimeUtils.time(), "Password1234!");
+                "test3" + TimeUtils.time(), password);
 
         this.pbftBlock0 = makePbftBlock(0L, Sha3Hash.createByHashed(Constants.EMPTY_HASH));
         this.pbftBlock1 = makePbftBlock(pbftBlock0.getIndex() + 1, pbftBlock0.getHash());

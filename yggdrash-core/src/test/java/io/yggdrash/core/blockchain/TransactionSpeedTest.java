@@ -67,7 +67,7 @@ public class TransactionSpeedTest extends PerformanceTest {
 
         txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
 
-        wallet = new Wallet(new DefaultConfig(), "Password1234!");
+        wallet = new Wallet(new DefaultConfig(), "Aa1234567890!");
 
         tx1 = new TransactionImpl(txHeader, wallet, txBody);
         assertTrue(VerifierUtils.verify(tx1));

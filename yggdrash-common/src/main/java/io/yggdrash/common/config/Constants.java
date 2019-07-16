@@ -11,6 +11,10 @@ public final class Constants {
         throw new IllegalStateException("Constants class");
     }
 
+    //yggdrash.conf
+    public static final String NODE_NAME = "yggdrash";
+    public static final String NODE_VERSION = "0.6.1";
+
     public static final int BRANCH_LENGTH = 20;
     public static final int BRANCH_HEX_LENGTH = BRANCH_LENGTH * 2;
     public static final int CONTRACT_VERSION_LENGTH = 20;
@@ -49,12 +53,11 @@ public final class Constants {
     public static final String YGG_CONF_PATH = ".yggdrash" + File.separator + YGG_DEFAULT_FILENAME;
     public static final String YGG_ADMIN_CONF_PATH = ".yggdrash" + File.separator + "admin.conf";
     public static final String PROPERTY_KEYPATH = "key.path";
-    public static final String PROPERTY_KEKPASS = "key.password";
-    public static final String PROPERTY_NODE_NAME = "node.name";
-    public static final String PROPERTY_NODE_VER = "node.version";
+    public static final String PROPERTY_KEYPASSWORD = "key.password";
     public static final String PROPERTY_NETWORK_ID = "network.id";
     public static final String PROPERTY_NETWORK_P2P_VER = "network.p2p.version";
 
+    public static final String CONTRACT_REPOSITORY_URL = "contract.url";
     public static final String CONTRACT_PATH = "contract.path";
     public static final String OSGI_PATH = "osgi.path";
     public static final String BRANCH_PATH = "branch.path";

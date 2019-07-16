@@ -17,11 +17,15 @@
 package io.yggdrash.core.wallet;
 
 import com.google.common.base.Strings;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.FileUtil;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +36,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
@@ -51,7 +57,7 @@ public class WalletTest {
     @Test
     public void testKeySave() throws IOException, InvalidCipherTextException {
         // generate key & save a file
-        Wallet wallet = new Wallet(null, "tmp/", "nodePri.key", "Password1234!");
+        Wallet wallet = new Wallet(null, "tmp/", "nodePri.key", "Aa1234567890!");
 
         byte[] encData = FileUtil.readFile(wallet.getKeyPath(), wallet.getKeyName());
         log.debug("path:" + wallet.getKeyPath() + wallet.getKeyName());
@@ -59,7 +65,7 @@ public class WalletTest {
         log.debug("pubKey:" + Hex.toHexString(wallet.getPubicKey()));
 
         // load key
-        Wallet wallet1 = new Wallet("tmp/", wallet.getKeyName(), "Password1234!");
+        Wallet wallet1 = new Wallet("tmp/", wallet.getKeyName(), "Aa1234567890!");
         log.debug("pubKey2:" + Hex.toHexString(wallet1.getPubicKey()));
 
         assertArrayEquals(wallet.getPubicKey(), wallet1.getPubicKey());
@@ -95,7 +101,7 @@ public class WalletTest {
                 Strings.isNullOrEmpty(keyFilePath));
         log.debug("Private key: " + keyFilePath);
 
-        String password = "Password1234!";
+        String password = "Aa1234567890!";
 
         // check whether the key file exists
         Path path = Paths.get(keyFilePath);
@@ -131,7 +137,7 @@ public class WalletTest {
                 Strings.isNullOrEmpty(keyFilePath));
         log.debug("Private key: " + keyFilePath);
 
-        String password = "Password1234!";
+        String password = "Aa1234567890!";
 
         // check whether the key file exists
         Path path = Paths.get(keyFilePath);
@@ -199,7 +205,7 @@ public class WalletTest {
     public void testWalletConstructor() throws IOException, InvalidCipherTextException {
         DefaultConfig config = new DefaultConfig();
 
-        Wallet wallet = new Wallet(config, "Password1234!");
+        Wallet wallet = new Wallet(config, "Aa1234567890!");
 
         log.debug(wallet.toString());
         assertNotNull(wallet);
@@ -233,7 +239,7 @@ public class WalletTest {
     public void testWalletAndConfig() throws IOException, InvalidCipherTextException {
         DefaultConfig config = new DefaultConfig();
 
-        Wallet wallet = new Wallet(config, "Password1234!");
+        Wallet wallet = new Wallet(config, "Aa1234567890!");
 
         Path path = Paths.get(config.getKeyPath());
         String keyPath = path.getParent().toString();
@@ -283,4 +289,150 @@ public class WalletTest {
     }
 
 
+    @Test
+    public void shoudNotBeRewriteWalletbyWrongPassword() throws IOException, InvalidCipherTextException {
+        String keyPath = "./tmp/";
+        String keyName = new SimpleDateFormat("yyyyMMdd-hhmmss.SSS'.key'").format(new Date());
+        String keyPathName = keyPath + new Object() {
+        }.getClass().getEnclosingMethod().getName() + keyName;
+        String password1 = "Aa1234567890!";
+        String password2 = "Aa1234567890@";
+
+        // create new wallet
+        Wallet wallet1 = new Wallet((ECKey) null, keyPathName, password1);
+
+        // load wallet by wrong password
+        try {
+            Wallet wallet2 = new Wallet(keyPathName, password2);
+        } catch (InvalidCipherTextException ie) {
+            assert true;
+            return;
+        } catch (Exception e) {
+            assert false;
+        }
+
+        assert false;
+    }
+
+    @Test
+    public void shoudBeOkWalletbyCorrectPassword() throws IOException, InvalidCipherTextException {
+        String keyPath = "./tmp/";
+        String keyName = new SimpleDateFormat("yyyyMMdd-hhmmss.SSS'.key'").format(new Date());
+        String keyPathName = keyPath + new Object() {
+        }.getClass().getEnclosingMethod().getName() + keyName;
+        String password1 = "Aa1234567890!";
+        String password2 = "Aa1234567890@";
+
+        // create new wallet
+        Wallet wallet1 = new Wallet((ECKey) null, keyPathName, password1);
+
+        // load wallet by correct password
+        Wallet wallet2 = null;
+        try {
+            wallet2 = new Wallet(keyPathName, password1);
+        } catch (Exception e) {
+            assert false;
+        }
+
+        if (wallet2 != null) {
+            log.debug("Wallet: " + wallet2.toString());
+            assert true;
+        } else {
+            assert false;
+        }
+    }
+
+    // TODO: check error in gradle build env.
+    @Ignore
+    @Test
+    public void shoudNotBeRewriteWalletbyWrongPasswordInDefaultConfig() throws IOException, InvalidCipherTextException {
+        String keyPath = "./tmp/";
+        String keyName = new SimpleDateFormat("yyyyMMdd-hhmmss.SSS'.key'").format(new Date());
+        String keyPathName = keyPath + new Object() {
+        }.getClass().getEnclosingMethod().getName() + keyName;
+        String password1 = "Aa1234567890$";
+        String password2 = "Aa1234567890@";
+
+        String keyParsingText = Constants.PROPERTY_KEYPATH + " = " + keyPathName;
+        String keyPasswordParsingText1 = Constants.PROPERTY_KEYPASSWORD + " = \"" + password1 + "\"";
+        String keyPasswordParsingText2 = Constants.PROPERTY_KEYPASSWORD + " = \"" + password2 + "\"";
+
+        DefaultConfig defaultConfig = new DefaultConfig();
+        Config keyConfig = ConfigFactory.parseString(keyParsingText).resolve();
+        Config keyPaswordConfig1 = ConfigFactory.parseString(keyPasswordParsingText1).resolve();
+        Config keyPaswordConfig2 = ConfigFactory.parseString(keyPasswordParsingText2).resolve();
+
+        DefaultConfig newConfig1 =
+                new DefaultConfig(keyConfig.withFallback(keyPaswordConfig1)
+                        .withFallback(defaultConfig.getConfig()).resolve());
+        log.debug(newConfig1.getString(Constants.PROPERTY_KEYPASSWORD));
+
+        // create new wallet
+        Wallet wallet1 = new Wallet(newConfig1);
+        log.debug("Wallet1: " + wallet1.toString());
+
+        DefaultConfig newConfig2 =
+                new DefaultConfig(keyConfig.withFallback(keyPaswordConfig2)
+                        .withFallback(defaultConfig.getConfig()).resolve());
+        log.debug(newConfig2.getString(Constants.PROPERTY_KEYPASSWORD));
+
+        // load wallet by wrong password
+        Wallet wallet2 = null;
+        try {
+            wallet2 = new Wallet(newConfig2);
+            log.debug("Wallet2: " + wallet2.toString());
+
+        } catch (InvalidCipherTextException ie) {
+            assert true;
+            return;
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            assert false;
+        }
+
+        if (wallet2 != null) {
+            log.debug("Wallet: " + wallet2.toString());
+            assert false;
+        } else {
+            assert true;
+        }
+
+    }
+
+    @Test
+    public void shoudBeOkWalletbyCorrectPasswordInDefaultConfig() throws IOException, InvalidCipherTextException {
+        String keyPath = "./tmp/";
+        String keyName = new SimpleDateFormat("yyyyMMdd-hhmmss.SSS'.key'").format(new Date());
+        String keyPathName = keyPath + new Object() {
+        }.getClass().getEnclosingMethod().getName() + keyName;
+        String password1 = "Aa1234567890!";
+
+        String keyParsingText = Constants.PROPERTY_KEYPATH + "=" + keyPathName;
+        String keyPasswordParsingText1 = Constants.PROPERTY_KEYPASSWORD + "=" + "\"" + password1 + "\"";
+
+        DefaultConfig defaultConfig = new DefaultConfig();
+        DefaultConfig newConfig1 =
+                new DefaultConfig(
+                        ConfigFactory.parseString(keyParsingText).withFallback(
+                                ConfigFactory.parseString(keyPasswordParsingText1).withFallback(defaultConfig.getConfig()))
+                                .resolve());
+
+        // create new wallet
+        Wallet wallet1 = new Wallet(newConfig1);
+
+        // load wallet by correct password
+        Wallet wallet2 = null;
+        try {
+            wallet2 = new Wallet(newConfig1, password1);
+        } catch (Exception e) {
+            assert false;
+        }
+
+        if (wallet2 != null) {
+            log.debug("Wallet: " + wallet2.toString());
+            assert true;
+        } else {
+            assert false;
+        }
+    }
 }

@@ -2,7 +2,7 @@
   "name": "YGGDRASH",
   "symbol": "YGGDRASH",
   "property": "platform",
-  "description": "TRUST-based Multi-dimensional Blockchains",
+  "description": "YGGDRASH TESTNET, TRUST-based Multi-dimensional Blockchain",
   "contracts": [
     {
       "contractVersion": "178b44b22d8c6d5bb08175fa2fcab15122ca8d1e",
@@ -39,6 +39,24 @@
           },
           "4e5cbe1d0db35add81e7f2840eeb250b5b469161": {
             "balance": "994000000000000000000000"
+          },
+          "415e01c639d83a13308264691330d4e9b68f1012": {
+            "balance": "1000000000000000000000"
+          },
+          "624d4ec36a83992d451b39ac9dd5b9cd36cde630": {
+            "balance": "1000000000000000000000"
+          },
+          "d8502005cd4154d8600fb6de4e1b84391b18c2d0": {
+            "balance": "1000000000000000000000"
+          },
+          "06afa0fdf4299e19e4bc084c1db7cbbfb5717272": {
+            "balance": "1000000000000000000000"
+          },
+          "be39c9238430846fe6bd94d883917d6c4f4d9620": {
+            "balance": "1000000000000000000000"
+          },
+          "8236e5ebc70a7fa47436b60b836454c1b2e4b88f": {
+            "balance": "1000000000000000000000"
           }
         }
       },
@@ -50,11 +68,11 @@
       "isSystem": true,
       "init": {
         "validators": [
-          "77283a04b3410fe21ba5ed04c7bd3ba89e70b78c",
-          "9911fb4663637706811a53a0e0b4bcedeee38686",
-          "2ee2eb80c93d031147c21ba8e2e0f0f4a33f5312",
-          "51e2128e8deb622c2ec6dc38f9d895f0be044eb4",
-          "047269a50640ed2b0d45d461488c13abad1e0fac"
+          "5e96dcb9bf4b2288ba74fa2c785b07b6366c0687",
+          "20a58d12133a5a4a6a4126fb2c77cda26d765fee",
+          "59df14ab7c54430b5e7474a8b02a5d37984031bf",
+          "1705f3e59375a142976308bc3c0c620ddd6db105",
+          "f2ce42aa0afd83ee2791789b1fe4dfbebde21344"
         ]
       },
       "name": "DPoA",

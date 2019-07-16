@@ -19,6 +19,9 @@ package io.yggdrash.common;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.utils.SerializationUtil;
+import org.spongycastle.util.encoders.Hex;
+
+import java.util.Arrays;
 
 public class RawTransaction  {
 
@@ -78,8 +81,10 @@ public class RawTransaction  {
 
         long expected = HEADER_LENGTH + SIGNATURE_LENGTH + bodyLength;
         if (this.bodyLength < 0 ||  expected != bytes.length) {
-            String format = "Invalid body bytes. HeaderBodyLength=(%d). Expected=(%d), Actual=(%d)";
-            throw new FailedOperationException(String.format(format, bodyLength, expected, bytes.length));
+            String format = "Invalid body bytes. HeaderBodyLength=(%d). Expected=(%d), Actual=(%d), InputData=(%s)";
+            throw new FailedOperationException(
+                    String.format(format, bodyLength, expected, bytes.length, printInputData(bytes)));
+
         }
 
         // Signature parse
@@ -126,4 +131,21 @@ public class RawTransaction  {
         return body;
     }
 
+    private String printInputData(byte[] input) {
+        int inputLen = input.length;
+        int headerWithSigLen = HEADER_LENGTH + SIGNATURE_LENGTH;
+
+        if (bodyLength > 0 || inputLen > headerWithSigLen) {
+            byte[] header = Arrays.copyOfRange(input, 0, HEADER_LENGTH);
+            byte[] sig = Arrays.copyOfRange(input, HEADER_LENGTH, headerWithSigLen);
+            byte[] body = Arrays.copyOfRange(input, headerWithSigLen, inputLen);
+
+            return String.format("{header=(%s), signature=(%s), body=(%s)}",
+                    Hex.toHexString(header),
+                    Hex.toHexString(sig),
+                    SerializationUtil.deserializeString(body));
+        } else {
+            return Hex.toHexString(input);
+        }
+    }
 }

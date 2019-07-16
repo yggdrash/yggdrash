@@ -58,6 +58,12 @@ public class DiscoveryHandler<T> implements BlockChainHandler<T> {
     }
 
     @Override
+    public String gerConnectivityState() {
+        return channel.getState(false).toString();
+    }
+
+
+    @Override
     public void stop() {
         log.debug("Stop for peer={}", peer.getYnodeUri());
 
@@ -85,6 +91,7 @@ public class DiscoveryHandler<T> implements BlockChainHandler<T> {
                 .setFrom(owner.getYnodeUri())
                 .setTo(peer.getYnodeUri())
                 .setBranch(ByteString.copyFrom(branchId.getBytes()))
+                .setBestBlock(owner.getBestBlock())
                 .build();
         return peerBlockingStub.ping(request).getPong();
     }

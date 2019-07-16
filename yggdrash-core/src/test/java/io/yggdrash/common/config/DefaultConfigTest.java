@@ -32,10 +32,6 @@ public class DefaultConfigTest {
         log.debug("DefaultConfig java.vm.version: "
                 + defaultConfig.getString("java.vm.version"));
 
-        assertThat(defaultConfig.getString("node.name")).isEqualTo("yggdrash");
-        log.debug("DefaultConfig node.name: "
-                + defaultConfig.getString("node.name"));
-
         assertThat(defaultConfig.getString("network.port")).isEqualTo("32918");
         log.debug("DefaultConfig network.port: "
                 + defaultConfig.getString("network.port"));
@@ -64,8 +60,6 @@ public class DefaultConfigTest {
     public void testNodeInfo() {
         assertThat(defaultConfig.getNetworkP2PVersion()).isEqualTo("0.0.1");
         assertThat(defaultConfig.getNetwork()).isEqualTo(DefaultConfig.Network.TEST_NET);
-        assertThat(defaultConfig.getNodeName()).isEqualTo("yggdrash");
-        assertThat(defaultConfig.getNodeVersion()).isEqualTo("0.5.1");
     }
 
 }
