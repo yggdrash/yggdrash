@@ -100,6 +100,13 @@ public class BlockChainDialer implements PeerDialer {
     }
 
     @Override
+    public Map<String, String> getActivePeerListWithStatus() {
+        return handlerMap.values().stream()
+                .collect(Collectors.toMap(
+                        h -> h.getPeer().toString(), BlockChainHandler::gerConnectivityState, (a, b) -> b));
+    }
+
+    @Override
     public List<String> getActiveAddressList() {
         return new ArrayList<>(handlerMap.keySet());
     }

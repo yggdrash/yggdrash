@@ -32,8 +32,8 @@ public class PbftClientStub {
     private boolean isRunning;
     private PbftStatus pbftStatus;
 
-    private final ManagedChannel channel;
-    private final PbftServiceGrpc.PbftServiceBlockingStub blockingStub;
+    private ManagedChannel channel;
+    private PbftServiceGrpc.PbftServiceBlockingStub blockingStub;
 
     public PbftClientStub(String addr, String host, int port) {
         this.addr = addr;
@@ -42,10 +42,23 @@ public class PbftClientStub {
         this.id = this.addr + "@" + this.host + ":" + this.port;
         this.isRunning = false;
 
-        this.channel = ManagedChannelBuilder.forAddress(host, port)
-                .usePlaintext()
-                .build();
-        blockingStub = PbftServiceGrpc.newBlockingStub(channel);
+        if (host == null || host.equals("") || port == 0L) {
+            this.channel = null;
+            this.blockingStub = null;
+        } else {
+            try {
+                this.channel = ManagedChannelBuilder.forAddress(host, port)
+                        .usePlaintext()
+                        .build();
+                blockingStub = PbftServiceGrpc.newBlockingStub(channel);
+            } catch (Exception e) {
+                if (channel != null) {
+                    channel.shutdown();
+                }
+                this.channel = null;
+                this.blockingStub = null;
+            }
+        }
     }
 
     public void multicastPbftMessage(PbftProto.PbftMessage pbftMessage) {
@@ -86,6 +99,10 @@ public class PbftClientStub {
 
     public long pingPongTime(long timestamp) {
         log.trace("pingPongTime with {}", this.id);
+
+        if (blockingStub == null) {
+            return 0L;
+        }
 
         CommonProto.PingTime pingTime =
                 CommonProto.PingTime.newBuilder().setTimestamp(timestamp).build();
