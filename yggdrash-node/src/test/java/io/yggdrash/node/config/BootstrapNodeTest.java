@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles(Constants.ActiveProfiles.BOOTSTRAP)
-@SpringBootTest()
+@SpringBootTest(properties = {"yggdrash.node.seed=true", "yggdrash.node.chain.enabled=false"})
 public class BootstrapNodeTest extends TestConstants.CiTest {
 
     @Autowired
