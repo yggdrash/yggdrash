@@ -16,6 +16,7 @@
 
 package io.yggdrash.node.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.List;
@@ -31,6 +32,9 @@ public class NodeProperties {
     private boolean validator;
 
     private final Chain chain = new Chain();
+
+    @Value("${spring.profiles.active}")
+    private String activeProfile;
 
     public Chain getChain() {
         return chain;
@@ -65,7 +69,7 @@ public class NodeProperties {
     }
 
     public boolean isSeed() {
-        if (System.getProperty("spring.profiles.active").contains("bootstrap")) {
+        if (activeProfile.contains("bootstrap")) {
             return true;
         }
         return false;
@@ -91,11 +95,11 @@ public class NodeProperties {
         this.validatorList = validatorList;
     }
 
-    public static class Chain {
+    public class Chain {
         private boolean enabled;
 
         public boolean isEnabled() {
-            if (System.getProperty("spring.profiles.active").contains("node")) {
+            if (activeProfile.contains("node")) {
                 return true;
             }
             return false;
@@ -106,7 +110,7 @@ public class NodeProperties {
         }
     }
 
-    public static class Grpc {
+    public class Grpc {
         private String host;
         private int port;
         private boolean enabled = true;
@@ -128,7 +132,7 @@ public class NodeProperties {
         }
 
         public boolean isEnabled() {
-            if (!System.getProperty("spring.profiles.active").contains("validator")) {
+            if (!activeProfile.contains("validator")) {
                 return true;
             }
             return false;
