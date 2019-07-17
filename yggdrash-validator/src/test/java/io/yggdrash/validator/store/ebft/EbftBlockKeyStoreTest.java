@@ -3,7 +3,6 @@ package io.yggdrash.validator.store.ebft;
 import com.google.protobuf.ByteString;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
-import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
@@ -22,7 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE1K;
+import static io.yggdrash.common.config.Constants.EMPTY_HASH;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -60,7 +59,7 @@ public class EbftBlockKeyStoreTest {
                 new LevelDbDataSource(StoreTestUtils.getTestPath(), "ebftBlockKeyStoreTest");
         this.blockKeyStore = new EbftBlockKeyStore(ds);
 
-        this.ebftBlock = makeEbftBlock(0L, Constants.EMPTY_HASH);
+        this.ebftBlock = makeEbftBlock(0L, EMPTY_HASH);
 
         this.blockKeyStore.put(this.ebftBlock.getIndex(), this.ebftBlock.getHash().getBytes());
     }
@@ -109,23 +108,36 @@ public class EbftBlockKeyStoreTest {
     public void memoryTest() throws InterruptedException {
         TestConstants.PerformanceTest.apply();
 
-        System.gc();
-        Thread.sleep(20000);
+        LevelDbDataSource ds;
+        EbftBlockKeyStore blockKeyStore;
+        EbftBlock ebftBlock;
 
-        long testNumber = 1000000;
+        StoreTestUtils.clearTestDb();
+
+        ds = new LevelDbDataSource(StoreTestUtils.getTestPath(), "ebftBlockKeyStoreTest2");
+        blockKeyStore = new EbftBlockKeyStore(ds);
+
+        ebftBlock = makeEbftBlock(0L, EMPTY_HASH);
+
+        blockKeyStore.put(ebftBlock.getIndex(), ebftBlock.getHash().getBytes());
+
+        System.gc();
+        Thread.sleep(5000);
+
+        long testNumber = 1000;
         byte[] result;
         List<byte[]> resultList = new ArrayList<>();
         for (long l = 0L; l < testNumber; l++) {
-            this.blockKeyStore.put(l, EMPTY_BYTE1K);
-            result = this.blockKeyStore.get(l);
+            blockKeyStore.put(l, EMPTY_HASH);
+            result = blockKeyStore.get(l);
             resultList.add(result);
         }
         resultList.clear();
-        log.debug("blockKeyStore size: " + this.blockKeyStore.size());
-        assertEquals(this.blockKeyStore.size(), testNumber);
+        log.debug("blockKeyStore size: " + blockKeyStore.size());
+        assertEquals(blockKeyStore.size(), testNumber);
 
         System.gc();
-        Thread.sleep(20000);
+        Thread.sleep(5000);
     }
 
     @Test
