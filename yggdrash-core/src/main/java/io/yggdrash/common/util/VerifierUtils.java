@@ -160,13 +160,13 @@ public class VerifierUtils {
         verifyCode |= verifyBodyLength(header.getBodyLength(), body.getLength()) ? 0x00 : 0x20;
         verifyCode |= verifyTxBodyFormat(body) ? 0x00 : 0x40;
 
-        verifyCode |= verifyCheckLengthNotNull(tx.getSignature(), Constants.SIGNATURE_LENGTH, SIGNATURE) ? 0x00 : 0x40;
+        verifyCode |= verifyCheckLengthNotNull(tx.getSignature(), Constants.SIGNATURE_LENGTH, SIGNATURE) ? 0x00 : 0x80;
 
         // check bodyHash
         if (!Arrays.equals(header.getBodyHash(), HashUtil.sha3(body.toBinary()))) {
             String bodyHash = Hex.toHexString(header.getBodyHash());
             log.debug("bodyHash is not equal to body :{}", bodyHash);
-            verifyCode |= 0x80;
+            verifyCode |= 0x100;
         }
 
         log.debug("Transaction Verify CODE : {}", verifyCode);
