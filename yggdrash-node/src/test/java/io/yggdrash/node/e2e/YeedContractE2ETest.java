@@ -64,6 +64,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
+// TODO: change independently each test methods, this is not working in multi tests env.
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = YggdrashNodeApp.class, webEnvironment = RANDOM_PORT)
 @ActiveProfiles(Constants.ActiveProfiles.NODE)
