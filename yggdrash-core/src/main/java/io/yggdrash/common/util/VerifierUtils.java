@@ -56,10 +56,12 @@ public class VerifierUtils {
     public static boolean verify(Transaction transaction) {
 
         if (!verifyTimestamp(transaction)) {
+            log.debug("verify Fail Time stamp");
             return false;
         }
 
         if (!verifyDataFormat(transaction)) {
+            log.debug("verify Fail Data Format");
             return false;
         }
 
@@ -131,34 +133,48 @@ public class VerifierUtils {
      * @return true(success), false(fail)
      */
     public static boolean verifyDataFormat(Transaction tx) {
+        return verifyDataFormatCode(tx) == 0;
+    }
+
+    /**
+     * Verify a transaction about transaction format.
+     *
+     * @return true(success), false(fail)
+     */
+    public static int verifyDataFormatCode(Transaction tx) {
+        int verifyCode = 0;
+
         TransactionHeader header = tx.getHeader();
 
-        // TODO CheckByValidate By Code
-        boolean check = verifyCheckLengthNotNull(
-                header.getChain(), Constants.BRANCH_LENGTH, "chain");
-        check &= verifyCheckLengthNotNull(
-                header.getVersion(), TransactionHeader.VERSION_LENGTH, "version");
-        check &= verifyCheckLengthNotNull(
-                header.getType(), TransactionHeader.TYPE_LENGTH, "type");
-        check &= verifyTimestampAfter2018(header.getTimestamp());
-        check &= verifyCheckLengthNotNull(
-                header.getBodyHash(), Constants.HASH_LENGTH, "bodyHash");
+        verifyCode |= verifyCheckLengthNotNull(
+                header.getChain(), Constants.BRANCH_LENGTH, "chain") ? 0x00 : 0x01;
+        verifyCode |= verifyCheckLengthNotNull(
+                header.getVersion(), TransactionHeader.VERSION_LENGTH, "version") ? 0x00 : 0x02;
+        verifyCode |= verifyCheckLengthNotNull(
+                header.getType(), TransactionHeader.TYPE_LENGTH, "type") ? 0x00 : 0x04;
+        verifyCode |= verifyTimestampAfter2018(header.getTimestamp()) ? 0x00 : 0x08;
+        verifyCode |= verifyCheckLengthNotNull(
+                header.getBodyHash(), Constants.HASH_LENGTH, "bodyHash") ? 0x00 : 0x10;
 
         TransactionBody body = tx.getBody();
-        check &= verifyBodyLength(header.getBodyLength(), body.getLength());
-        check &= verifyTxBodyFormat(body);
+        verifyCode |= verifyBodyLength(header.getBodyLength(), body.getLength()) ? 0x00 : 0x20;
+        verifyCode |= verifyTxBodyFormat(body) ? 0x00 : 0x40;
 
-        check &= verifyCheckLengthNotNull(tx.getSignature(), Constants.SIGNATURE_LENGTH, SIGNATURE);
+        verifyCode |= verifyCheckLengthNotNull(tx.getSignature(), Constants.SIGNATURE_LENGTH, SIGNATURE) ? 0x00 : 0x40;
 
         // check bodyHash
         if (!Arrays.equals(header.getBodyHash(), HashUtil.sha3(body.toBinary()))) {
             String bodyHash = Hex.toHexString(header.getBodyHash());
             log.debug("bodyHash is not equal to body :{}", bodyHash);
-            return false;
+            verifyCode |= 0x80;
         }
 
-        return check;
+        log.debug("Transaction Verify CODE : {}", verifyCode);
+
+        return verifyCode;
+
     }
+
 
     /**
      * Verify a block about block format.
