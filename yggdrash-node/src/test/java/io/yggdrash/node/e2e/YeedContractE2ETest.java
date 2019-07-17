@@ -19,6 +19,7 @@ package io.yggdrash.node.e2e;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainManager;
@@ -64,9 +65,8 @@ import static org.junit.Assert.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = YggdrashNodeApp.class, webEnvironment = RANDOM_PORT,
-        properties = {"yggdrash.node.chain.gen=true"})
-@ActiveProfiles("debug")
+@SpringBootTest(classes = YggdrashNodeApp.class, webEnvironment = RANDOM_PORT)
+@ActiveProfiles(Constants.ActiveProfiles.NODE)
 public class YeedContractE2ETest extends TestConstants.SlowTest {
 
     private static final Logger log = LoggerFactory.getLogger(YeedContractE2ETest.class);
