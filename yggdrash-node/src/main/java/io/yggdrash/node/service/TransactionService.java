@@ -30,6 +30,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+import java.util.Map;
+
 @GrpcService
 public class TransactionService extends TransactionServiceGrpc.TransactionServiceImplBase {
     private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
@@ -56,6 +59,40 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
         Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
         for (Transaction tx : branchGroup.getUnconfirmedTxs(branchId)) {
             builder.addTransactions(tx.getInstance());
+        }
+
+        responseObserver.onNext(builder.build());
+        responseObserver.onCompleted();
+    }
+
+    /**
+     * Return transactionResponse
+     *
+     * @param tx               transaction to transfer
+     * @param responseObserver the observer response to a transactionResponse containing txHash, status, and logs
+     */
+    @Override
+    public void sendTx(Proto.Transaction tx, StreamObserver<Proto.TransactionResponse> responseObserver) {
+        BranchId branchId = BranchId.of(tx.getHeader().getChain().toByteArray());
+        log.debug("Received sendTx request branchId={}", branchId);
+
+        Proto.TransactionResponse.Builder builder = Proto.TransactionResponse.newBuilder();
+        Transaction transaction = new TransactionImpl(tx);
+        Map<String, List<String>> errorLogs = branchGroup.addTransaction(transaction);
+
+        if (errorLogs.size() > 0) {
+            log.debug("Received sendTx error occurred : {}", errorLogs);
+            builder.setStatus(0);
+        } else {
+            builder.setStatus(1);
+        }
+        builder.setTxHash(transaction.getHash().toString());
+
+        Proto.Log.Builder log = Proto.Log.newBuilder();
+        for (String k : errorLogs.keySet()) {
+            log.setCode(k);
+            log.addAllMsg(errorLogs.get(k));
+            builder.addLogs(log);
         }
 
         responseObserver.onNext(builder.build());
