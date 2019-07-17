@@ -1,2 +1,0 @@
-# Yggdrash API Interface
-* TODO
