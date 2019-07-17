@@ -1,6 +1,5 @@
 yggdrash.node:
   grpc.host: "localhost"
-  grpc.port: 32918
   max-peers: 25
 
 spring.output.ansi.enabled: always
