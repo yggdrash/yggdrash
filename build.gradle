@@ -325,4 +325,10 @@ task cleanConfig(type: Delete) {
     delete 'yggdrash-node/.yggdrash'
     delete 'contracts/.yggdrash'
     delete 'yggdrash-validator/.yggdrash'
+
+    println('# Clean tmp dirs')
+    delete 'yggdrash-core/tmp'
+    delete 'yggdrash-node/tmp'
+    delete 'contracts/tmp'
+    delete 'yggdrash-validator/tmp'
 }
