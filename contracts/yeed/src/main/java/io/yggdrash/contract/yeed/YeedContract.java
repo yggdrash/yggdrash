@@ -18,7 +18,6 @@ package io.yggdrash.contract.yeed;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.contract.standard.CoinStandard;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.common.crypto.HashUtil;
@@ -939,7 +938,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 putBalance(TOTAL_SUPPLY, totalSupply);
                 putBalance(issuer, balance);
                 this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
-                this.txReceipt.addLog(String.format("faucet method used only test network", issuer, balance.toString()));
+                this.txReceipt.addLog(
+                        String.format("faucet method used only test network", issuer, balance.toString()));
                 this.txReceipt.addLog(String.format("%s has receive %s", issuer, balance.toString()));
                 return;
             } else {

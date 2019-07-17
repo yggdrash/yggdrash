@@ -3,7 +3,6 @@ package io.yggdrash.node;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
@@ -29,6 +28,7 @@ import io.yggdrash.node.api.JsonRpcConfig;
 import io.yggdrash.node.api.TransactionApi;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -190,17 +190,16 @@ public class NodeContractDemoClient {
     }
 
     private static void sendStemTx(JsonObject branch, String method) {
-        int times = getSendTimes();
         JsonObject params = new JsonObject();
         params.add("branch", branch);
         params.addProperty("fee", BigInteger.valueOf(1000L));
-
 
         JsonObject txBody = new JsonObject();
         txBody.addProperty("contractVersion", stemContract.toString());
         txBody.addProperty("method", method);
         txBody.add("params", params);
 
+        int times = getSendTimes();
         for (int i = 0; i < times; i++) {
             Transaction tx = createTx(yggdrash, txBody);
             sendTransaction(tx);
