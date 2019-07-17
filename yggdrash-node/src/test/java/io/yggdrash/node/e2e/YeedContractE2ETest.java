@@ -218,7 +218,7 @@ public class YeedContractE2ETest extends TestConstants.SlowTest {
 
     private BigInteger balanceOf(String address) {
         Map params = ContractApiImplTest.createParams("address", address);
-        return (BigInteger) contractJsonRpc.query(branchId.toString(),
-                TestConstants.YEED_CONTRACT.toString(), "balanceOf", params);
+        return new BigInteger((String) contractJsonRpc.query(branchId.toString(),
+                TestConstants.YEED_CONTRACT.toString(), "balanceOf", params));
     }
 }
