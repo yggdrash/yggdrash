@@ -16,7 +16,6 @@
 
 package io.yggdrash.node.config;
 
-import io.yggdrash.common.config.Constants.ActiveProfiles;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.net.DiscoveryServiceConsumer;
@@ -34,10 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
-
-import java.net.InetAddress;
-import java.util.Arrays;
 
 @Configuration
 @EnableConfigurationProperties(NodeProperties.class)
@@ -47,16 +42,9 @@ public class P2PConfiguration {
     private final NodeProperties nodeProperties;
 
     @Autowired
-    P2PConfiguration(NodeProperties nodeProperties, Environment env) {
+    P2PConfiguration(NodeProperties nodeProperties) {
         this.nodeProperties = nodeProperties;
-        boolean isLocal = Arrays.asList(env.getActiveProfiles()).contains(ActiveProfiles.LOCAL);
-        if (!isLocal && "localhost".equals(nodeProperties.getGrpc().getHost())) {
-            try {
-                nodeProperties.getGrpc().setHost(InetAddress.getLocalHost().getHostAddress());
-            } catch (Exception e) {
-                log.warn(e.getMessage());
-            }
-        }
+        log.debug("NodeProperties: {}", nodeProperties.toString());
     }
 
     @Bean
