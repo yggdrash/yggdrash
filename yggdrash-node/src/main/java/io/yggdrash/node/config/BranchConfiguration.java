@@ -34,7 +34,6 @@ import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
 import io.yggdrash.core.store.ContractStore;
-import io.yggdrash.node.ChainTask;
 import io.yggdrash.node.service.ValidatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -177,14 +176,5 @@ public class BranchConfiguration {
                 .setContractManager(contractManager)
                 .setFactory(ValidatorService.factory())
                 .build();
-    }
-
-    /**
-     * Scheduling Beans
-     */
-    @Bean
-    @Profile(ActiveProfiles.NODE)
-    public ChainTask chainTask() {
-        return new ChainTask();
     }
 }
