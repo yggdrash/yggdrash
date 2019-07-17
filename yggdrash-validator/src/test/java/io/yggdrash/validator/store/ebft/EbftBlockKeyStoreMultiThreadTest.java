@@ -85,7 +85,7 @@ public class EbftBlockKeyStoreMultiThreadTest {
     @Test
     @ThreadCount(8)
     public void putTestMultiThread() {
-        long testNumber = 10000;
+        long testNumber = 1000;
         for (long l = 0L; l < testNumber; l++) {
             this.blockKeyStore.put(l, Constants.EMPTY_HASH);
         }
@@ -99,12 +99,12 @@ public class EbftBlockKeyStoreMultiThreadTest {
         TestConstants.PerformanceTest.apply();
 
         System.gc();
-        Thread.sleep(20000);
+        Thread.sleep(5000);
 
         this.putTestMultiThread();
 
         System.gc();
-        Thread.sleep(3000000);
+        Thread.sleep(5000);
     }
 
 
@@ -114,12 +114,12 @@ public class EbftBlockKeyStoreMultiThreadTest {
         TestConstants.PerformanceTest.apply();
 
         System.gc();
-        Thread.sleep(20000);
+        Thread.sleep(5000);
 
         this.putTestMultiThread();
 
         System.gc();
-        Thread.sleep(10000);
+        Thread.sleep(5000);
 
         for (long l = 0L; l < this.blockKeyStore.size(); l++) {
             log.debug("{} {}", l, Hex.toHexString(this.blockKeyStore.get(l)));
@@ -128,7 +128,7 @@ public class EbftBlockKeyStoreMultiThreadTest {
         log.debug("blockKeyStore size= " + this.blockKeyStore.size());
 
         System.gc();
-        Thread.sleep(3000000);
+        Thread.sleep(5000);
     }
 
     @Test
@@ -137,12 +137,12 @@ public class EbftBlockKeyStoreMultiThreadTest {
         TestConstants.PerformanceTest.apply();
 
         System.gc();
-        Thread.sleep(20000);
+        Thread.sleep(5000);
 
         this.putTestMultiThread();
 
         System.gc();
-        Thread.sleep(10000);
+        Thread.sleep(5000);
 
         for (long l = 0L; l < this.blockKeyStore.size(); l++) {
             if (this.blockKeyStore.contains(l)) {
@@ -153,7 +153,7 @@ public class EbftBlockKeyStoreMultiThreadTest {
         log.debug("blockKeyStore size= " + this.blockKeyStore.size());
 
         System.gc();
-        Thread.sleep(3000000);
+        Thread.sleep(5000);
     }
 
     @After

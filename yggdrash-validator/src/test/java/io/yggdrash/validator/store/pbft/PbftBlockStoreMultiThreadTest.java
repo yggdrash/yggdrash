@@ -268,12 +268,12 @@ public class PbftBlockStoreMultiThreadTest {
         TestConstants.PerformanceTest.apply();
 
         System.gc();
-        Thread.sleep(20000);
+        Thread.sleep(5000);
 
         this.putTestMultiThread();
 
         System.gc();
-        Thread.sleep(3000000);
+        Thread.sleep(5000);
     }
 
     @After

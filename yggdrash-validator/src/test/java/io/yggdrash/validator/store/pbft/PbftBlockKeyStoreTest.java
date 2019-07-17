@@ -145,9 +145,9 @@ public class PbftBlockKeyStoreTest {
     public void memoryTest() throws InterruptedException {
         TestConstants.PerformanceTest.apply();
         System.gc();
-        Thread.sleep(10000);
+        Thread.sleep(5000);
 
-        long testNumber = 1000000;
+        long testNumber = 1000;
         byte[] result;
         List<byte[]> resultList = new ArrayList<>();
         for (long l = 0L; l < testNumber; l++) {
@@ -160,7 +160,7 @@ public class PbftBlockKeyStoreTest {
         assertEquals(testNumber, this.blockKeyStore.size());
 
         System.gc();
-        Thread.sleep(20000);
+        Thread.sleep(5000);
     }
 
     @Test

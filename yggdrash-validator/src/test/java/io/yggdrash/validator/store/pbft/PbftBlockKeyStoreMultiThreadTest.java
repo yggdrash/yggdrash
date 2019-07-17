@@ -142,7 +142,7 @@ public class PbftBlockKeyStoreMultiThreadTest {
         this.putTestMultiThread();
 
         System.gc();
-        Thread.sleep(30000);
+        Thread.sleep(5000);
     }
 
     @Test
@@ -154,7 +154,7 @@ public class PbftBlockKeyStoreMultiThreadTest {
         this.putTestMultiThread();
 
         System.gc();
-        Thread.sleep(10000);
+        Thread.sleep(5000);
 
         for (long l = 0L; l < this.blockKeyStore.size(); l++) {
             log.debug("{} {}", l, Hex.toHexString(this.blockKeyStore.get(l)));
@@ -163,7 +163,7 @@ public class PbftBlockKeyStoreMultiThreadTest {
         log.debug("blockKeyStore size= " + this.blockKeyStore.size());
 
         System.gc();
-        Thread.sleep(30000);
+        Thread.sleep(5000);
     }
 
 
@@ -176,7 +176,7 @@ public class PbftBlockKeyStoreMultiThreadTest {
         this.putTestMultiThread();
 
         System.gc();
-        Thread.sleep(10000);
+        Thread.sleep(5000);
 
         for (long l = 0L; l < this.blockKeyStore.size(); l++) {
             if (this.blockKeyStore.contains(l)) {
@@ -187,7 +187,7 @@ public class PbftBlockKeyStoreMultiThreadTest {
         log.debug("blockKeyStore size= " + this.blockKeyStore.size());
 
         System.gc();
-        Thread.sleep(30000);
+        Thread.sleep(5000);
     }
 
     @After
