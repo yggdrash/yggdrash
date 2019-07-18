@@ -53,11 +53,6 @@ public final class Constants {
     public static final String YGG_DEFAULT_FILENAME = "yggdrash.conf";
     public static final String YGG_CONF_PATH = ".yggdrash" + File.separator + YGG_DEFAULT_FILENAME;
 
-    public static final String CONTRACT_REPOSITORY_URL = "contract.url";
-    public static final String CONTRACT_PATH = "contract.path";
-    public static final String OSGI_PATH = "osgi.path";
-    public static final String BRANCH_PATH = "branch.path";
-
     public static final String YGGDRASH_NETWORK_ID = "yggdrash.network.id";
     public static final String YGGDRASH_NETWORK_P2P_VERSION = "yggdrash.network.p2p.version";
     public static final String YGGDRASH_KEY_PATH = "yggdrash.key.path";
@@ -68,6 +63,10 @@ public final class Constants {
     public static final String YGGDRASH_ADMIN_IP = "yggdrash.admin.ip";
     public static final String YGGDRASH_ADMIN_PUBKEY = "yggdrash.admin.pubKey";
     public static final String YGGDRASH_ADMIN_TIMEOUT = "yggdrash.admin.timeout";
+    public static final String YGGDRASH_CONTRACT_PATH = "yggdrash.contract.path";
+    public static final String YGGDRASH_CONTRACT_URL = "yggdrash.contract.url";
+    public static final String YGGDRASH_OSGI_PATH = "yggdrash.osgi.path";
+    public static final String YGGDRASH_BRANCH_PATH = "yggdrash.branch.path";
 
     public static final String NODE_KEY_PATH = "yggdrash.node.key.path";
     public static final String NODE_KEY_PASSWORD = "yggdrash.node.key.password";

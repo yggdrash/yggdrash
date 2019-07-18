@@ -12,18 +12,18 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import static io.yggdrash.common.config.Constants.BRANCH_PATH;
-import static io.yggdrash.common.config.Constants.CONTRACT_PATH;
-import static io.yggdrash.common.config.Constants.CONTRACT_REPOSITORY_URL;
-import static io.yggdrash.common.config.Constants.OSGI_PATH;
 import static io.yggdrash.common.config.Constants.VALIDATOR_DATABASE_PATH;
 import static io.yggdrash.common.config.Constants.VALIDATOR_PATH;
 import static io.yggdrash.common.config.Constants.YGGDRASH_ADMIN_PATH;
+import static io.yggdrash.common.config.Constants.YGGDRASH_BRANCH_PATH;
+import static io.yggdrash.common.config.Constants.YGGDRASH_CONTRACT_PATH;
+import static io.yggdrash.common.config.Constants.YGGDRASH_CONTRACT_URL;
 import static io.yggdrash.common.config.Constants.YGGDRASH_DATABASE_PATH;
 import static io.yggdrash.common.config.Constants.YGGDRASH_KEY_PASSWORD;
 import static io.yggdrash.common.config.Constants.YGGDRASH_KEY_PATH;
 import static io.yggdrash.common.config.Constants.YGGDRASH_NETWORK_ID;
 import static io.yggdrash.common.config.Constants.YGGDRASH_NETWORK_P2P_VERSION;
+import static io.yggdrash.common.config.Constants.YGGDRASH_OSGI_PATH;
 import static io.yggdrash.common.config.Constants.YGG_CONF_PATH;
 import static io.yggdrash.common.config.Constants.YGG_DATA_PATH;
 import static io.yggdrash.common.config.Constants.YGG_DEFAULT_FILENAME;
@@ -148,15 +148,15 @@ public class DefaultConfig {
     }
 
     public String getContractPath() {
-        return config.getString(CONTRACT_PATH);
+        return config.getString(YGGDRASH_CONTRACT_PATH);
     }
 
     public String getOsgiPath() {
-        return config.getString(OSGI_PATH);
+        return config.getString(YGGDRASH_OSGI_PATH);
     }
 
     public String getBranchPath() {
-        return config.getString(BRANCH_PATH);
+        return config.getString(YGGDRASH_BRANCH_PATH);
     }
 
     public String getYggDataPath() {
@@ -168,7 +168,7 @@ public class DefaultConfig {
     }
 
     public String getContractRepositoryUrl() {
-        return config.getString(CONTRACT_REPOSITORY_URL);
+        return config.getString(YGGDRASH_CONTRACT_URL);
     }
 
     enum Network {
