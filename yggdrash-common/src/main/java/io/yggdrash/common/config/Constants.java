@@ -55,20 +55,22 @@ public final class Constants {
     public static final String PROPERTY_NETWORK_ID = "network.id";
     public static final String PROPERTY_NETWORK_P2P_VER = "network.p2p.version";
 
-    public static final String YGGDRASH_KEY_PATH = "yggdrash.key.path";
-    public static final String YGGDRASH_KEY_PASSWORD = "yggdrash.key.password";
-    public static final String YGGDRASH_NODE_KEY_PATH = "yggdrash.node.key.path";
-    public static final String YGGDRASH_NODE_KEY_PASSWORD = "yggdrash.node.key.password";
-    public static final String YGGDRASH_VALIDATOR_KEY_PATH = "yggdrash.validator.key.path";
-    public static final String YGGDRASH_VALIDATOR_KEY_PASSWORD = "yggdrash.validator.key.password";
-
     public static final String CONTRACT_REPOSITORY_URL = "contract.url";
     public static final String CONTRACT_PATH = "contract.path";
     public static final String OSGI_PATH = "osgi.path";
     public static final String BRANCH_PATH = "branch.path";
-    public static final String DATABASE_PATH = "database.path";
-    public static final String VALIDATOR_DATABASE_PATH = "yggdrash.validator.database.path";
+
+    public static final String YGGDRASH_KEY_PATH = "yggdrash.key.path";
+    public static final String YGGDRASH_KEY_PASSWORD = "yggdrash.key.password";
+    public static final String YGGDRASH_DATABASE_PATH = "yggdrash.database.path";
+
+    public static final String NODE_KEY_PATH = "yggdrash.node.key.path";
+    public static final String NODE_KEY_PASSWORD = "yggdrash.node.key.password";
+
     public static final String VALIDATOR_PATH = "yggdrash.validator.path";
+    public static final String VALIDATOR_DATABASE_PATH = "yggdrash.validator.database.path";
+    public static final String VALIDATOR_KEY_PATH = "yggdrash.validator.key.path";
+    public static final String VALIDATOR_KEY_PASSWORD = "yggdrash.validator.key.password";
 
     public static final String TIMEOUT_PING_PATH = "yggdrash.node.timeout.ping";
     public static final String TIMEOUT_BLOCK_PATH = "yggdrash.node.timeout.block";

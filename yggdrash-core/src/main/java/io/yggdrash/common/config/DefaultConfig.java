@@ -15,12 +15,12 @@ import java.util.NoSuchElementException;
 import static io.yggdrash.common.config.Constants.BRANCH_PATH;
 import static io.yggdrash.common.config.Constants.CONTRACT_PATH;
 import static io.yggdrash.common.config.Constants.CONTRACT_REPOSITORY_URL;
-import static io.yggdrash.common.config.Constants.DATABASE_PATH;
 import static io.yggdrash.common.config.Constants.OSGI_PATH;
 import static io.yggdrash.common.config.Constants.PROPERTY_NETWORK_ID;
 import static io.yggdrash.common.config.Constants.PROPERTY_NETWORK_P2P_VER;
 import static io.yggdrash.common.config.Constants.VALIDATOR_DATABASE_PATH;
 import static io.yggdrash.common.config.Constants.VALIDATOR_PATH;
+import static io.yggdrash.common.config.Constants.YGGDRASH_DATABASE_PATH;
 import static io.yggdrash.common.config.Constants.YGGDRASH_KEY_PASSWORD;
 import static io.yggdrash.common.config.Constants.YGGDRASH_KEY_PATH;
 import static io.yggdrash.common.config.Constants.YGG_ADMIN_CONF_PATH;
@@ -143,7 +143,7 @@ public class DefaultConfig {
         if (config.hasPath(VALIDATOR_DATABASE_PATH)) {
             return config.getString(VALIDATOR_DATABASE_PATH);
         } else {
-            return config.getString(DATABASE_PATH);
+            return config.getString(YGGDRASH_DATABASE_PATH);
         }
     }
 
