@@ -17,9 +17,12 @@
 package io.yggdrash.node.broadcast;
 
 import ch.qos.logback.classic.Level;
+import io.grpc.testing.TestUtils;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.util.Utils;
 import io.yggdrash.node.TestNode;
+import javax.rmi.CORBA.Util;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -29,9 +32,7 @@ import java.util.function.Consumer;
 public class RandomBroadcastTxTest extends RandomBroadcastTesting {
 
     @Test
-    @Ignore
     public void test() {
-        // TODO 기본 브랜치 로딩을 중지하고, 테스트 계정에 프론티어 등록하여 금액을 추가한 후에 아래의 테스트를 진행 해야 합니다.
         TestConstants.SlowTest.apply();
 
         // arrange
@@ -44,7 +45,7 @@ public class RandomBroadcastTxTest extends RandomBroadcastTesting {
 
         // act
         Consumer<TestNode> consumer = (n) ->
-                n.getBranchGroup().addTransaction(BlockChainTestUtils.createTransferTx());
+                n.getDefaultBranch().addTransaction(BlockChainTestUtils.createTransferTx());
         broadcastByRandomNode(txCount, consumer);
 
         // assert

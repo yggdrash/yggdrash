@@ -26,15 +26,15 @@ import io.yggdrash.node.TestNode;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import java.util.List;
+import java.util.Map;
 
 public class SimpleTxBroadcastTest extends AbstractNodeTesting {
 
     @Test
-    @Ignore
     public void test() {
-        // TODO 기본 브랜치 로딩을 중지하고, 테스트 계정에 프론티어 등록하여 금액을 추가한 후에 아래의 테스트를 진행 해야 합니다.
         TestConstants.SlowTest.apply();
-        broadcastNetworkTest(20); // 4s;
+        broadcastNetworkTest(10); // 4s;
         //broadcastNetworkTest(100); // (inProcess=39s, tcp=80s);
         //broadcastNetworkTest(300); // 6m
     }
@@ -46,23 +46,27 @@ public class SimpleTxBroadcastTest extends AbstractNodeTesting {
         bootstrapNodes(nodeCount, true); // 100 nodes  (inProcess=2ms, tcp=8s)
         nodeList.forEach(this::refreshAndHealthCheck); // 100 nodes  (tcp=2s)
 
+        int sendTx = 0;
         // act
         for (int i = 1; i < nodeCount; i++) {
             // broadcast 100 nodes (inProcess=300ms, tcp=700ms)
             Transaction tx = BlockChainTestUtils.createTransferTx();
-            nodeList.get(i).getBranchGroup().addTransaction(tx);
+            Map<String, List<String>> errors = nodeList.get(i).getBranchGroup().addTransaction(tx);
+            if (errors.isEmpty()) {
+                sendTx ++;
+            }
             log.info("broadcast finish={}", i);
         }
 
         Utils.sleep(1000);
-
+        log.info("Send Tx {} ", sendTx);
         // assert
         for (TestNode node : nodeList) {
             if (node.isSeed()) {
                 continue;
             }
             node.shutdown();
-            Assert.assertEquals(nodeCount - 1,
+            Assert.assertEquals(sendTx,
                     node.getBranchGroup().getUnconfirmedTxs(TestConstants.yggdrash()).size());
         }
     }
