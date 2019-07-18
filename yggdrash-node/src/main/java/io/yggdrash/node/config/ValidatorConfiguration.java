@@ -92,7 +92,7 @@ public class ValidatorConfiguration {
             DefaultConfig mergedConfig = new DefaultConfig(fallbackConfig, defaultConfig.isProductionMode());
             log.debug("{}:{}, key={}", mergedConfig.getString("yggdrash.validator.host"),
                     mergedConfig.getString("yggdrash.validator.port"),
-                    mergedConfig.getString("yggdrash.validator.key.path"));
+                    mergedConfig.getString(Constants.YGGDRASH_KEY_PATH));
             try {
                 BranchId branchId = genesis.getBranch().getBranchId();
 

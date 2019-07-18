@@ -17,12 +17,12 @@ import static io.yggdrash.common.config.Constants.CONTRACT_PATH;
 import static io.yggdrash.common.config.Constants.CONTRACT_REPOSITORY_URL;
 import static io.yggdrash.common.config.Constants.DATABASE_PATH;
 import static io.yggdrash.common.config.Constants.OSGI_PATH;
-import static io.yggdrash.common.config.Constants.PROPERTY_KEYPASSWORD;
-import static io.yggdrash.common.config.Constants.PROPERTY_KEYPATH;
 import static io.yggdrash.common.config.Constants.PROPERTY_NETWORK_ID;
 import static io.yggdrash.common.config.Constants.PROPERTY_NETWORK_P2P_VER;
 import static io.yggdrash.common.config.Constants.VALIDATOR_DATABASE_PATH;
 import static io.yggdrash.common.config.Constants.VALIDATOR_PATH;
+import static io.yggdrash.common.config.Constants.YGGDRASH_KEY_PASSWORD;
+import static io.yggdrash.common.config.Constants.YGGDRASH_KEY_PATH;
 import static io.yggdrash.common.config.Constants.YGG_ADMIN_CONF_PATH;
 import static io.yggdrash.common.config.Constants.YGG_CONF_PATH;
 import static io.yggdrash.common.config.Constants.YGG_DATA_PATH;
@@ -124,11 +124,11 @@ public class DefaultConfig {
     }
 
     public String getKeyPath() {
-        return config.getString(PROPERTY_KEYPATH);
+        return config.getString(YGGDRASH_KEY_PATH);
     }
 
     public String getKeyPassword() {
-        return config.hasPath(PROPERTY_KEYPASSWORD) ? config.getString(PROPERTY_KEYPASSWORD) : null;
+        return config.hasPath(YGGDRASH_KEY_PASSWORD) ? config.getString(YGGDRASH_KEY_PASSWORD) : null;
     }
 
     public Network getNetwork() {

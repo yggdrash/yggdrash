@@ -47,10 +47,10 @@ public class DefaultConfigTest {
         Config config = ConfigFactory.parseResources("yggdrash_sample.conf");
         DefaultConfig defaultConfig = new DefaultConfig(config);
 
-        assertThat(defaultConfig.getString("key.path")).endsWith("nodePri2.key");
+        assertThat(defaultConfig.getString(Constants.YGGDRASH_KEY_PATH)).endsWith("nodePri2.key");
 
         log.debug("newConfigFile key.path: "
-                + defaultConfig.getString("key.path"));
+                + defaultConfig.getString(Constants.YGGDRASH_KEY_PATH));
     }
 
     /**

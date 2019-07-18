@@ -3,6 +3,7 @@ package io.yggdrash.node.service;
 import ch.qos.logback.classic.Level;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
 import io.yggdrash.core.blockchain.BlockChainImpl;
@@ -44,8 +45,8 @@ public class ValidatorService {
             throws IOException, InvalidCipherTextException {
         this.host = defaultConfig.getString("yggdrash.validator.host");
         this.port = defaultConfig.getInt("yggdrash.validator.port");
-        this.wallet = new Wallet(defaultConfig.getString("yggdrash.validator.key.path"),
-                defaultConfig.getString("yggdrash.validator.key.password"));
+        this.wallet = new Wallet(defaultConfig.getString(Constants.YGGDRASH_KEY_PATH),
+                defaultConfig.getString(Constants.YGGDRASH_KEY_PASSWORD));
 
         setLogLevel(defaultConfig);
 
