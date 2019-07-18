@@ -16,14 +16,14 @@ import static io.yggdrash.common.config.Constants.BRANCH_PATH;
 import static io.yggdrash.common.config.Constants.CONTRACT_PATH;
 import static io.yggdrash.common.config.Constants.CONTRACT_REPOSITORY_URL;
 import static io.yggdrash.common.config.Constants.OSGI_PATH;
-import static io.yggdrash.common.config.Constants.PROPERTY_NETWORK_ID;
-import static io.yggdrash.common.config.Constants.PROPERTY_NETWORK_P2P_VER;
 import static io.yggdrash.common.config.Constants.VALIDATOR_DATABASE_PATH;
 import static io.yggdrash.common.config.Constants.VALIDATOR_PATH;
 import static io.yggdrash.common.config.Constants.YGGDRASH_ADMIN_PATH;
 import static io.yggdrash.common.config.Constants.YGGDRASH_DATABASE_PATH;
 import static io.yggdrash.common.config.Constants.YGGDRASH_KEY_PASSWORD;
 import static io.yggdrash.common.config.Constants.YGGDRASH_KEY_PATH;
+import static io.yggdrash.common.config.Constants.YGGDRASH_NETWORK_ID;
+import static io.yggdrash.common.config.Constants.YGGDRASH_NETWORK_P2P_VERSION;
 import static io.yggdrash.common.config.Constants.YGG_CONF_PATH;
 import static io.yggdrash.common.config.Constants.YGG_DATA_PATH;
 import static io.yggdrash.common.config.Constants.YGG_DEFAULT_FILENAME;
@@ -132,11 +132,11 @@ public class DefaultConfig {
     }
 
     public Network getNetwork() {
-        return Network.valueOf(config.getInt(PROPERTY_NETWORK_ID));
+        return Network.valueOf(config.getInt(YGGDRASH_NETWORK_ID));
     }
 
     public String getNetworkP2PVersion() {
-        return config.getString(PROPERTY_NETWORK_P2P_VER);
+        return config.getString(YGGDRASH_NETWORK_P2P_VERSION);
     }
 
     public String getDatabasePath() {

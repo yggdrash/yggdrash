@@ -40,6 +40,7 @@ public final class Constants {
     public static final byte[] EMPTY_BYTE8 = new byte[8];
     public static final byte[] EMPTY_BYTE1K = new byte[1024];
 
+    // TODO: consider changing to enum
     public static final String PBFT_PREPREPARE = "PREPREPA";
     public static final String PBFT_PREPARE = "PREPAREM";
     public static final String PBFT_COMMIT = "COMMITMS";
@@ -51,14 +52,14 @@ public final class Constants {
     public static final String YGG_DATA_PATH = "YGG_DATA_PATH";
     public static final String YGG_DEFAULT_FILENAME = "yggdrash.conf";
     public static final String YGG_CONF_PATH = ".yggdrash" + File.separator + YGG_DEFAULT_FILENAME;
-    public static final String PROPERTY_NETWORK_ID = "network.id";
-    public static final String PROPERTY_NETWORK_P2P_VER = "network.p2p.version";
 
     public static final String CONTRACT_REPOSITORY_URL = "contract.url";
     public static final String CONTRACT_PATH = "contract.path";
     public static final String OSGI_PATH = "osgi.path";
     public static final String BRANCH_PATH = "branch.path";
 
+    public static final String YGGDRASH_NETWORK_ID = "yggdrash.network.id";
+    public static final String YGGDRASH_NETWORK_P2P_VERSION = "yggdrash.network.p2p.version";
     public static final String YGGDRASH_KEY_PATH = "yggdrash.key.path";
     public static final String YGGDRASH_KEY_PASSWORD = "yggdrash.key.password";
     public static final String YGGDRASH_DATABASE_PATH = "yggdrash.database.path";
@@ -70,6 +71,8 @@ public final class Constants {
 
     public static final String NODE_KEY_PATH = "yggdrash.node.key.path";
     public static final String NODE_KEY_PASSWORD = "yggdrash.node.key.password";
+    public static final String NODE_GRPC_HOST = "yggdrash.node.grpc.host";
+    public static final String NODE_GRPC_PORT = "yggdrash.node.grpc.port";
 
     public static final String VALIDATOR_PATH = "yggdrash.validator.path";
     public static final String VALIDATOR_DATABASE_PATH = "yggdrash.validator.database.path";
