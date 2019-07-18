@@ -148,6 +148,7 @@ public class YeedContractE2ETest extends TestConstants.SlowTest {
 
     @Test
     public void shouldGetFrontierBalance() {
+        log.debug("Wallet Address is {}", wallet.getHexAddress());
         // act
         BigInteger balance = balanceOf(wallet.getHexAddress());
 

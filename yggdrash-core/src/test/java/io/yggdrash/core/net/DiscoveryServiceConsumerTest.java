@@ -2,6 +2,7 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.PeerTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.p2p.Peer;
@@ -10,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 public class DiscoveryServiceConsumerTest extends TestConstants.SlowTest {
     private final BranchId yggdrash = TestConstants.yggdrash();
@@ -56,7 +58,8 @@ public class DiscoveryServiceConsumerTest extends TestConstants.SlowTest {
         // catchUpRequest event fired
         discoveryConsumer.ping(yggdrash, from, to, "Ping");
 
+        Utils.sleep(100);
         //assert
-        assertEquals(99, blockChainManager.getLastIndex());
+        assertNotEquals(0, blockChainManager.getLastIndex());
     }
 }
