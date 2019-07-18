@@ -27,11 +27,9 @@ import io.yggdrash.core.p2p.BlockChainHandler;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.node.service.PeerHandlerProvider;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -97,7 +95,7 @@ public class RpcTest extends TcpNodeTesting {
             Transaction tx = new TransactionBuilder()
                     .setBranchId(branchId)
                     .setTxBody(txBody)
-                    .setWallet(TestConstants.wallet())
+                    .setWallet(TestConstants.transferWallet())
                     .build();
 
             txList.add(tx);
@@ -121,9 +119,7 @@ public class RpcTest extends TcpNodeTesting {
     }
 
     @Test
-    @Ignore
     public void syncTxTest() throws Exception {
-        // TODO 기본 브랜치 로딩을 중지하고, 테스트 계정에 프론티어 등록하여 금액을 추가한 후에 아래의 테스트를 진행 해야 합니다.
         addDummyTx();
 
         BlockChain branch = nodeList.get(1).getDefaultBranch();
