@@ -23,6 +23,7 @@ import io.grpc.ServerCall;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.node.springboot.grpc.context.LocalRunningGrpcPort;
 import io.yggdrash.node.springboot.grpc.demo.GrpcDemoApp;
 import io.yggdrash.proto.DiscoveryServiceGrpc;
@@ -37,6 +38,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
@@ -50,7 +52,7 @@ import static org.mockito.Mockito.mock;
 @SpringBootTest(
         classes = {GrpcDemoApp.class, GrpcDemoAppTest.TestConfig.class},
         properties = {"yggdrash.node.grpc.black-list=" + GrpcDemoAppTest.BLOCK_IPS})
-
+@ActiveProfiles(Constants.ActiveProfiles.NODE)
 public class GrpcDemoAppTest extends TestConstants.CiTest {
     static final String BLOCK_IPS = "127.0.0.2,127.0.0.3";
 

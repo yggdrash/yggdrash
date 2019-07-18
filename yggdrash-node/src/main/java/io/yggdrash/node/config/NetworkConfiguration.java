@@ -91,6 +91,7 @@ public class NetworkConfiguration {
         return new BlockChainSyncManager(nodeStatus, peerNetwork, branchGroup);
     }
 
+    @Profile( {Constants.ActiveProfiles.NODE, Constants.ActiveProfiles.BOOTSTRAP})
     @Bean
     @Primary
     public GrpcServerBuilderConfigurer configurer(BranchGroup branchGroup, SyncManager syncManager) {

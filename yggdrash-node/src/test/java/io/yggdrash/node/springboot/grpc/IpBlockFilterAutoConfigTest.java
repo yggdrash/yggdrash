@@ -20,6 +20,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.ServerInterceptor;
 import io.grpc.StatusRuntimeException;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.node.springboot.grpc.context.LocalRunningGrpcPort;
 import io.yggdrash.node.springboot.grpc.demo.GrpcDemoApp;
 import io.yggdrash.proto.DiscoveryServiceGrpc;
@@ -29,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(
         classes = {GrpcDemoApp.class},
         properties = "yggdrash.node.grpc.black-list=127.0.0.1")
+@ActiveProfiles(Constants.ActiveProfiles.NODE)
 public class IpBlockFilterAutoConfigTest {
 
     @LocalRunningGrpcPort
