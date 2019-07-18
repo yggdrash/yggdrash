@@ -52,14 +52,13 @@ public class DiscoveryServiceConsumerTest extends TestConstants.SlowTest {
 
         BlockChainManager blockChainManager
                 = BlockChainSyncManagerMock.branchGroup.getBranch(yggdrash).getBlockChainManager();
-
-        assertEquals(0, blockChainManager.getLastIndex());
+        long lastIndex = blockChainManager.getLastIndex();
 
         // catchUpRequest event fired
         discoveryConsumer.ping(yggdrash, from, to, "Ping");
 
         Utils.sleep(100);
         //assert
-        assertNotEquals(0, blockChainManager.getLastIndex());
+        assertNotEquals(lastIndex, blockChainManager.getLastIndex());
     }
 }
