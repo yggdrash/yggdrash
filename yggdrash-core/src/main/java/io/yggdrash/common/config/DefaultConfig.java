@@ -20,10 +20,10 @@ import static io.yggdrash.common.config.Constants.PROPERTY_NETWORK_ID;
 import static io.yggdrash.common.config.Constants.PROPERTY_NETWORK_P2P_VER;
 import static io.yggdrash.common.config.Constants.VALIDATOR_DATABASE_PATH;
 import static io.yggdrash.common.config.Constants.VALIDATOR_PATH;
+import static io.yggdrash.common.config.Constants.YGGDRASH_ADMIN_PATH;
 import static io.yggdrash.common.config.Constants.YGGDRASH_DATABASE_PATH;
 import static io.yggdrash.common.config.Constants.YGGDRASH_KEY_PASSWORD;
 import static io.yggdrash.common.config.Constants.YGGDRASH_KEY_PATH;
-import static io.yggdrash.common.config.Constants.YGG_ADMIN_CONF_PATH;
 import static io.yggdrash.common.config.Constants.YGG_CONF_PATH;
 import static io.yggdrash.common.config.Constants.YGG_DATA_PATH;
 import static io.yggdrash.common.config.Constants.YGG_DEFAULT_FILENAME;
@@ -90,7 +90,7 @@ public class DefaultConfig {
         } else {
             basePath = System.getProperty("user.dir");
         }
-        return ConfigFactory.parseFile(new File(basePath + File.separator + YGG_ADMIN_CONF_PATH));
+        return ConfigFactory.parseFile(new File(basePath + File.separator + YGGDRASH_ADMIN_PATH));
     }
 
     public Config getConfig() {
