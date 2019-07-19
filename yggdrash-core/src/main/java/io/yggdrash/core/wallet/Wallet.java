@@ -211,7 +211,7 @@ public class Wallet {
 
     public Wallet(DefaultConfig config, String password) throws IOException, InvalidCipherTextException {
         this(new DefaultConfig(
-                ConfigFactory.parseString(Constants.PROPERTY_KEYPASSWORD + " = \"" + password + "\"")
+                ConfigFactory.parseString(Constants.YGGDRASH_KEY_PASSWORD + " = \"" + password + "\"")
                         .withFallback(config.getConfig()).resolve()));
     }
 

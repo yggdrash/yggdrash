@@ -9,6 +9,7 @@ management.health.elasticsearch.enabled: false
 ---
 
 spring.profiles: validator
+
 spring.main.web-application-type: NONE
 
 ---

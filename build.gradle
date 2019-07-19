@@ -82,7 +82,7 @@ subprojects {
     test {
         failFast = true
         systemProperty('spring.profiles.active', project.properties.get('springProfiles'))
-        systemProperty('key.password', 'Aa1234567890!')
+        systemProperty('yggdrash.key.password', 'Aa1234567890!')
 
         testLogging {
             events "passed", "skipped", "failed"
