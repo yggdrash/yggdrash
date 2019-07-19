@@ -17,11 +17,14 @@
 package io.yggdrash.gateway.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.node.YggdrashNodeApp;
 import org.junit.Before;
@@ -37,6 +40,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import java.math.BigInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -89,8 +94,13 @@ public class TransactionControllerTest extends TestConstants.CiTest {
     public void shouldGetTransactionByHash() throws Exception {
 
         // 트랜잭션 풀에 있는 트랜잭션을 조회 후 블록 내 트랜잭션 조회 로직 추가 필요.
+
+        JsonObject txBody = ContractTestUtils.transferTxBodyJson(TestConstants.TRANSFER_TO,
+                BigInteger.valueOf(100));
+        Transaction tx = BlockChainTestUtils.buildTx(txBody, TestConstants.wallet(), yggdrashBranch);
+
         TransactionDto req =
-                TransactionDto.createBy(BlockChainTestUtils.createTransferTx());
+                TransactionDto.createBy(tx);
 
         // Error Tx. Issuer has no balance!
         MockHttpServletResponse postResponse = mockMvc.perform(post(basePath)
