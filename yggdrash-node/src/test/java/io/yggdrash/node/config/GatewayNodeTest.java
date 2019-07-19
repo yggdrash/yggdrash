@@ -20,7 +20,6 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.gateway.controller.BranchController;
-import io.yggdrash.node.ChainTask;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,9 +38,6 @@ public class GatewayNodeTest extends TestConstants.CiTest {
     private BranchGroup branchGroup;
 
     @Autowired(required = false)
-    private ChainTask chainTask;
-
-    @Autowired(required = false)
     private BranchController branchController;
 
     @Test
@@ -52,11 +48,6 @@ public class GatewayNodeTest extends TestConstants.CiTest {
     @Test
     public void shouldBeActivateGatewayProfile() {
         assertThat(branchController).isNotNull();
-    }
-
-    @Test
-    public void shouldBeNullChainTask() {
-        assertThat(chainTask).isNull();
     }
 
 }
