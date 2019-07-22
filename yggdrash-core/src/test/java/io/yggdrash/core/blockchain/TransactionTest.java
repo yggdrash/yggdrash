@@ -58,6 +58,7 @@ public class TransactionTest extends SlowTest {
 
     @Before
     public void setUp() throws Exception {
+        TestConstants.yggdrash();
 
         JsonObject jsonParam = new JsonObject();
         jsonParam.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
@@ -65,6 +66,7 @@ public class TransactionTest extends SlowTest {
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("method", "transfer");
+        jsonObject.addProperty("contractVersion", TestConstants.YEED_CONTRACT.toString());
         jsonObject.add("params", jsonParam);
 
         txBody = new TransactionBody(jsonObject);
@@ -77,7 +79,11 @@ public class TransactionTest extends SlowTest {
         log.debug("wallet.pubKey=" + Hex.toHexString(wallet.getPubicKey()));
 
         tx1 = new TransactionImpl(txHeader, wallet, txBody);
-        assertTrue(VerifierUtils.verify(tx1));
+
+        int code = VerifierUtils.verifyDataFormatCode(tx1);
+        assertTrue("Transaction Verify Test", 0 == code);
+        log.debug("VERIFY CODE {} ", code);
+
     }
 
     @Test
