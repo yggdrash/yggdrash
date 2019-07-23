@@ -553,7 +553,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
         TreeMap<String, EbftClientStub> nodeMap = new TreeMap<>();
         try {
             Map<String, Object> validatorInfoMap =
-                    this.defaultConfig.getConfig().getConfig("yggdrash.validator.info").root().unwrapped();
+                    this.defaultConfig.getConfig().getConfig(Constants.VALIDATOR_INFO).root().unwrapped();
             for (Map.Entry<String, Object> entry : validatorInfoMap.entrySet()) {
                 String host = ((Map<String, String>) entry.getValue()).get("host");
                 int port = ((Map<String, Integer>) entry.getValue()).get("port");
@@ -576,7 +576,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
         TreeMap<String, EbftClientStub> nodeMap = new TreeMap<>();
         try {
             Map<String, Object> proxyNodeInfo =
-                    this.defaultConfig.getConfig().getConfig("yggdrash.validator.proxyNode").root().unwrapped();
+                    this.defaultConfig.getConfig().getConfig(Constants.VALIDATOR_PROXYNODE).root().unwrapped();
             for (Map.Entry<String, Object> entry : proxyNodeInfo.entrySet()) {
                 String host = ((Map<String, String>) entry.getValue()).get("host");
                 int port = ((Map<String, Integer>) entry.getValue()).get("port");
