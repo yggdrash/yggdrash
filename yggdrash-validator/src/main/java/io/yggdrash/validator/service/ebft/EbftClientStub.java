@@ -7,8 +7,10 @@ import io.grpc.StatusRuntimeException;
 import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.EbftProto;
 import io.yggdrash.proto.EbftServiceGrpc;
+import io.yggdrash.proto.Proto;
 import io.yggdrash.validator.data.ebft.EbftBlock;
 import io.yggdrash.validator.data.ebft.EbftStatus;
+import io.yggdrash.validator.service.ConsensusClientStub;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,8 +20,9 @@ import static io.yggdrash.common.config.Constants.TIMEOUT_BLOCK;
 import static io.yggdrash.common.config.Constants.TIMEOUT_BLOCKLIST;
 import static io.yggdrash.common.config.Constants.TIMEOUT_PING;
 import static io.yggdrash.common.config.Constants.TIMEOUT_STATUS;
+import static io.yggdrash.common.config.Constants.TIMEOUT_TRANSACTION;
 
-public class EbftClientStub {
+public class EbftClientStub implements ConsensusClientStub<EbftBlock> {
 
     private boolean myclient;
     private final String addr;
@@ -27,7 +30,6 @@ public class EbftClientStub {
     private final int port;
     private final String id;
     private boolean isRunning;
-    private EbftStatus ebftStatus;
 
     private ManagedChannel channel;
     private final EbftServiceGrpc.EbftServiceBlockingStub blockingStub;
@@ -68,16 +70,21 @@ public class EbftClientStub {
         return pongTime.getTimestamp();
     }
 
+    @Override
+    public void multicastTransaction(Proto.Transaction protoTx) {
+        blockingStub.withDeadlineAfter(TIMEOUT_TRANSACTION, TimeUnit.SECONDS)
+                .multicastTransaction(protoTx);
+    }
+
     public EbftStatus exchangeNodeStatus(EbftProto.EbftStatus nodeStatus) {
-        this.ebftStatus =
-                new EbftStatus(blockingStub
-                        .withDeadlineAfter(TIMEOUT_STATUS, TimeUnit.SECONDS)
-                        .exchangeEbftStatus(nodeStatus));
+        EbftStatus ebftStatus = new EbftStatus(blockingStub
+                .withDeadlineAfter(TIMEOUT_STATUS, TimeUnit.SECONDS)
+                .exchangeEbftStatus(nodeStatus));
         if (Context.current().isCancelled()) {
             return null;
         }
 
-        return this.ebftStatus;
+        return ebftStatus;
     }
 
     public void multicastEbftBlock(EbftProto.EbftBlock block) {
@@ -90,7 +97,8 @@ public class EbftClientStub {
                 .broadcastEbftBlock(block);
     }
 
-    public List<EbftBlock> getEbftBlockList(long index) {
+    @Override
+    public List<EbftBlock> getBlockList(long index) {
         EbftProto.EbftBlockList protoEbftBlockList = blockingStub
                 .withDeadlineAfter(TIMEOUT_BLOCKLIST, TimeUnit.SECONDS)
                 .getEbftBlockList(
@@ -108,6 +116,7 @@ public class EbftClientStub {
         return newEbftBlockList;
     }
 
+    @Override
     public boolean isMyclient() {
         return myclient;
     }
@@ -116,26 +125,27 @@ public class EbftClientStub {
         this.myclient = myclient;
     }
 
+    @Override
     public String getAddr() {
         return addr;
     }
 
-    public String getAddress() {
-        return this.addr;
-    }
-
+    @Override
     public String getHost() {
         return host;
     }
 
+    @Override
     public int getPort() {
         return port;
     }
 
+    @Override
     public String getId() {
         return id;
     }
 
+    @Override
     public boolean isRunning() {
         return isRunning;
     }
@@ -144,6 +154,7 @@ public class EbftClientStub {
         this.isRunning = isRunning;
     }
 
+    @Override
     public ManagedChannel getChannel() {
         return channel;
     }
