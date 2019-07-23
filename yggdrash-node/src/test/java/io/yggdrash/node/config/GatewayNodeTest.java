@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@ActiveProfiles( {Constants.ActiveProfiles.GATEWAY, Constants.ActiveProfiles.NODE})
+@ActiveProfiles({Constants.ActiveProfiles.GATEWAY, Constants.ActiveProfiles.NODE})
 public class GatewayNodeTest extends TestConstants.CiTest {
 
     @Autowired

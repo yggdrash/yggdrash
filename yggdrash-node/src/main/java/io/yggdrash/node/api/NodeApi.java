@@ -26,7 +26,7 @@ public interface NodeApi {
      *
      * @return node status
      */
-    @JsonRpcErrors( {
+    @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.CODE)})
     NodeStatusDto getNodeStatus();

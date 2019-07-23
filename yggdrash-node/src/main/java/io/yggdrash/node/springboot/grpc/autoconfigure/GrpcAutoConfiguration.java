@@ -34,7 +34,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 
-@Profile( {Constants.ActiveProfiles.NODE, Constants.ActiveProfiles.BOOTSTRAP})
+@Profile({Constants.ActiveProfiles.NODE, Constants.ActiveProfiles.BOOTSTRAP})
 @AutoConfigureOrder
 @ConditionalOnBean(annotation = GrpcService.class)
 @EnableConfigurationProperties(GrpcServerProperties.class)

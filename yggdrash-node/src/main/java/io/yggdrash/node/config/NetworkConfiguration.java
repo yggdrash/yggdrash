@@ -80,7 +80,7 @@ public class NetworkConfiguration {
     /**
      * Scheduling Beans
      */
-    @Profile( {Constants.ActiveProfiles.NODE, Constants.ActiveProfiles.BOOTSTRAP})
+    @Profile({Constants.ActiveProfiles.NODE, Constants.ActiveProfiles.BOOTSTRAP})
     @Bean
     PeerTask peerTask() {
         return new PeerTask();
@@ -91,7 +91,7 @@ public class NetworkConfiguration {
         return new BlockChainSyncManager(nodeStatus, peerNetwork, branchGroup);
     }
 
-    @Profile( {Constants.ActiveProfiles.NODE, Constants.ActiveProfiles.BOOTSTRAP})
+    @Profile({Constants.ActiveProfiles.NODE, Constants.ActiveProfiles.BOOTSTRAP})
     @Bean
     @Primary
     public GrpcServerBuilderConfigurer configurer(BranchGroup branchGroup, SyncManager syncManager) {
