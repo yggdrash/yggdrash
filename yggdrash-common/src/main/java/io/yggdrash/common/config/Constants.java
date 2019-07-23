@@ -56,7 +56,7 @@ public final class Constants {
     public static final String YGGDRASH_NETWORK_ID = "yggdrash.network.id";
     public static final String YGGDRASH_NETWORK_P2P_VERSION = "yggdrash.network.p2p.version";
     public static final String YGGDRASH_KEY_PATH = "yggdrash.key.path";
-    public static final String YGGDRASH_KEY_PASSWORD = "yggdrash.key.password";
+    public static final String YGGDRASH_KEY_PASS = "yggdrash.key.password";
     public static final String YGGDRASH_DATABASE_PATH = "yggdrash.database.path";
     public static final String YGGDRASH_ADMIN_MODE = "yggdrash.admin.mode";
     public static final String YGGDRASH_ADMIN_PATH = "yggdrash.admin.path";
@@ -69,14 +69,14 @@ public final class Constants {
     public static final String YGGDRASH_BRANCH_PATH = "yggdrash.branch.path";
 
     public static final String NODE_KEY_PATH = "yggdrash.node.key.path";
-    public static final String NODE_KEY_PASSWORD = "yggdrash.node.key.password";
+    public static final String NODE_KEY_PASS = "yggdrash.node.key.password";
     public static final String NODE_GRPC_HOST = "yggdrash.node.grpc.host";
     public static final String NODE_GRPC_PORT = "yggdrash.node.grpc.port";
 
     public static final String VALIDATOR_PATH = "yggdrash.validator.path";
     public static final String VALIDATOR_DATABASE_PATH = "yggdrash.validator.database.path";
     public static final String VALIDATOR_KEY_PATH = "yggdrash.validator.key.path";
-    public static final String VALIDATOR_KEY_PASSWORD = "yggdrash.validator.key.password";
+    public static final String VALIDATOR_KEY_PASS = "yggdrash.validator.key.password";
 
     public static final String TIMEOUT_PING_PATH = "yggdrash.node.timeout.ping";
     public static final String TIMEOUT_BLOCK_PATH = "yggdrash.node.timeout.block";
@@ -86,6 +86,7 @@ public final class Constants {
     public static final long TIMEOUT_PING = 2;
     public static final long TIMEOUT_BLOCK = 3;
     public static final long TIMEOUT_BLOCKLIST = 10;
+    public static final long TIMEOUT_TRANSACTION = 3;
     public static final long TIMEOUT_STATUS = 5;
 
     public final class Limit {
