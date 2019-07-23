@@ -2,6 +2,9 @@ package io.yggdrash.core.blockchain.osgi;
 
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.SystemProperties;
+import io.yggdrash.core.blockchain.genesis.GenesisBlock;
+import io.yggdrash.core.blockchain.osgi.framework.BundleService;
+import io.yggdrash.core.blockchain.osgi.framework.FrameworkLauncher;
 import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.LogStore;
 import org.osgi.framework.launch.FrameworkFactory;
@@ -21,6 +24,11 @@ public class ContractManagerBuilder {
     private String databasePath;
     private String contractPath;
     private String contractRepositoryUrl;
+
+    private FrameworkLauncher frameworkLauncher;
+    private BundleService bundleService;
+    private DefaultConfig defaultConfig;
+    private GenesisBlock genesis;
 
     private ContractManagerBuilder() {
 
@@ -89,6 +97,26 @@ public class ContractManagerBuilder {
         return this;
     }
 
+    public ContractManagerBuilder withBundleManager(BundleService bundleService) {
+        this.bundleService = bundleService;
+        return this;
+    }
+
+    public ContractManagerBuilder withBootFramework(FrameworkLauncher bootFramework) {
+        this.frameworkLauncher = bootFramework;
+        return this;
+    }
+
+    public ContractManagerBuilder withDefaultConfig(DefaultConfig defaultConfig) {
+        this.defaultConfig = defaultConfig;
+        return this;
+    }
+
+    public ContractManagerBuilder withGenesis(GenesisBlock genesis) {
+        this.genesis = genesis;
+        return this;
+    }
+
     public ContractManager build() {
         if (this.frameworkFactory == null) {
             throw new IllegalStateException("Must set frameworkFactory");
@@ -112,7 +140,11 @@ public class ContractManagerBuilder {
                 this.contractPath,
                 this.systemProperties,
                 this.logStore,
-                this.contractRepositoryUrl);
+                this.contractRepositoryUrl,
+                this.frameworkLauncher,
+                this.bundleService,
+                this.defaultConfig,
+                this.genesis);
     }
 
 }

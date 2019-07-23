@@ -39,6 +39,9 @@ import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.blockchain.osgi.ContractManagerBuilder;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
+import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkConfig;
+import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkLauncher;
+import io.yggdrash.core.blockchain.osgi.framework.BundleServiceImpl;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.store.BlockChainStore;
@@ -163,18 +166,41 @@ public class BlockChainTestUtils {
         BlockChainStore bcStore = builder.build();
 
         ContractStore contractStore = bcStore.getContractStore();
-        ContractPolicyLoader contractPolicyLoader = new ContractPolicyLoader();
+        ContractPolicyLoader policyLoader = new ContractPolicyLoader();
+
+        BootFrameworkConfig bootFrameworkConfig = new BootFrameworkConfig(config, genesis.getBranchId());
+        BootFrameworkLauncher bootFrameworkLauncher = new BootFrameworkLauncher(bootFrameworkConfig);
+        BundleServiceImpl bundleService = new BundleServiceImpl();
 
         ContractManager contractManager = ContractManagerBuilder.newInstance()
-                .withFrameworkFactory(contractPolicyLoader.getFrameworkFactory())
-                .withContractManagerConfig(contractPolicyLoader.getContractManagerConfig())
-                .withBranchId(genesis.getBranch().getBranchId().toString())
+                .withFrameworkFactory(policyLoader.getFrameworkFactory())
+                .withContractManagerConfig(policyLoader.getContractManagerConfig())
+
+                .withBranchId(genesis.getBranchId().toString())
                 .withContractStore(contractStore)
-                .withDataBasePath(config.getDatabasePath())
                 .withOsgiPath(config.getOsgiPath())
+                .withDataBasePath(config.getDatabasePath())
                 .withContractPath(config.getContractPath())
                 .withLogStore(bcStore.getLogStore())
+                .withContractRepository(config.getContractRepositoryUrl())
+
+                .withGenesis(genesis)
+                .withBootFramework(bootFrameworkLauncher)
+                .withBundleManager(bundleService)
+                .withDefaultConfig(config)
                 .build();
+
+
+//        ContractManager contractManager = ContractManagerBuilder.newInstance()
+//                .withFrameworkFactory(contractPolicyLoader.getFrameworkFactory())
+//                .withContractManagerConfig(contractPolicyLoader.getContractManagerConfig())
+//                .withBranchId(genesis.getBranch().getBranchId().toString())
+//                .withContractStore(contractStore)
+//                .withDataBasePath(config.getDatabasePath())
+//                .withOsgiPath(config.getOsgiPath())
+//                .withContractPath(config.getContractPath())
+//                .withLogStore(bcStore.getLogStore())
+//                .build();
 
         BlockChainManager blockChainManager = new BlockChainManagerImpl(bcStore);
 

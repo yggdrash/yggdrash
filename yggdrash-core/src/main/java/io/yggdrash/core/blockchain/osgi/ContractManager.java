@@ -1,11 +1,16 @@
 package io.yggdrash.core.blockchain.osgi;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.genesis.GenesisBlock;
+import io.yggdrash.core.blockchain.osgi.framework.BundleService;
+import io.yggdrash.core.blockchain.osgi.framework.FrameworkLauncher;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
@@ -73,13 +78,19 @@ public class ContractManager {
     private final String contractPath;
     private final SystemProperties systemProperties;
     private final Map<String, String> fullLocation; // => Map<contractVersion, fullLocation>
-    private final Map<String, Object> serviceMap;
+    private final Map<String, Object> serviceMap; // contractVersion, service of bundle
 
     private ContractExecutor contractExecutor;
 
+    private final BundleService bundleService;
+    private HashMap<String, FrameworkLauncher> frameworkHashMap = new HashMap<>();
+    private final DefaultConfig defaultConfig;
+    private final GenesisBlock genesis;
+
     ContractManager(FrameworkFactory frameworkFactory, Map<String, String> contractManagerConfig,
                     String branchId, ContractStore contractStore, String osgiPath, String databasePath,
-                    String contractPath, SystemProperties systemProperties, LogStore logStore, String contractRepositoryUrl) {
+                    String contractPath, SystemProperties systemProperties, LogStore logStore, String contractRepositoryUrl,
+                    FrameworkLauncher frameworkLauncher, BundleService bundleService, DefaultConfig defaultConfig, GenesisBlock genesis) {
         this.frameworkFactory = frameworkFactory;
         this.commonContractManagerConfig = contractManagerConfig;
         this.branchId = branchId;
@@ -94,7 +105,125 @@ public class ContractManager {
         this.contractRepositoryUrl = contractRepositoryUrl;
         this.fullLocation = new HashMap<>();
         this.serviceMap = new HashMap<>();
-        newFramework();
+
+        // todo: remove This.
+        contractExecutor = new ContractExecutor(frameworkLauncher.getFramework(), contractStore, systemProperties, logStore);
+
+        this.frameworkHashMap.put(frameworkLauncher.getBranchId(), frameworkLauncher);
+        this.bundleService = bundleService;
+        this.defaultConfig = defaultConfig;
+        this.genesis = genesis;
+
+
+        initBootBundles();
+
+        setDefaultPermission(branchId);
+
+//        newFramework();
+
+    }
+    private void initBootBundles() {
+
+        List<BranchContract> branchContractList = this.getContractList();
+
+        if (branchContractList.isEmpty()) {
+            log.warn("This branch {} has no any contract information.", branchId);
+            return;
+        }
+
+        for (BranchContract branchContract : branchContractList) {
+            ContractVersion contractVersion = branchContract.getContractVersion();
+            // todo : file exist check & download & file validate
+
+            BundleContext context = frameworkHashMap.get(branchId).getBundleContext();
+
+            Bundle bundle = null;
+            try {
+                bundle = installTest(branchId, contractVersion, branchContract.isSystem());
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (BundleException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                bundleService.start(context, contractVersion);
+            } catch (BundleException e) {
+                e.printStackTrace();
+            }
+
+            ServiceReference ref = bundle.getRegisteredServices()[0];
+            Object obj = context.getService(ref);
+
+            serviceMap.put(contractVersion.toString(), obj);
+
+            try {
+                inject(context, bundle);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+
+            log.debug("{}",obj);
+        }
+
+    }
+
+    private List<BranchContract> getContractList() {
+        if (contractStore.getBranchStore().getBranchContacts().isEmpty()) {
+            return genesis.getBranch().getBranchContracts();
+        }
+        return contractStore.getBranchStore().getBranchContacts();
+
+    }
+
+    // test Code
+    private void inject(BundleContext context, Bundle bundle) throws IllegalAccessException {
+        ServiceReference<?>[] serviceRefs = bundle.getRegisteredServices();
+        if (serviceRefs == null) {
+            return;
+        }
+
+        boolean isSystemContract = bundle.getLocation()
+                .startsWith(SUFFIX_SYSTEM_CONTRACT);
+
+        for (ServiceReference serviceRef : serviceRefs) {
+            Object service = context.getService(serviceRef);
+
+            contractExecutor.injectFields(bundle, service, isSystemContract);
+        }
+    }
+
+
+    public void addFramework(FrameworkLauncher launcher) {
+        this.frameworkHashMap.put(launcher.getBranchId(), launcher);
+    }
+
+    private BundleContext findBundleContext(String branchId) {
+        return this.frameworkHashMap.get(branchId).getBundleContext();
+    }
+
+    public Bundle installTest(String branchId, ContractVersion contractVersion, boolean isSystem) throws IOException, BundleException {
+        File contractFile = new File(defaultConfig.getContractPath() + File.separator + contractVersion + ".jar");
+
+
+        return bundleService.install(findBundleContext(branchId), contractVersion, contractFile, isSystem);
+
+    }
+
+    public void uninstallTest(String branchId, ContractVersion contractVersion) {
+        try {
+            bundleService.uninstall(findBundleContext(branchId), contractVersion);
+        } catch (BundleException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    public void startTest() {
+
+    }
+
+    public void stopTest() {
+
     }
 
     public Long getStateSize() { // TODO for BranchController -> remove this
@@ -164,6 +293,7 @@ public class ContractManager {
         Map<String, String> contractManagerConfig = new HashMap<>();
         contractManagerConfig.put("org.osgi.framework.storage", managerPath);
         contractManagerConfig.putAll(commonContractManagerConfig);
+
         if (System.getSecurityManager() != null) {
             contractManagerConfig.remove("org.osgi.framework.security");
         }
@@ -183,7 +313,8 @@ public class ContractManager {
     }
 
     private void setDefaultPermission(String branchId) {
-        BundleContext context = framework.getBundleContext();
+//        BundleContext context = framework.getBundleContext();
+        BundleContext context = frameworkHashMap.get(branchId).getBundleContext();
         String permissionKey = String.format("%s-container-permission", branchId);
 
 
@@ -303,8 +434,6 @@ public class ContractManager {
 
         } catch (IOException e) {
             log.error("Contract file don't Load [{}]", e.getMessage()); //TODO Throw Runtime exception
-
-
             return bundleId;
         }
         bundleId = install(contract, contractFile, isSystem);
@@ -312,6 +441,7 @@ public class ContractManager {
     }
 
     public void reloadInject() throws IllegalAccessException {
+
         // TODO load After call
         for (Bundle bundle : framework.getBundleContext().getBundles()) {
             setFullLocation(bundle.getLocation()); // Cache the full location of an existing bundle.
@@ -484,18 +614,27 @@ public class ContractManager {
         }
     }
 
+    public Object query(String branchId, String contractVersion, String methodName, JsonObject params) {
+
+        Bundle bundle = bundleService.getBundle(findBundleContext(branchId), contractVersion);
+        return bundle != null ? contractExecutor.query(contractVersion, serviceMap.get(contractVersion), methodName, params) : null;
+    }
+
+
     public Object query(String contractVersion, String methodName, JsonObject params) {
+
         Bundle bundle = getBundle(contractVersion);
+
         return bundle != null ? contractExecutor.query(contractVersion, getService(bundle), methodName, params) : null;
     }
 
     public BlockRuntimeResult executeTxs(ConsensusBlock nextBlock) {
-        nextBlock.getBody().getTransactionList().forEach(tx -> registerContract(getContractVersion(tx)));
+//        nextBlock.getBody().getTransactionList().forEach(tx -> registerContract(getContractVersion(tx)));
         return contractExecutor.executeTxs(serviceMap, nextBlock);
     }
 
     public TransactionRuntimeResult executeTx(Transaction tx) {
-        registerContract(getContractVersion(tx));
+//        registerContract(getContractVersion(tx));
         return contractExecutor.executeTx(serviceMap, tx);
     }
 

@@ -69,7 +69,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             log.error("This branch {} has no any contract information.", getBranch().getBranchId());
         }
 
-        initContract();
+//        initContract();
 
         // getGenesis Block by Store
         Sha3Hash blockHash = branchStore.getGenesisBlockHash();
@@ -136,6 +136,8 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         // TODO new Validators
         //branchStore.setValidators(branch.getValidators());
         branchStore.setBranchContracts(branch.getBranchContracts());
+
+
     }
 
     private void loadTransaction() {
@@ -292,6 +294,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     @Override
     public List<BranchContract> getBranchContracts() {
         if (this.branchStore.getBranchContacts().isEmpty()) {
+//            branchStore.setBranchContracts(branch.getBranchContracts());
             return branch.getBranchContracts();
         } else {
             return this.branchStore.getBranchContacts();

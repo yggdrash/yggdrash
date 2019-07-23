@@ -30,6 +30,9 @@ import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.blockchain.osgi.ContractManagerBuilder;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
+import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkConfig;
+import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkLauncher;
+import io.yggdrash.core.blockchain.osgi.framework.BundleServiceImpl;
 import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
@@ -157,9 +160,12 @@ public class BranchConfiguration {
 
         BlockChainManager blockChainManager = new BlockChainManagerImpl(blockChainStore);
 
+
+
         ContractManager contractManager = ContractManagerBuilder.newInstance()
                 .withFrameworkFactory(policyLoader.getFrameworkFactory())
                 .withContractManagerConfig(policyLoader.getContractManagerConfig())
+
                 .withBranchId(branchId.toString())
                 .withContractStore(contractStore)
                 .withOsgiPath(config.getOsgiPath())
@@ -168,6 +174,11 @@ public class BranchConfiguration {
                 .withSystemProperties(systemProperties)
                 .withLogStore(blockChainStore.getLogStore())
                 .withContractRepository(config.getContractRepositoryUrl())
+
+                .withGenesis(genesis)
+                .withBootFramework(new BootFrameworkLauncher(new BootFrameworkConfig(config, branchId)))
+                .withBundleManager(new BundleServiceImpl())
+                .withDefaultConfig(config)
                 .build();
 
         return BlockChainBuilder.newBuilder()
