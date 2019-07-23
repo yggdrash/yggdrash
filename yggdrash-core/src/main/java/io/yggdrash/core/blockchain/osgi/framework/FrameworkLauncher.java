@@ -4,7 +4,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.ServiceLoader;
 
 public interface FrameworkLauncher {
@@ -13,7 +13,7 @@ public interface FrameworkLauncher {
 
     void launch(FrameworkConfig frameworkConfig);
 
-    HashMap<String, String> getConfig();
+    Map<String, String> getConfig();
 
     String getBranchId();
 

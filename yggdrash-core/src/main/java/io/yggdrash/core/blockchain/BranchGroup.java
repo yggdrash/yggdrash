@@ -158,7 +158,8 @@ public class BranchGroup {
 
     // not yet implemented
     public Object tmpQuery(BranchId branchId, String contractVersion, String method, JsonObject params) {
-        return branches.get(branchId).getContractManager().query(contractVersion, method, params);
+//        return branches.get(branchId).getContractManager().query(contractVersion, method, params);
+        return null;
     }
 
     public long countOfTxs(BranchId branchId) {

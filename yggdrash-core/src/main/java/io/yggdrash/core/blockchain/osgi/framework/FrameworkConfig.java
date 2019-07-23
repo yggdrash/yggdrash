@@ -1,6 +1,6 @@
 package io.yggdrash.core.blockchain.osgi.framework;
 
-import java.util.HashMap;
+import java.util.Map;
 
 public interface FrameworkConfig {
 
@@ -8,6 +8,6 @@ public interface FrameworkConfig {
 
     void remove(String key);
 
-    HashMap<String, String> getConfig();
+    Map<String, String> getConfig();
 
 }

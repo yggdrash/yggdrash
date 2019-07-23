@@ -11,7 +11,6 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
-import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
@@ -43,8 +42,7 @@ public class ValidatorConfiguration {
 
     @Bean
     public Map<BranchId, List<ValidatorService>> validatorServiceMap(BranchLoader branchLoader,
-                                                                     DefaultConfig defaultConfig,
-                                                                     ContractPolicyLoader policyLoader) {
+                                                                     DefaultConfig defaultConfig) {
 
         Map<BranchId, List<ValidatorService>> validatorServiceMap = new HashMap<>();
         File validatorPath = new File(defaultConfig.getValidatorPath());
@@ -57,7 +55,7 @@ public class ValidatorConfiguration {
             }
             GenesisBlock genesis = genesisBlock.get();
             List<ValidatorService> validatorServiceList =
-                    loadValidatorService(branchPath, genesis, genesis.getConsensus(), defaultConfig, policyLoader);
+                    loadValidatorService(branchPath, genesis, genesis.getConsensus(), defaultConfig);
             validatorServiceMap.put(genesis.getBranchId(), validatorServiceList);
         }
 
@@ -77,8 +75,7 @@ public class ValidatorConfiguration {
     }
 
     private List<ValidatorService> loadValidatorService(File branchPath, GenesisBlock genesis, Consensus consensus,
-                                                        DefaultConfig defaultConfig,
-                                                        ContractPolicyLoader policyLoader) {
+                                                        DefaultConfig defaultConfig) {
 
         List<ValidatorService> validatorServiceList = new ArrayList<>();
         for (File validatorServicePath : Objects.requireNonNull(branchPath.listFiles())) {
@@ -105,7 +102,7 @@ public class ValidatorConfiguration {
                 BlockChainStore blockChainStore = builder.build();
 
                 BlockChain blockChain = BranchConfiguration.getBlockChain(defaultConfig,
-                        genesis, blockChainStore, policyLoader,
+                        genesis, blockChainStore,
                         branchId, systemProperties);
 
                 validatorServiceList.add(new ValidatorService(mergedConfig, blockChain));

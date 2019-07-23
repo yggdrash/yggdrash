@@ -7,23 +7,12 @@ import io.yggdrash.core.blockchain.osgi.framework.BundleService;
 import io.yggdrash.core.blockchain.osgi.framework.FrameworkLauncher;
 import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.LogStore;
-import org.osgi.framework.launch.FrameworkFactory;
-
-import java.util.Map;
 
 public class ContractManagerBuilder {
-    private FrameworkFactory frameworkFactory;
-    private Map<String, String> contractManagerConfig;
-    private String branchId;
     private ContractStore contractStore;
     private LogStore logStore;
 
     private SystemProperties systemProperties;
-
-    private String osgiPath;
-    private String databasePath;
-    private String contractPath;
-    private String contractRepositoryUrl;
 
     private FrameworkLauncher frameworkLauncher;
     private BundleService bundleService;
@@ -38,21 +27,6 @@ public class ContractManagerBuilder {
         return new ContractManagerBuilder();
     }
 
-    public ContractManagerBuilder withFrameworkFactory(FrameworkFactory frameworkFactory) {
-        this.frameworkFactory = frameworkFactory;
-        return this;
-    }
-
-    public ContractManagerBuilder withContractManagerConfig(Map<String, String> contractManagerConfig) {
-        this.contractManagerConfig = contractManagerConfig;
-        return this;
-    }
-
-    public ContractManagerBuilder withBranchId(String branchId) {
-        this.branchId = branchId;
-        return this;
-    }
-
     public ContractManagerBuilder withContractStore(ContractStore contractStore) {
         this.contractStore = contractStore;
         return this;
@@ -64,36 +38,9 @@ public class ContractManagerBuilder {
         return this;
     }
 
-    @Deprecated
-    public ContractManagerBuilder withConfig(DefaultConfig config) {
-        this.osgiPath = config.getOsgiPath();
-        this.databasePath = config.getDatabasePath();
-        this.contractPath = config.getContractPath();
-        return this;
-    }
-
-    public ContractManagerBuilder withOsgiPath(String osgiPath) {
-        this.osgiPath = osgiPath;
-        return this;
-    }
-
-    public ContractManagerBuilder withDataBasePath(String databasePath) {
-        this.databasePath = databasePath;
-        return this;
-    }
-
-    public ContractManagerBuilder withContractPath(String contractPath) {
-        this.contractPath = contractPath;
-        return this;
-    }
 
     public ContractManagerBuilder withSystemProperties(SystemProperties systemProperties) {
         this.systemProperties = systemProperties;
-        return this;
-    }
-
-    public ContractManagerBuilder withContractRepository(String contractRepositoryUrl) {
-        this.contractRepositoryUrl = contractRepositoryUrl;
         return this;
     }
 
@@ -118,33 +65,23 @@ public class ContractManagerBuilder {
     }
 
     public ContractManager build() {
-        if (this.frameworkFactory == null) {
-            throw new IllegalStateException("Must set frameworkFactory");
+        if (this.frameworkLauncher == null) {
+            throw new IllegalStateException("Must set frameworkLauncher");
         }
 
-        if (this.contractManagerConfig == null) {
-            throw new IllegalStateException("Must set common contractManagerConfigConfig");
-        }
-
-        if (this.branchId == null) {
-            throw new IllegalStateException("Must set branchId");
+        if (this.genesis == null) {
+            throw new IllegalStateException("Must set genesis");
         }
 
         return new ContractManager(
-                this.frameworkFactory,
-                this.contractManagerConfig,
-                this.branchId,
-                this.contractStore,
-                this.osgiPath,
-                this.databasePath,
-                this.contractPath,
-                this.systemProperties,
-                this.logStore,
-                this.contractRepositoryUrl,
+                this.genesis,
                 this.frameworkLauncher,
                 this.bundleService,
                 this.defaultConfig,
-                this.genesis);
+                this.contractStore,
+                this.logStore,
+                this.systemProperties
+                );
     }
 
 }

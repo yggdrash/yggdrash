@@ -6,7 +6,7 @@ import org.osgi.framework.launch.Framework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
+import java.util.Map;
 
 public class BootFrameworkLauncher implements FrameworkLauncher {
     private Framework framework;
@@ -22,6 +22,7 @@ public class BootFrameworkLauncher implements FrameworkLauncher {
     public void launch(FrameworkConfig frameworkConfig) {
 
         this.framework = frameworkFactory.newFramework(frameworkConfig.getConfig());
+
         try {
             this.framework.start();
         } catch (BundleException e) {
@@ -31,7 +32,7 @@ public class BootFrameworkLauncher implements FrameworkLauncher {
     }
 
     @Override
-    public HashMap<String, String> getConfig() {
+    public Map<String, String> getConfig() {
         return null;
     }
 

@@ -17,17 +17,19 @@ public interface BundleService {
 
     void start(BundleContext context, ContractVersion contractVersion) throws BundleException;
 
+    void start(Bundle bundle) throws BundleException;
+
     void stop(BundleContext context,  ContractVersion contractVersion) throws BundleException;
 
-    int getBundleState(BundleContext context,  ContractVersion contractVersion) throws BundleException;
+    int getBundleState(BundleContext context,  ContractVersion contractVersion);
+
+    Bundle getBundle(BundleContext context, ContractVersion contractVersion);
 
     Bundle getBundle(BundleContext context, long bundleId);
 
     Bundle getBundle(BundleContext context, String contractVersion);
 
-    void setDefaultPermission(String branchId);
-
-    void inject();
+//    void setDefaultPermission(BundleContext context, String branchId);
 
 
 }

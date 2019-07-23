@@ -5,7 +5,11 @@ import io.yggdrash.core.blockchain.BranchId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.Permission;
+import java.security.Policy;
+import java.security.ProtectionDomain;
 import java.util.HashMap;
+import java.util.Map;
 
 public class BootFrameworkConfig implements FrameworkConfig {
     private static final Logger log = LoggerFactory.getLogger(BootFrameworkConfig.class);
@@ -39,9 +43,18 @@ public class BootFrameworkConfig implements FrameworkConfig {
 
 
 
-    private HashMap<String, String> config;
+    private Map<String, String> config;
 
     public BootFrameworkConfig(DefaultConfig defaultConfig, BranchId branchId) {
+
+        Policy.setPolicy(new Policy() {
+            @Override
+            public boolean implies(ProtectionDomain domain, Permission permission) {
+                return true;
+            }
+        });
+
+
         this.config = new HashMap<>();
         this.config.put("org.osgi.framework.system.packages.extra", EXTRA_PACKAGES);
         this.config.put("org.osgi.framework.security", "osgi");
@@ -65,7 +78,7 @@ public class BootFrameworkConfig implements FrameworkConfig {
     }
 
     @Override
-    public HashMap<String, String> getConfig() {
+    public Map<String, String> getConfig() {
         return this.config;
     }
 }

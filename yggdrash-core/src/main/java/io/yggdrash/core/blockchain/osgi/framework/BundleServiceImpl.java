@@ -33,8 +33,7 @@ public class BundleServiceImpl implements BundleService {
             bundle.uninstall();
             return;
         }
-        log.warn("not found bundle contract version {} in osgi ", contractVersion);
-
+        log.warn("not found bundle {} in osgi ", contractVersion);
     }
 
     @Override
@@ -44,8 +43,12 @@ public class BundleServiceImpl implements BundleService {
             bundle.start();
             return;
         }
-        log.warn("not found bundle contract version {} in osgi ", contractVersion);
+        log.warn("not found bundle {} in osgi ", contractVersion);
+    }
 
+    @Override
+    public void start(Bundle bundle) throws BundleException {
+        bundle.start();
     }
 
     @Override
@@ -59,7 +62,7 @@ public class BundleServiceImpl implements BundleService {
     }
 
     @Override
-    public int getBundleState(BundleContext context,  ContractVersion contractVersion) throws BundleException {
+    public int getBundleState(BundleContext context,  ContractVersion contractVersion) {
         Bundle bundle = findBundleByContractVersion(context, contractVersion);
         if (bundle != null) {
             return bundle.getState();
@@ -74,18 +77,13 @@ public class BundleServiceImpl implements BundleService {
     }
 
     @Override
-    public Bundle getBundle(BundleContext context, String contractVersion) {
+    public Bundle getBundle(BundleContext context, ContractVersion contractVersion) {
         return findBundleByContractVersion(context, contractVersion);
     }
 
     @Override
-    public void setDefaultPermission(String branchId) {
-
-    }
-
-    @Override
-    public void inject() {
-
+    public Bundle getBundle(BundleContext context, String contractVersion) {
+        return findBundleByContractVersion(context, contractVersion);
     }
 
     private String location(boolean isSystme, ContractVersion contractVersion) {
