@@ -7,8 +7,10 @@ import io.grpc.StatusRuntimeException;
 import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
+import io.yggdrash.proto.Proto;
 import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftStatus;
+import io.yggdrash.validator.service.ConsensusClientStub;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
@@ -19,8 +21,9 @@ import static io.yggdrash.common.config.Constants.TIMEOUT_BLOCK;
 import static io.yggdrash.common.config.Constants.TIMEOUT_BLOCKLIST;
 import static io.yggdrash.common.config.Constants.TIMEOUT_PING;
 import static io.yggdrash.common.config.Constants.TIMEOUT_STATUS;
+import static io.yggdrash.common.config.Constants.TIMEOUT_TRANSACTION;
 
-public class PbftClientStub {
+public class PbftClientStub implements ConsensusClientStub<PbftBlock> {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftClientStub.class);
 
@@ -30,12 +33,11 @@ public class PbftClientStub {
     private final int port;
     private final String id;
     private boolean isRunning;
-    private PbftStatus pbftStatus;
 
     private ManagedChannel channel;
     private PbftServiceGrpc.PbftServiceBlockingStub blockingStub;
 
-    public PbftClientStub(String addr, String host, int port) {
+    PbftClientStub(String addr, String host, int port) {
         this.addr = addr;
         this.host = host;
         this.port = port;
@@ -61,16 +63,23 @@ public class PbftClientStub {
         }
     }
 
-    public void multicastPbftMessage(PbftProto.PbftMessage pbftMessage) {
+    @Override
+    public void multicastTransaction(Proto.Transaction protoTx) {
+        blockingStub.withDeadlineAfter(TIMEOUT_TRANSACTION, TimeUnit.SECONDS)
+                .multicastTransaction(protoTx);
+    }
+
+    void multicastPbftMessage(PbftProto.PbftMessage pbftMessage) {
         blockingStub.withDeadlineAfter(TIMEOUT_BLOCK, TimeUnit.SECONDS)
                 .multicastPbftMessage(pbftMessage);
     }
 
-    public void broadcastPbftBlock(PbftProto.PbftBlock pbftBlock) {
+    void broadcastPbftBlock(PbftProto.PbftBlock pbftBlock) {
         blockingStub.withDeadlineAfter(TIMEOUT_BLOCK, TimeUnit.SECONDS)
                 .broadcastPbftBlock(pbftBlock);
     }
 
+    @Override
     public List<PbftBlock> getBlockList(long index) {
         log.trace("getBlockList with {}", this.id);
 
@@ -81,7 +90,7 @@ public class PbftClientStub {
                             CommonProto.Offset.newBuilder().setIndex(index).setCount(10L).build());
 
             if (Context.current().isCancelled()) {
-                return null;
+                return new ArrayList<>();
             }
 
             List<PbftBlock> newPbftBlockList = new ArrayList<>();
@@ -93,7 +102,7 @@ public class PbftClientStub {
 
         } catch (Exception e) {
             log.debug(e.getMessage());
-            return null;
+            return new ArrayList<>();
         }
     }
 
@@ -125,8 +134,9 @@ public class PbftClientStub {
     public PbftStatus exchangePbftStatus(PbftProto.PbftStatus pbftStatus) {
         log.trace("exchangePbftStatus with {}", this.id);
 
+        PbftStatus pbftStatus1;
         try {
-            this.pbftStatus = new PbftStatus(blockingStub
+            pbftStatus1 = new PbftStatus(blockingStub
                     .withDeadlineAfter(TIMEOUT_STATUS, TimeUnit.SECONDS)
                     .exchangePbftStatus(pbftStatus));
             if (Context.current().isCancelled()) {
@@ -137,13 +147,14 @@ public class PbftClientStub {
             return null;
         }
 
-        return this.pbftStatus;
+        return pbftStatus1;
     }
 
     public void shutdown() throws InterruptedException {
         channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
     }
 
+    @Override
     public boolean isMyclient() {
         return myclient;
     }
@@ -152,22 +163,27 @@ public class PbftClientStub {
         this.myclient = myclient;
     }
 
+    @Override
     public String getAddr() {
         return addr;
     }
 
+    @Override
     public String getHost() {
         return host;
     }
 
+    @Override
     public int getPort() {
         return port;
     }
 
+    @Override
     public String getId() {
         return id;
     }
 
+    @Override
     public boolean isRunning() {
         return isRunning;
     }
@@ -176,6 +192,7 @@ public class PbftClientStub {
         this.isRunning = isRunning;
     }
 
+    @Override
     public ManagedChannel getChannel() {
         return channel;
     }
