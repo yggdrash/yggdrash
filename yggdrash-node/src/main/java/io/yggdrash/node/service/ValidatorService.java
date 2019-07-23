@@ -60,7 +60,7 @@ public class ValidatorService {
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
                             .addService(new PbftServerStub(pbftService))
-                            .addService(new TransactionServiceStub(blockChain))
+                            .addService(new TransactionServiceStub(blockChain, pbftService))
                             .build()
                             .start();
                 } catch (IOException e) {
@@ -73,7 +73,7 @@ public class ValidatorService {
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
                             .addService(new EbftServerStub(ebftService))
-                            .addService(new TransactionServiceStub(blockChain))
+                            .addService(new TransactionServiceStub(blockChain, ebftService))
                             .build()
                             .start();
                 } catch (IOException e) {
