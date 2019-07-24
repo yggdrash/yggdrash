@@ -272,6 +272,9 @@ public class ContractExecutorTest {
 
         this.executor = manager.getContractExecutor();
 
+        List<ContractStatus> contractStatusList = manager.searchContracts(branchId.toString());
+        Assert.assertTrue(2 >= contractStatusList.size());
+
         for (ContractStatus cs : manager.searchContracts(branchId.toString())) {
             String bundleSymbolicName = cs.getSymbolicName();
             byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(bundleSymbolicName.getBytes());
@@ -348,8 +351,8 @@ public class ContractExecutorTest {
 
         List<Transaction> txList = genesisBlock.getBody().getTransactionList();
         Map<String, Object> serviceMap = manager.getServiceMap();
-        String contractVersion = txList.get(0).getBody().getBody().get("contractVersion").getAsString();
-        Object service = serviceMap.get(contractVersion);
+        String version = txList.get(0).getBody().getBody().get("contractVersion").getAsString();
+        Object service = serviceMap.get(version);
 
         assertEquals(1, txList.size());
         assertEquals(1, serviceMap.size());

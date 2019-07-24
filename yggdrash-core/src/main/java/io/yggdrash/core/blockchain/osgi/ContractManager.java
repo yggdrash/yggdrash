@@ -130,6 +130,8 @@ public class ContractManager {
                 log.error("ContractFile {} failed to install with {}", contractVersion, e.getMessage());
             }
 
+            assert bundle != null;
+
             if (bundle != null) {
                 try {
                     startTest(bundle);
