@@ -177,6 +177,15 @@ public class ContractManager {
         }
     }
 
+    public Bundle getBundle(String branchId, ContractVersion contractVersion) {
+        return bundleService.getBundle(findBundleContext(branchId), contractVersion);
+    }
+
+    public Bundle[] getBundles(String branchId) {
+        // todo : impl to bundle service
+        return findBundleContext(branchId).getBundles();
+    }
+
     public void addFramework(FrameworkLauncher launcher) {
         this.frameworkHashMap.put(launcher.getBranchId(), launcher);
     }
@@ -528,4 +537,7 @@ public class ContractManager {
         log.info("Load complete policy: branchID - {}, isSuccess - {}", branchId, isSuccess);
     }
 
+    public Map<String, Object> getServiceMap() {
+        return serviceMap;
+    }
 }

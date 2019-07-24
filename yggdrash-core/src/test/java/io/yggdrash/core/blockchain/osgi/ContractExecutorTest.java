@@ -49,6 +49,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +60,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -90,7 +92,7 @@ public class ContractExecutorTest {
 
         generateGenesisBlock();
         buildExecutor();
-        createBundle();
+//        createBundle();
         initGenesis(); //alloc process (executeTxs)
     }
 
@@ -267,6 +269,10 @@ public class ContractExecutorTest {
                 .build();
 
         this.executor = manager.getContractExecutor();
+
+        Bundle bundle = manager.getBundle(branchId.toString(), genesis.getBranch().getBranchContracts().get(0).getContractVersion());
+        setNamespace(bundle.getSymbolicName());
+
     }
 
     private void createBundle() throws Exception {
@@ -306,14 +312,6 @@ public class ContractExecutorTest {
         return false;
     }
 
-    private void getGenesis() {
-        String filePath = Objects.requireNonNull(
-                getClass().getClassLoader().getResource("branch-coin.json")).getFile();
-        File coinBranchFile = new File(filePath);
-        this.genesis = BlockChainTestUtils.getGenesis();
-
-    }
-
     private void generateGenesisBlock() throws IOException {
         String filePath = Objects.requireNonNull(
                 getClass().getClassLoader().getResource("branch-coin.json")).getFile();
@@ -325,6 +323,16 @@ public class ContractExecutorTest {
     }
 
     private void initGenesis() {
+
+        List<Transaction> txList = genesisBlock.getBody().getTransactionList();
+        Map<String, Object> serviceMap = manager.getServiceMap();
+        String contractVersion = txList.get(0).getBody().getBody().get("contractVersion").getAsString();
+        Object service = serviceMap.get(contractVersion);
+
+        assertEquals(1 ,txList.size());
+        assertEquals(1, serviceMap.size());
+        assert service != null;
+
         BlockRuntimeResult res = manager.executeTxs(genesisBlock);
         TransactionReceipt receipt = res.getTxReceipts().get(0);
 
@@ -373,6 +381,13 @@ public class ContractExecutorTest {
         JsonObject txBody = ContractTestUtils.transferTxBodyJson(TestConstants.TRANSFER_TO, amount, contractVersion);
         TransactionBuilder builder = new TransactionBuilder();
         return builder.setTxBody(txBody).setWallet(wallet).setBranchId(branchId).build();
+    }
+
+    private void setNamespace(String symbolicName) {
+        byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(symbolicName.getBytes());
+        this.namespace = new String(Base64.encodeBase64(bundleSymbolicSha3));
+        log.debug("bundleSymbolicName {} , nameSpace {}", symbolicName, this.namespace);
+
     }
 
     private String getNamespaceKey(String key) {
