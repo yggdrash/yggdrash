@@ -110,19 +110,18 @@ public class EbftBlockKeyStoreTest {
 
         LevelDbDataSource ds;
         EbftBlockKeyStore blockKeyStore;
-        EbftBlock ebftBlock;
 
         StoreTestUtils.clearTestDb();
 
         ds = new LevelDbDataSource(StoreTestUtils.getTestPath(), "ebftBlockKeyStoreTest2");
         blockKeyStore = new EbftBlockKeyStore(ds);
 
+        EbftBlock ebftBlock;
         ebftBlock = makeEbftBlock(0L, EMPTY_HASH);
 
         blockKeyStore.put(ebftBlock.getIndex(), ebftBlock.getHash().getBytes());
 
         System.gc();
-        Thread.sleep(5000);
 
         long testNumber = 1000;
         byte[] result;
@@ -137,7 +136,6 @@ public class EbftBlockKeyStoreTest {
         assertEquals(blockKeyStore.size(), testNumber);
 
         System.gc();
-        Thread.sleep(5000);
     }
 
     @Test

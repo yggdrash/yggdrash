@@ -74,6 +74,8 @@ public final class Constants {
     public static final String NODE_GRPC_PORT = "yggdrash.node.grpc.port";
 
     public static final String VALIDATOR_PATH = "yggdrash.validator.path";
+    public static final String VALIDATOR_INFO = "yggdrash.validator.info";
+    public static final String VALIDATOR_PROXYNODE = "yggdrash.validator.proxyNode";
     public static final String VALIDATOR_DATABASE_PATH = "yggdrash.validator.database.path";
     public static final String VALIDATOR_KEY_PATH = "yggdrash.validator.key.path";
     public static final String VALIDATOR_KEY_PASSWORD = "yggdrash.validator.key.password";
@@ -86,6 +88,7 @@ public final class Constants {
     public static final long TIMEOUT_PING = 2;
     public static final long TIMEOUT_BLOCK = 3;
     public static final long TIMEOUT_BLOCKLIST = 10;
+    public static final long TIMEOUT_TRANSACTION = 3;
     public static final long TIMEOUT_STATUS = 5;
 
     public final class Limit {

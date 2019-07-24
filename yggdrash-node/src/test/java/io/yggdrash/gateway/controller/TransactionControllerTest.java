@@ -55,7 +55,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
 @SpringBootTest(classes = YggdrashNodeApp.class)
-@ActiveProfiles( {Constants.ActiveProfiles.GATEWAY, Constants.ActiveProfiles.NODE})
+@ActiveProfiles({Constants.ActiveProfiles.GATEWAY, Constants.ActiveProfiles.NODE})
 public class TransactionControllerTest extends TestConstants.CiTest {
 
     private String basePath;

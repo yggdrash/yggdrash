@@ -131,7 +131,7 @@ public interface TransactionApi {
      * @param branchId branchId
      * @return The pending transaction hash list
      */
-    @JsonRpcErrors( {
+    @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.CODE)})
     List<String> getPendingTransactionList(@JsonRpcParam(value = BRANCH_ID) String branchId);

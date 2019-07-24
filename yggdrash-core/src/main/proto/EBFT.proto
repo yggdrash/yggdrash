@@ -41,4 +41,7 @@ service EbftService {
 
     rpc broadcastEbftBlock (EbftBlock) returns (Empty) {
     }
+
+    rpc multicastTransaction (Transaction) returns (Empty) {
+    }
 }

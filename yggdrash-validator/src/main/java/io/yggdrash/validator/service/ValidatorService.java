@@ -62,7 +62,7 @@ public class ValidatorService {
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
                             .addService(new PbftServerStub((PbftService) consensusService))
-                            .addService(new TransactionServiceStub(blockChain))
+                            .addService(new TransactionServiceStub(blockChain, consensusService))
                             .build()
                             .start();
                 } catch (IOException e) {
@@ -75,7 +75,7 @@ public class ValidatorService {
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
                             .addService(new EbftServerStub((EbftService) consensusService))
-                            .addService(new TransactionServiceStub(blockChain))
+                            .addService(new TransactionServiceStub(blockChain, consensusService))
                             .build()
                             .start();
                 } catch (IOException e) {
@@ -104,13 +104,10 @@ public class ValidatorService {
     private ConsensusBlockChain consensusBlockChain() {
         String algorithm = consensus.getAlgorithm();
         String dbPath = defaultConfig.getDatabasePath();
-        String host = this.host;
-        int port = this.port;
         String chain = genesisBlock.getBranchId().toString();
 
         String keyStorePath = host + "_" + port + File.separator + chain + File.separator + algorithm + "Key";
         String blockStorePath = host + "_" + port + File.separator + chain + File.separator + algorithm + "Block";
-        String txStorePath = host + "_" + port + File.separator + chain + File.separator + algorithm + "Tx";
 
         switch (algorithm) {
             case "pbft":
