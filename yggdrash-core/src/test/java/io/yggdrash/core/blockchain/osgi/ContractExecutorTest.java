@@ -92,7 +92,7 @@ public class ContractExecutorTest {
         generateGenesisBlock();
 
         buildExecutor();
-        createBundle();
+//        createBundle();
         initGenesis(); //alloc process (executeTxs)
     }
 
@@ -272,6 +272,18 @@ public class ContractExecutorTest {
 
         this.executor = manager.getContractExecutor();
 
+        for (ContractStatus cs : manager.searchContracts(branchId.toString())) {
+            String bundleSymbolicName = cs.getSymbolicName();
+            byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(bundleSymbolicName.getBytes());
+            this.namespace = new String(Base64.encodeBase64(bundleSymbolicSha3));
+
+            log.debug("Description {}", cs.getDescription());
+            log.debug("Location {}", cs.getLocation());
+            log.debug("SymbolicName {}", cs.getSymbolicName());
+            log.debug("Version {}", cs.getVersion());
+            log.debug(Long.toString(cs.getId()));
+        }
+
 //        Bundle bundle = manager.getBundle(branchId.toString(), contractVersion);
 //        List<ContractStatus> csList = manager.searchContracts(branchId.toString());
 
@@ -300,17 +312,17 @@ public class ContractExecutorTest {
 //            manager.reloadInject();
 //        }
 
-//        for (ContractStatus cs : manager.searchContracts(branchId.toString())) {
-//            String bundleSymbolicName = cs.getSymbolicName();
-//            byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(bundleSymbolicName.getBytes());
-//            this.namespace = new String(Base64.encodeBase64(bundleSymbolicSha3));
-//
-//            log.debug("Description {}", cs.getDescription());
-//            log.debug("Location {}", cs.getLocation());
-//            log.debug("SymbolicName {}", cs.getSymbolicName());
-//            log.debug("Version {}", cs.getVersion());
-//            log.debug(Long.toString(cs.getId()));
-//        }
+        for (ContractStatus cs : manager.searchContracts(branchId.toString())) {
+            String bundleSymbolicName = cs.getSymbolicName();
+            byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(bundleSymbolicName.getBytes());
+            this.namespace = new String(Base64.encodeBase64(bundleSymbolicSha3));
+
+            log.debug("Description {}", cs.getDescription());
+            log.debug("Location {}", cs.getLocation());
+            log.debug("SymbolicName {}", cs.getSymbolicName());
+            log.debug("Version {}", cs.getVersion());
+            log.debug(Long.toString(cs.getId()));
+        }
     }
 
     private boolean checkExistContract(String contractVersion) {
