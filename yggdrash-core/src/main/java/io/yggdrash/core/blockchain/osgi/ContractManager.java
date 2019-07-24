@@ -542,6 +542,6 @@ public class ContractManager {
     }
 
     public Map<String, Object> getServiceMap() {
-        return serviceMap;
+        return this.serviceMap;
     }
 }
