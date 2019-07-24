@@ -23,8 +23,16 @@ import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;
+import io.yggdrash.core.blockchain.genesis.GenesisBlock;
+import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkConfig;
+import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkLauncher;
+import io.yggdrash.core.blockchain.osgi.framework.BundleService;
+import io.yggdrash.core.blockchain.osgi.framework.BundleServiceImpl;
+import io.yggdrash.core.blockchain.osgi.framework.FrameworkConfig;
+import io.yggdrash.core.blockchain.osgi.framework.FrameworkLauncher;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.errorcode.SystemError;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
@@ -45,6 +53,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -69,6 +79,8 @@ public class ContractExecutorTest {
     private ContractManager manager;
     private ContractExecutor executor;
     private String namespace;
+
+    private GenesisBlock genesis;
 
     @Before
     public void setUp() throws Exception {
@@ -238,16 +250,22 @@ public class ContractExecutorTest {
                 .build();
         this.contractStore = bcStore.getContractStore();
 
-        ContractPolicyLoader loader = new ContractPolicyLoader();
+        FrameworkConfig bootFrameworkConfig = new BootFrameworkConfig(config, branchId);
+        FrameworkLauncher bootFrameworkLauncher = new BootFrameworkLauncher(bootFrameworkConfig);
+        BundleService bundleService = new BundleServiceImpl();
+
+        SystemProperties systemProperties = BlockChainTestUtils.createDefaultSystemProperties();
+
         this.manager = ContractManagerBuilder.newInstance()
-                .withFrameworkFactory(loader.getFrameworkFactory())
-                .withContractManagerConfig(loader.getContractManagerConfig())
-                .withBranchId(branchId.toString())
+                .withGenesis(genesis)
+                .withBootFramework(bootFrameworkLauncher)
+                .withBundleManager(bundleService)
+                .withDefaultConfig(config)
                 .withContractStore(contractStore)
-                .withOsgiPath(config.getOsgiPath())
-                .withContractPath(config.getContractPath())
-                .withLogStore(bcStore.getLogStore())
+                .withLogStore(bcStore.getLogStore()) // is this logstore for what?
+                .withSystemProperties(systemProperties)
                 .build();
+
         this.executor = manager.getContractExecutor();
     }
 
@@ -258,13 +276,15 @@ public class ContractExecutorTest {
 
         assert coinContractFile.exists();
 
-        if (!checkExistContract(contractVersion.toString())) {
-            long bundle = manager.installContract(contractVersion, coinContractFile, true);
-        } else {
-            manager.reloadInject();
-        }
+//        manager.installTest(branchId.toString(), contractVersion, true);
 
-        for (ContractStatus cs : manager.searchContracts()) {
+//        if (!checkExistContract(contractVersion.toString())) {
+//            long bundle = manager.installTest(contractVersion, coinContractFile, true);
+//        } else {
+//            manager.reloadInject();
+//        }
+
+        for (ContractStatus cs : manager.searchContracts(branchId.toString())) {
             String bundleSymbolicName = cs.getSymbolicName();
             byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(bundleSymbolicName.getBytes());
             this.namespace = new String(Base64.encodeBase64(bundleSymbolicSha3));
@@ -286,10 +306,19 @@ public class ContractExecutorTest {
         return false;
     }
 
-    private void generateGenesisBlock() {
+    private void getGenesis() {
         String filePath = Objects.requireNonNull(
                 getClass().getClassLoader().getResource("branch-coin.json")).getFile();
         File coinBranchFile = new File(filePath);
+        this.genesis = BlockChainTestUtils.getGenesis();
+
+    }
+
+    private void generateGenesisBlock() throws IOException {
+        String filePath = Objects.requireNonNull(
+                getClass().getClassLoader().getResource("branch-coin.json")).getFile();
+        File coinBranchFile = new File(filePath);
+        this.genesis = GenesisBlock.of(new FileInputStream(coinBranchFile));
         this.genesisBlock = BlockChainTestUtils.genesisBlock(coinBranchFile);
         this.branchId = genesisBlock.getBranchId();
         this.genesisTx = genesisBlock.getBody().getTransactionList().get(0);

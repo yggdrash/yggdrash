@@ -151,10 +151,16 @@ public class ContractManager {
             return genesis.getBranch().getBranchContracts();
         }
         return contractStore.getBranchStore().getBranchContacts();
-
     }
 
-    // test Code
+    public void inject(String branchId, ContractVersion contractVersion) throws IllegalAccessException {
+        BundleContext context = findBundleContext(branchId);
+        Bundle bundle = bundleService.getBundle(context, contractVersion);
+
+        inject(context, bundle);
+    }
+
+
     private void inject(BundleContext context, Bundle bundle) throws IllegalAccessException {
         ServiceReference<?>[] serviceRefs = bundle.getRegisteredServices();
         if (serviceRefs == null) {
@@ -293,25 +299,40 @@ public class ContractManager {
         return true;
     }
 
+    @Deprecated
     public List<ContractStatus> searchContracts() {
         List<ContractStatus> result = new ArrayList<>();
         for (Bundle bundle : findBundleContext(bootBranchId).getBundles()) {
-            Dictionary<String, String> header = bundle.getHeaders();
-            int serviceCnt = bundle.getRegisteredServices() == null ? 0 : bundle.getRegisteredServices().length;
-
             Version v = bundle.getVersion();
-            result.add(new ContractStatus(
-                    bundle.getSymbolicName(),
-                    String.format("%s.%s.%s", v.getMajor(), v.getMinor(), v.getMicro()),
-                    header.get("Bundle-Vendor"),
-                    header.get("Bundle-Description"),
-                    bundle.getBundleId(),
-                    bundle.getLocation(),
-                    bundle.getState(),
-                    serviceCnt
-            ));
+            result.add(getContractStatus(bundle));
         }
         return result;
+    }
+
+    public List<ContractStatus> searchContracts(String branchId) {
+        List<ContractStatus> result = new ArrayList<>();
+        Bundle[] bundleList = findBundleContext(branchId).getBundles();
+        for (Bundle bundle : bundleList) {
+            result.add(getContractStatus(bundle));
+        }
+        return result;
+    }
+
+    private ContractStatus getContractStatus(Bundle bundle) {
+        Dictionary<String, String> header = bundle.getHeaders();
+        int serviceCnt = bundle.getRegisteredServices() == null ? 0 : bundle.getRegisteredServices().length;
+
+        Version v = bundle.getVersion();
+        return new ContractStatus(
+                bundle.getSymbolicName(),
+                String.format("%s.%s.%s", v.getMajor(), v.getMinor(), v.getMicro()),
+                header.get("Bundle-Vendor"),
+                header.get("Bundle-Description"),
+                bundle.getBundleId(),
+                bundle.getLocation(),
+                bundle.getState(),
+                serviceCnt
+        );
     }
 
     public Object query(String branchId, String contractVersion, String methodName, JsonObject params) {

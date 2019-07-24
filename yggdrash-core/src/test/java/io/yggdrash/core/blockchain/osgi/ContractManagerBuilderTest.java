@@ -16,9 +16,18 @@
 
 package io.yggdrash.core.blockchain.osgi;
 
+import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.SystemProperties;
+import io.yggdrash.core.blockchain.genesis.GenesisBlock;
+import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkConfig;
+import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkLauncher;
+import io.yggdrash.core.blockchain.osgi.framework.BundleService;
+import io.yggdrash.core.blockchain.osgi.framework.BundleServiceImpl;
+import io.yggdrash.core.blockchain.osgi.framework.FrameworkConfig;
+import io.yggdrash.core.blockchain.osgi.framework.FrameworkLauncher;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
 import io.yggdrash.core.store.ContractStore;
@@ -27,7 +36,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
+import java.util.List;
 
 public class ContractManagerBuilderTest {
     private static final Logger log = LoggerFactory.getLogger(ContractManagerBuilderTest.class);
@@ -35,41 +44,64 @@ public class ContractManagerBuilderTest {
     @Test
     public void build() {
         DefaultConfig config = new DefaultConfig();
-        BlockChainStore bcStore = BlockChainStoreBuilder.newBuilder(BranchId.of("test".getBytes()))
+        GenesisBlock genesis = BlockChainTestUtils.getGenesis();
+        SystemProperties systemProperties = BlockChainTestUtils.createDefaultSystemProperties();
+
+        BranchId branchId = genesis.getBranchId();
+
+
+        BlockChainStore bcStore = BlockChainStoreBuilder.newBuilder(branchId)
                 .withDataBasePath(config.getDatabasePath())
                 .withProductionMode(config.isProductionMode())
                 .setConsensusAlgorithm(null)
                 .setBlockStoreFactory(PbftBlockStoreMock::new)
                 .build();
+
         ContractStore contractStore = bcStore.getContractStore();
-        ContractPolicyLoader loader = new ContractPolicyLoader();
+
+        FrameworkConfig bootFrameworkConfig = new BootFrameworkConfig(config, branchId);
+        FrameworkLauncher bootFrameworkLauncher = new BootFrameworkLauncher(bootFrameworkConfig);
+        BundleService bundleService = new BundleServiceImpl();
+
+        List<BranchContract> genesisContractList = genesis.getBranch().getBranchContracts();
+
+        assert genesisContractList.size() > 0;
+
         ContractManager manager = ContractManagerBuilder.newInstance()
-                .withFrameworkFactory(loader.getFrameworkFactory())
-                .withContractManagerConfig(loader.getContractManagerConfig())
-                .withBranchId("test")
+                .withGenesis(genesis)
+                .withBootFramework(bootFrameworkLauncher)
+                .withBundleManager(bundleService)
+                .withDefaultConfig(config)
                 .withContractStore(contractStore)
-                .withContractPath(config.getContractPath())
-                .withLogStore(bcStore.getLogStore())
+                .withLogStore(bcStore.getLogStore()) // is this logstore for what?
+                .withSystemProperties(systemProperties)
                 .build();
 
         assert manager != null;
         assert manager.getContractExecutor() != null;
 
-
         // Contract File
-        String filePath = getClass().getClassLoader()
-                .getResource("contracts/96206ff28aead93a49272379a85191c54f7b33c0.jar")
-                .getFile();
-        File contractFile = new File(filePath);
+//        String filePath = getClass().getClassLoader()
+//                .getResource("contracts/96206ff28aead93a49272379a85191c54f7b33c0.jar")
+//                .getFile();
+//        File contractFile = new File(filePath);
+//
+//        ContractVersion version = ContractVersion.of("TEST".getBytes());
+//        if (contractFile.exists() && !manager.checkExistContract(
+//                branchId.toString(), "io.yggdrash.contract.coin.CoinContract","1.0.0")) {
+//            Bundle bundle = null;
+//            try {
+//                bundle = manager.installTest(branchId.toString(), version, true);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            } catch (BundleException e) {
+//                e.printStackTrace();
+//            }
+//            assert bundle != null;
+//        }
 
-        ContractVersion version = ContractVersion.of("TEST".getBytes());
-        if (contractFile.exists() && !manager.checkExistContract(
-                "io.yggdrash.contract.coin.CoinContract","1.0.0")) {
-            long bundle = manager.installContract(version, contractFile, true);
-            assert bundle > 0L;
-        }
 
-        for (ContractStatus cs : manager.searchContracts()) {
+        for (ContractStatus cs : manager.searchContracts(branchId.toString())) {
             log.debug("Description {}", cs.getDescription());
             log.debug("Location {}", cs.getLocation());
             log.debug("SymbolicName {}", cs.getSymbolicName());

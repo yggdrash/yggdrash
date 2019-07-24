@@ -29,7 +29,6 @@ import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.blockchain.osgi.ContractManagerBuilder;
-import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkConfig;
 import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkLauncher;
 import io.yggdrash.core.blockchain.osgi.framework.BundleServiceImpl;
@@ -90,11 +89,6 @@ public class BranchConfiguration {
     @Bean
     BranchGroup branchGroup() {
         return new BranchGroup();
-    }
-
-    @Bean
-    ContractPolicyLoader policyLoader() {
-        return new ContractPolicyLoader();
     }
 
     @Bean

@@ -30,6 +30,7 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.PbftBlockChainMock;
 import io.yggdrash.core.blockchain.PbftBlockMock;
+import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBody;
 import io.yggdrash.core.blockchain.TransactionBuilder;
@@ -38,7 +39,6 @@ import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.blockchain.osgi.ContractManagerBuilder;
-import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkConfig;
 import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkLauncher;
 import io.yggdrash.core.blockchain.osgi.framework.BundleServiceImpl;
@@ -66,6 +66,9 @@ public class BlockChainTestUtils {
     private static final Logger log = LoggerFactory.getLogger(BlockChainTestUtils.class);
     private ContractVersion stem;
 
+    public static GenesisBlock getGenesis() {
+        return genesis;
+    }
 
     private BlockChainTestUtils() {
     }
@@ -161,33 +164,23 @@ public class BlockChainTestUtils {
         BlockChainStoreBuilder builder = BlockChainStoreBuilder.newBuilder(genesis.getBranch().getBranchId())
                 .setBlockStoreFactory(PbftBlockStoreMock::new)
                 .withProductionMode(isProductionMode)
-                .withDataBasePath(config.getDatabasePath())
-        ;
+                .withDataBasePath(config.getDatabasePath());
         BlockChainStore bcStore = builder.build();
 
         ContractStore contractStore = bcStore.getContractStore();
-        ContractPolicyLoader policyLoader = new ContractPolicyLoader();
+//        ContractPolicyLoader policyLoader = new ContractPolicyLoader();
 
         BootFrameworkConfig bootFrameworkConfig = new BootFrameworkConfig(config, genesis.getBranchId());
         BootFrameworkLauncher bootFrameworkLauncher = new BootFrameworkLauncher(bootFrameworkConfig);
         BundleServiceImpl bundleService = new BundleServiceImpl();
 
         ContractManager contractManager = ContractManagerBuilder.newInstance()
-                .withFrameworkFactory(policyLoader.getFrameworkFactory())
-                .withContractManagerConfig(policyLoader.getContractManagerConfig())
-
-                .withBranchId(genesis.getBranchId().toString())
-                .withContractStore(contractStore)
-                .withOsgiPath(config.getOsgiPath())
-                .withDataBasePath(config.getDatabasePath())
-                .withContractPath(config.getContractPath())
-                .withLogStore(bcStore.getLogStore())
-                .withContractRepository(config.getContractRepositoryUrl())
-
                 .withGenesis(genesis)
                 .withBootFramework(bootFrameworkLauncher)
                 .withBundleManager(bundleService)
                 .withDefaultConfig(config)
+                .withContractStore(contractStore)
+                .withLogStore(bcStore.getLogStore()) // is this logstore for what?
                 .build();
 
 
@@ -252,10 +245,10 @@ public class BlockChainTestUtils {
     }
 
     private static List<ConsensusBlock<PbftProto.PbftBlock>> createBlockList(
-                                                        List<ConsensusBlock<PbftProto.PbftBlock>> blockList,
-                                                        ConsensusBlock<PbftProto.PbftBlock> prevBlock,
-                                                        List<Transaction> blockBody,
-                                                        int height) {
+            List<ConsensusBlock<PbftProto.PbftBlock>> blockList,
+            ConsensusBlock<PbftProto.PbftBlock> prevBlock,
+            List<Transaction> blockBody,
+            int height) {
         while (blockList.size() < height) {
             blockList.add(prevBlock);
             if (blockBody != null) {
@@ -333,5 +326,16 @@ public class BlockChainTestUtils {
                 chain, txVersion, Constants.EMPTY_BYTE8, timestamp, transactionBody);
         byte[] sign = Constants.EMPTY_SIGNATURE;
         return new TransactionImpl(txHeader, sign, transactionBody);
+    }
+
+
+    public static SystemProperties createDefaultSystemProperties() {
+        return SystemProperties.SystemPropertiesBuilder
+                .newBuilder()
+                .setElasticsearchHost("127.0.0.1")
+                .setElasticsearchPort(9200)
+                .setEventStore(null)
+                .build();
+
     }
 }
