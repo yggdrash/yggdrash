@@ -68,7 +68,7 @@ public class ContractManager {
     private final String databasePath;
     private final String contractPath;
     private final SystemProperties systemProperties;
-    private final Map<String, Object> serviceMap = new HashMap<>(); // contractVersion, service of bundle
+    private final Map<String, Object> serviceMap; // contractVersion, service of bundle
 
     private ContractExecutor contractExecutor;
 
@@ -89,6 +89,8 @@ public class ContractManager {
         this.contractRepositoryUrl = defaultConfig.getContractRepositoryUrl();
 
         this.systemProperties = systemProperties;
+
+        this.serviceMap = new HashMap<>();
 
         // todo: remove This.
         contractExecutor = new ContractExecutor(frameworkLauncher.getFramework(), contractStore, systemProperties, logStore);
