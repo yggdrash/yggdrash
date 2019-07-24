@@ -135,7 +135,7 @@ public class ContractManager {
                     log.error("Bundle {} failed to start with {}", bundle.getSymbolicName(), e.getMessage());
                     continue;
                 }
-                registerServiceMap(bootBranchId, contractVersion);
+                registerServiceMap(bootBranchId, contractVersion, bundle);
 
                 try {
                     inject(context, bundle);
@@ -224,9 +224,11 @@ public class ContractManager {
         return true;
     }
 
-    public void registerServiceMap(String branchId, ContractVersion contractVersion) {
+    public void registerServiceMap(String branchId, ContractVersion contractVersion, Bundle bundle) {
         BundleContext context = findBundleContext(branchId);
-        Bundle bundle = bundleService.getBundle(context, contractVersion);
+
+//        Bundle bundle = bundleService.getBundle(context, contractVersion);
+
         Object obj = context.getService(bundle.getRegisteredServices()[0]);
         serviceMap.put(contractVersion.toString(), obj);
     }
