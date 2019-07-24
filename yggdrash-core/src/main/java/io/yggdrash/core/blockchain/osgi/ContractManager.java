@@ -228,11 +228,8 @@ public class ContractManager {
 
     public void registerServiceMap(String branchId, ContractVersion contractVersion, Bundle bundle) {
         BundleContext context = findBundleContext(branchId);
-
-//        Bundle bundle = bundleService.getBundle(context, contractVersion);
-
         Object obj = context.getService(bundle.getRegisteredServices()[0]);
-        serviceMap.put(contractVersion.toString(), obj);
+        this.serviceMap.put(contractVersion.toString(), obj);
     }
 
     public void uninstallTest(String branchId, ContractVersion contractVersion) {
