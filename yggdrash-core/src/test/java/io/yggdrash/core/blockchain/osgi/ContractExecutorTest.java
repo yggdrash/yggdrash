@@ -49,7 +49,6 @@ import org.apache.commons.codec.binary.Hex;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -273,10 +272,16 @@ public class ContractExecutorTest {
 
         this.executor = manager.getContractExecutor();
 
-        Bundle bundle = manager.getBundle(branchId.toString(), contractVersion);
-        assert bundle != null;
+//        Bundle bundle = manager.getBundle(branchId.toString(), contractVersion);
+//        List<ContractStatus> csList = manager.searchContracts(branchId.toString());
 
-        setNamespace(bundle.getSymbolicName());
+//        for (ContractStatus cs : csList) {
+//            log.debug(cs.getLocation());
+//        }
+
+//        assert bundle != null;
+//
+//        setNamespace(bundle.getSymbolicName());
 
     }
 
