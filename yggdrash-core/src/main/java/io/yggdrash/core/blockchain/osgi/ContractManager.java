@@ -122,6 +122,7 @@ public class ContractManager {
             BundleContext context = frameworkHashMap.get(bootBranchId).getBundleContext();
             Bundle bundle = null;
 
+
             try {
                 bundle = installTest(bootBranchId, contractVersion, branchContract.isSystem());
             } catch (IOException e) {
@@ -205,7 +206,7 @@ public class ContractManager {
 
         assert contractFile != null;
 
-        Bundle bundle = bundleService.getBundle(findBundleContext(branchId), contractVersion);
+//        Bundle bundle = bundleService.getBundle(findBundleContext(branchId), contractVersion);
 
         return bundleService.install(findBundleContext(branchId), contractVersion, contractFile, isSystem);
 

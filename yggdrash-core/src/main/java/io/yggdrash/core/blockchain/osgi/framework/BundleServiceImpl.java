@@ -22,7 +22,10 @@ public class BundleServiceImpl implements BundleService {
     public Bundle install(BundleContext context, ContractVersion contractVersion, File file, boolean isSystem) throws IOException, BundleException {
         try (InputStream fs = new FileInputStream(file.getAbsoluteFile())) {
             String location = location(isSystem, contractVersion);
-            return context.installBundle(location, fs);
+            Bundle bundle = context.installBundle(location, fs);
+            assert bundle != null;
+
+            return bundle;
         }
     }
 

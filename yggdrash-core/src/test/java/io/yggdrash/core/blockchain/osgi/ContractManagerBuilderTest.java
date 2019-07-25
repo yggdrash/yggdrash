@@ -80,27 +80,6 @@ public class ContractManagerBuilderTest {
         assert manager != null;
         assert manager.getContractExecutor() != null;
 
-        // Contract File
-//        String filePath = getClass().getClassLoader()
-//                .getResource("contracts/96206ff28aead93a49272379a85191c54f7b33c0.jar")
-//                .getFile();
-//        File contractFile = new File(filePath);
-//
-//        ContractVersion version = ContractVersion.of("TEST".getBytes());
-//        if (contractFile.exists() && !manager.checkExistContract(
-//                branchId.toString(), "io.yggdrash.contract.coin.CoinContract","1.0.0")) {
-//            Bundle bundle = null;
-//            try {
-//                bundle = manager.installTest(branchId.toString(), version, true);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            } catch (BundleException e) {
-//                e.printStackTrace();
-//            }
-//            assert bundle != null;
-//        }
-
-
         for (ContractStatus cs : manager.searchContracts(branchId.toString())) {
             log.debug("Description {}", cs.getDescription());
             log.debug("Location {}", cs.getLocation());
