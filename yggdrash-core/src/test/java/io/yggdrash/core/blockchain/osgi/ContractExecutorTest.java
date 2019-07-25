@@ -308,7 +308,9 @@ public class ContractExecutorTest {
 
         assert coinContractFile.exists();
 
-        Bundle bundle = manager.install(branchId.toString(), contractVersion, true);
+        Bundle bundle = manager.install(branchId.toString(), contractVersion, coinContractFile, true);
+
+//        Bundle bundle = manager.install(branchId.toString(), contractVersion, true);
         manager.startTest(bundle);
         manager.inject(branchId.toString(), contractVersion);
         manager.registerServiceMap(branchId.toString(), contractVersion, bundle);

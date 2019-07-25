@@ -200,17 +200,12 @@ public class ContractManager {
         return this.frameworkHashMap.get(branchId).getBundleContext();
     }
 
-    public Bundle install(String branchId, ContractVersion contractVersion, boolean isSystem) throws IOException, BundleException {
-        File contractFile = new File(defaultConfig.getContractPath() + File.separator + contractVersion + ".jar");
-
+    public Bundle install(String branchId, ContractVersion contractVersion, File contractFile, boolean isSystem) throws IOException, BundleException {
         BundleContext context = findBundleContext(branchId);
 
-        assert contractFile != null;
         assert context !=  null;
 
         Bundle bundle = bundleService.getBundle(findBundleContext(branchId), contractVersion);
-
-//        return bundleService.install(context, contractVersion, contractFile, isSystem);
 
         try (JarFile jarFile = new JarFile(contractFile)) {
             if (bundle != null && isInstalledContract(jarFile, bundle)) {
@@ -224,6 +219,12 @@ public class ContractManager {
             }
         }
         return null;
+
+    }
+
+    public Bundle install(String branchId, ContractVersion contractVersion, boolean isSystem) throws IOException, BundleException {
+        File contractFile = new File(defaultConfig.getContractPath() + File.separator + contractVersion + ".jar");
+        return install(branchId, contractVersion, contractFile, isSystem);
     }
 
     private boolean isInstalledContract(JarFile jarFile, Bundle bundle) throws IOException {
