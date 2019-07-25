@@ -187,7 +187,7 @@ public class ContractManager {
 
     public Bundle[] getBundles(String branchId) {
         // todo : impl to bundle service
-        return findBundleContext(branchId).getBundles();
+        return bundleService.getBundles(findBundleContext(branchId));
     }
 
     public void addFramework(FrameworkLauncher launcher) {
@@ -195,11 +195,16 @@ public class ContractManager {
     }
 
     private BundleContext findBundleContext(String branchId) {
+//        FrameworkLauncher launcher = this.frameworkHashMap.get(branchId);
+        // todo : implements framework not found exception.
         return this.frameworkHashMap.get(branchId).getBundleContext();
     }
 
     public Bundle installTest(String branchId, ContractVersion contractVersion, boolean isSystem) throws IOException, BundleException {
         File contractFile = new File(defaultConfig.getContractPath() + File.separator + contractVersion + ".jar");
+
+        assert contractFile != null;
+
         Bundle bundle = bundleService.getBundle(findBundleContext(branchId), contractVersion);
 
         try (JarFile jarFile = new JarFile(contractFile)) {
@@ -348,7 +353,7 @@ public class ContractManager {
     }
 
     public Object query(String branchId, String contractVersion, String methodName, JsonObject params) {
-        Bundle bundle = bundleService.getBundle(findBundleContext(branchId), contractVersion);
+        Bundle bundle = bundleService.getBundle(findBundleContext(branchId), ContractVersion.of(contractVersion));
         return bundle != null ? contractExecutor.query(contractVersion, serviceMap.get(contractVersion), methodName, params) : null;
     }
 
@@ -435,7 +440,6 @@ public class ContractManager {
     public boolean deleteContractFile(File contractFile) {
         return contractFile.delete();
     }
-
 
 
     private void setDefaultPermission(String branchId) {
