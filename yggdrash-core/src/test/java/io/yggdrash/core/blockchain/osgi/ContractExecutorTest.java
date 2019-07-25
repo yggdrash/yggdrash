@@ -310,6 +310,7 @@ public class ContractExecutorTest {
 
         Bundle bundle = manager.install(branchId.toString(), contractVersion, true);
         manager.startTest(bundle);
+        manager.inject(branchId.toString(), contractVersion);
         manager.registerServiceMap(branchId.toString(), contractVersion, bundle);
 
 //        if (!checkExistContract(contractVersion.toString())) {

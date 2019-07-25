@@ -19,6 +19,7 @@ package io.yggdrash;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.BlockChain;
@@ -50,6 +51,7 @@ import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.PbftBlockStoreMock;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
+import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -185,6 +187,17 @@ public class BlockChainTestUtils {
                 .withSystemProperties(systemProperties)
                 .build();
 
+
+        for (BranchContract bc : genesis.getBranch().getBranchContracts()) {
+            try {
+                Bundle bundle = contractManager.install(genesis.getBranchId().toString(), bc.getContractVersion(), true);
+                contractManager.startTest(bundle);
+                contractManager.inject(genesis.getBranchId().toString(), bc.getContractVersion());
+                contractManager.registerServiceMap(genesis.getBranchId().toString(), bc.getContractVersion(), bundle);
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
+        }
 
 //        ContractManager contractManager = ContractManagerBuilder.newInstance()
 //                .withFrameworkFactory(contractPolicyLoader.getFrameworkFactory())
