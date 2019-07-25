@@ -49,6 +49,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -307,7 +308,9 @@ public class ContractExecutorTest {
 
         assert coinContractFile.exists();
 
-        manager.install(branchId.toString(), contractVersion, true);
+        Bundle bundle = manager.install(branchId.toString(), contractVersion, true);
+        manager.startTest(bundle);
+        manager.registerServiceMap(branchId.toString(), contractVersion, bundle);
 
 //        if (!checkExistContract(contractVersion.toString())) {
 //            long bundle = manager.install(contractVersion, coinContractFile, true);

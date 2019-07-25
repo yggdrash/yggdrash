@@ -552,4 +552,8 @@ public class ContractManager {
     public Map<String, Object> getServiceMap() {
         return this.serviceMap;
     }
+
+    public HashMap<String, FrameworkLauncher> getFrameworkHashMap() {
+        return frameworkHashMap;
+    }
 }
