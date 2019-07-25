@@ -92,7 +92,7 @@ public class ContractExecutorTest {
         generateGenesisBlock();
 
         buildExecutor();
-//        createBundle();
+        createBundle();
         initGenesis(); //alloc process (executeTxs)
     }
 
@@ -307,10 +307,10 @@ public class ContractExecutorTest {
 
         assert coinContractFile.exists();
 
-        manager.installTest(branchId.toString(), contractVersion, true);
+        manager.install(branchId.toString(), contractVersion, true);
 
 //        if (!checkExistContract(contractVersion.toString())) {
-//            long bundle = manager.installTest(contractVersion, coinContractFile, true);
+//            long bundle = manager.install(contractVersion, coinContractFile, true);
 //        } else {
 //            manager.reloadInject();
 //        }

@@ -100,7 +100,7 @@ public class ContractManager {
         this.defaultConfig = defaultConfig;
         this.genesis = genesis;
 
-        initBootBundles();
+//        initBootBundles();
 
         setDefaultPermission(bootBranchId);
 
@@ -123,7 +123,7 @@ public class ContractManager {
             Bundle bundle = null;
 
             try {
-                bundle = installTest(bootBranchId, contractVersion, true);
+                bundle = install(bootBranchId, contractVersion, true);
             } catch (IOException e) {
                 log.error("ContractFile has an Error with {}", e.getMessage());
             } catch (BundleException e) {
@@ -200,7 +200,7 @@ public class ContractManager {
         return this.frameworkHashMap.get(branchId).getBundleContext();
     }
 
-    public Bundle installTest(String branchId, ContractVersion contractVersion, boolean isSystem) throws IOException, BundleException {
+    public Bundle install(String branchId, ContractVersion contractVersion, boolean isSystem) throws IOException, BundleException {
         File contractFile = new File(defaultConfig.getContractPath() + File.separator + contractVersion + ".jar");
 
         BundleContext context = findBundleContext(branchId);
@@ -208,22 +208,22 @@ public class ContractManager {
         assert contractFile != null;
         assert context !=  null;
 
-//        Bundle bundle = bundleService.getBundle(findBundleContext(branchId), contractVersion);
+        Bundle bundle = bundleService.getBundle(findBundleContext(branchId), contractVersion);
 
-        return bundleService.install(context, contractVersion, contractFile, isSystem);
+//        return bundleService.install(context, contractVersion, contractFile, isSystem);
 
-//        try (JarFile jarFile = new JarFile(contractFile)) {
-//            if (bundle != null && isInstalledContract(jarFile, bundle)) {
-//                log.debug("Already installed bundle {}", contractVersion);
-//                return bundle;
-//            }
-//
-//            if (verifyManifest(jarFile.getManifest())) {
-//                log.debug("Installing  bundle {}", contractVersion);
-//                return bundleService.install(findBundleContext(branchId), contractVersion, contractFile, isSystem);
-//            }
-//        }
-//        return null;
+        try (JarFile jarFile = new JarFile(contractFile)) {
+            if (bundle != null && isInstalledContract(jarFile, bundle)) {
+                log.debug("Already installed bundle {}", contractVersion);
+                return bundle;
+            }
+
+            if (verifyManifest(jarFile.getManifest())) {
+                log.debug("Installing  bundle {}", contractVersion);
+                return bundleService.install(findBundleContext(branchId), contractVersion, contractFile, isSystem);
+            }
+        }
+        return null;
     }
 
     private boolean isInstalledContract(JarFile jarFile, Bundle bundle) throws IOException {
