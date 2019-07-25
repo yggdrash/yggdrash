@@ -207,18 +207,20 @@ public class ContractManager {
 
         Bundle bundle = bundleService.getBundle(findBundleContext(branchId), contractVersion);
 
-        try (JarFile jarFile = new JarFile(contractFile)) {
-            if (bundle != null && isInstalledContract(jarFile, bundle)) {
-                log.debug("Already installed bundle {}", contractVersion);
-                return bundle;
-            }
+        return bundleService.install(findBundleContext(branchId), contractVersion, contractFile, isSystem);
 
-            if (verifyManifest(jarFile.getManifest())) {
-                log.debug("Installing  bundle {}", contractVersion);
-                return bundleService.install(findBundleContext(branchId), contractVersion, contractFile, isSystem);
-            }
-        }
-        return null;
+//        try (JarFile jarFile = new JarFile(contractFile)) {
+//            if (bundle != null && isInstalledContract(jarFile, bundle)) {
+//                log.debug("Already installed bundle {}", contractVersion);
+//                return bundle;
+//            }
+//
+//            if (verifyManifest(jarFile.getManifest())) {
+//                log.debug("Installing  bundle {}", contractVersion);
+//                return bundleService.install(findBundleContext(branchId), contractVersion, contractFile, isSystem);
+//            }
+//        }
+//        return null;
     }
 
     private boolean isInstalledContract(JarFile jarFile, Bundle bundle) throws IOException {
