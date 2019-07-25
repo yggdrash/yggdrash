@@ -51,6 +51,7 @@ import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.PbftBlockStoreMock;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
+import org.junit.Assert;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -198,6 +199,12 @@ public class BlockChainTestUtils {
                 log.error(e.getMessage());
             }
         }
+
+        Assert.assertEquals(contractManager.getBundles(genesis.getBranchId().toString()).length,
+                genesis.getBranch().getBranchContracts().size() + 1);
+
+        Assert.assertEquals(contractManager.getServiceMap().size(),
+                genesis.getBranch().getBranchContracts().size());
 
 //        ContractManager contractManager = ContractManagerBuilder.newInstance()
 //                .withFrameworkFactory(contractPolicyLoader.getFrameworkFactory())
