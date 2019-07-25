@@ -71,7 +71,6 @@ public class BundleServiceImpl implements BundleService {
         return -1;
     }
 
-    @Override
     public Bundle getBundle(BundleContext context, long bundleId) {
         return context.getBundle(bundleId);
     }
@@ -82,6 +81,10 @@ public class BundleServiceImpl implements BundleService {
     }
 
     @Override
+    public Bundle[] getBundles(BundleContext context) {
+        return context.getBundles();
+    }
+
     public Bundle getBundle(BundleContext context, String contractVersion) {
         return findBundleByContractVersion(context, contractVersion);
     }

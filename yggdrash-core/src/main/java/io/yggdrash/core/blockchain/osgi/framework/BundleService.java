@@ -25,9 +25,9 @@ public interface BundleService {
 
     Bundle getBundle(BundleContext context, ContractVersion contractVersion);
 
-    Bundle getBundle(BundleContext context, long bundleId);
+    Bundle[] getBundles(BundleContext context);
 
-    Bundle getBundle(BundleContext context, String contractVersion);
+
 
 //    void setDefaultPermission(BundleContext context, String branchId);
 
