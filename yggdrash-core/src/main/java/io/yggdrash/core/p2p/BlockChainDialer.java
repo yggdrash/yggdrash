@@ -71,7 +71,7 @@ public class BlockChainDialer implements PeerDialer {
                 return true;
             }
         } catch (Exception e) {
-            log.warn("add peer handler {}->{}, err={}", owner.toAddress(), to.toAddress(), e.getMessage());
+            log.debug("Cannot connect {}", to.toAddress());
         }
         removeHandler(peerHandler);
         return false;
