@@ -117,7 +117,20 @@ public class ContractManager {
 
         for (BranchContract branchContract : branchContractList) {
             ContractVersion contractVersion = branchContract.getContractVersion();
-            // todo : file exist check & download & file validate
+            // todo : To update this logic. this file logic for ContractExecutorTest.
+            File contractFile = null;
+            if (isContractFileExist(contractVersion)) {
+                contractFile = new File(contractFilePath(contractVersion));
+            } else {
+                try {
+                    contractFile = downloader(contractVersion);
+                } catch (IOException e) {
+                    log.error("Failed to download Contract File {}.jar on system with {}", contractVersion, e.getMessage());
+                    deleteContractFile(new File(contractFilePath(contractVersion)));
+                }
+            }
+
+            verifyContractFile(contractFile, contractVersion);
 
             BundleContext context = frameworkHashMap.get(bootBranchId).getBundleContext();
             Bundle bundle = null;
