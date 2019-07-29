@@ -3,6 +3,7 @@ package io.yggdrash.validator.service;
 import ch.qos.logback.classic.Level;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.consensus.Consensus;
@@ -47,8 +48,8 @@ public class ValidatorService {
         setLogLevel();
         this.host = defaultConfig.getString("yggdrash.validator.host");
         this.port = defaultConfig.getInt("yggdrash.validator.port");
-        this.wallet = new Wallet(defaultConfig.getString("yggdrash.validator.key.path"),
-                defaultConfig.getString("yggdrash.validator.key.password"));
+        this.wallet = new Wallet(defaultConfig.getString(Constants.YGGDRASH_KEY_PATH),
+                defaultConfig.getString(Constants.YGGDRASH_KEY_PASSWORD));
         this.consensus = new Consensus(genesisBlock);
         this.genesisBlock = genesisBlock;
         this.taskScheduler = threadPoolTaskScheduler();
@@ -61,7 +62,7 @@ public class ValidatorService {
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
                             .addService(new PbftServerStub((PbftService) consensusService))
-                            .addService(new TransactionServiceStub(blockChain))
+                            .addService(new TransactionServiceStub(blockChain, consensusService))
                             .build()
                             .start();
                 } catch (IOException e) {
@@ -74,7 +75,7 @@ public class ValidatorService {
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
                             .addService(new EbftServerStub((EbftService) consensusService))
-                            .addService(new TransactionServiceStub(blockChain))
+                            .addService(new TransactionServiceStub(blockChain, consensusService))
                             .build()
                             .start();
                 } catch (IOException e) {
@@ -103,13 +104,10 @@ public class ValidatorService {
     private ConsensusBlockChain consensusBlockChain() {
         String algorithm = consensus.getAlgorithm();
         String dbPath = defaultConfig.getDatabasePath();
-        String host = this.host;
-        int port = this.port;
         String chain = genesisBlock.getBranchId().toString();
 
         String keyStorePath = host + "_" + port + File.separator + chain + File.separator + algorithm + "Key";
         String blockStorePath = host + "_" + port + File.separator + chain + File.separator + algorithm + "Block";
-        String txStorePath = host + "_" + port + File.separator + chain + File.separator + algorithm + "Tx";
 
         switch (algorithm) {
             case "pbft":

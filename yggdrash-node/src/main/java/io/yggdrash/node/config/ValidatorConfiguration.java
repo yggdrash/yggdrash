@@ -45,7 +45,6 @@ public class ValidatorConfiguration {
     public Map<BranchId, List<ValidatorService>> validatorServiceMap(BranchLoader branchLoader,
                                                                      DefaultConfig defaultConfig,
                                                                      ContractPolicyLoader policyLoader) {
-
         Map<BranchId, List<ValidatorService>> validatorServiceMap = new HashMap<>();
         File validatorPath = new File(defaultConfig.getValidatorPath());
 
@@ -65,7 +64,6 @@ public class ValidatorConfiguration {
     }
 
     private Optional<GenesisBlock> getGenesisBlock(File branchPath, BranchLoader branchLoader) {
-
         String branchName = branchPath.getName();
         if (branchName.length() != Constants.BRANCH_HEX_LENGTH || !branchName.matches("^[0-9a-fA-F]+$")) {
             return Optional.empty();
@@ -79,7 +77,6 @@ public class ValidatorConfiguration {
     private List<ValidatorService> loadValidatorService(File branchPath, GenesisBlock genesis, Consensus consensus,
                                                         DefaultConfig defaultConfig,
                                                         ContractPolicyLoader policyLoader) {
-
         List<ValidatorService> validatorServiceList = new ArrayList<>();
         for (File validatorServicePath : Objects.requireNonNull(branchPath.listFiles())) {
             File validatorConfFile = new File(validatorServicePath, "validator.conf");
@@ -92,7 +89,7 @@ public class ValidatorConfiguration {
             DefaultConfig mergedConfig = new DefaultConfig(fallbackConfig, defaultConfig.isProductionMode());
             log.debug("{}:{}, key={}", mergedConfig.getString("yggdrash.validator.host"),
                     mergedConfig.getString("yggdrash.validator.port"),
-                    mergedConfig.getString("yggdrash.validator.key.path"));
+                    mergedConfig.getString(Constants.YGGDRASH_KEY_PATH));
             try {
                 BranchId branchId = genesis.getBranch().getBranchId();
 

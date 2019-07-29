@@ -144,9 +144,9 @@ public class EbftBlockChainMultiThreadTest {
         TestConstants.PerformanceTest.apply();
 
         System.gc();
-        sleep(20000);
+        sleep(5000);
 
-        long testCount = 2000;
+        long testCount = 200;
         for (long l = 0; l < testCount; l++) {
             long index = this.blockChainManager.getLastIndex() + 1;
             byte[] prevHash = this.blockChainManager.getLastHash().getBytes();
@@ -159,7 +159,7 @@ public class EbftBlockChainMultiThreadTest {
         log.debug("BlockStore size: {}", this.blockChainManager.countOfBlocks());
 
         System.gc();
-        sleep(3000000);
+        sleep(5000);
     }
 
 }

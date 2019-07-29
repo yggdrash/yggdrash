@@ -92,6 +92,11 @@ public class ContractManager {
         this.contractPath = contractPath;
 
         this.systemProperties = systemProperties;
+        if (contractRepositoryUrl == null) {
+            // init null check
+            // TODO default contract Repository Url move to config
+            contractRepositoryUrl = "http://store.yggdrash.io/contract/";
+        }
         this.contractRepositoryUrl = contractRepositoryUrl;
         this.fullLocation = new HashMap<>();
         this.serviceMap = new HashMap<>();

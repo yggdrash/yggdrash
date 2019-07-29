@@ -186,7 +186,7 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
             }
             tried.add(peer);
         } catch (Exception e) {
-            log.warn("lookup for {} err={}", peer.toAddress(), e.getMessage());
+            log.debug("Cannot connect to {}", peer);
             peerDialer.removeHandler(peerHandler);
         }
     }

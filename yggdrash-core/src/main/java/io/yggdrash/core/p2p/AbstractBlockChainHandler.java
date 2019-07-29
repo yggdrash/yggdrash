@@ -18,7 +18,6 @@ package io.yggdrash.core.p2p;
 
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
-import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
@@ -57,7 +56,7 @@ public abstract class AbstractBlockChainHandler<T> extends DiscoveryHandler<T> {
 
                     @Override
                     public void onError(Throwable t) {
-                        log.warn("[PeerHandler] Broadcast Failed: {}", Status.fromThrowable(t));
+                        log.debug("Cannot broadcast txs to {}", peer);
                         alive = false;
                     }
 

@@ -19,6 +19,7 @@ package io.yggdrash.node.e2e;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainManager;
@@ -63,10 +64,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
+// TODO: change independently each test methods, this is not working in multi tests env.
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = YggdrashNodeApp.class, webEnvironment = RANDOM_PORT,
-        properties = {"yggdrash.node.chain.gen=true"})
-@ActiveProfiles("debug")
+@SpringBootTest(classes = YggdrashNodeApp.class, webEnvironment = RANDOM_PORT)
+@ActiveProfiles(Constants.ActiveProfiles.NODE)
 public class YeedContractE2ETest extends TestConstants.SlowTest {
 
     private static final Logger log = LoggerFactory.getLogger(YeedContractE2ETest.class);
@@ -148,6 +149,7 @@ public class YeedContractE2ETest extends TestConstants.SlowTest {
 
     @Test
     public void shouldGetFrontierBalance() {
+        log.debug("Wallet Address is {}", wallet.getHexAddress());
         // act
         BigInteger balance = balanceOf(wallet.getHexAddress());
 
@@ -218,7 +220,7 @@ public class YeedContractE2ETest extends TestConstants.SlowTest {
 
     private BigInteger balanceOf(String address) {
         Map params = ContractApiImplTest.createParams("address", address);
-        return (BigInteger) contractJsonRpc.query(branchId.toString(),
-                TestConstants.YEED_CONTRACT.toString(), "balanceOf", params);
+        return new BigInteger((String) contractJsonRpc.query(branchId.toString(),
+                TestConstants.YEED_CONTRACT.toString(), "balanceOf", params));
     }
 }

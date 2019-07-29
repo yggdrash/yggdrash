@@ -82,7 +82,7 @@ subprojects {
     test {
         failFast = true
         systemProperty('spring.profiles.active', project.properties.get('springProfiles'))
-        systemProperty('key.password', 'Aa1234567890!')
+        systemProperty('yggdrash.key.password', 'Aa1234567890!')
 
         testLogging {
             events "passed", "skipped", "failed"
@@ -325,4 +325,10 @@ task cleanConfig(type: Delete) {
     delete 'yggdrash-node/.yggdrash'
     delete 'contracts/.yggdrash'
     delete 'yggdrash-validator/.yggdrash'
+
+    println('# Clean tmp dirs')
+    delete 'yggdrash-core/tmp'
+    delete 'yggdrash-node/tmp'
+    delete 'contracts/tmp'
+    delete 'yggdrash-validator/tmp'
 }

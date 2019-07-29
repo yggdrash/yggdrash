@@ -12,18 +12,18 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import static io.yggdrash.common.config.Constants.BRANCH_PATH;
-import static io.yggdrash.common.config.Constants.CONTRACT_PATH;
-import static io.yggdrash.common.config.Constants.CONTRACT_REPOSITORY_URL;
-import static io.yggdrash.common.config.Constants.DATABASE_PATH;
-import static io.yggdrash.common.config.Constants.OSGI_PATH;
-import static io.yggdrash.common.config.Constants.PROPERTY_KEYPASSWORD;
-import static io.yggdrash.common.config.Constants.PROPERTY_KEYPATH;
-import static io.yggdrash.common.config.Constants.PROPERTY_NETWORK_ID;
-import static io.yggdrash.common.config.Constants.PROPERTY_NETWORK_P2P_VER;
 import static io.yggdrash.common.config.Constants.VALIDATOR_DATABASE_PATH;
 import static io.yggdrash.common.config.Constants.VALIDATOR_PATH;
-import static io.yggdrash.common.config.Constants.YGG_ADMIN_CONF_PATH;
+import static io.yggdrash.common.config.Constants.YGGDRASH_ADMIN_PATH;
+import static io.yggdrash.common.config.Constants.YGGDRASH_BRANCH_PATH;
+import static io.yggdrash.common.config.Constants.YGGDRASH_CONTRACT_PATH;
+import static io.yggdrash.common.config.Constants.YGGDRASH_CONTRACT_URL;
+import static io.yggdrash.common.config.Constants.YGGDRASH_DATABASE_PATH;
+import static io.yggdrash.common.config.Constants.YGGDRASH_KEY_PASSWORD;
+import static io.yggdrash.common.config.Constants.YGGDRASH_KEY_PATH;
+import static io.yggdrash.common.config.Constants.YGGDRASH_NETWORK_ID;
+import static io.yggdrash.common.config.Constants.YGGDRASH_NETWORK_P2P_VERSION;
+import static io.yggdrash.common.config.Constants.YGGDRASH_OSGI_PATH;
 import static io.yggdrash.common.config.Constants.YGG_CONF_PATH;
 import static io.yggdrash.common.config.Constants.YGG_DATA_PATH;
 import static io.yggdrash.common.config.Constants.YGG_DEFAULT_FILENAME;
@@ -90,7 +90,7 @@ public class DefaultConfig {
         } else {
             basePath = System.getProperty("user.dir");
         }
-        return ConfigFactory.parseFile(new File(basePath + File.separator + YGG_ADMIN_CONF_PATH));
+        return ConfigFactory.parseFile(new File(basePath + File.separator + YGGDRASH_ADMIN_PATH));
     }
 
     public Config getConfig() {
@@ -124,39 +124,39 @@ public class DefaultConfig {
     }
 
     public String getKeyPath() {
-        return config.getString(PROPERTY_KEYPATH);
+        return config.getString(YGGDRASH_KEY_PATH);
     }
 
     public String getKeyPassword() {
-        return config.hasPath(PROPERTY_KEYPASSWORD) ? config.getString(PROPERTY_KEYPASSWORD) : null;
+        return config.hasPath(YGGDRASH_KEY_PASSWORD) ? config.getString(YGGDRASH_KEY_PASSWORD) : null;
     }
 
     public Network getNetwork() {
-        return Network.valueOf(config.getInt(PROPERTY_NETWORK_ID));
+        return Network.valueOf(config.getInt(YGGDRASH_NETWORK_ID));
     }
 
     public String getNetworkP2PVersion() {
-        return config.getString(PROPERTY_NETWORK_P2P_VER);
+        return config.getString(YGGDRASH_NETWORK_P2P_VERSION);
     }
 
     public String getDatabasePath() {
         if (config.hasPath(VALIDATOR_DATABASE_PATH)) {
             return config.getString(VALIDATOR_DATABASE_PATH);
         } else {
-            return config.getString(DATABASE_PATH);
+            return config.getString(YGGDRASH_DATABASE_PATH);
         }
     }
 
     public String getContractPath() {
-        return config.getString(CONTRACT_PATH);
+        return config.getString(YGGDRASH_CONTRACT_PATH);
     }
 
     public String getOsgiPath() {
-        return config.getString(OSGI_PATH);
+        return config.getString(YGGDRASH_OSGI_PATH);
     }
 
     public String getBranchPath() {
-        return config.getString(BRANCH_PATH);
+        return config.getString(YGGDRASH_BRANCH_PATH);
     }
 
     public String getYggDataPath() {
@@ -168,7 +168,7 @@ public class DefaultConfig {
     }
 
     public String getContractRepositoryUrl() {
-        return config.getString(CONTRACT_REPOSITORY_URL);
+        return config.getString(YGGDRASH_CONTRACT_URL);
     }
 
     enum Network {

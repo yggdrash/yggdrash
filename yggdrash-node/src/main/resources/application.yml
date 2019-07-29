@@ -1,82 +1,15 @@
-yggdrash:
-  node:
-    seed: false
-    grpc.host: "localhost"
-    grpc.port: 32918
-    max-peers: 25
-    chain.enabled: true
-    chain.gen: false
+yggdrash.node:
+  grpc.host: "localhost"
+  max-peers: 25
 
-spring:
-  output:
-    ansi:
-      enabled: always
-
-management:
-  endpoint.health.show-details: always
-  health:
-    elasticsearch:
-      enabled: false
-    diskspace:
-      enabled: false
-  endpoint:
-    restart:
-      enabled: true
-
-spring.profiles.active: local
-
----
-
-spring.profiles: local
-
-yggdrash:
-  node:
-    seed-peer-list:
-        "ynode://00@localhost:32918"
-
-management.endpoints.web.exposure.include: "*"
-
----
-
-spring.profiles: dev
-
-yggdrash:
-  node:
-    seed-peer-list:
-      - "ynode://75faa5936ee14d7a13bcd0c36873250a0033cee0@172.16.10.159:32918"
-
----
-
-spring.profiles: prod
-
-
----
-
-spring.profiles: bootstrap
-
-yggdrash:
-  node:
-    seed: true
-    chain.enabled: false
-
----
-
-spring.profiles: master
-
-yggdrash:
-  node:
-    chain.gen: true
+spring.output.ansi.enabled: always
+management.endpoint.health.show-details: always
+management.health.elasticsearch.enabled: false
 
 ---
 
 spring.profiles: validator
 
-yggdrash:
-  node:
-    validator: true
-    chain.enabled: false
-    grpc.enabled: false
+spring.main.web-application-type: NONE
 
-spring:
-  main:
-    web-application-type: NONE
+---
