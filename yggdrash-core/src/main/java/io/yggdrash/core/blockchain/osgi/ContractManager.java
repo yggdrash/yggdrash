@@ -100,7 +100,7 @@ public class ContractManager {
         this.defaultConfig = defaultConfig;
         this.genesis = genesis;
 
-//        initBootBundles();
+        initBootBundles();
 
         setDefaultPermission(bootBranchId);
 
@@ -134,7 +134,7 @@ public class ContractManager {
 
             if (bundle != null) {
                 try {
-                    startTest(bundle);
+                    start(bundle);
                 } catch (BundleException e) {
                     log.error("Bundle {} failed to start with {}", bundle.getSymbolicName(), e.getMessage());
                     continue;
@@ -186,7 +186,6 @@ public class ContractManager {
     }
 
     public Bundle[] getBundles(String branchId) {
-        // todo : impl to bundle service
         return bundleService.getBundles(findBundleContext(branchId));
     }
 
@@ -195,16 +194,12 @@ public class ContractManager {
     }
 
     private BundleContext findBundleContext(String branchId) {
-//        FrameworkLauncher launcher = this.frameworkHashMap.get(branchId);
         // todo : implements framework not found exception.
         return this.frameworkHashMap.get(branchId).getBundleContext();
     }
 
     public Bundle install(String branchId, ContractVersion contractVersion, File contractFile, boolean isSystem) throws IOException, BundleException {
         BundleContext context = findBundleContext(branchId);
-
-        assert context !=  null;
-
         Bundle bundle = bundleService.getBundle(findBundleContext(branchId), contractVersion);
 
         try (JarFile jarFile = new JarFile(contractFile)) {
@@ -245,7 +240,7 @@ public class ContractManager {
         this.serviceMap.put(contractVersion.toString(), obj);
     }
 
-    public void uninstallTest(String branchId, ContractVersion contractVersion) {
+    public void uninstall(String branchId, ContractVersion contractVersion) {
         try {
             bundleService.uninstall(findBundleContext(branchId), contractVersion);
         } catch (BundleException e) {
@@ -253,7 +248,12 @@ public class ContractManager {
         }
     }
 
-    public void startTest(Bundle bundle) throws BundleException {
+    public void start(String branchId, ContractVersion contractVersion) throws BundleException {
+        Bundle bundle = bundleService.getBundle(findBundleContext(branchId), contractVersion);
+        start(bundle);
+    }
+
+    public void start(Bundle bundle) throws BundleException {
         bundleService.start(bundle);
     }
 
@@ -388,7 +388,7 @@ public class ContractManager {
             return false;
         }
 
-        File contractFile = new File(this.getContractPath() + File.separator + version + ".jar");
+        File contractFile = new File(contractFilePath(version));
         if (!contractFile.canRead()) {
             contractFile.setReadable(true, false);
         }
@@ -396,12 +396,12 @@ public class ContractManager {
         return contractFile.isFile();
     }
 
-    public boolean downloader(ContractVersion version) {
+    public File downloader(ContractVersion version) throws IOException {
 
         int bufferSize = 1024;
 
         try (OutputStream outputStream = new BufferedOutputStream(
-                new FileOutputStream(this.contractPath + File.separator + version + ".jar"))) {
+                new FileOutputStream(contractFilePath(version)))) {
             log.info("-------Download Start------");
             URL url = new URL(this.contractRepositoryUrl + version + ".jar");
             byte[] buf = new byte[bufferSize];
@@ -419,14 +419,8 @@ public class ContractManager {
             log.info("Download Successfully.");
             log.info("Contract Version : {}\t of bytes : {}", version, byteWritten);
             log.info("-------Download End--------");
-            return true;
-        } catch (IOException e) {
-            log.error(e.getMessage());
-            if (deleteContractFile(new File(this.contractPath + File.separator + version + ".jar"))) {
-                log.debug("Deleting contract file {} success", version);
-            }
-            return false;
         }
+        return new File(contractFilePath(version));
 
     }
 
@@ -556,5 +550,9 @@ public class ContractManager {
 
     public HashMap<String, FrameworkLauncher> getFrameworkHashMap() {
         return frameworkHashMap;
+    }
+
+    private String contractFilePath(ContractVersion contractVersion) {
+        return this.contractPath + File.separator + contractVersion + ".jar";
     }
 }

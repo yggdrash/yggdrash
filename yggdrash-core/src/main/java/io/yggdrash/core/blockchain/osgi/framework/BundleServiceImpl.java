@@ -21,19 +21,8 @@ public class BundleServiceImpl implements BundleService {
     @Override
     public Bundle install(BundleContext context, ContractVersion contractVersion, File file, boolean isSystem) throws IOException, BundleException {
 
-        String absolute = file.getAbsolutePath();
-        assert !absolute.isEmpty();
-
-        try (InputStream fs = new FileInputStream(absolute)) {
-            String location = location(isSystem, contractVersion);
-
-            assert !location.isEmpty();
-
-            Bundle bundle = context.installBundle(location, fs);
-
-            assert bundle != null;
-
-            return bundle;
+        try (InputStream fs = new FileInputStream(file.getAbsolutePath())) {
+            return context.installBundle(location(isSystem, contractVersion), fs);
         }
     }
 

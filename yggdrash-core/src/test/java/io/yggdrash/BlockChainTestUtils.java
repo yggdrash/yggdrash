@@ -193,7 +193,7 @@ public class BlockChainTestUtils {
             try {
                 Bundle bundle = contractManager.install(genesis.getBranchId().toString(), bc.getContractVersion(), true);
                 Assert.assertNotNull("bundle is null ", bundle);
-                contractManager.startTest(bundle);
+                contractManager.start(bundle);
                 contractManager.inject(genesis.getBranchId().toString(), bc.getContractVersion());
                 contractManager.registerServiceMap(genesis.getBranchId().toString(), bc.getContractVersion(), bundle);
             } catch (Exception e) {
