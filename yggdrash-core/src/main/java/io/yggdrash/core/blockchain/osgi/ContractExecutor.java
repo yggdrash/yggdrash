@@ -127,7 +127,8 @@ public class ContractExecutor {
 
         contractCache.cacheContract(contractVersion, service);
 
-        Map<String, Method> methodMap = contractCache.getContractMethodMap(contractVersion, methodType);
+        Map<String, Method> methodMap = contractCache.getContractMethodMap(
+                String.format("contract/system/%s", contractVersion), methodType); //temporary
 
         if (methodMap == null || methodMap.get(methodName) == null) {
             txReceipt.setStatus(ExecuteStatus.ERROR);

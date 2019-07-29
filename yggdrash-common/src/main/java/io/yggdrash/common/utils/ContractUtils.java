@@ -19,6 +19,8 @@ package io.yggdrash.common.utils;
 import io.yggdrash.common.contract.Contract;
 import io.yggdrash.common.contract.methods.ContractMethod;
 import io.yggdrash.common.exception.FailedOperationException;
+import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
+import io.yggdrash.contract.core.annotation.ContractChannelField;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.ParamValidation;
@@ -53,6 +55,14 @@ public class ContractUtils {
 
     public static List<Field> stateStoreFields(Object contract) {
         return ContractUtils.contractFields(contract, ContractStateStore.class);
+    }
+
+    public static List<Field> branchStateStoreField(Object contract) {
+        return ContractUtils.contractFields(contract, ContractBranchStateStore.class);
+    }
+
+    public static List<Field> contractChannelField(Object contract) {
+        return ContractUtils.contractFields(contract, ContractChannelField.class);
     }
 
     public static void updateContractFields(Contract contract, List<Field> fields, Object store) {

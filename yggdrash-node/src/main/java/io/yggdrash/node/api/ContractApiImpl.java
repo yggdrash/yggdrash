@@ -10,7 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 @AutoJsonRpcServiceImpl
@@ -36,6 +38,11 @@ public class ContractApiImpl implements ContractApi {
             return JsonUtil.convertJsonToMap((JsonElement)result);
         } else if (result instanceof BigInteger) {
             return String.valueOf(result);
+        } else if (result instanceof HashSet) {
+            Set<Map> mapSet = new HashSet<>();
+            Set<JsonElement> obj = (Set<JsonElement>) result;
+            obj.stream().map(JsonUtil::convertJsonToMap).forEach(mapSet::add);
+            return mapSet;
         }
 
         return result;

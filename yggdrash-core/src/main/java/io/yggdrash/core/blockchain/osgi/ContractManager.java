@@ -79,7 +79,8 @@ public class ContractManager {
 
     ContractManager(FrameworkFactory frameworkFactory, Map<String, String> contractManagerConfig,
                     String branchId, ContractStore contractStore, String osgiPath, String databasePath,
-                    String contractPath, SystemProperties systemProperties, LogStore logStore, String contractRepositoryUrl) {
+                    String contractPath, SystemProperties systemProperties, LogStore logStore,
+                    String contractRepositoryUrl) {
         this.frameworkFactory = frameworkFactory;
         this.commonContractManagerConfig = contractManagerConfig;
         this.branchId = branchId;
@@ -315,6 +316,9 @@ public class ContractManager {
         // TODO load After call
         for (Bundle bundle : framework.getBundleContext().getBundles()) {
             setFullLocation(bundle.getLocation()); // Cache the full location of an existing bundle.
+            // Temporary
+            String contractVersion = bundle.getLocation().substring(bundle.getLocation().lastIndexOf('/') + 1);
+            registerContract(contractVersion);
             inject(bundle);
         }
     }
@@ -495,7 +499,7 @@ public class ContractManager {
     }
 
     public TransactionRuntimeResult executeTx(Transaction tx) {
-        registerContract(getContractVersion(tx));
+        //registerContract(getContractVersion(tx));
         return contractExecutor.executeTx(serviceMap, tx);
     }
 

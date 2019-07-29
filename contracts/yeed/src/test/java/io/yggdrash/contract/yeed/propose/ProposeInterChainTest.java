@@ -5,6 +5,7 @@ import io.yggdrash.contract.yeed.ehtereum.EthTransaction;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.math.BigInteger;
 
 import static org.junit.Assert.assertNotEquals;
@@ -60,7 +61,7 @@ public class ProposeInterChainTest {
         EthTransaction ethTransaction = new EthTransaction(etheSendEncode);
         String tokenAddress = "";
         String transactionId = "0x00";
-        String receiveAddress = HexUtil.toHexString(ethTransaction.getReceiveAddress());
+        String receiveAddress = HexUtil.toHexString(ethTransaction.getReceiverAddress());
         BigInteger receiveEth = ethTransaction.getValue();
         Integer receiveChainId = ethTransaction.getChainId();
         ProposeType proposeType = ProposeType.ETHER_TO_YEED;
@@ -84,7 +85,7 @@ public class ProposeInterChainTest {
         log.debug("Ethereum Transaction ETH : {}", ethTransaction.getValue());
 
         assert ethPropose.getReceiveAsset().compareTo(ethTransaction.getValue()) == 0;
-        assert ethPropose.getReceiveAddress().equals(HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+        assert ethPropose.getReceiveAddress().equals(HexUtil.toHexString(ethTransaction.getReceiverAddress()));
 
         log.debug("Ethereum transaction ID : 0x{} ", HexUtil.toHexString(ethTransaction.getTxHash()));
 

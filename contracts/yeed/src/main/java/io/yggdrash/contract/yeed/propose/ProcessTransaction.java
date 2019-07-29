@@ -3,27 +3,27 @@ package io.yggdrash.contract.yeed.propose;
 import java.math.BigInteger;
 
 public class ProcessTransaction {
-    String sendAddress;
-    String receiveAddress;
+    String senderAddress;
+    String receiverAddress;
     int chainId;
     String targetAddress;
     BigInteger asset;
     String transactionHash;
 
-    public String getSendAddress() {
-        return sendAddress;
+    public String getSenderAddress() {
+        return senderAddress;
     }
 
-    public void setSendAddress(String sendAddress) {
-        this.sendAddress = sendAddress;
+    public void setSenderAddress(String senderAddress) {
+        this.senderAddress = senderAddress;
     }
 
-    public String getReceiveAddress() {
-        return receiveAddress;
+    public String getReceiverAddress() {
+        return receiverAddress;
     }
 
-    public void setReceiveAddress(String receiveAddress) {
-        this.receiveAddress = receiveAddress;
+    public void setReceiverAddress(String receiverAddress) {
+        this.receiverAddress = receiverAddress;
     }
 
     public int getChainId() {

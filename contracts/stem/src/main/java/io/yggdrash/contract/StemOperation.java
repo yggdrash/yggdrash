@@ -1,5 +1,7 @@
 package io.yggdrash.contract;
 
+import java.util.Arrays;
+
 public enum StemOperation {
     ADD_VALIDATOR("1"),
     REMOVE_VALIDATOR("2"),
@@ -18,13 +20,9 @@ public enum StemOperation {
     }
 
     public static StemOperation fromValue(String flag) {
-        StemOperation[] values = StemOperation.values();
-        for (StemOperation value : values) {
-            if (value.flag.equals(flag)) {
-                return value;
-            }
-        }
-        return null;
-
+        return Arrays.stream(StemOperation.values())
+                .filter(value -> value.flag.equals(flag))
+                .findFirst()
+                .orElse(null);
     }
 }

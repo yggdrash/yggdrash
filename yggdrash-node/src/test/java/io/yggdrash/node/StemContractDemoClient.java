@@ -12,38 +12,22 @@
 
 package io.yggdrash.node;
 
-import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
-import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
-import io.yggdrash.common.crypto.HexUtil;
-import io.yggdrash.common.util.TimeUtils;
-import io.yggdrash.common.utils.FileUtil;
-import io.yggdrash.common.utils.JsonUtil;
-import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.genesis.BranchLoader;
-import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.node.api.BranchApi;
+import io.yggdrash.gateway.dto.TransactionReceiptDto;
 import io.yggdrash.node.api.ContractApi;
 import io.yggdrash.node.api.ContractApiImplTest;
 import io.yggdrash.node.api.JsonRpcConfig;
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.Resource;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.math.BigInteger;
 import java.util.Map;
 import java.util.Scanner;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
-import static io.yggdrash.common.config.Constants.CONTRACT_VERSION;
 
 public class StemContractDemoClient {
     private static final JsonRpcConfig rpc = new JsonRpcConfig();
@@ -52,16 +36,28 @@ public class StemContractDemoClient {
     private static String TARGET_SERVER;
     private static BranchId yggdrash;
     private static ContractVersion stemContract;
-    private static Wallet wallet;
+    private static ContractVersion yeedContract;
+    private static Wallet validatorWallet;
 
-    private static String lastTxId;
+    private static String lastTxId = "";
+    private static String lastBranchId = "";
 
     private static void setUp() throws Exception {
         ContractDemoClientUtils utils = new ContractDemoClientUtils();
         TARGET_SERVER = utils.getTargetServer();
         yggdrash = utils.getYggdrash();
         stemContract = utils.getStemContract();
-        wallet = utils.getWallet();
+        yeedContract = utils.getYeedContract();
+        validatorWallet = setValidatorWallet();
+    }
+
+    private static Wallet setValidatorWallet() throws Exception {
+        String validatorWalletFile = StemContractDemoClient.class.getClassLoader()
+                .getResource("keys/047269a50640ed2b0d45d461488c13abad1e0fac.json")
+                .getFile();
+        String password = "Aa1234567890!";
+
+        return new Wallet(validatorWalletFile, password);
     }
 
     public static void main(String[] args) throws Exception {
@@ -70,6 +66,7 @@ public class StemContractDemoClient {
         while (true) {
             run();
         }
+
     }
 
     private static void run() throws Exception {
@@ -80,123 +77,320 @@ public class StemContractDemoClient {
         System.out.println("[1] 트랜잭션 조회");
         System.out.println("[2] 브랜치 배포");
         System.out.println("[3] 브랜치 수정");
-        System.out.println("[4] 브랜치 목록");
-        System.out.println("[5] 브랜치 조회");
+        System.out.println("[4] 브랜치 조회");
+        System.out.println("[5] 브랜치 메타데이터 조회");
+        System.out.println("[6] 브랜치 컨트랙트 조회");
+        System.out.println("[7] 브랜치 서비스 수수료 조회");
         System.out.println(">");
 
         String num = scan.nextLine();
 
         switch (num) {
             case "2":
-                deployBranch();
+                checkBalanceAndTransferYeedToValidator(); // Require yeed to create a branch
+                createBranch();
                 break;
             case "3":
+                checkBalanceAndTransferYeedToValidator(); // Require yeed to update a branch
                 updateBranch();
                 break;
             case "4":
-                getBranches();
+                getBranch();
                 break;
             case "5":
-                viewBranch();
+                getBranchMeta();
+                break;
+            case "6":
+                getContract();
+                break;
+            case "7":
+                getFeeState();
                 break;
             default:
-                ContractDemoClientUtils.getTxReceipt(lastTxId);
+                setLastCreatedBranch();
                 break;
         }
     }
 
-    private static void getBranches() {
-        rpc.proxyOf(TARGET_SERVER, BranchApi.class).getBranches();
-    }
-
-    private static void viewBranch() {
-        Map params = ContractApiImplTest.createParams(BRANCH_ID, yggdrash.toString());
-
-        rpc.proxyOf(TARGET_SERVER, ContractApi.class).query(yggdrash.toString(),
-                stemContract.toString(), "view", params);
-    }
-
-    private static void deployBranch() throws Exception {
-        JsonObject json = getSeedJson();
-        System.out.print("Contract Id를 입력하세요.\n> ");
-        String contractId = scan.nextLine();
-
-        if ("".equals(contractId)) {
-            contractId = json.get(CONTRACT_VERSION).getAsString();
-        }
-        json.addProperty(CONTRACT_VERSION, contractId);
-
-        ContractTestUtils.signBranch(wallet, json);
-        Branch branch = Branch.of(json);
-        saveBranchAsFile(branch);
-    }
-
-    private static JsonObject getSeedJson() {
-        System.out.print("사용할 .json 파일명을 입력하세요 (기본값: yeed.seed.json)\n> ");
-        String json = scan.nextLine();
-
-        if ("".equals(json)) {
-            json = "yeed.seed.json";
-        }
-
-        if (!json.contains("seed")) {
-            return getJsonObjectFromFile("branch", json);
-        } else {
-            return getJsonObjectFromFile("seed", json);
+    private static void checkBalanceAndTransferYeedToValidator() {
+        getBalance(validatorWallet.getHexAddress());
+        System.out.println("Transfer Yeed to Validator : [Y]/[N]");
+        String transfer = scan.nextLine();
+        if (transfer.equals("Y")) {
+            transferYeedToValidator();
         }
     }
 
-    private static JsonObject getJsonObjectFromFile(String dir, String fileName) {
-        String seedPath = String.format("classpath:/%s/%s", dir, fileName);
-        Resource resource = new DefaultResourceLoader().getResource(seedPath);
-        try (InputStream is = resource.getInputStream()) {
-            Reader json = new InputStreamReader(is, FileUtil.DEFAULT_CHARSET);
-            JsonObject jsonObject = JsonUtil.parseJsonObject(json);
-            if (!jsonObject.has("timestamp")) {
-                long timestamp = TimeUtils.time();
-                jsonObject.addProperty("timestamp", HexUtil.toHexString(timestamp));
-            }
-            return jsonObject;
-        } catch (Exception e) {
-            throw new NonExistObjectException(seedPath);
-        }
+    private static void getBalance(String address) {
+        Map params = ContractApiImplTest.createParams("address", address);
+        rpc.proxyOf(TARGET_SERVER, ContractApi.class)
+                .query(yggdrash.toString(), yeedContract.toString(), "balanceOf", params);
     }
 
-    private static void saveBranchAsFile(Branch branch) throws IOException {
-        String json = new GsonBuilder().setPrettyPrinting().create().toJson(branch.getJson());
-        saveFile(branch.getBranchId(), json);
-    }
-
-    private static void saveFile(BranchId branchId, String json)
-            throws IOException {
-        String branchPath = new DefaultConfig().getBranchPath();
-        File branchDir = new File(branchPath, branchId.toString());
-        if (!branchDir.exists() && !branchDir.mkdirs()) {
-            System.err.println("can't create branch dir at " + branchDir);
-            return;
-        }
-        File file = new File(branchDir, BranchLoader.BRANCH_FILE);
-        FileWriter fileWriter = new FileWriter(file); //overwritten
-
-        fileWriter.write(json);
-        fileWriter.flush();
-        fileWriter.close();
-        System.out.println("created at " + file.getAbsolutePath());
-    }
-
-    private static void updateBranch() {
-        System.out.println("수정할 .json 파일명을 입력하세요 (기본값: yeed.json)\n>");
-        String json = scan.nextLine();
-        if ("".equals(json)) {
-            json = "yeed.json";
-        }
-        JsonObject branch = getJsonObjectFromFile("branch", json);
-
-        System.out.println("수정할 description 의 내용을 적어주세요\n>");
-        branch.addProperty("description", scan.nextLine());
-
-        JsonObject txBody = ContractTestUtils.updateTxBodyJson(branch);
+    private static void transferYeedToValidator() {
+        String to = validatorWallet.getHexAddress();
+        JsonObject txBody = ContractTestUtils.transferTxBodyJson(to, BigInteger.valueOf(100000000L));
         lastTxId = ContractDemoClientUtils.sendTx(txBody);
     }
 
+    private static void createBranch() {
+        JsonObject branchObj = createParamForCreateBranch(createContractMock().mock);
+        JsonObject txBody = ContractTestUtils.createTxBodyJson(branchObj);
+        sendTx(txBody);
+    }
+
+    private static ContractMock createContractMock() {
+        System.out.println("Branch Name (default MOCK) : ");
+        String input = scan.nextLine();
+        String branchName = input.isEmpty() ? "MOCK" : input;
+
+        System.out.println("Branch Symbol (default MOCK) : ");
+        input = scan.nextLine();
+        String branchSymbol = input.isEmpty() ? "MOCK" : input;
+
+        System.out.println("Branch Property (default MOCK) : ");
+        input = scan.nextLine();
+        String branchProperty = input.isEmpty() ? "MOCK" : input;
+
+        System.out.println("Branch Description (default MOCK) : ");
+        input = scan.nextLine();
+        String branchDescription = input.isEmpty() ? "MOCK" : input;
+
+        System.out.println("Contract Name (default MOCK) : ");
+        input = scan.nextLine();
+        String contractName = input.isEmpty() ? "MOCK" : input;
+
+        System.out.println("Contract Description (default MOCK) : ");
+        input = scan.nextLine();
+        String contractDescription = input.isEmpty() ? "MOCK" : input;
+
+        return ContractMock.builder()
+                .setName(branchName)
+                .setSymbol(branchSymbol)
+                .setProperty(branchProperty)
+                .setDescription(branchDescription)
+                .setContractName(contractName)
+                .setContractDescription(contractDescription)
+                .build();
+    }
+
+    private static void updateBranch() {
+        String branchId = scanBranchId();
+        JsonObject branchObjToUpdate = new JsonObject();
+        System.out.println("Branch Description to Update : ");
+        String branchDescription = scan.nextLine();
+        branchObjToUpdate.addProperty("description", branchDescription); // Only description can be modified
+
+        JsonObject branchObj = createParamForUpdateBranch(branchId, branchObjToUpdate);
+        JsonObject txBody = ContractTestUtils.updateTxBodyJson(branchObj);
+        sendTx(txBody);
+    }
+
+    private static JsonObject createParamForUpdateBranch(String branchId, JsonObject branchObj) {
+        JsonObject param = new JsonObject();
+        param.addProperty("branchId", branchId);
+        param.add("branch", branchObj);
+        param.addProperty("serviceFee", BigInteger.valueOf(100));
+        return param;
+    }
+
+    private static JsonObject createParamForCreateBranch(JsonObject branchObj) {
+        JsonObject param = new JsonObject();
+        param.add("branch", branchObj);
+        param.addProperty("serviceFee", BigInteger.valueOf(100));
+        return param;
+    }
+
+    private static void setLastCreatedBranch() {
+        try {
+            TransactionReceiptDto receipt = ContractDemoClientUtils.getTxReceipt(lastTxId);
+            int start = "Branch".length(); // i.e "Branch ef6f16a69326e8b2b5d64f0c9d11a0dad4f3d58b is created"
+            receipt.txLog.stream()
+                    .filter(log -> log.contains("created"))
+                    .forEach(log -> lastBranchId = log.replaceAll(" ", "").substring(start, start + 40));
+            System.out.println("LastBranchId = " + lastBranchId); // branchId is null if created is not exists
+        } catch (Exception e) {
+            System.out.println("트랜잭션 조회 종료 [Y]/[N]");
+            if (!scan.nextLine().equals("N")) {
+                return;
+            }
+            setLastCreatedBranch();
+        }
+    }
+
+    private static void getBranch() {
+        Map param = createParamsForQuery();
+        Object branch = query("getBranch", param); // return type : class java.util.LinkedHashMap
+    }
+
+    private static void getBranchMeta() {
+        Map param = createParamsForQuery();
+        Object branchMetaData = query("getBranchMeta", param); // return type : class java.util.LinkedHashMap
+    }
+
+    private static void getContract() {
+        Map param = createParamsForQuery();
+        Object contracts = query("getContract", param); // return type : Set<JsonObject>
+    }
+
+    private static void getFeeState() {
+        Map param = createParamsForQuery();
+        Object feeState = query("feeState", param); // return type : String
+    }
+
+    private static String scanBranchId() {
+        System.out.println(String.format("BranchId : (default %s)", lastBranchId));
+        String input = scan.nextLine();
+        if (!input.isEmpty()) {
+            lastBranchId = input;
+            return input;
+        } else {
+            return lastBranchId;
+        }
+    }
+
+    private static Map createParamsForQuery() {
+        return ContractApiImplTest.createParams(BRANCH_ID, scanBranchId());
+    }
+
+    private static Object query(String method, Map param) {
+        return rpc.proxyOf(TARGET_SERVER, ContractApi.class)
+                .query(yggdrash.toString(), stemContract.toString(), method, param);
+    }
+
+    private static void sendTx(JsonObject txBody) {
+        lastTxId = ContractDemoClientUtils.sendTx(validatorWallet, txBody);
+        System.out.println("lastIndex => " + lastTxId);
+    }
+
+    private static class ContractMock {
+        JsonObject mock = new JsonObject();
+
+        String name = "MOCK";
+        String symbol = "MOCK";
+        String property = "MOCK";
+        String description = "MOCK";
+        String timeStamp = "000001674dc56231";
+        JsonObject consensus = new JsonObject();
+        String governanceContract = "DpoA";
+
+        JsonArray contracts = new JsonArray();
+
+        JsonObject sampleContract = new JsonObject();
+        JsonObject governanceSampleContract = new JsonObject();
+        String contractVersion = "178b44b22d8c6d5bb08175fa2fcab15122ca8d1e";
+        JsonObject contractInit = new JsonObject();
+        String contractDescription = "MOCK";
+        String contractName = "MOCK";
+        boolean contractIsSystem = false;
+
+        ContractMock setName(String name) {
+            this.name = name;
+            return this;
+        }
+
+        ContractMock setSymbol(String symbol) {
+            this.symbol = symbol;
+            return this;
+        }
+
+        ContractMock setProperty(String property) {
+            this.property = property;
+            return this;
+        }
+
+        ContractMock setDescription(String description) {
+            this.description = description;
+            return this;
+        }
+
+        ContractMock setGovernanceContract(String governance) {
+            this.governanceContract = governance;
+            return this;
+        }
+
+        ContractMock setContractVersion(String contractVersion) {
+            this.contractVersion = contractVersion;
+            return this;
+        }
+
+        ContractMock setContractInit(JsonObject init) {
+            this.contractInit = init;
+            return this;
+        }
+
+        ContractMock setContractDescription(String description) {
+            this.contractDescription = description;
+            return this;
+        }
+
+        ContractMock setContractName(String name) {
+            this.contractName = name;
+            return this;
+        }
+
+        ContractMock setContractIsSystem(boolean isSystem) {
+            this.contractIsSystem = isSystem;
+            return this;
+        }
+
+        ContractMock setTimeStamp(String timeStamp) {
+            this.timeStamp = timeStamp;
+            return this;
+        }
+
+        ContractMock build() {
+            createSampleContract();
+            createGovernanceSampleContract();
+            createContracts();
+            createConsensus();
+            createMock();
+            return this;
+        }
+
+        private void createSampleContract() {
+            sampleContract.addProperty("contractVersion", contractVersion);
+            sampleContract.add("init", contractInit);
+            sampleContract.addProperty("description", contractDescription);
+            sampleContract.addProperty("name", contractName);
+            sampleContract.addProperty("isSystem", contractIsSystem);
+        }
+
+        private void createGovernanceSampleContract() {
+            JsonObject initObj = new JsonObject();
+            JsonArray validators = new JsonArray();
+            validators.add(validatorWallet.getHexAddress());
+            initObj.add("validators", validators);
+            governanceSampleContract.addProperty("contractVersion", "30783a1311b9c68dd3a92596d650ae6914b01658");
+            governanceSampleContract.add("init", initObj);
+            governanceSampleContract.addProperty("description", "This contract is for a validator.");
+            governanceSampleContract.addProperty("name", governanceContract);
+            governanceSampleContract.addProperty("isSystem", true);
+        }
+
+        private void createContracts() {
+            contracts.add(sampleContract);
+            contracts.add(governanceSampleContract);
+        }
+
+        private void createConsensus() {
+            consensus.addProperty("algorithm", "pbft");
+            consensus.addProperty("period", "* * * * * *");
+        }
+
+        private void createMock() {
+            mock.addProperty("name", name);
+            mock.addProperty("symbol", symbol);
+            mock.addProperty("property", property);
+            mock.addProperty("description", description);
+            mock.add("contracts", contracts);
+            mock.addProperty("timestamp", timeStamp);
+            mock.add("consensus", consensus);
+            mock.addProperty("governanceContract", governanceContract);
+        }
+
+        public static ContractMock builder() {
+            return new ContractMock();
+        }
+    }
 }
