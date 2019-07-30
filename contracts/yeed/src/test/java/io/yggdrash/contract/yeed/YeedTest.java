@@ -732,6 +732,24 @@ public class YeedTest {
         assertSame(ExecuteStatus.SUCCESS, yeedContract.txReceipt.getStatus());
     }
 
+    @Test
+    public void sendSameAccount() {
+        String issuer = "4d01e237570022440aa126ca0b63065d7f5fd589";
+        BigInteger balance = yeedContract.getBalance(issuer);
+        setUpReceipt("0x00", issuer, BRANCH_ID, 1);
+
+        JsonObject testTransfer = new JsonObject();
+        testTransfer.addProperty("to","4d01e237570022440aa126ca0b63065d7f5fd589");
+        testTransfer.addProperty("amount", BigInteger.valueOf(100L));
+        yeedContract.transfer(testTransfer);
+
+        BigInteger after = yeedContract.getBalance(issuer);
+
+        assertTrue(balance.compareTo(after) == 0);
+    }
+
+
+
     private BranchStateStore branchStateStoreMock() {
         return new BranchStateStore() {
             ValidatorSet set = new ValidatorSet();
