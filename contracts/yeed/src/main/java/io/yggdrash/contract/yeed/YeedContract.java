@@ -283,7 +283,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
             // Check from account balance
             if (isTransferable(fromBalance, feeAmount)) {
                 addBalanceTo(to, amount);
-                fromBalance = fromBalance.subtract(feeAmount);
+                fromBalance = getBalance(from).subtract(feeAmount);
                 putBalance(from, fromBalance);
                 // Stores fee for each branchId to reward to the validators <branchId : fee>
                 addBalanceTo(txReceipt.getBranchId(), fee);
