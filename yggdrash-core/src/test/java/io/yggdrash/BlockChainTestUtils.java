@@ -171,7 +171,6 @@ public class BlockChainTestUtils {
         BlockChainStore bcStore = builder.build();
 
         ContractStore contractStore = bcStore.getContractStore();
-//        ContractPolicyLoader policyLoader = new ContractPolicyLoader();
 
         BootFrameworkConfig bootFrameworkConfig = new BootFrameworkConfig(config, genesis.getBranchId());
         BootFrameworkLauncher bootFrameworkLauncher = new BootFrameworkLauncher(bootFrameworkConfig);
@@ -206,17 +205,6 @@ public class BlockChainTestUtils {
 
         Assert.assertTrue(contractManager.getServiceMap().size()
                 >= genesis.getBranch().getBranchContracts().size());
-
-//        ContractManager contractManager = ContractManagerBuilder.newInstance()
-//                .withFrameworkFactory(contractPolicyLoader.getFrameworkFactory())
-//                .withContractManagerConfig(contractPolicyLoader.getContractManagerConfig())
-//                .withBranchId(genesis.getBranch().getBranchId().toString())
-//                .withContractStore(contractStore)
-//                .withDataBasePath(config.getDatabasePath())
-//                .withOsgiPath(config.getOsgiPath())
-//                .withContractPath(config.getContractPath())
-//                .withLogStore(bcStore.getLogStore())
-//                .build();
 
         BlockChainManager blockChainManager = new BlockChainManagerImpl(bcStore);
 

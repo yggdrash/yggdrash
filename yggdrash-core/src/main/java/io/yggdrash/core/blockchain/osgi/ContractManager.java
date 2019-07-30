@@ -209,7 +209,6 @@ public class ContractManager {
     }
 
     public Bundle install(String branchId, ContractVersion contractVersion, File contractFile, boolean isSystem) throws IOException, BundleException {
-        BundleContext context = findBundleContext(branchId);
         Bundle bundle = bundleService.getBundle(findBundleContext(branchId), contractVersion);
 
         try (JarFile jarFile = new JarFile(contractFile)) {
@@ -335,7 +334,6 @@ public class ContractManager {
     public List<ContractStatus> searchContracts() {
         List<ContractStatus> result = new ArrayList<>();
         for (Bundle bundle : findBundleContext(bootBranchId).getBundles()) {
-            Version v = bundle.getVersion();
             result.add(getContractStatus(bundle));
         }
         return result;

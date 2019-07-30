@@ -288,17 +288,6 @@ public class ContractExecutorTest {
             log.debug(Long.toString(cs.getId()));
         }
 
-//        Bundle bundle = manager.getBundle(branchId.toString(), contractVersion);
-//        List<ContractStatus> csList = manager.searchContracts(branchId.toString());
-
-//        for (ContractStatus cs : csList) {
-//            log.debug(cs.getLocation());
-//        }
-
-//        assert bundle != null;
-//
-//        setNamespace(bundle.getSymbolicName());
-
     }
 
     private void createBundle() throws Exception {
@@ -310,16 +299,9 @@ public class ContractExecutorTest {
 
         Bundle bundle = manager.install(branchId.toString(), contractVersion, coinContractFile, true);
 
-//        Bundle bundle = manager.install(branchId.toString(), contractVersion, true);
         manager.start(bundle);
         manager.inject(branchId.toString(), contractVersion);
         manager.registerServiceMap(branchId.toString(), contractVersion, bundle);
-
-//        if (!checkExistContract(contractVersion.toString())) {
-//            long bundle = manager.install(contractVersion, coinContractFile, true);
-//        } else {
-//            manager.reloadInject();
-//        }
 
         for (ContractStatus cs : manager.searchContracts(branchId.toString())) {
             String bundleSymbolicName = cs.getSymbolicName();
