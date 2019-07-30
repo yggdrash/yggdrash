@@ -38,6 +38,11 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     }
 
     @Override
+    public void loadTransaction() {
+        blockChainManager.loadTransaction();
+    }
+
+    @Override
     public int verify(ConsensusBlock<T> block) {
         return blockChainManager.verify(block);
     }
@@ -60,11 +65,6 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     @Override
     public void updateTxCache(Block block) {
         blockChainManager.updateTxCache(block);
-    }
-
-    @Override
-    public void setLastConfirmedBlock(ConsensusBlock<T> block) {
-        blockChainManager.setLastConfirmedBlock(block);
     }
 
     @Override

@@ -14,10 +14,8 @@ import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
 import io.yggdrash.core.store.BlockStoreFactory;
-import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.validator.data.BlockChainManagerMock;
-import io.yggdrash.validator.store.ebft.EbftBlockStore;
 import io.yggdrash.validator.store.pbft.PbftBlockKeyStore;
 import io.yggdrash.validator.store.pbft.PbftBlockStore;
 import org.slf4j.Logger;
@@ -32,7 +30,7 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
     private static final Logger log = LoggerFactory.getLogger(PbftBlockChain.class);
 
     private final BranchId branchId;
-    private final PbftBlockKeyStore blockKeyStore;
+    private final PbftBlockKeyStore blockKeyStore; // <index:blockHash>
     private final Map<String, PbftMessage> unConfirmedMsgMap = new ConcurrentHashMap<>();
 
     private final BlockChainManagerMock<PbftProto.PbftBlock> blockChainManagerMock;
@@ -60,36 +58,53 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
 
         this.branchId = BranchId.of(genesisBlock.getHeader().getChain());
         this.genesisBlock = new PbftBlock(genesisBlock, PbftMessageSet.forGenesis());
+        this.consensus = new Consensus(this.genesisBlock.getBlock());
         this.blockKeyStore = new PbftBlockKeyStore(new LevelDbDataSource(dbPath, blockKeyStorePath));
 
+        init();
+    }
+
+    private void init() {
         if (this.blockKeyStore.size() == 0) {
-            this.blockKeyStore.put(0L, this.genesisBlock.getHash().getBytes());
-            blockChainManagerMock.addBlock(this.genesisBlock); // todo: check efficiency & change index
+            log.debug("PbftBlockChain init Genesis");
+            initGenesis();
         } else {
-            if (!Arrays.equals(this.blockKeyStore.get(0L), this.genesisBlock.getHash().getBytes())) {
+            if (!isOriginGenesis()) {
                 throw new NotValidateException("PbftBlockKeyStore is not valid.");
             }
 
-            PbftBlock prevPbftBlock = (PbftBlock) blockChainManagerMock.getBlockByHash(
-                    Sha3Hash.createByHashed(blockKeyStore.get(0L)));
-            PbftBlock nextPbftBlock = null;
-            for (long l = 1; l < this.blockKeyStore.size(); l++) {
-                nextPbftBlock = (PbftBlock) blockChainManagerMock.getBlockByHash(
-                        Sha3Hash.createByHashed(blockKeyStore.get(l)));
-                if (prevPbftBlock.getHash().equals(nextPbftBlock.getPrevBlockHash())) {
-                    prevPbftBlock.clear();
-                    prevPbftBlock = nextPbftBlock;
-                } else {
-                    throw new NotValidateException("PbftBlockStore is not valid.");
-                }
+            if (!prevHashVerified()) {
+                throw new NotValidateException("PbftBlockStore is not valid.");
             }
 
-            if (nextPbftBlock != null) {
-                blockChainManagerMock.setLastConfirmedBlock(nextPbftBlock);
+            blockChainManagerMock.loadTransaction();
+        }
+    }
+
+    private void initGenesis() {
+        blockKeyStore.put(0L, this.genesisBlock.getHash().getBytes());
+        blockChainManagerMock.addBlock(this.genesisBlock);  // todo: check efficiency & change index
+    }
+
+    private boolean isOriginGenesis() {
+        return Arrays.equals(this.blockKeyStore.get(0L), this.genesisBlock.getHash().getBytes());
+    }
+
+    private boolean prevHashVerified() {
+        PbftBlock prevPbftBlock = (PbftBlock) blockChainManagerMock.getBlockByHash(
+                Sha3Hash.createByHashed(blockKeyStore.get(0L)));
+        PbftBlock nextPbftBlock;
+        for (long l = 1; l < this.blockKeyStore.size(); l++) {
+            nextPbftBlock = (PbftBlock) blockChainManagerMock.getBlockByHash(
+                    Sha3Hash.createByHashed(blockKeyStore.get(l)));
+            if (prevPbftBlock.getHash().equals(nextPbftBlock.getPrevBlockHash())) {
+                prevPbftBlock.clear();
+                prevPbftBlock = nextPbftBlock;
+            } else {
+                return false;
             }
         }
-
-        this.consensus = new Consensus(this.genesisBlock.getBlock());
+        return true;
     }
 
     @Override

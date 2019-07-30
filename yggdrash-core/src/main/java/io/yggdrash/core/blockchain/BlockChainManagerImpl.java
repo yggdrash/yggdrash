@@ -20,6 +20,7 @@ import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.errorcode.BusinessError;
 import io.yggdrash.core.store.BlockChainStore;
+import io.yggdrash.core.store.BranchStore;
 import io.yggdrash.core.store.ConsensusBlockStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
@@ -36,6 +37,7 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
 
     private static final Logger log = LoggerFactory.getLogger(BlockChainManagerImpl.class);
 
+    private final BranchStore branchStore;
     private final ConsensusBlockStore<T> blockStore;
     private final TransactionStore transactionStore;
     private final TransactionReceiptStore transactionReceiptStore;
@@ -44,6 +46,7 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     private ConsensusBlock<T> lastConfirmedBlock;
 
     public BlockChainManagerImpl(BlockChainStore blockChainStore) {
+        this.branchStore = blockChainStore.getBranchStore();
         this.blockStore = blockChainStore.getConsensusBlockStore();
         this.transactionStore = blockChainStore.getTransactionStore();
         this.transactionReceiptStore = blockChainStore.getTransactionReceiptStore();
@@ -55,6 +58,31 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
         for (Transaction tx : genesisBlock.getBody().getTransactionList()) {
             if (!transactionStore.contains(tx.getHash())) {
                 transactionStore.put(tx.getHash(), tx);
+            }
+        }
+    }
+
+    @Override
+    public void loadTransaction() {
+        // load recent 1000 block
+        // Start Block and End Block
+        long bestBlock = branchStore.getBestBlock();
+        long loadStart = bestBlock > 1000 ? bestBlock - 1000 : 0;
+        for (long i = loadStart; i <= bestBlock; i++) { // TODO Consider block verification (genesis, prevHash ...)
+            // Load recent block and update cache
+            ConsensusBlock<T> block = getBlockByIndex(i);
+            // TODO Node can be shutdown before blockStore.addBlock()
+            // addBlock(): branchStore.setBestBlock() -> executeTransactions() -> blockStore.addBlock()
+            if (block == null) {
+                long prevIdx = i - 1;
+                branchStore.setBestBlock(getBlockByIndex(prevIdx));
+                log.warn("Reset branchStore bestBlock: {} -> {}", bestBlock, prevIdx);
+                break;
+            }
+            updateTxCache(block);
+            // Set Last Best Block
+            if (i == bestBlock) {
+                setLastConfirmedBlock(block);
             }
         }
     }
@@ -166,8 +194,7 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
         transactionStore.updateCache(block.getBody().getTransactionList());
     }
 
-    @Override
-    public void setLastConfirmedBlock(ConsensusBlock<T> block) {
+    private void setLastConfirmedBlock(ConsensusBlock<T> block) {
         this.lastConfirmedBlock = block;
     }
 
