@@ -23,6 +23,8 @@ public interface BlockChainManager<T> {
 
     void initGenesis(Block genesisBlock);
 
+    void loadTransaction();
+
     int verify(ConsensusBlock<T> block);
 
     int verify(Transaction transaction);
@@ -32,8 +34,6 @@ public interface BlockChainManager<T> {
     void addTransaction(Transaction tx);
 
     void updateTxCache(Block block);
-
-    void setLastConfirmedBlock(ConsensusBlock<T> block);
 
     ConsensusBlock<T> getLastConfirmedBlock();
 

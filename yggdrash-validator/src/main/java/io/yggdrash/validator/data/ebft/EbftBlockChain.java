@@ -14,7 +14,6 @@ import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
 import io.yggdrash.core.store.BlockStoreFactory;
-import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.proto.EbftProto;
 import io.yggdrash.validator.data.BlockChainManagerMock;
 import io.yggdrash.validator.store.ebft.EbftBlockKeyStore;
@@ -68,32 +67,49 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
         this.consensus = new Consensus(this.genesisBlock.getBlock());
         this.blockKeyStore = new EbftBlockKeyStore(new LevelDbDataSource(dbPath, blockKeyStorePath));
 
-        blockChainManagerMock.setLastConfirmedBlock(this.genesisBlock);
-        EbftBlock ebftBlock = this.genesisBlock;
+        init();
+    }
 
+    private void init() {
         if (this.blockKeyStore.size() > 0) {
-            if (!Arrays.equals(this.blockKeyStore.get(0L), this.genesisBlock.getHash().getBytes())) {
+            if (!isOriginGenesis()) {
                 throw new NotValidateException("EbftBlockKeyStore is not valid.");
             }
 
-            EbftBlock prevEbftBlock = this.genesisBlock;
-            for (long l = 1; l < this.blockKeyStore.size(); l++) {
-                Sha3Hash hash = Sha3Hash.createByHashed(blockKeyStore.get(l));
-                ebftBlock = (EbftBlock) blockChainManagerMock.getBlockByHash(hash);
-                if (prevEbftBlock.getHash().equals(ebftBlock.getPrevBlockHash())) {
-                    prevEbftBlock = ebftBlock;
-                } else {
-                    throw new NotValidateException("EbftBlockStore is not valid.");
-                }
+            if (!prevHashVerified()) {
+                throw new NotValidateException("EbftBlockStore is not valid.");
             }
 
-            blockChainManagerMock.setLastConfirmedBlock(ebftBlock);
-
+            blockChainManagerMock.loadTransaction();
         } else {
-            this.blockKeyStore.put(0L, genesisBlock.getHash().getBytes());
-            // BlockChainManager add block to the blockStore, set the lastConfirmedBlock, and then batch the txs.
-            blockChainManagerMock.addBlock(this.genesisBlock); // todo: check efficiency & change index
+            log.debug("EbftBlockChain init Genesis");
+            initGenesis();
         }
+    }
+
+    private void initGenesis() {
+        this.blockKeyStore.put(0L, genesisBlock.getHash().getBytes());
+        // BlockChainManager add block to the blockStore, set the lastConfirmedBlock, and then batch the txs.
+        blockChainManagerMock.addBlock(this.genesisBlock); // todo: check efficiency & change index
+    }
+
+    private boolean isOriginGenesis() {
+        return Arrays.equals(this.blockKeyStore.get(0L), this.genesisBlock.getHash().getBytes());
+    }
+
+    private boolean prevHashVerified() {
+        EbftBlock ebftBlock;
+        EbftBlock prevEbftBlock = this.genesisBlock;
+        for (long l = 1; l < this.blockKeyStore.size(); l++) {
+            Sha3Hash hash = Sha3Hash.createByHashed(blockKeyStore.get(l));
+            ebftBlock = (EbftBlock) blockChainManagerMock.getBlockByHash(hash);
+            if (prevEbftBlock.getHash().equals(ebftBlock.getPrevBlockHash())) {
+                prevEbftBlock = ebftBlock;
+            } else {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
