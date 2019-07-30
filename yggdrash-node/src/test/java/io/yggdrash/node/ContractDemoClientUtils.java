@@ -137,13 +137,14 @@ public class ContractDemoClientUtils {
         wallet = new Wallet(testWalletFile, password);
     }
 
-    static void getTxReceipt(String lastTxId) {
+    static TransactionReceiptDto getTxReceipt(String lastTxId) {
         String txId = getTxId(lastTxId);
         TransactionReceiptDto txrDto = rpc.proxyOf(TARGET_SERVER, TransactionApi.class)
                 .getTransactionReceipt(yggdrash.toString(), txId);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String prettyJsonString = gson.toJson(txrDto);
         System.out.println(prettyJsonString);
+        return txrDto;
     }
 
     private static String getTxId(String lastTxId) {
@@ -154,6 +155,10 @@ public class ContractDemoClientUtils {
     }
 
     static String sendTx(JsonObject txBody) {
+        return sendTx(wallet, txBody);
+    }
+
+    static String sendTx(Wallet wallet, JsonObject txBody) {
         int times = getSendTimes();
         String lastTxId = "";
 

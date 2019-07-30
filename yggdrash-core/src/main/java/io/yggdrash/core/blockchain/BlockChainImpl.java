@@ -78,7 +78,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         } else {
             log.debug("BlockChain Load in Storage");
             // Load Block Chain Information
-            loadTransaction();
+            blockChainManager.loadTransaction();
             // load contract
         }
     }
@@ -137,30 +137,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         branchStore.setBranchContracts(branch.getBranchContracts());
 
 
-    }
-
-    private void loadTransaction() {
-        // load recent 1000 block
-        // Start Block and End Block
-        long bestBlock = branchStore.getBestBlock();
-        long loadStart = bestBlock > 1000 ? bestBlock - 1000 : 0;
-        for (long i = loadStart; i <= bestBlock; i++) {
-            // recent block load and update Cache
-            ConsensusBlock<T> block = blockChainManager.getBlockByIndex(i);
-            // TODO node can be shutdown before blockStore.addBlock()
-            // addBlock(): branchStore.setBestBlock() -> executeTransactions() -> blockStore.addBlock()
-            if (block == null) {
-                long prevIdx = i - 1;
-                branchStore.setBestBlock(blockChainManager.getBlockByIndex(prevIdx));
-                log.warn("reset branchStore bestBlock: {} -> {}", bestBlock, prevIdx);
-                break;
-            }
-            blockChainManager.updateTxCache(block);
-            // set Last Best Block
-            if (i == bestBlock) {
-                blockChainManager.setLastConfirmedBlock(block);
-            }
-        }
     }
 
     @Override

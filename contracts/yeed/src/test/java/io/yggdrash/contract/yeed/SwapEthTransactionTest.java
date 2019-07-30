@@ -49,7 +49,7 @@ public class SwapEthTransactionTest {
 
         log.debug("Chain ID {} ", ethTransaction.getChainId());
         log.debug("Sender {}", HexUtil.toHexString(ethTransaction.getSendAddress()));
-        log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+        log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiverAddress()));
         log.debug("value {}", ethTransaction.getValue());
         log.debug("data {}", ethTransaction.getData());
 
@@ -57,7 +57,7 @@ public class SwapEthTransactionTest {
         Assert.assertEquals("Send Address Check",
                 "5e032243d507c743b061ef021e2ec7fcc6d3ab89", HexUtil.toHexString(ethTransaction.getSendAddress()));
         Assert.assertEquals("Receive Address Check",
-                "c3cf7a283a4415ce3c41f5374934612389334780", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+                "c3cf7a283a4415ce3c41f5374934612389334780", HexUtil.toHexString(ethTransaction.getReceiverAddress()));
         Assert.assertEquals("Send Value", "1000000000000000000", ethTransaction.getValue().toString());
 
 
@@ -73,7 +73,7 @@ public class SwapEthTransactionTest {
 
         log.debug("Chain ID {} ", ethTransaction.getChainId());
         log.debug("Sender {}", HexUtil.toHexString(ethTransaction.getSendAddress()));
-        log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+        log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiverAddress()));
         log.debug("value {}", ethTransaction.getValue());
         log.debug("data {}", ethTransaction.getData());
 
@@ -81,7 +81,7 @@ public class SwapEthTransactionTest {
         Assert.assertEquals("Send Address Check",
                 "d21629411073b5ac9e8896f980a2fd066cbea7e6", HexUtil.toHexString(ethTransaction.getSendAddress()));
         Assert.assertEquals("Receive Address Check",
-                "735c4b587ae018c4733df6a8ef59711d15f551b4", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+                "735c4b587ae018c4733df6a8ef59711d15f551b4", HexUtil.toHexString(ethTransaction.getReceiverAddress()));
         Assert.assertEquals("Send Value", "1000000000000000000", ethTransaction.getValue().toString());
 
         ethHexString = "0xf86c0a8501dcd6500082520894d43276d9b9722a68cc2b5d6ff97a1380d3c9e85e880de0b"
@@ -93,7 +93,7 @@ public class SwapEthTransactionTest {
 
         log.debug("Chain ID {} ", ethTransaction.getChainId());
         log.debug("Sender {}", HexUtil.toHexString(ethTransaction.getSendAddress()));
-        log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+        log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiverAddress()));
         log.debug("value {}", ethTransaction.getValue());
         log.debug("data {}", ethTransaction.getData());
 
@@ -101,7 +101,7 @@ public class SwapEthTransactionTest {
         Assert.assertEquals("Send Address Check",
                 "12dab33c2bf841bbd07b173a95d3ffb28608c0e3", HexUtil.toHexString(ethTransaction.getSendAddress()));
         Assert.assertEquals("Receive Address Check",
-                "d43276d9b9722a68cc2b5d6ff97a1380d3c9e85e", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+                "d43276d9b9722a68cc2b5d6ff97a1380d3c9e85e", HexUtil.toHexString(ethTransaction.getReceiverAddress()));
         Assert.assertEquals("Send Value", "1000000000000000000", ethTransaction.getValue().toString());
     }
 
@@ -120,14 +120,14 @@ public class SwapEthTransactionTest {
 
         log.debug("Chain ID {} ", ethTransaction.getChainId());
         log.debug("Sender {}", HexUtil.toHexString(ethTransaction.getSendAddress()));
-        log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+        log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiverAddress()));
         log.debug("value {}", ethTransaction.getValue());
         log.debug("data {}", ethTransaction.getData());
 
         Assert.assertEquals("Send Address Check",
                 "81b7e08f65bdf5648606c89998a9cc8164397647", HexUtil.toHexString(ethTransaction.getSendAddress()));
         Assert.assertEquals("Receive Address Check",
-                "eaf9e2cb3ccebe8c4a301f3d5b643328941f3fb2", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+                "eaf9e2cb3ccebe8c4a301f3d5b643328941f3fb2", HexUtil.toHexString(ethTransaction.getReceiverAddress()));
         Assert.assertEquals("Send Value", "1000000000000000000", ethTransaction.getValue().toString());
 
         String ropsten2 = "0xf86c808503b9aca00082520894101167aaf090581b91c08480f6e559acdd9a3ddd880de0b6b3a7640000802aa0"
@@ -140,7 +140,7 @@ public class SwapEthTransactionTest {
 
         log.debug("Chain ID {} ", ethTransaction.getChainId());
         log.debug("Sender {}", HexUtil.toHexString(ethTransaction.getSendAddress()));
-        log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+        log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiverAddress()));
         log.debug("value {}", ethTransaction.getValue());
         log.debug("data {}", ethTransaction.getData());
     }
@@ -160,14 +160,14 @@ public class SwapEthTransactionTest {
 
         log.debug("Chain ID {} ", ethTransaction.getChainId());
         log.debug("Sender {}", HexUtil.toHexString(ethTransaction.getSendAddress()));
-        log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+        log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiverAddress()));
         log.debug("value {}", ethTransaction.getValue());
         log.debug("data {}", ethTransaction.getData());
 
         Assert.assertEquals("Send Address Check",
                 "003bbce1eac59b406dd0e143e856542df3659075", HexUtil.toHexString(ethTransaction.getSendAddress()));
         Assert.assertEquals("Receive Address Check",
-                "b116c9bf208f0941ed2045c1b8d8e0c14854421c", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+                "b116c9bf208f0941ed2045c1b8d8e0c14854421c", HexUtil.toHexString(ethTransaction.getReceiverAddress()));
         Assert.assertEquals("Send Value", "3000000000000000000", ethTransaction.getValue().toString());
 
         // https://kovan.etherscan.io/tx/0x5c9d9e621794d02be33598a4568a8daacb954477e685b5b32ff9ff5dac9173a4
@@ -180,7 +180,7 @@ public class SwapEthTransactionTest {
         Assert.assertEquals("Send Address Check",
                 "bd711b985a49c3f95d62250d8d3d080a5151a6a5", HexUtil.toHexString(ethTransaction.getSendAddress()));
         Assert.assertEquals("Receive Address Check",
-                "459bedae42e98109136a1463039c436dba53cede", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+                "459bedae42e98109136a1463039c436dba53cede", HexUtil.toHexString(ethTransaction.getReceiverAddress()));
         Assert.assertEquals("Send Value", "1000000000000000000", ethTransaction.getValue().toString());
 
     }
@@ -201,14 +201,14 @@ public class SwapEthTransactionTest {
 
         log.debug("Chain ID {} ", ethTransaction.getChainId());
         log.debug("Sender {}", HexUtil.toHexString(ethTransaction.getSendAddress()));
-        log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+        log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiverAddress()));
         log.debug("value {}", ethTransaction.getValue());
         log.debug("data {}", ethTransaction.getData());
 
         Assert.assertEquals("Send Address Check",
                 "8ced5ad0d8da4ec211c17355ed3dbfec4cf0e5b9", HexUtil.toHexString(ethTransaction.getSendAddress()));
         Assert.assertEquals("Receive Address Check",
-                "f689d779d9108faa0ba447399fb2477687923278", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+                "f689d779d9108faa0ba447399fb2477687923278", HexUtil.toHexString(ethTransaction.getReceiverAddress()));
         Assert.assertEquals("Send Value", "50000000000000000", ethTransaction.getValue().toString());
     }
 
@@ -227,7 +227,7 @@ public class SwapEthTransactionTest {
 
         log.debug("Chain ID {} ", ethTransaction.getChainId());
         log.debug("Sender {}", HexUtil.toHexString(ethTransaction.getSendAddress()));
-        log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+        log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiverAddress()));
         log.debug("value {}", ethTransaction.getValue());
         log.debug("data {}", ethTransaction.getData());
         // https://baobab.klaytnscope.com/tx/0xdf2f5c43fe9b613b4692f089774d2d9ec4bc8df02fa73d8aa4196279898f4457
@@ -238,7 +238,7 @@ public class SwapEthTransactionTest {
         Assert.assertEquals("sender", "17b396e80db97258885ffbc0513ef1bbf1f1f1d0",
                 HexUtil.toHexString(ethTransaction.getSendAddress()));
         Assert.assertEquals("Receiver", "5b71a37bb39b33dd40d267a989ac3e448735a7c2",
-                HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+                HexUtil.toHexString(ethTransaction.getReceiverAddress()));
         Assert.assertEquals("Send Value", "1000000000000000000", ethTransaction.getValue().toString());
 
 
@@ -258,14 +258,14 @@ public class SwapEthTransactionTest {
 
         log.debug("Chain ID {} ", ethTransaction.getChainId());
         log.debug("Sender {}", HexUtil.toHexString(ethTransaction.getSendAddress()));
-        log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+        log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiverAddress()));
         log.debug("value {}", ethTransaction.getValue());
         log.debug("data {}", ethTransaction.getData());
 
         Assert.assertEquals("sender", "17b396e80db97258885ffbc0513ef1bbf1f1f1d0",
                 HexUtil.toHexString(ethTransaction.getSendAddress()));
         Assert.assertEquals("Receiver", "7eca82d239c3b1513d6368e2ff21763e469f1298",
-                HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+                HexUtil.toHexString(ethTransaction.getReceiverAddress()));
         Assert.assertEquals("Send Value", "100000000000000000", ethTransaction.getValue().toString());
 
     }

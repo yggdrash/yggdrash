@@ -17,26 +17,25 @@ public class ProposeInterChain {
     String transactionId;
     String proposeId;
 
-    String targetAddress;
-    String receiveAddress;
-    BigInteger receiveAsset;
+    String targetAddress;   // Token address
+    String receiverAddress; // ReceiverAddress receives eth
+    BigInteger receiveAsset; // Ether (WEI)
 
-    // Ethereum chain Id
-    int receiveChainId;
+    int receiveChainId;     // Ethereum chain Id
 
-    // add ethereum network block height - all process is work on network blockHeight
+    // Add ethereum network block height - all process is work on network blockHeight
     long networkBlockHeight;
 
     ProposeType proposeType;
 
-    String senderAddress;
+    String senderAddress;   // SenderAddress sends eth
     String inputData;
 
     BigInteger stakeYeed;
-    long blockHeight;
+    long blockHeight;       // Yggdrash network block height ??? TargetBlockHeight
     BigInteger fee;
 
-    String issuer;
+    String issuer;          // Transaction issuer
 
     public String getTransactionId() {
         return transactionId;
@@ -51,7 +50,7 @@ public class ProposeInterChain {
     }
 
     public String getReceiveAddress() {
-        return receiveAddress;
+        return receiverAddress;
     }
 
     public BigInteger getReceiveAsset() {
@@ -97,7 +96,7 @@ public class ProposeInterChain {
     public ProposeInterChain(JsonObject object) {
         this.transactionId = object.get("transactionId").getAsString();
         this.targetAddress = JsonUtil.parseString(object, "targetAddress", "");
-        this.receiveAddress = object.get("receiveAddress").getAsString();
+        this.receiverAddress = object.get("receiverAddress").getAsString();
         this.receiveAsset = object.get("receiveAsset").getAsBigInteger();
         this.receiveChainId = object.get("receiveChainId").getAsInt();
         this.networkBlockHeight = object.get("networkBlockHeight").getAsLong();
@@ -111,14 +110,13 @@ public class ProposeInterChain {
         generateProposeId();
     }
 
-
     public ProposeInterChain(String transactionId, String targetAddress, String receiveAddress, BigInteger receiveAsset,
                              int receiveChainId, long networkBlockHeight, ProposeType proposeType, String senderAddress,
                              String inputData, BigInteger stakeYeed, long blockHeight,
                              BigInteger fee, String issuer) {
         this.transactionId = transactionId;
         this.targetAddress = targetAddress;
-        this.receiveAddress = receiveAddress;
+        this.receiverAddress = receiveAddress;
         this.receiveAsset = receiveAsset;
         this.receiveChainId = receiveChainId;
         this.networkBlockHeight = networkBlockHeight;
@@ -143,7 +141,7 @@ public class ProposeInterChain {
 
             baos.write(issuer.getBytes());
             baos.write(targetAddress.getBytes());
-            baos.write(receiveAddress.getBytes());
+            baos.write(receiverAddress.getBytes());
             baos.write(receiveAsset.toByteArray());
             baos.write(Longs.toByteArray(networkBlockHeight));
             // Stake YEED
@@ -169,7 +167,6 @@ public class ProposeInterChain {
 
         // 32byte proposal ID
         byte[] proposalId = HashUtil.sha3(proposalData);
-        //System.out.println(Base64.getEncoder().encode(proposalID));
 
         this.proposeId = HexUtil.toHexString(proposalId);
     }
@@ -178,7 +175,7 @@ public class ProposeInterChain {
         JsonObject proposal = new JsonObject();
         proposal.addProperty("proposeId", proposeId);
         proposal.addProperty("transactionId", transactionId);
-        proposal.addProperty("receiveAddress", receiveAddress);
+        proposal.addProperty("receiverAddress", receiverAddress);
         proposal.addProperty("receiveAsset", receiveAsset);
         proposal.addProperty("receiveChainId", receiveChainId);
         proposal.addProperty("networkBlockHeight", networkBlockHeight);
@@ -193,21 +190,20 @@ public class ProposeInterChain {
         return proposal;
     }
 
-
     public int verificationProposeProcess(ProcessTransaction pt) {
         int checkProcess = 0;
 
         // check Send Address
         if (!Strings.isNullOrEmpty(getSenderAddress())) {
             checkProcess |= ProposeErrorCode.addCode(
-                    getSenderAddress().equals(pt.getSendAddress()),
+                    getSenderAddress().equals(pt.getSenderAddress()),
                     ProposeErrorCode.PROPOSE_SENDER_ADDRESS_INVALID);
         }
 
         // check Receive Address
         checkProcess |= ProposeErrorCode.addCode(
-                getReceiveAddress().equals(pt.getReceiveAddress()),
-                ProposeErrorCode.PROPOSE_RECEIVE_ADDRESS_INVALID);
+                getReceiveAddress().equals(pt.getReceiverAddress()),
+                ProposeErrorCode.PROPOSE_RECEIVER_ADDRESS_INVALID);
 
         // Check Chain Id
         if (getReceiveChainId() != -1) {
@@ -226,7 +222,6 @@ public class ProposeInterChain {
         if (pt.getAsset().compareTo(BigInteger.ZERO) == 0) {
             checkProcess |= ProposeErrorCode.PROPOSE_RECEIVE_TARGET_INVALID.toValue();
         }
-
 
         return checkProcess;
     }

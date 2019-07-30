@@ -57,8 +57,8 @@ public class SwapEthTransactionTokenTest {
         log.debug("calculate Token {} ", tokenAmount.divide(new BigInteger("1000000000000000000")));
         // 495,000
 
-        log.debug("Address {} ", HexUtil.toHexString(token.getReceiveAddress()));
-        assert ByteUtils.equals(token.getReceiveAddress(),
+        log.debug("Address {} ", HexUtil.toHexString(token.getReceiverAddress()));
+        assert ByteUtils.equals(token.getReceiverAddress(),
                 HexUtil.hexStringToBytes("0xca2796f9f61dc7b238aab043971e49c6164df375"));
 
 

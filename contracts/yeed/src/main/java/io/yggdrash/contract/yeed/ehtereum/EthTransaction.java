@@ -19,7 +19,7 @@ public class EthTransaction {
     byte[] nonce;
     byte[] gasPrice;
     byte[] gasLimit;
-    byte[] receiveAddress;
+    byte[] receiverAddress;
     BigInteger value;
     byte[] data;
     byte[] rlpEncoded;
@@ -41,8 +41,8 @@ public class EthTransaction {
         return gasLimit;
     }
 
-    public byte[] getReceiveAddress() {
-        return receiveAddress;
+    public byte[] getReceiverAddress() {
+        return receiverAddress;
     }
 
     public BigInteger getValue() {
@@ -90,7 +90,7 @@ public class EthTransaction {
         nonce = ethTx.get(0).getRLPData();
         gasPrice = ethTx.get(1).getRLPData();
         gasLimit = ethTx.get(2).getRLPData();
-        receiveAddress = ethTx.get(3).getRLPData();
+        receiverAddress = ethTx.get(3).getRLPData();
         value = ByteUtil.bytesToBigInteger(ethTx.get(4).getRLPData());
         data = ethTx.get(5).getRLPData();
 
@@ -171,7 +171,7 @@ public class EthTransaction {
         }
         byte[] gasPrice = RLP.encodeElement(this.gasPrice);
         byte[] gasLimit = RLP.encodeElement(this.gasLimit);
-        byte[] receiveAddress = RLP.encodeElement(this.receiveAddress);
+        byte[] receiveAddress = RLP.encodeElement(this.receiverAddress);
         byte[] value = RLP.encodeElement(this.value.toByteArray());
         byte[] data = RLP.encodeElement(this.data);
 

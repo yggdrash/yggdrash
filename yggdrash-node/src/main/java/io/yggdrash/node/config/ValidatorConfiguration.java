@@ -43,7 +43,6 @@ public class ValidatorConfiguration {
     @Bean
     public Map<BranchId, List<ValidatorService>> validatorServiceMap(BranchLoader branchLoader,
                                                                      DefaultConfig defaultConfig) {
-
         Map<BranchId, List<ValidatorService>> validatorServiceMap = new HashMap<>();
         File validatorPath = new File(defaultConfig.getValidatorPath());
 
@@ -75,7 +74,6 @@ public class ValidatorConfiguration {
 
     private List<ValidatorService> loadValidatorService(File branchPath, GenesisBlock genesis, Consensus consensus,
                                                         DefaultConfig defaultConfig) {
-
         List<ValidatorService> validatorServiceList = new ArrayList<>();
         for (File validatorServicePath : Objects.requireNonNull(branchPath.listFiles())) {
             File validatorConfFile = new File(validatorServicePath, "validator.conf");
@@ -101,8 +99,7 @@ public class ValidatorConfiguration {
                 BlockChainStore blockChainStore = builder.build();
 
                 BlockChain blockChain = BranchConfiguration.getBlockChain(defaultConfig,
-                        genesis, blockChainStore,
-                        branchId, systemProperties);
+                        genesis, blockChainStore, branchId, systemProperties);
 
                 validatorServiceList.add(new ValidatorService(mergedConfig, blockChain));
             } catch (Exception e) {
