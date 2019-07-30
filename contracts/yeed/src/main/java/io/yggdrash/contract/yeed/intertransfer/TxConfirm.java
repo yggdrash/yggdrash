@@ -3,6 +3,7 @@ package io.yggdrash.contract.yeed.intertransfer;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -12,7 +13,7 @@ public class TxConfirm {
     String proposeId;
     String txId;
 
-    String sendAddress;
+    String senderAddress;
     BigInteger transferYeed;
 
     long blockHeight;
@@ -33,8 +34,8 @@ public class TxConfirm {
         return txId;
     }
 
-    public String getSendAddress() {
-        return sendAddress;
+    public String getSenderAddress() {
+        return senderAddress;
     }
 
     public BigInteger getTransferYeed() {
@@ -76,7 +77,7 @@ public class TxConfirm {
     public TxConfirm(String proposeId, String txId, String sendAddress, BigInteger transferYeed) {
         this.proposeId = proposeId;
         this.txId = txId;
-        this.sendAddress = sendAddress;
+        this.senderAddress = sendAddress;
         this.transferYeed = transferYeed;
         generateTxConfirmId();
 
@@ -86,7 +87,7 @@ public class TxConfirm {
     public TxConfirm(JsonObject json) {
         this.proposeId = json.get("proposeId").getAsString();
         this.txId = json.get("txId").getAsString();
-        this.sendAddress = json.get("sendAddress").getAsString();
+        this.senderAddress = json.get("senderAddress").getAsString();
         this.transferYeed = json.get("transferYeed").getAsBigInteger();
         generateTxConfirmId();
 
@@ -104,7 +105,7 @@ public class TxConfirm {
         try {
             baos.write(proposeId.getBytes());
             baos.write(txId.getBytes());
-            baos.write(sendAddress.getBytes());
+            baos.write(senderAddress.getBytes());
             baos.write(transferYeed.toByteArray());
 
             transactionConfirmData = baos.toByteArray();
@@ -122,9 +123,8 @@ public class TxConfirm {
         txConfirmJson.addProperty("txConfirmId", txConfirmId);
         txConfirmJson.addProperty("proposeId", proposeId);
         txConfirmJson.addProperty("txId", txId);
-        txConfirmJson.addProperty("sendAddress", sendAddress);
+        txConfirmJson.addProperty("senderAddress", senderAddress);
         txConfirmJson.addProperty("transferYeed", transferYeed);
-
         txConfirmJson.addProperty("blockHeight", blockHeight);
         txConfirmJson.addProperty("lastBlockHeight", lastBlockHeight);
         txConfirmJson.addProperty("index", index);

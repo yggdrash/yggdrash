@@ -321,6 +321,9 @@ public class ContractManager {
         // TODO load After call
         for (Bundle bundle : framework.getBundleContext().getBundles()) {
             setFullLocation(bundle.getLocation()); // Cache the full location of an existing bundle.
+            // Temporary
+            String contractVersion = bundle.getLocation().substring(bundle.getLocation().lastIndexOf('/') + 1);
+            registerContract(contractVersion);
             inject(bundle);
         }
     }
@@ -501,7 +504,7 @@ public class ContractManager {
     }
 
     public TransactionRuntimeResult executeTx(Transaction tx) {
-        registerContract(getContractVersion(tx));
+        //registerContract(getContractVersion(tx));
         return contractExecutor.executeTx(serviceMap, tx);
     }
 
