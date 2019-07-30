@@ -133,32 +133,31 @@ public class ContractManager {
             verifyContractFile(contractFile, contractVersion);
 
             BundleContext context = frameworkHashMap.get(bootBranchId).getBundleContext();
-            Bundle bundle = null;
+            Bundle bundle = getBundle(bootBranchId, contractVersion);
 
-            try {
-                bundle = install(bootBranchId, contractVersion, true);
-            } catch (IOException e) {
-                log.error("ContractFile has an Error with {}", e.getMessage());
-            } catch (BundleException e) {
-                log.error("ContractFile {} failed to install with {}", contractVersion, e.getMessage());
+            if (bundle == null) {
+                try {
+                    bundle = install(bootBranchId, contractVersion, true);
+                } catch (IOException e) {
+                    log.error("ContractFile has an Error with {}", e.getMessage());
+                } catch (BundleException e) {
+                    log.error("ContractFile {} failed to install with {}", contractVersion, e.getMessage());
+                }
             }
 
-            assert bundle != null;
+            try {
+                start(bundle);
+            } catch (BundleException e) {
+                log.error("Bundle {} failed to start with {}", bundle.getSymbolicName(), e.getMessage());
+                continue;
+            }
 
-            if (bundle != null) {
-                try {
-                    start(bundle);
-                } catch (BundleException e) {
-                    log.error("Bundle {} failed to start with {}", bundle.getSymbolicName(), e.getMessage());
-                    continue;
-                }
-                registerServiceMap(bootBranchId, contractVersion, bundle);
+            registerServiceMap(bootBranchId, contractVersion, bundle);
 
-                try {
-                    inject(context, bundle);
-                } catch (IllegalAccessException e) {
-                    log.error("Bundle {} failed to inject with {}", bundle.getSymbolicName(), e.getMessage());
-                }
+            try {
+                inject(context, bundle);
+            } catch (IllegalAccessException e) {
+                log.error("Bundle {} failed to inject with {}", bundle.getSymbolicName(), e.getMessage());
             }
         }
     }
@@ -177,10 +176,10 @@ public class ContractManager {
         inject(context, bundle);
     }
 
-
     private void inject(BundleContext context, Bundle bundle) throws IllegalAccessException {
         ServiceReference<?>[] serviceRefs = bundle.getRegisteredServices();
         if (serviceRefs == null) {
+            log.error("No available service in bundle {}", bundle.getSymbolicName());
             return;
         }
 
@@ -189,7 +188,6 @@ public class ContractManager {
 
         for (ServiceReference serviceRef : serviceRefs) {
             Object service = context.getService(serviceRef);
-
             contractExecutor.injectFields(bundle, service, isSystemContract);
         }
     }
@@ -227,7 +225,6 @@ public class ContractManager {
             }
         }
         return null;
-
     }
 
     public Bundle install(String branchId, ContractVersion contractVersion, boolean isSystem) throws IOException, BundleException {
