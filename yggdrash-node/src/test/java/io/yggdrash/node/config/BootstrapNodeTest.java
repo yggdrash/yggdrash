@@ -17,6 +17,7 @@
 package io.yggdrash.node.config;
 
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.gateway.controller.BranchController;
 import io.yggdrash.node.PeerTask;
@@ -24,12 +25,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(properties = {"yggdrash.node.seed=true", "yggdrash.node.chain.enabled=false"})
+@ActiveProfiles(Constants.ActiveProfiles.BOOTSTRAP)
+@SpringBootTest()
 public class BootstrapNodeTest extends TestConstants.CiTest {
 
     @Autowired

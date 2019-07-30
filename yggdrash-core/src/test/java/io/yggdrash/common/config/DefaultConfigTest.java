@@ -32,14 +32,10 @@ public class DefaultConfigTest {
         log.debug("DefaultConfig java.vm.version: "
                 + defaultConfig.getString("java.vm.version"));
 
-        assertThat(defaultConfig.getString("node.name")).isEqualTo("yggdrash");
-        log.debug("DefaultConfig node.name: "
-                + defaultConfig.getString("node.name"));
-
-        assertThat(defaultConfig.getString("network.port")).isEqualTo("32918");
-        log.debug("DefaultConfig network.port: "
-                + defaultConfig.getString("network.port"));
-
+        assertThat(defaultConfig.getString(Constants.NODE_GRPC_PORT)).isEqualTo("32918");
+        log.debug("DefaultConfig {}: {}",
+                Constants.NODE_GRPC_PORT,
+                defaultConfig.getString(Constants.NODE_GRPC_PORT));
     }
 
     /**
@@ -51,10 +47,10 @@ public class DefaultConfigTest {
         Config config = ConfigFactory.parseResources("yggdrash_sample.conf");
         DefaultConfig defaultConfig = new DefaultConfig(config);
 
-        assertThat(defaultConfig.getString("key.path")).endsWith("nodePri2.key");
+        assertThat(defaultConfig.getString(Constants.YGGDRASH_KEY_PATH)).endsWith("nodePri2.key");
 
         log.debug("newConfigFile key.path: "
-                + defaultConfig.getString("key.path"));
+                + defaultConfig.getString(Constants.YGGDRASH_KEY_PATH));
     }
 
     /**
@@ -64,8 +60,6 @@ public class DefaultConfigTest {
     public void testNodeInfo() {
         assertThat(defaultConfig.getNetworkP2PVersion()).isEqualTo("0.0.1");
         assertThat(defaultConfig.getNetwork()).isEqualTo(DefaultConfig.Network.TEST_NET);
-        assertThat(defaultConfig.getNodeName()).isEqualTo("yggdrash");
-        assertThat(defaultConfig.getNodeVersion()).isEqualTo("0.5.1");
     }
 
 }

@@ -274,7 +274,7 @@ public class PbftBlockStoreTest {
     public void memoryTest() throws InterruptedException {
         TestConstants.PerformanceTest.apply();
 
-        long testNumber = 100000;
+        long testNumber = 1000;
         PbftBlock result;
         List<PbftBlock> resultList = new ArrayList<>();
 
@@ -294,14 +294,14 @@ public class PbftBlockStoreTest {
         log.debug("After free memory: " + Runtime.getRuntime().freeMemory());
 
         System.gc();
-        Thread.sleep(20000);
+        Thread.sleep(5000);
     }
 
     @Test
     public void memoryTest2() throws InterruptedException {
         TestConstants.PerformanceTest.apply();
 
-        long testNumber = 10000;
+        long testNumber = 1000;
 
         for (long l = 1; l < testNumber; l++) {
             Block newBlock = new TestUtils(wallet).sampleBlock(l, block.getHash());
@@ -317,7 +317,7 @@ public class PbftBlockStoreTest {
         }
 
         System.gc();
-        Thread.sleep(300000);
+        Thread.sleep(5000);
     }
 
     @After

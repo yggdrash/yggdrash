@@ -24,14 +24,12 @@ import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.gateway.dto.BlockDto;
 import io.yggdrash.gateway.dto.TransactionDto;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
 @DependsOn("yggdrash")
-@ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
 public class WebsocketSender implements BranchEventListener {
     private final SimpMessagingTemplate template;
 

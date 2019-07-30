@@ -16,6 +16,10 @@ service TransactionService {
     // Client to server simple RPC
     rpc syncTx (SyncLimit) returns (TransactionList) {
     }
+
+    rpc sendTx (Transaction) returns (TransactionResponse) {
+    }
+
     // Client to server streaming RPC.
     rpc broadcastTx (stream Transaction) returns (Empty) {
     }
@@ -58,6 +62,17 @@ message Transaction {
     Header header = 1;
     bytes signature = 2;
     string body = 3;
+}
+
+message TransactionResponse {
+    string txHash = 1;
+    int32 status = 2;               // 0 for a failed transaction and 1 for a successful transaction
+    repeated Log logs = 3;
+}
+
+message Log {
+    string code = 1;
+    repeated string msg = 2;
 }
 
 message TargetPeer {

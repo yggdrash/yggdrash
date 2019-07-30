@@ -60,7 +60,7 @@ public class ContractManager {
     private static final String SUFFIX_SYSTEM_CONTRACT = "contract/system";
     private static final String SUFFIX_USER_CONTRACT = "contract/user";
 
-    private final String bootBranchId;              // bootBranch. will remove soon.
+    private final String bootBranchId;
     private final ContractStore contractStore;
     private final LogStore logStore;
 
@@ -89,7 +89,6 @@ public class ContractManager {
         this.contractRepositoryUrl = defaultConfig.getContractRepositoryUrl();
 
         this.systemProperties = systemProperties;
-
         this.serviceMap = new HashMap<>();
 
         // todo: remove This.

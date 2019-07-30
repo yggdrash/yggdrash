@@ -49,10 +49,10 @@ import static org.junit.Assert.assertNotNull;
 public class WalletTest {
     private static final Logger log = LoggerFactory.getLogger(WalletTest.class);
 
-    private final String ALPHA_CAPS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    private final String ALPHA = "abcdefghijklmnopqrstuvwxyz";
-    private final String NUMERIC = "0123456789";
-    private final String SPECIAL_CHARS = "!@#$%^&*_=+-/";
+    private static final String ALPHA_CAPS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final String ALPHA = "abcdefghijklmnopqrstuvwxyz";
+    private static final String NUMERIC = "0123456789";
+    private static final String SPECIAL_CHARS = "!@#$%^&*_=+-/";
 
     @Test
     public void testKeySave() throws IOException, InvalidCipherTextException {
@@ -95,9 +95,9 @@ public class WalletTest {
     @Test
     public void testWalletGeneration() {
         DefaultConfig defaultConfig = new DefaultConfig();
-        String keyFilePath = defaultConfig.getString("key.path");
+        String keyFilePath = defaultConfig.getString(Constants.YGGDRASH_KEY_PATH);
 
-        assertFalse("Check yggdrash.conf(key.path & key.password)",
+        assertFalse("Check yggdrash.conf(yggdrash.key.path & yggdrash.key.password)",
                 Strings.isNullOrEmpty(keyFilePath));
         log.debug("Private key: " + keyFilePath);
 
@@ -131,7 +131,7 @@ public class WalletTest {
     @Test
     public void testWalletGenerationWithFilePath() {
         DefaultConfig defaultConfig = new DefaultConfig();
-        String keyFilePath = defaultConfig.getString("key.path");
+        String keyFilePath = defaultConfig.getString(Constants.YGGDRASH_KEY_PATH);
 
         assertFalse("Check yggdrash.conf(key.path & key.password)",
                 Strings.isNullOrEmpty(keyFilePath));
@@ -353,9 +353,9 @@ public class WalletTest {
         String password1 = "Aa1234567890$";
         String password2 = "Aa1234567890@";
 
-        String keyParsingText = Constants.PROPERTY_KEYPATH + " = " + keyPathName;
-        String keyPasswordParsingText1 = Constants.PROPERTY_KEYPASSWORD + " = \"" + password1 + "\"";
-        String keyPasswordParsingText2 = Constants.PROPERTY_KEYPASSWORD + " = \"" + password2 + "\"";
+        String keyParsingText = Constants.YGGDRASH_KEY_PATH + " = " + keyPathName;
+        String keyPasswordParsingText1 = Constants.YGGDRASH_KEY_PASSWORD + " = \"" + password1 + "\"";
+        String keyPasswordParsingText2 = Constants.YGGDRASH_KEY_PASSWORD + " = \"" + password2 + "\"";
 
         DefaultConfig defaultConfig = new DefaultConfig();
         Config keyConfig = ConfigFactory.parseString(keyParsingText).resolve();
@@ -365,7 +365,7 @@ public class WalletTest {
         DefaultConfig newConfig1 =
                 new DefaultConfig(keyConfig.withFallback(keyPaswordConfig1)
                         .withFallback(defaultConfig.getConfig()).resolve());
-        log.debug(newConfig1.getString(Constants.PROPERTY_KEYPASSWORD));
+        log.debug(newConfig1.getString(Constants.YGGDRASH_KEY_PASSWORD));
 
         // create new wallet
         Wallet wallet1 = new Wallet(newConfig1);
@@ -374,7 +374,7 @@ public class WalletTest {
         DefaultConfig newConfig2 =
                 new DefaultConfig(keyConfig.withFallback(keyPaswordConfig2)
                         .withFallback(defaultConfig.getConfig()).resolve());
-        log.debug(newConfig2.getString(Constants.PROPERTY_KEYPASSWORD));
+        log.debug(newConfig2.getString(Constants.YGGDRASH_KEY_PASSWORD));
 
         // load wallet by wrong password
         Wallet wallet2 = null;
@@ -407,14 +407,15 @@ public class WalletTest {
         }.getClass().getEnclosingMethod().getName() + keyName;
         String password1 = "Aa1234567890!";
 
-        String keyParsingText = Constants.PROPERTY_KEYPATH + "=" + keyPathName;
-        String keyPasswordParsingText1 = Constants.PROPERTY_KEYPASSWORD + "=" + "\"" + password1 + "\"";
+        String keyParsingText = Constants.YGGDRASH_KEY_PATH + "=" + keyPathName;
+        String keyPasswordParsingText1 = Constants.YGGDRASH_KEY_PASSWORD + "=" + "\"" + password1 + "\"";
 
         DefaultConfig defaultConfig = new DefaultConfig();
         DefaultConfig newConfig1 =
                 new DefaultConfig(
                         ConfigFactory.parseString(keyParsingText).withFallback(
-                                ConfigFactory.parseString(keyPasswordParsingText1).withFallback(defaultConfig.getConfig()))
+                                ConfigFactory.parseString(keyPasswordParsingText1)
+                                        .withFallback(defaultConfig.getConfig()))
                                 .resolve());
 
         // create new wallet

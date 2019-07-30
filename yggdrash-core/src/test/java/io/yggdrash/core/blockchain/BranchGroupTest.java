@@ -18,7 +18,6 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.contract.core.ExecuteStatus;
@@ -38,7 +37,6 @@ import java.util.Map;
 
 import static io.yggdrash.TestConstants.PerformanceTest;
 import static io.yggdrash.TestConstants.TRANSFER_TO;
-import static io.yggdrash.TestConstants.yggdrash;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BranchGroupTest {
@@ -124,13 +122,17 @@ public class BranchGroupTest {
     public void generateBlockPerformanceTest() {
         PerformanceTest.apply();
         BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
+        int countTx = 0;
         for (int i = 0; i < 100; i++) {
             Transaction tx = createTx(BigInteger.valueOf(i));
-            blockChain.addTransaction(tx);
+            Map<String, List<String>> result = blockChain.addTransaction(tx);
+            if(result.isEmpty()) {
+                countTx++;
+            }
         }
 
         BlockChainTestUtils.generateBlock(branchGroup, blockChain.getBranchId());
-        assertThat(blockChain.getBlockChainManager().countOfTxs()).isEqualTo(101); // include genesis tx
+        assertThat(blockChain.getBlockChainManager().countOfTxs()).isGreaterThan(countTx); // include genesis tx
     }
 
     @Test
@@ -175,8 +177,7 @@ public class BranchGroupTest {
     }
 
     private Transaction createTx(BigInteger amount) {
-        JsonObject txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, amount);
-        return BlockChainTestUtils.createTx(yggdrash(), txBody);
+        return BlockChainTestUtils.createTransferTx(TRANSFER_TO, amount);
     }
 
     private BigInteger getBalance(String address) {

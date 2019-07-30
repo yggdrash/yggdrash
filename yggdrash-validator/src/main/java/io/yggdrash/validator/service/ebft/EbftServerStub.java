@@ -3,11 +3,15 @@ package io.yggdrash.validator.service.ebft;
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.util.VerifierUtils;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
+import io.yggdrash.core.exception.errorcode.BusinessError;
 import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.EbftProto;
 import io.yggdrash.proto.EbftServiceGrpc;
+import io.yggdrash.proto.Proto;
 import io.yggdrash.validator.data.ebft.EbftBlock;
 import io.yggdrash.validator.data.ebft.EbftStatus;
 import org.slf4j.LoggerFactory;
@@ -31,6 +35,19 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
         CommonProto.PongTime pongTime
                 = CommonProto.PongTime.newBuilder().setTimestamp(timestamp).build();
         responseObserver.onNext(pongTime);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void multicastTransaction(Proto.Transaction protoTx,
+                                     StreamObserver<CommonProto.Empty> responseObserver) {
+        Transaction tx = new TransactionImpl(protoTx);
+        log.debug("Received transaction: hash={}, {}", tx.getHash(), this);
+        if (tx.getBranchId().equals(blockChain.getBranchId())
+                && blockChain.getBlockChainManager().verify(tx) == BusinessError.VALID.toValue()) {
+            blockChain.getBlockChainManager().addTransaction(tx);
+        }
+        responseObserver.onNext(EMPTY);
         responseObserver.onCompleted();
     }
 

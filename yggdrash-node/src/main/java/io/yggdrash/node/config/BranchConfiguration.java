@@ -36,15 +36,14 @@ import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
 import io.yggdrash.core.store.ContractStore;
-import io.yggdrash.node.ChainTask;
 import io.yggdrash.node.service.ValidatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -74,8 +73,8 @@ public class BranchConfiguration {
     }
 
     // TODO Remove Default Branch Load
+    @Profile(ActiveProfiles.NODE)
     @Bean
-    @ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
     BlockChain yggdrash(BranchGroup branchGroup) throws IOException {
         GenesisBlock genesis = GenesisBlock.of(yggdrashResource.getInputStream());
         BlockChain yggdrash = branchGroup.getBranch(genesis.getBranchId());
@@ -171,12 +170,4 @@ public class BranchConfiguration {
                 .build();
     }
 
-    /**
-     * Scheduling Beans
-     */
-    @Bean
-    @ConditionalOnProperty("yggdrash.node.chain.gen")
-    public ChainTask chainTask() {
-        return new ChainTask();
-    }
 }

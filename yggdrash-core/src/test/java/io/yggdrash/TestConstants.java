@@ -25,6 +25,7 @@ import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.wallet.Wallet;
 import org.junit.Assume;
 import org.junit.BeforeClass;
+import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -52,6 +53,8 @@ public class TestConstants {
     private static final String PROFILE = System.getProperty("spring.profiles.active");
 
     private static Wallet wallet;
+
+    private static Wallet transferWallet;
 
     private TestConstants() {
     }
@@ -104,6 +107,29 @@ public class TestConstants {
     public static Wallet wallet() {
         return wallet;
     }
+
+    public static Wallet transferWallet() {
+        if (transferWallet != null) {
+            return transferWallet;
+        }
+
+        String walletFile  = TestConstants.class.getClass()
+                .getResource("/keys/101167aaf090581b91c08480f6e559acdd9a3ddd.json")
+                .getFile();
+        String password = "Aa1234567890!";
+        try {
+            transferWallet = new Wallet(walletFile, password);
+        } catch (IOException e) {
+            transferWallet = wallet;
+            e.printStackTrace();
+        } catch (InvalidCipherTextException e) {
+            transferWallet = wallet;
+            e.printStackTrace();
+        }
+
+        return transferWallet;
+    }
+
 
     public static class SlowTest {
         @BeforeClass

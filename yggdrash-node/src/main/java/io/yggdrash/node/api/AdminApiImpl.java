@@ -3,6 +3,7 @@ package io.yggdrash.node.api;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
@@ -35,7 +36,6 @@ public class AdminApiImpl implements AdminApi {
 
     private static final Logger log = LoggerFactory.getLogger(AdminApiImpl.class);
 
-    private static int COMMAND_ACTIVE_TIME;
     private static final int COMMAND_RAND_LENGTH = 8;
     private static final int COMMAND_NONCE_LENGTH = 16;
     private static final boolean IS_WINDOWS =
@@ -44,6 +44,8 @@ public class AdminApiImpl implements AdminApi {
     private final String adminMode;
     private final String adminIp;
     private final byte[] adminPubKey;
+
+    private int timeout;
 
     private JsonObject header;
     private String signature;
@@ -69,11 +71,11 @@ public class AdminApiImpl implements AdminApi {
         this.request = request;
         this.restartEndpoint = restartEndpoint;
 
-        this.adminMode = defaultConfig.getString("admin.mode");
-        this.adminIp = defaultConfig.getString("admin.ip");
-        this.adminPubKey = Hex.decode(defaultConfig.getString("admin.pubKey"));
+        this.adminMode = defaultConfig.getString(Constants.YGGDRASH_ADMIN_MODE);
+        this.adminIp = defaultConfig.getString(Constants.YGGDRASH_ADMIN_IP);
+        this.adminPubKey = Hex.decode(defaultConfig.getString(Constants.YGGDRASH_ADMIN_PUBKEY));
 
-        COMMAND_ACTIVE_TIME = defaultConfig.getInt("admin.commandTime") * 1000;
+        timeout = defaultConfig.getInt(Constants.YGGDRASH_ADMIN_TIMEOUT) * 1000;
     }
 
     @Override
@@ -176,7 +178,7 @@ public class AdminApiImpl implements AdminApi {
             case "setConfig":
                 try {
 
-                    File file = new File(defaultConfig.getYggDataPath(), "admin.conf");
+                    File file = new File(defaultConfig.getString(Constants.YGGDRASH_ADMIN_PATH));
                     Set<PosixFilePermission> perms = new HashSet<>();
 
                     if (file.exists()) {
@@ -270,7 +272,7 @@ public class AdminApiImpl implements AdminApi {
 
         // timestamp check (3 min)
         long timestamp = HexUtil.hexStringToLong(header.get("timestamp").getAsString());
-        if (timestamp < System.currentTimeMillis() - (COMMAND_ACTIVE_TIME)) {
+        if (timestamp < System.currentTimeMillis() - (timeout)) {
             log.error("Timestamp is not valid.");
             errorMsg.append(" Timestamp is not valid.");
             return false;

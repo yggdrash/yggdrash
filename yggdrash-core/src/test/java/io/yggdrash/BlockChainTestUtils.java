@@ -289,22 +289,18 @@ public class BlockChainTestUtils {
 
     public static Transaction createTransferTx(String to, BigInteger amount) {
         JsonObject txBody = ContractTestUtils.transferTxBodyJson(to, amount);
-        return buildTx(txBody, TestConstants.yggdrash());
+        return buildTx(txBody, TestConstants.transferWallet(), TestConstants.yggdrash());
     }
 
     public static Transaction createTransferTx(BranchId branchId, ContractVersion contractVersion) {
         JsonObject txBody = ContractTestUtils.transferTxBodyJson(
                 TestConstants.TRANSFER_TO, BigInteger.valueOf(100), contractVersion);
-        return buildTx(txBody, branchId);
+        return buildTx(txBody, TestConstants.transferWallet(), branchId);
     }
 
     public static Transaction createTransferTx(BigInteger amount, ContractVersion contractVersion) {
         JsonObject txBody = ContractTestUtils.transferTxBodyJson(TestConstants.TRANSFER_TO, amount, contractVersion);
-        return buildTx(txBody, TestConstants.yggdrash());
-    }
-
-    private static Transaction buildTx(JsonObject txBody, BranchId branchId) {
-        return buildTx(txBody, TestConstants.wallet(), branchId);
+        return buildTx(txBody, TestConstants.transferWallet(), TestConstants.yggdrash());
     }
 
     public static Transaction buildTx(JsonObject txBody, Wallet wallet, BranchId branchId) {

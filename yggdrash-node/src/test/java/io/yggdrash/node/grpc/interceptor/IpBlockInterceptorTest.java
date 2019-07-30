@@ -20,6 +20,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.ServerInterceptor;
 import io.grpc.StatusRuntimeException;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.node.springboot.grpc.GrpcGlobalInterceptor;
 import io.yggdrash.node.springboot.grpc.GrpcServerRunner;
 import io.yggdrash.node.springboot.grpc.context.LocalRunningGrpcPort;
@@ -33,12 +34,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {GrpcDemoApp.class, IpBlockInterceptorTest.TestConfig.class})
+@ActiveProfiles(Constants.ActiveProfiles.NODE)
 public class IpBlockInterceptorTest {
 
     @LocalRunningGrpcPort

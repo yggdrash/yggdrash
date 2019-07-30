@@ -13,7 +13,6 @@ public class Consensus {
         period = consensus.get("period").getAsString();
     }
 
-    @Deprecated
     public Consensus(Block genesisBlock) {
         this((((Transaction) genesisBlock.getBody().getTransactionList().toArray()[0])
                 .getBody().getBody()).getAsJsonObject("consensus"));

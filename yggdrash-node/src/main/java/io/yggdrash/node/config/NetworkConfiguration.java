@@ -17,6 +17,7 @@
 package io.yggdrash.node.config;
 
 import io.grpc.BindableService;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainSyncManager;
 import io.yggdrash.core.blockchain.BranchGroup;
@@ -33,11 +34,11 @@ import io.yggdrash.node.springboot.grpc.GrpcServerBuilderConfigurer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.Collections;
@@ -79,8 +80,8 @@ public class NetworkConfiguration {
     /**
      * Scheduling Beans
      */
+    @Profile({Constants.ActiveProfiles.NODE, Constants.ActiveProfiles.BOOTSTRAP})
     @Bean
-    @ConditionalOnExpression("'${yggdrash.node.validator:false}' == 'false'")
     PeerTask peerTask() {
         return new PeerTask();
     }
@@ -90,6 +91,7 @@ public class NetworkConfiguration {
         return new BlockChainSyncManager(nodeStatus, peerNetwork, branchGroup);
     }
 
+    @Profile({Constants.ActiveProfiles.NODE, Constants.ActiveProfiles.BOOTSTRAP})
     @Bean
     @Primary
     public GrpcServerBuilderConfigurer configurer(BranchGroup branchGroup, SyncManager syncManager) {

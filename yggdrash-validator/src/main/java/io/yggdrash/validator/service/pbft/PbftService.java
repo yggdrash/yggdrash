@@ -4,6 +4,7 @@ import com.typesafe.config.ConfigException;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.contract.vo.dpoa.Validator;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
@@ -22,15 +23,15 @@ import io.yggdrash.validator.data.pbft.PbftMessageSet;
 import io.yggdrash.validator.data.pbft.PbftStatus;
 import io.yggdrash.validator.data.pbft.PbftVerifier;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMessage> {
+public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMessage, PbftClientStub> {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftService.class);
 
@@ -41,30 +42,23 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     private final ConsensusBlockChain<PbftProto.PbftBlock, PbftMessage> blockChain;
 
     private final PbftClientStub myNode;
-    private final List<Peer> validatorConfigList;
-    private final Map<String, PbftClientStub> totalValidatorMap;
+    private final Map<String, Peer> validatorConfigMap;
     private final Map<String, PbftClientStub> proxyNodeMap;
-
     private final ReentrantLock lock = new ReentrantLock();
-
+    private final String grpcHost;
+    private final int grpcPort;
+    private Map<String, PbftClientStub> totalValidatorMap;
     private int bftCount;
     private int consensusCount;
-
     private boolean isActive;
     private boolean isSynced;
     private boolean isPrePrepared;
     private boolean isPrepared;
     private boolean isCommitted;
-
     private boolean isPrimary;
     private long viewNumber;
     private long seqNumber;
-    private String currentPrimaryAddr;
-
     private int failCount;
-
-    private final String grpcHost;
-    private final int grpcPort;
 
     public PbftService(Wallet wallet,
                        ConsensusBlockChain<PbftProto.PbftBlock, PbftMessage> blockChain,
@@ -78,9 +72,12 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         this.grpcPort = grpcPort;
 
         this.myNode = initMyNode();
-        this.validatorConfigList = initValidatorConfigList();
+        this.validatorConfigMap = initValidatorConfigMap();
         this.totalValidatorMap = initTotalValidator();
         this.proxyNodeMap = initProxyNode();
+        this.bftCount = (totalValidatorMap.size() - 1) / 3;
+        this.consensusCount = bftCount * 2 + 1;
+
         this.isActive = false;
         this.isSynced = false;
         this.isPrePrepared = false;
@@ -91,15 +88,15 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         this.viewNumber = this.blockChain.getBlockChainManager().getLastIndex() + 1;
         this.seqNumber = this.blockChain.getBlockChainManager().getLastIndex() + 1;
 
+
         printInitInfo();
     }
 
-    @Override
-    public void run() {
-        mainScheduler();
-    }
-
+    /**
+     * Main Scheduler about PBFT consensus service.
+     */
     private void mainScheduler() {
+
         updateTotalValidatorMap();
 
         if (!isValidator()) {
@@ -112,7 +109,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         checkNode();
 
         if (!isActive) {
-            log.debug("Validators are not activate.");
+            log.info("Validators are not activated. {}/{}", getActiveNodeCount(), consensusCount);
             return;
         }
 
@@ -121,7 +118,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         lock.unlock();
         if (viewChangeMsg != null) {
             multicastMessage(viewChangeMsg);
-            if (!waitingForMessage("VIEWCHAN")) {
+            if (!waitingForMessage(Constants.PBFT_VIEWCHANGE)) {
                 log.debug("VIEWCHAN messages are not enough.");
             }
         }
@@ -136,11 +133,9 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         lock.unlock();
         if (prePrepareMsg != null) {
             multicastMessage(prePrepareMsg);
-        } else {
-            if (!waitingForMessage("PREPREPA")) {
-                failCount++;
-                log.debug("PREPREPARE message is not received.");
-            }
+        } else if (!waitingForMessage(Constants.PBFT_PREPREPARE)) {
+            failCount++;
+            log.debug("PREPREPARE message is not received.");
         }
 
         // make Prepare msg
@@ -149,7 +144,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         lock.unlock();
         if (prepareMsg != null) {
             multicastMessage(prepareMsg);
-            if (!waitingForMessage("PREPAREM")) {
+            if (!waitingForMessage(Constants.PBFT_PREPARE)) {
                 log.debug("PREPAREM messages are not enough.");
             }
         }
@@ -160,7 +155,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         lock.unlock();
         if (commitMsg != null) {
             multicastMessage(commitMsg);
-            if (!waitingForMessage("COMMITMS")) {
+            if (!waitingForMessage(Constants.PBFT_COMMIT)) {
                 log.debug("COMMITMS messages are not enough.");
             }
         }
@@ -173,36 +168,13 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         }
     }
 
-    private void updateTotalValidatorMap() {
-        for (Peer peer: validatorConfigList) {
-            String address = peer.getPubKey().toString();
-            if (blockChain.isValidator(address)) {
-                if (!totalValidatorMap.containsKey(address)) {
-                    updateNodeMap(totalValidatorMap, address, peer.getHost(), peer.getPort());
-                }
-            } else if (totalValidatorMap.containsKey(address)) {
-                PbftClientStub stub = totalValidatorMap.remove(address);
-                try {
-                    stub.shutdown();
-                } catch (Exception e) {
-                    log.warn(e.getMessage());
-                }
-            }
-        }
-
-        this.bftCount = (totalValidatorMap.size() - 1) / 3;
-        this.consensusCount = bftCount * 2 + 1;
-    }
-
     private boolean waitingForMessage(String message) {
         int messageCount;
         for (int i = 0; i < consensusCount; i++) {
-            switch (message) {
-                case "PREPREPA":
-                    messageCount = 1;
-                    break;
-                default:
-                    messageCount = consensusCount;
+            if (Constants.PBFT_PREPARE.equals(message)) {
+                messageCount = 1;
+            } else {
+                messageCount = consensusCount;
             }
 
             if (getMsgMap(this.viewNumber, this.seqNumber, message).size()
@@ -220,22 +192,18 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     private void loggingStatus() {
-        log.trace("loggingStatus");
-        log.debug("failCount= " + this.failCount);
-        log.debug("isActive=" + this.isActive);
-        log.debug("isSynced=" + this.isSynced);
-        log.debug("isPrePrepared= " + this.isPrePrepared);
-        log.debug("isPrepared= " + this.isPrepared);
-        log.debug("isCommitted= " + this.isCommitted);
-
-        log.debug("unConfirmedMsgMap size= " + this.blockChain.getUnConfirmedData().size());
+        log.info("Status: activeNode={}, "
+                        + "failCount={}, isActive={}, isSynced={}, isPrePrepared={}, isPrepared={}, isCommitted={} "
+                        + "unConfirmedMsgCount={}, unConfirmedTxCount={}",
+                getActiveNodeCount(),
+                this.failCount, this.isActive, this.isSynced, this.isPrePrepared, this.isPrepared, this.isCommitted,
+                this.blockChain.getUnConfirmedData().size(),
+                blockChain.getBlockChainManager().getUnconfirmedTxs().size());
         if (log.isTraceEnabled()) {
             for (PbftMessage message : this.blockChain.getUnConfirmedData().values()) {
                 log.trace(message.toJsonObject().toString());
             }
         }
-        log.debug("TxStore unConfirmed Tx.size= "
-                + this.blockChain.getBlockChainManager().getUnconfirmedTxs().size());
         log.debug("");
     }
 
@@ -249,9 +217,9 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
                 try {
                     client.multicastPbftMessage(PbftMessage.toProto(message));
                 } catch (Exception e) {
-                    log.debug("multicast exception: " + e.getMessage());
-                    log.debug("client: " + client.getId());
-                    log.debug("message: " + message.toString());
+                    log.debug("multicast exception: {}", e.getMessage());
+                    log.debug("client: {}", client.getId());
+                    log.debug("message: {}", message);
                     // continue
                 }
             }
@@ -269,8 +237,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
                 log.debug("BroadcastBlock [{}]{} to {}:{}", block.getIndex(), block.getHash(),
                         client.getHost(), client.getPort());
             } catch (Exception e) {
-                log.debug("BroadcastBlock exception: " + e.getMessage());
-                log.debug("client: " + client.getId());
+                log.debug("BroadcastBlock exception: {}", e.getMessage());
+                log.debug("client: {}", client.getId());
             }
         }
     }
@@ -284,10 +252,10 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         byte[] prevBlockHash = this.blockChain.getBlockChainManager().getLastHash().getBytes();
 
         Block newBlock = makeNewBlock(seqNumber, prevBlockHash);
-        log.trace("newBlock" + newBlock.toString());
+        log.trace("newBlock: {}", newBlock);
 
         PbftMessage prePrepare = new PbftMessage(
-                "PREPREPA",
+                Constants.PBFT_PREPREPARE,
                 viewNumber,
                 seqNumber,
                 newBlock.getHash(),
@@ -301,33 +269,27 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         this.blockChain.getUnConfirmedData().put(prePrepare.getSignatureHex(), prePrepare);
         this.isPrePrepared = true;
 
-        log.debug("make PrePrepareMsg "
-                + "("
-                + viewNumber
-                + ") "
-                + "["
-                + newBlock.getIndex()
-                + "] "
-                + newBlock.getHash()
-                + " ("
-                + newBlock.getAddress()
-                + ")");
+        log.debug("make PrePrepareMsg ({}) [{}] ({}) ({})",
+                viewNumber,
+                newBlock.getIndex(),
+                newBlock.getHash(),
+                newBlock.getAddress());
 
         return prePrepare;
     }
 
     private long getCurrentViewNumber() {
         long newViewNumber = this.viewNumber + 1;
-        Map<String, PbftMessage> viewChangeMsgMap = getMsgMap(newViewNumber, this.seqNumber, "VIEWCHAN");
+        Map<String, PbftMessage> viewChangeMsgMap = getMsgMap(newViewNumber, this.seqNumber, Constants.PBFT_VIEWCHANGE);
 
         for (int i = 0; i < viewChangeMsgMap.size(); i++) {
             PbftMessage firstMsg = (PbftMessage) viewChangeMsgMap.values().toArray()[i];
             for (int j = i + 1; j < viewChangeMsgMap.size(); j++) {
                 PbftMessage secondMsg = (PbftMessage) viewChangeMsgMap.values().toArray()[j];
-                if (firstMsg.getAddress().equals(secondMsg.getAddress())) {
+                if (Arrays.equals(firstMsg.getAddress(), secondMsg.getAddress())) {
                     log.debug("Messages are duplicated by {}", secondMsg.getAddress());
-                    log.debug("First Message {}", firstMsg.toJsonObject().toString());
-                    log.debug("Second Message {}", secondMsg.toJsonObject().toString());
+                    log.debug("First Message {}", firstMsg);
+                    log.debug("Second Message {}", secondMsg);
                     viewChangeMsgMap.remove(secondMsg.getSignatureHex());
                 }
             }
@@ -364,7 +326,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         // todo : check 1 more PREPREPARE msg
         PbftMessage prePrepareMsg;
         try {
-            prePrepareMsg = (PbftMessage) getMsgMap(this.viewNumber, this.seqNumber, "PREPREPA").values()
+            prePrepareMsg = (PbftMessage) getMsgMap(this.viewNumber, this.seqNumber, Constants.PBFT_PREPREPARE).values()
                     .toArray()[0];
             if (prePrepareMsg == null) {
                 return null;
@@ -375,7 +337,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         }
 
         PbftMessage prepareMsg = new PbftMessage(
-                "PREPAREM",
+                Constants.PBFT_PREPARE,
                 viewNumber,
                 seqNumber,
                 Sha3Hash.createByHashed(prePrepareMsg.getHash()),
@@ -390,14 +352,10 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         this.blockChain.getUnConfirmedData().put(prepareMsg.getSignatureHex(), prepareMsg);
         this.isPrepared = true;
 
-        log.debug("make PrepareMsg "
-                + "("
-                + prepareMsg.getViewNumber()
-                + ")"
-                + " ["
-                + prepareMsg.getSeqNumber()
-                + "] "
-                + prepareMsg.getHashHex());
+        log.debug("make PrepareMsg ({}) [{}] {}",
+                prepareMsg.getViewNumber(),
+                prepareMsg.getSeqNumber(),
+                prepareMsg.getHashHex());
 
         return prepareMsg;
 
@@ -409,15 +367,15 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
             return null;
         }
 
-        Map<String, PbftMessage> prepareMsgMap = getMsgMap(this.viewNumber, this.seqNumber, "PREPAREM");
-        if (prepareMsgMap == null) {
+        Map<String, PbftMessage> prepareMsgMap = getMsgMap(this.viewNumber, this.seqNumber, Constants.PBFT_PREPARE);
+        if (prepareMsgMap.isEmpty()) {
             return null;
         } else if (prepareMsgMap.size() < consensusCount) {
             prepareMsgMap.clear();
             return null;
         }
         byte[] hash = ((PbftMessage) prepareMsgMap.values().toArray()[0]).getHash();
-        PbftMessage commitMsg = new PbftMessage("COMMITMS", viewNumber, seqNumber,
+        PbftMessage commitMsg = new PbftMessage(Constants.PBFT_COMMIT, viewNumber, seqNumber,
                 Sha3Hash.createByHashed(hash), null, wallet, null);
         if (commitMsg.getSignature() == null) {
             prepareMsgMap.clear();
@@ -428,20 +386,21 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         this.blockChain.getUnConfirmedData().put(commitMsg.getSignatureHex(), commitMsg);
         this.isCommitted = true;
 
-        log.debug("make CommitMsg "
-                + "("
-                + commitMsg.getViewNumber()
-                + ")"
-                + " ["
-                + commitMsg.getSeqNumber()
-                + "] "
-                + commitMsg.getHashHex());
+        log.debug("make CommitMsg ({}) [{}] {}",
+                commitMsg.getViewNumber(),
+                commitMsg.getSeqNumber(),
+                commitMsg.getHashHex());
 
         prepareMsgMap.clear();
 
         return commitMsg;
     }
 
+    /**
+     * Confirm PbftBlock.
+     *
+     * @return confirmed PbftBlock
+     */
     private PbftBlock confirmFinalBlock() {
         if (!isCommitted) {
             return null;
@@ -463,7 +422,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
             } else if (pbftMessage.getSeqNumber() == this.seqNumber
                     || pbftMessage.getViewNumber() == this.viewNumber) {
                 switch (pbftMessage.getType()) {
-                    case "PREPREPA":
+                    case Constants.PBFT_PREPREPARE:
                         if (prePrepareMsg != null) {
                             log.warn("PrePrepare msg is duplicated.");
                             pbftMessage.clear();
@@ -472,17 +431,17 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
                             prePrepareMsg = pbftMessage;
                         }
                         break;
-                    case "PREPAREM":
+                    case Constants.PBFT_PREPARE:
                         prepareMessageMap.put(key, pbftMessage);
                         break;
-                    case "COMMITMS":
+                    case Constants.PBFT_COMMIT:
                         commitMessageMap.put(key, pbftMessage);
                         break;
-                    case "VIEWCHAN":
+                    case Constants.PBFT_VIEWCHANGE:
                         viewChangeMessageMap.put(key, pbftMessage);
                         break;
                     default:
-                        log.warn("Invalid message type :" + pbftMessage.getType());
+                        log.warn("Invalid message type: {}", pbftMessage.getType());
                         break;
                 }
             }
@@ -523,16 +482,16 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
     private PbftMessage makeViewChangeMsg() {
         if (this.failCount < FAIL_COUNT
-                || this.isPrePrepared == true) {
+                || this.isPrePrepared) {
             return null;
         }
 
         Block block = this.blockChain.getBlockChainManager().getLastConfirmedBlock().getBlock();
-        log.trace("block" + block.toString());
+        log.trace("block: {}", block);
         long newViewNumber = this.viewNumber + 1;
 
         PbftMessage viewChangeMsg = new PbftMessage(
-                "VIEWCHAN",
+                Constants.PBFT_VIEWCHANGE,
                 newViewNumber,
                 seqNumber,
                 block.getHash(),
@@ -546,13 +505,9 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
         this.blockChain.getUnConfirmedData().put(viewChangeMsg.getSignatureHex(), viewChangeMsg);
 
-        log.warn("ViewChanged"
-                + " ("
-                + seqNumber
-                + ") ->"
-                + " ("
-                + newViewNumber
-                + ")");
+        log.warn("ViewChanged ({}) -> ({}}",
+                seqNumber,
+                newViewNumber);
 
         return viewChangeMsg;
     }
@@ -601,12 +556,9 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         }
 
         int primaryIndex = (int) (this.viewNumber % totalValidatorMap.size());
-        currentPrimaryAddr = (String) totalValidatorMap.keySet().toArray()[primaryIndex];
-
-        log.debug("viewNumber: " + this.viewNumber);
-        log.debug("seqNumber: " + this.seqNumber);
-        log.debug("Primary Index: " + primaryIndex);
-        log.debug("currentPrimaryAddr: " + currentPrimaryAddr);
+        String currentPrimaryAddr = (String) totalValidatorMap.keySet().toArray()[primaryIndex];
+        log.debug("viewNumber={}, seqNumber={}, primaryIndex={}, primaryAddr={}",
+                this.viewNumber, this.seqNumber, primaryIndex, currentPrimaryAddr);
 
         this.isPrimary = currentPrimaryAddr.equals(this.myNode.getAddr());
     }
@@ -630,7 +582,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     public void checkNode() {
         for (Map.Entry<String, PbftClientStub> entry : totalValidatorMap.entrySet()) {
             PbftClientStub client = entry.getValue();
-            if (client.isMyclient()) {
+            if (client.isMyclient() || client.getChannel() == null) {
                 continue;
             }
 
@@ -640,7 +592,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
             if (pongTime > 0L) {
                 checkNodeStatus(client);
             } else {
-                log.debug("Cannot connect to {} ping {} pong {}", client.toString(), pingTime, pongTime);
+                log.info("Cannot connect to {} ping {} pong {}", client, pingTime, pongTime);
                 client.setIsRunning(false);
             }
         }
@@ -651,14 +603,14 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
     private void checkNodeStatus(PbftClientStub client) {
         PbftStatus myStatus = getMyNodeStatus();
-        log.trace("My PbftStatus is {}", myStatus.toJsonObject().toString());
+        log.trace("My PbftStatus is {}", myStatus);
 
         PbftStatus pbftStatus = client.exchangePbftStatus(PbftStatus.toProto(myStatus));
         if (pbftStatus == null) {
             client.setIsRunning(false);
             return;
         }
-        log.trace("Client {} PbftStatus is {}", client.toString(), myStatus.toJsonObject().toString());
+        log.trace("Client {} PbftStatus is {}", client, myStatus);
 
         updateStatus(client, pbftStatus);
         pbftStatus.clear();
@@ -670,9 +622,9 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
             long lastConfirmedBlockIndex = this.blockChain.getBlockChainManager().getLastIndex();
             if (pbftStatus.getIndex() > lastConfirmedBlockIndex) {
-                log.debug("this Index: " + lastConfirmedBlockIndex);
-                log.debug("client Index: " + pbftStatus.getIndex());
-                log.debug("client : " + client.getId());
+                log.debug("this Index: {}", lastConfirmedBlockIndex);
+                log.debug("client Index: {}", pbftStatus.getIndex());
+                log.debug("client : {}", client.getId());
 
                 this.isSynced = false;
                 blockSyncing(client.getAddr(), pbftStatus.getIndex());
@@ -701,7 +653,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
         if (pbftBlockList == null) {
             return;
-        } else if (pbftBlockList.size() == 0) {
+        } else if (pbftBlockList.isEmpty()) {
             pbftBlockList.clear();
             return;
         }
@@ -740,7 +692,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
                     .put(newPbftMessage.getSignatureHex(), newPbftMessage.clone());
         }
 
-        if (newPbftMessage.getType().equals("PREPREPA")
+        if (newPbftMessage.getType().equals(Constants.PBFT_PREPREPARE)
                 && newPbftMessage.getSeqNumber() == this.seqNumber
                 && newPbftMessage.getViewNumber() == this.viewNumber) {
             this.isPrePrepared = true;
@@ -776,54 +728,73 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     private void printInitInfo() {
         log.info("Node Started");
         log.info("wallet address: {}", wallet.getHexAddress());
-        log.info("wallet pubKey: {}", Hex.toHexString(wallet.getPubicKey()));
-        log.info("isValidator: {}", isValidator());
+        log.info("wallet pubKey: {}", wallet.getPubicKeyHex());
+        log.info("validatorList: {}", this.totalValidatorMap);
+        if (!isValidator()) {
+            log.error("This node is not validator. {}", myNode);
+        }
     }
 
-    private List<Peer> initValidatorConfigList() {
-        List<Peer> peerList = new ArrayList<>();
+    private Map<String, Peer> initValidatorConfigMap() {
+        Map<String, Peer> peerMap = new TreeMap<>();
 
         Map<String, Object> validatorInfoMap =
-                this.defaultConfig.getConfig().getConfig("yggdrash.validator.info").root().unwrapped();
+                this.defaultConfig.getConfig().getConfig(Constants.VALIDATOR_INFO).root().unwrapped();
         for (Map.Entry<String, Object> entry : validatorInfoMap.entrySet()) {
             String host = ((Map<String, String>) entry.getValue()).get("host");
             int port = ((Map<String, Integer>) entry.getValue()).get("port");
-            peerList.add(Peer.valueOf(entry.getKey(), host, port));
+            peerMap.put(entry.getKey(), Peer.valueOf(entry.getKey(), host, port));
         }
-        return peerList;
+        return peerMap;
     }
 
-    @SuppressWarnings("unchecked")
     private TreeMap<String, PbftClientStub> initTotalValidator() {
         TreeMap<String, PbftClientStub> nodeMap = new TreeMap<>();
         try {
-            for (Peer peer : validatorConfigList) {
-                String address = peer.getPubKey().toString();
-                if (!blockChain.isValidator(address)) {
-                    continue;
-                }
-                updateNodeMap(nodeMap, address, peer.getHost(), peer.getPort());
+            for (Validator validator : blockChain.getValidators().getValidatorMap().values()) {
+                String address = validator.getAddr();
+                Peer peer = validatorConfigMap.get(address);
+                updateNodeMap(nodeMap, address,
+                        peer != null ? peer.getHost() : "",
+                        peer != null ? peer.getPort() : 0);
             }
-            log.debug("ValidatorInfo: {}", nodeMap);
-        } catch (ConfigException ce) {
-            log.error("Validators is not set.");
-            throw new NotValidateException();
+            log.trace("ValidatorInfo: {}", nodeMap);
+        } catch (Exception e) {
+            log.error("Validator configuration is not valid");
+            throw new NotValidateException("Validator configuration is not valid");
         }
         return nodeMap;
+    }
+
+    // TODO: test more cases using DPoA contract
+    // TODO: consider excuting when adding the new block
+    private void updateTotalValidatorMap() {
+        if (totalValidatorMap.keySet().equals(blockChain.getValidators().getValidatorMap().keySet())) {
+            return;
+        }
+
+        log.info("ValidatorSet are changed.");
+        log.info("Previous validators: {}", totalValidatorMap.keySet());
+        log.info("New validators: {}", blockChain.getValidators().getValidatorMap().keySet());
+
+        this.totalValidatorMap = initTotalValidator();
+
+        this.bftCount = (totalValidatorMap.size() - 1) / 3;
+        this.consensusCount = bftCount * 2 + 1;
     }
 
     @SuppressWarnings("unchecked")
     private TreeMap<String, PbftClientStub> initProxyNode() {
         TreeMap<String, PbftClientStub> nodeMap = new TreeMap<>();
         try {
-            Map<String, Object> proxyNodeMap =
-                    this.defaultConfig.getConfig().getConfig("yggdrash.validator.proxyNode").root().unwrapped();
-            for (Map.Entry<String, Object> entry : proxyNodeMap.entrySet()) {
+            Map<String, Object> proxyNodeInfo =
+                    this.defaultConfig.getConfig().getConfig(Constants.VALIDATOR_PROXYNODE).root().unwrapped();
+            for (Map.Entry<String, Object> entry : proxyNodeInfo.entrySet()) {
                 String host = ((Map<String, String>) entry.getValue()).get("host");
                 int port = ((Map<String, Integer>) entry.getValue()).get("port");
                 updateNodeMap(nodeMap, entry.getKey(), host, port);
             }
-            log.debug("ProxyNode: {}", nodeMap.toString());
+            log.debug("ProxyNode: {}", nodeMap);
         } catch (ConfigException ce) {
             log.warn("ProxyNode is not set.");
         }
@@ -856,16 +827,14 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         if (runningNodeCount >= consensusCount) {
             if (!this.isActive) {
                 this.isActive = true;
-                log.info("Node is activated.");
+                log.info("ValidatorNode is activated.");
             }
         } else {
             if (this.isActive) {
                 this.isActive = false;
-                log.info("Node is deactivated.");
+                log.info("ValidatorNode is deactivated.");
             }
         }
-
-        log.debug("running node: " + runningNodeCount);
     }
 
     private int getActiveNodeCount() {
@@ -879,6 +848,11 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     @Override
+    public void run() {
+        mainScheduler();
+    }
+
+    @Override
     public ReentrantLock getLock() {
         return lock;
     }
@@ -888,4 +862,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         return blockChain;
     }
 
+    @Override
+    public Map<String, PbftClientStub> getTotalValidatorMap() {
+        return totalValidatorMap;
+    }
 }

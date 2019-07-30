@@ -27,6 +27,7 @@ import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.proto.TransactionServiceGrpc;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -113,4 +114,19 @@ public class GrpcTransactionServiceTest {
         // assert
         assertEquals(1, list.getTransactionsCount());
     }
+
+    @Test
+    public void sendTx() {
+        TransactionServiceGrpc.TransactionServiceBlockingStub blockingStub
+                = TransactionServiceGrpc.newBlockingStub(grpcServerRule.getChannel());
+
+        Transaction txImpl = BlockChainTestUtils.createTransferTx();
+        Proto.Transaction tx = txImpl.getProtoTransaction();
+
+        Proto.TransactionResponse res = blockingStub.sendTx(tx);
+        Assert.assertEquals(1, res.getStatus()); //success
+        Assert.assertEquals(0, res.getLogsCount());
+        Assert.assertEquals(txImpl.getHash().toString(), res.getTxHash());
+    }
+
 }

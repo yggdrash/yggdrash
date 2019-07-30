@@ -46,15 +46,19 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
         if (tableMap.containsKey(branchId)) {
             return tableMap.get(branchId);
         }
-        PeerStore peerStore = storeBuilder.setBranchId(branchId).buildPeerStore();
-        PeerTable peerTable = new KademliaPeerTable(owner, peerStore);
+        PeerTable peerTable = newPeerTable(branchId);
         tableMap.put(branchId, peerTable);
         return peerTable;
     }
 
+    private PeerTable newPeerTable(BranchId branchId) {
+        PeerStore peerStore = storeBuilder.setBranchId(branchId).buildPeerStore();
+        return new KademliaPeerTable(owner, peerStore);
+    }
+
     @Override
     public PeerTable getPeerTable(BranchId branchId) {
-        return tableMap.get(branchId);
+        return tableMap.containsKey(branchId) ? tableMap.get(branchId) : newPeerTable(branchId);
     }
 
     @Override
@@ -94,6 +98,11 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
     @Override
     public synchronized boolean contains(BranchId branchId) {
         return tableMap.containsKey(branchId);
+    }
+
+    @Override
+    public Map<String, String> getActivePeerListWithStatus() {
+        return peerDialer.getActivePeerListWithStatus();
     }
 
     @Override
@@ -177,7 +186,7 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
             }
             tried.add(peer);
         } catch (Exception e) {
-            log.warn("lookup for {} err={}", peer.toAddress(), e.getMessage());
+            log.debug("Cannot connect to {}", peer);
             peerDialer.removeHandler(peerHandler);
         }
     }

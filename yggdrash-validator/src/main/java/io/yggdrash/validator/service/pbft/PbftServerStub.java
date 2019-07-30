@@ -3,11 +3,15 @@ package io.yggdrash.validator.service.pbft;
 
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.common.config.Constants;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
+import io.yggdrash.core.exception.errorcode.BusinessError;
 import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
+import io.yggdrash.proto.Proto;
 import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftMessage;
 import io.yggdrash.validator.data.pbft.PbftStatus;
@@ -50,6 +54,19 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
             status.clear();
             newStatus.clear();
         }
+    }
+
+    @Override
+    public void multicastTransaction(Proto.Transaction protoTx,
+                                     StreamObserver<CommonProto.Empty> responseObserver) {
+        Transaction tx = new TransactionImpl(protoTx);
+        log.debug("Received transaction: hash={}, {}", tx.getHash(), this);
+        if (tx.getBranchId().equals(blockChain.getBranchId())
+                && blockChain.getBlockChainManager().verify(tx) == BusinessError.VALID.toValue()) {
+            blockChain.getBlockChainManager().addTransaction(tx);
+        }
+        responseObserver.onNext(EMPTY);
+        responseObserver.onCompleted();
     }
 
     @Override

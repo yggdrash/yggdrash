@@ -18,6 +18,7 @@ package io.yggdrash.node.springboot.grpc.autoconfigure;
 
 import io.grpc.ServerBuilder;
 import io.grpc.ServerInterceptor;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.node.grpc.interceptor.IpBlockInterceptor;
 import io.yggdrash.node.springboot.grpc.GrpcGlobalInterceptor;
 import io.yggdrash.node.springboot.grpc.GrpcServerBuilderConfigurer;
@@ -31,10 +32,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 
+@Profile({Constants.ActiveProfiles.NODE, Constants.ActiveProfiles.BOOTSTRAP})
 @AutoConfigureOrder
 @ConditionalOnBean(annotation = GrpcService.class)
-@ConditionalOnProperty(name = "yggdrash.node.grpc.enabled", matchIfMissing = true)
 @EnableConfigurationProperties(GrpcServerProperties.class)
 public class GrpcAutoConfiguration {
     @LocalRunningGrpcPort

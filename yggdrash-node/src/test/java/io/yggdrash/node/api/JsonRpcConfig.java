@@ -18,6 +18,7 @@ public class JsonRpcConfig {
 
     private static final Logger log = LoggerFactory.getLogger(JsonRpcConfig.class);
 
+    static final NodeApi NODE_API = new JsonRpcConfig().proxyOf(NodeApi.class);
     static final BlockApi BLOCK_API = new JsonRpcConfig().proxyOf(BlockApi.class);
     static final BranchApi BRANCH_API = new JsonRpcConfig().proxyOf(BranchApi.class);
     static final TransactionApi TX_API = new JsonRpcConfig().proxyOf(TransactionApi.class);

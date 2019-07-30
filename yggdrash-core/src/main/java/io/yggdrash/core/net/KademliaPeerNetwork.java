@@ -167,7 +167,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
                 try {
                     peerHandler.broadcastBlock(block);
                 } catch (Exception e) {
-                    log.warn("[KademliaPeerNetwork] broadcast block ERR: {}", e.getMessage());
+                    log.debug("Cannot broadcst a block to {}", peerHandler.getPeer());
                     peerDialer.removeHandler(peerHandler);
                 }
             }

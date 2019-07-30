@@ -48,7 +48,7 @@ public class WalletConfiguration {
         try {
             wallet = new Wallet(defaultConfig);
         } catch (Exception e) {
-            log.debug(defaultConfig.getString(Constants.PROPERTY_KEYPATH));
+            log.debug(defaultConfig.getString(Constants.YGGDRASH_KEY_PATH));
             log.error("Key Password is not valid.");
             exit(0);
         }

@@ -76,6 +76,13 @@ public interface Transaction extends ProtoObject<Proto.Transaction>, Comparable<
     long getLength();
 
     /**
+     * Get the Proto Transaction
+     *
+     * @return proto tx
+     */
+    Proto.Transaction getProtoTransaction();
+
+    /**
      * Convert from Transaction.class to JsonObject.
      *
      * @return transaction as JsonObject

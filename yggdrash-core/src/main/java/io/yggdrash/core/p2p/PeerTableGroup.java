@@ -19,6 +19,7 @@ package io.yggdrash.core.p2p;
 import io.yggdrash.core.blockchain.BranchId;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface PeerTableGroup extends PeerEventListener {
@@ -38,6 +39,8 @@ public interface PeerTableGroup extends PeerEventListener {
     void addPeer(BranchId branchId, Peer peer);
 
     boolean contains(BranchId branchId);
+
+    Map<String, String> getActivePeerListWithStatus();
 
     List<Peer> getClosestPeers(BranchId branchId, Peer targetPeer, int limit);
 

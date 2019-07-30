@@ -42,14 +42,14 @@ public class Ether {
         }
 
         // 32byte proposal ID
-        byte[] proposalID = HashUtil.sha3(proposalData);
+        byte[] proposalId = HashUtil.sha3(proposalData);
         // add Event proposal ID created
 
         // Check YEED to issuer
 
         // Stake YEED to proposal ID
 
-        return proposalID;
+        return proposalId;
     }
 
     public EthTransaction parseEthRawTransaction(String rawTransactionData) {

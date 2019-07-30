@@ -22,9 +22,12 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
+import io.yggdrash.core.consensus.ConsensusService;
+import io.yggdrash.core.exception.errorcode.BusinessError;
 import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.proto.TransactionServiceGrpc;
+import io.yggdrash.validator.service.ConsensusClientStub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,9 +38,11 @@ public class TransactionServiceStub extends TransactionServiceGrpc.TransactionSe
     private static final CommonProto.Empty EMPTY = CommonProto.Empty.getDefaultInstance();
 
     private final ConsensusBlockChain blockChain;
+    private final ConsensusService consensusService;
 
-    public TransactionServiceStub(ConsensusBlockChain blockChain) {
+    public TransactionServiceStub(ConsensusBlockChain blockChain, ConsensusService consensusService) {
         this.blockChain = blockChain;
+        this.consensusService = consensusService;
     }
 
     @Override
@@ -47,7 +52,7 @@ public class TransactionServiceStub extends TransactionServiceGrpc.TransactionSe
 
         Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
         if (branchId.equals(blockChain.getBranchId())) {
-            List<Transaction> txList = blockChain.getBlockChainManager().getUnconfirmedTxs();
+            List<Transaction> txList = (List<Transaction>) blockChain.getBlockChainManager().getUnconfirmedTxs();
             for (Transaction tx : txList) {
                 builder.addTransactions(tx.getInstance());
             }
@@ -66,8 +71,10 @@ public class TransactionServiceStub extends TransactionServiceGrpc.TransactionSe
             public void onNext(Proto.Transaction protoTx) {
                 Transaction tx = new TransactionImpl(protoTx);
                 log.debug("Received transaction: hash={}, {}", tx.getHash(), this);
-                if (tx.getBranchId().equals(blockChain.getBranchId())) {
+                if (tx.getBranchId().equals(blockChain.getBranchId())
+                        && blockChain.getBlockChainManager().verify(tx) == BusinessError.VALID.toValue()) {
                     blockChain.getBlockChainManager().addTransaction(tx);
+                    multicastTransaction(protoTx);
                 }
             }
 
@@ -83,5 +90,21 @@ public class TransactionServiceStub extends TransactionServiceGrpc.TransactionSe
                 responseObserver.onCompleted();
             }
         };
+    }
+
+    private void multicastTransaction(Proto.Transaction protoTx) {
+        for (Object object : consensusService.getTotalValidatorMap().values()) {
+            ConsensusClientStub client = (ConsensusClientStub) object;
+            if (client.isMyclient()) {
+                continue;
+            }
+            if (client.isRunning()) {
+                try {
+                    client.multicastTransaction(protoTx);
+                } catch (Exception e) {
+                    log.debug("multicastTransaction failed: {} ", client.getId());
+                }
+            }
+        }
     }
 }

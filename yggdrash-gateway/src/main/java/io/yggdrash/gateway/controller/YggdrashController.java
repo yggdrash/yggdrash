@@ -19,7 +19,6 @@ package io.yggdrash.gateway.controller;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,7 +29,6 @@ import javax.servlet.http.HttpServletRequest;
 @Controller
 @RequestMapping("yggdrash/**")
 @DependsOn("yggdrash")
-@ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
 class YggdrashController {
 
     private BranchId branchId;

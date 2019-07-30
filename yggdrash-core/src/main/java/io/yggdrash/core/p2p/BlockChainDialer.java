@@ -71,7 +71,7 @@ public class BlockChainDialer implements PeerDialer {
                 return true;
             }
         } catch (Exception e) {
-            log.warn("add peer handler {}->{}, err={}", owner.toAddress(), to.toAddress(), e.getMessage());
+            log.debug("Cannot connect {}", to.toAddress());
         }
         removeHandler(peerHandler);
         return false;
@@ -97,6 +97,13 @@ public class BlockChainDialer implements PeerDialer {
         return handlerMap.values().stream()
                 .map(handler -> handler.getPeer().toString())
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Map<String, String> getActivePeerListWithStatus() {
+        return handlerMap.values().stream()
+                .collect(Collectors.toMap(
+                        h -> h.getPeer().toString(), BlockChainHandler::gerConnectivityState, (a, b) -> b));
     }
 
     @Override
