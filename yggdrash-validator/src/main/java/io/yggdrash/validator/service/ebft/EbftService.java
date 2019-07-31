@@ -139,6 +139,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
                     log.trace(e.getMessage());
+                    Thread.currentThread().interrupt();
                 }
             } else {
                 return true;
@@ -160,6 +161,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 log.trace(e.getMessage());
+                Thread.currentThread().interrupt();
             }
         }
         return false;
