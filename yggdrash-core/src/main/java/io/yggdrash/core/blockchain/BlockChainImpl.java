@@ -225,7 +225,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     @Override
     public List<BranchContract> getBranchContracts() {
         if (this.branchStore.getBranchContacts().isEmpty()) {
-//            branchStore.setBranchContracts(branch.getBranchContracts());
             return branch.getBranchContracts();
         } else {
             return this.branchStore.getBranchContacts();
