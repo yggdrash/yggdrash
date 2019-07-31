@@ -105,7 +105,7 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
             @Override
             public void onNext(Proto.Transaction protoTx) {
                 Transaction tx = new TransactionImpl(protoTx);
-                log.debug("Received transaction: hash={}, {}", tx.getHash(), this);
+                log.trace("Received transaction: hash={}", tx.getHash());
                 try {
                     branchGroup.addTransaction(tx);
                 } catch (Exception e) {
