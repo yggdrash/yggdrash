@@ -26,6 +26,7 @@ import io.yggdrash.core.wallet.Wallet;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.spongycastle.crypto.InvalidCipherTextException;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

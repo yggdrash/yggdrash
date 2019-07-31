@@ -18,7 +18,6 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.contract.core.ExecuteStatus;
@@ -27,7 +26,6 @@ import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.DuplicatedException;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,8 +37,6 @@ import java.util.Map;
 
 import static io.yggdrash.TestConstants.PerformanceTest;
 import static io.yggdrash.TestConstants.TRANSFER_TO;
-import static io.yggdrash.TestConstants.wallet;
-import static io.yggdrash.TestConstants.yggdrash;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BranchGroupTest {
