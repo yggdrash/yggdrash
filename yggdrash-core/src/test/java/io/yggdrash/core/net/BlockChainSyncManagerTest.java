@@ -44,7 +44,7 @@ public class BlockChainSyncManagerTest {
     }
 
     @Test
-    public void syncBlock() {
+    public void syncBlock() throws Exception {
         assertThat(blockChainManager.getLastIndex()).isEqualTo(0);
 
         syncManager.syncBlock(handler, blockChain);

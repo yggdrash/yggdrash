@@ -12,6 +12,7 @@
 
 package io.yggdrash.core.blockchain;
 
+import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerNetwork;
@@ -54,7 +55,7 @@ public class BlockChainSyncManager implements SyncManager {
     }
 
     @Override
-    public boolean syncBlock(BlockChainHandler peerHandler, BlockChain blockChain) {
+    public boolean syncBlock(BlockChainHandler peerHandler, BlockChain blockChain) throws Exception {
         long offset = blockChain.getBlockChainManager().getLastIndex() + 1;
 
         BranchId branchId = blockChain.getBranchId();
@@ -73,10 +74,12 @@ public class BlockChainSyncManager implements SyncManager {
                     peerHandler.getPeer().getYnodeUri());
 
             for (ConsensusBlock block : blockList) {
+                // Handling exception if the block was not added properly
                 blockChain.addBlock(block, false);
             }
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException | ExecutionException | FailedOperationException e) {
             log.debug("[SyncManager] Sync Block ERR occurred: {}", e.getMessage(), e);
+            throw new Exception(e);
         }
 
         return false;
@@ -235,6 +238,8 @@ public class BlockChainSyncManager implements SyncManager {
             for (BlockChainHandler peerHandler : peerNetwork.getHandlerList(branchId)) {
                 syncBlock(peerHandler, blockChain);
             }
+        } catch (Exception e) {
+            log.warn("[SyncManager] Request sync block ERR occurred: {}", e.getMessage());
         } finally {
             nodeStatus.up();
         }

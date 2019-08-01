@@ -21,18 +21,23 @@ import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.TestConstants.CiTest;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NotValidateException;
 import org.junit.After;
-import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BlockChainTest extends CiTest {
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @After
     public void tearDown() {
@@ -64,15 +69,25 @@ public class BlockChainTest extends CiTest {
     }
 
     @Test
-    public void shouldBeExceptedNotValidateException() {
+    public void invalidBlockHashExceptionMustOccur() {
+        thrown.expect(FailedOperationException.class);
+        thrown.expectMessage("Invalid data format,Invalid BlockHash");
+
         BlockChain blockChain = generateTestBlockChain(false);
         Sha3Hash prevHash = new Sha3Hash("9358");
-        ConsensusBlock block1 = getBlockFixture(1L, prevHash);
-        blockChain.addBlock(block1, false);
-        Assert.assertEquals(1, blockChain.getBlockChainManager().countOfBlocks());
-        ConsensusBlock block2 = getBlockFixture(2L, prevHash);
-        blockChain.addBlock(block2, false);
-        Assert.assertEquals(1, blockChain.getBlockChainManager().countOfBlocks());
+        ConsensusBlock block = getBlockFixture(1L, prevHash);
+        blockChain.addBlock(block, false);
+    }
+
+    @Test
+    public void unknownBlockHeightExceptionNustOccur() {
+        thrown.expect(FailedOperationException.class);
+        thrown.expectMessage("Unknown BlockHeight");
+
+        BlockChain blockChain = generateTestBlockChain(false);
+        Sha3Hash prevHash = new Sha3Hash("9358");
+        ConsensusBlock block = getBlockFixture(2L, prevHash);
+        blockChain.addBlock(block, false);
     }
 
     @Test
@@ -161,18 +176,23 @@ public class BlockChainTest extends CiTest {
     }
 
     private static ConsensusBlock getBlockFixture(Long index, Sha3Hash prevHash) {
-        return getBlockFixture(index, prevHash.getBytes());
+        return getBlockFixture(index, prevHash.getBytes(), null);
     }
 
-    private static ConsensusBlock getBlockFixture(Long index, byte[] prevHash) {
+    private static ConsensusBlock getBlockFixture(Long index, Sha3Hash prevHash, String branchId) {
+        return getBlockFixture(index, prevHash.getBytes(), BranchId.of(branchId).getBytes());
+    }
+
+    private static ConsensusBlock getBlockFixture(Long index, byte[] prevHash, byte[] branchId) {
 
         try {
             Block tmpBlock = BlockChainTestUtils.genesisBlock().getBlock();
             BlockHeader tmpBlockHeader = tmpBlock.getHeader();
             BlockBody tmpBlockBody = tmpBlock.getBody();
+            byte[] chain = branchId != null ? branchId : tmpBlockHeader.getChain();
 
             BlockHeader newBlockHeader = new BlockHeader(
-                    tmpBlockHeader.getChain(),
+                    chain,
                     tmpBlockHeader.getVersion(),
                     tmpBlockHeader.getType(),
                     prevHash,
