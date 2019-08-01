@@ -23,7 +23,7 @@ public interface SyncManager extends CatchUpSyncEventListener {
 
     void fullSync();
 
-    boolean syncBlock(BlockChainHandler peerHandler, BlockChain blockChain);
+    boolean syncBlock(BlockChainHandler peerHandler, BlockChain blockChain) throws Throwable;
 
     void syncTransaction(BlockChainHandler peerHandler, BlockChain blockChain);
 }

@@ -173,23 +173,15 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         try {
             lock.lock();
 
-            if (nextBlock.getIndex() != 0
-                    && blockChainManager.getLastIndex() != 0
-                    && nextBlock.getIndex() != blockChainManager.getLastIndex() + 1) {
-                log.trace("Addblock() failed. LastIndex {}, nextBlockIndex {}",
-                        blockChainManager.getLastIndex(),
-                        nextBlock.getBlock().toJsonObject().toString());
-                return null;
+            int verificationCode = blockChainManager.verify(nextBlock);
+            if (verificationCode != BusinessError.VALID.toValue()) {
+                log.warn("Add Block failed. {}", nextBlock.getBlock().toJsonObject().toString());
+                throw new FailedOperationException(String.join(",", BusinessError.errorLogs(verificationCode)));
             }
-
-            if (blockChainManager.verify(nextBlock) != BusinessError.VALID.toValue()) {
-                log.trace("Addblock() failed. {}", nextBlock.getBlock().toJsonObject().toString());
-                return null;
-            }
-            // add best Block
+            // Add best Block
             branchStore.setBestBlock(nextBlock);
 
-            // run Block Transactions
+            // Run Block Transactions
             // TODO run block execute move to other process (or thread)
             // TODO last execute block will invoke
             if (nextBlock.getIndex() > branchStore.getLastExecuteBlockIndex()) {
