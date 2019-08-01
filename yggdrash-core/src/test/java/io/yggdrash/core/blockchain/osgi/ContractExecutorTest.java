@@ -47,6 +47,7 @@ import io.yggdrash.proto.PbftProto;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -247,10 +248,15 @@ public class ContractExecutorTest {
     }
 
     @Test
-    public void executeVersioningTx() throws DecoderException {
+    public void executeVersionTxTest() throws DecoderException, IOException {
         Transaction tx = generateHeaderTypeTx(VERSIONING_TX);
+
         TransactionRuntimeResult result = manager.executeTx(tx);
-        Assert.assertNull(result);
+
+        Assert.assertNotNull("TransctionRuntimeResult is null", result);
+
+        TransactionReceipt receipt = result.getReceipt();
+
     }
 
     private void buildExecutor() {
@@ -406,8 +412,15 @@ public class ContractExecutorTest {
         return builder.setTxBody(txBody).setWallet(wallet).setBranchId(branchId).build();
     }
 
-    private Transaction generateHeaderTypeTx(String version) throws DecoderException {
-        JsonObject txBody = ContractTestUtils.transferTxBodyJson(TestConstants.TRANSFER_TO, BigInteger.valueOf(100), contractVersion);
+    private Transaction generateHeaderTypeTx(String version) throws DecoderException, IOException {
+
+        String filePath = Objects.requireNonNull(
+                getClass().getClassLoader().getResource(String.format("contracts/%s.jar", contractVersion))).getFile();
+
+        JsonObject txBody = ContractTestUtils.versionUpdateTxBodyJson(new File(filePath));
+
+        Assert.assertThat(txBody.size(), CoreMatchers.is(2));
+
         TransactionBuilder builder = new TransactionBuilder();
         return builder.setType(Hex.decodeHex(version))
                 .setTxBody(txBody)

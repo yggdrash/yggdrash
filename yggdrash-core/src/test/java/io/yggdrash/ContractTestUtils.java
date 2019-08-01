@@ -23,12 +23,30 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.wallet.Wallet;
+import org.apache.commons.codec.binary.Base64;
 import org.spongycastle.util.encoders.Hex;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
 public class ContractTestUtils {
+
+    public static JsonObject versionUpdateTxBodyJson(File file) throws IOException {
+        JsonObject params = new JsonObject();
+
+        try (FileInputStream is = new FileInputStream(file)){
+            byte[] contractBinary =  new byte[Math.toIntExact(file.length())];
+            is.read(contractBinary);
+            params.addProperty("contract" , new String(Base64.encodeBase64(contractBinary)));
+        }
+
+        params.addProperty("contractVersion", "4adc453cbd99b3be960118e9eced4b5dad435d0f");
+
+        return params;
+    }
 
     public static JsonObject createParams(String key, String value) {
         JsonObject params = new JsonObject();

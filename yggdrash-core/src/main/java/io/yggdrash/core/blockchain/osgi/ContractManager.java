@@ -357,7 +357,12 @@ public class ContractManager {
                 return contractExecutor.executeTx(serviceMap, tx);
             case ContractConstants.VERSIONING_CONTRACT:
                 log.debug("Contract Executor type is versioning");
-                return null;
+                try {
+                    return contractExecutor.versioningService(tx);
+                } catch (IllegalAccessException e) {
+                    log.error(e.getMessage());
+                    return null;
+                }
             default:
                 log.error("Unknown Contract Type in Transaction Header");
                 return null;

@@ -17,6 +17,7 @@ import io.yggdrash.core.blockchain.LogIndexer;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.osgi.service.ContractConstants;
+import io.yggdrash.core.blockchain.osgi.service.VersioningContract;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.errorcode.SystemError;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
@@ -300,5 +301,57 @@ public class ContractExecutor {
         String contractVersion = tx.getBody().getBody().get("contractVersion").getAsString();
 
         return new TransactionReceiptImpl(txId, txSize, issuer, contractVersion);
+    }
+
+
+    public TransactionRuntimeResult versioningService(Transaction tx) throws IllegalAccessException {
+        VersioningContract.VersioningContractService service = new VersioningContract.VersioningContractService();
+
+        locker.lock();
+        while (!isTx) {
+            try {
+                isBlockExecuting.await();
+            } catch (InterruptedException e) {
+                log.warn("executeTx err : {} ", e.getMessage());
+            }
+        }
+        isTx = true;
+
+        TransactionReceipt txReceipt = createTransactionReceipt(tx);
+        TransactionRuntimeResult txRuntimeResult = new TransactionRuntimeResult(tx);
+
+        // inject
+
+        Field[] fields = service.getClass().getDeclaredFields();
+
+        for (Field field : fields) {
+            field.setAccessible(true);
+            for (Annotation annotation : field.getDeclaredAnnotations()) {
+                if (annotation.annotationType().equals(ContractStateStore.class)) {
+                    StoreAdapter adapterStore = new StoreAdapter(contractStore.getStateStore(), "versioning");
+                    field.set(service, adapterStore); //default => tmpStateStore
+                }
+                if (annotation.annotationType().equals(ContractTransactionReceipt.class)) {
+                    field.set(service, trAdapter);
+                }
+
+                if (annotation.annotationType().equals(ContractBranchStateStore.class)) {
+                    field.set(service, contractStore.getBranchStore());
+                }
+            }
+        }
+
+        JsonObject txBody = tx.getBody().getBody();
+        String contractVersion = txBody.get("contractVersion").getAsString();
+
+        trAdapter.setTransactionReceipt(txReceipt);
+        service.updateProposer(txBody);
+
+        txRuntimeResult.setChangeValues(contractStore.getTmpStateStore().changeValues());
+
+        txRuntimeResult.setTransactionReceipt(txReceipt);
+        contractStore.getTmpStateStore().close();
+        locker.unlock();
+        return txRuntimeResult;
     }
 }
