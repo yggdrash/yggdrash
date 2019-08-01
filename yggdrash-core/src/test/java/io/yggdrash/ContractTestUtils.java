@@ -49,12 +49,11 @@ public class ContractTestUtils {
         return params;
     }
 
-    public static JsonObject versionVoteTxBodyJson(String txId, boolean aggree) {
+    public static JsonObject versionVoteTxBodyJson(String txId, boolean agree) {
         JsonObject params = new JsonObject();
         params.addProperty("txId", txId);
-        params.addProperty("agree", aggree);
+        params.addProperty("agree", agree);
         params.addProperty("method", "vote");
-
         params.addProperty("contractVersion", "4adc453cbd99b3be960118e9eced4b5dad435d0f");
 
         return params;

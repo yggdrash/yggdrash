@@ -154,12 +154,8 @@ public class VersioningContract {
             }
             stateValue.setTargetContractVersion(params.get("contractVersion").getAsString());
             stateValue.setUpdateContract(contractBinary);
-            //TODO set validatoreSet in branch store
-            Set<String> validatorSet = new HashSet<>();
-            JsonObject validators = state.get("validatorSet");
-            for (String v : validators.keySet()) {
-                validatorSet.add(v);
-            }
+
+            Set<String> validatorSet = new HashSet<>(branchStore.getValidators().getValidatorMap().keySet());
             stateValue.setVotable(txReceipt.getIssuer(), validatorSet);
         }
 
