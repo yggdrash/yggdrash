@@ -309,7 +309,7 @@ public class IntegrationTest extends TcpNodeTesting {
         ping(n, t.getPeer());
     }
 
-    private static void syncBlock(TestNode n, PeerHandlerProvider.PbftPeerHandler targetHandler) {
+    private static void syncBlock(TestNode n, PeerHandlerProvider.PbftPeerHandler targetHandler) throws Exception {
         n.getSyncManger().syncBlock(targetHandler, n.getBranchGroup().getBranch(branchId));
     }
 
@@ -318,7 +318,13 @@ public class IntegrationTest extends TcpNodeTesting {
     }
 
     private static void syncBlock(TestNode n, PeerHandlerProvider.PbftPeerHandler target, int cnt) {
-        IntStream.range(0, cnt).forEach(i -> syncBlock(n, target));
+        IntStream.range(0, cnt).forEach(i -> {
+            try {
+                syncBlock(n, target);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     private static void syncTx(TestNode n, PeerHandlerProvider.PbftPeerHandler targetHandler) {
@@ -339,7 +345,7 @@ public class IntegrationTest extends TcpNodeTesting {
 
     /* Test Scenarios (something bad requests or process validation) */
 
-    private static void validateCatchupRequest() {
+    private static void validateCatchupRequest() throws Exception {
         TestNode node = test.createTestNodes(1, true).get(0);
         test.isInitializedProperly(node);
         node.bootstrapping();

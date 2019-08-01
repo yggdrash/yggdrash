@@ -95,10 +95,9 @@ public class BlockChainManagerImplTest {
         assertEquals(10, blockChainManager.getRecentTxs().size());
         assertEquals(10, blockChainManager.countOfTxs());
 
-        assertEquals(32084, blockChainManager.verify(block)); //blockHeight, blockHash, duplicated
-
+        assertEquals(32004, blockChainManager.verify(block)); //blockHeight > blockHash, duplicated
         block.getBlock().getBody().getTransactionList().add(BlockChainTestUtils.createTransferTx());
-        assertEquals(32124, blockChainManager.verify(block)); // + invalid format, invalid merkleRoot
+        assertEquals(32004, blockChainManager.verify(block)); // blockHeight > + invalid format, invalid merkleRoot
 
         ConsensusBlock<PbftProto.PbftBlock> blockWithInvalidTx = generateBlockWithTxs(false);
         assertEquals(32000, blockChainManager.verify(blockWithInvalidTx));

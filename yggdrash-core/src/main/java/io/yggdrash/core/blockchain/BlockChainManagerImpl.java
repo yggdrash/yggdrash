@@ -75,7 +75,10 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
             // addBlock(): branchStore.setBestBlock() -> executeTransactions() -> blockStore.addBlock()
             if (block == null) {
                 long prevIdx = i - 1;
-                branchStore.setBestBlock(getBlockByIndex(prevIdx));
+                ConsensusBlock<T> curBestBlock = getBlockByIndex(prevIdx);
+                branchStore.setBestBlock(curBestBlock);
+                //Set lastConfirmedBlock to the changed bestBlock. Currently, the lastConfirmedBlock is null
+                setLastConfirmedBlock(curBestBlock);
                 log.warn("Reset branchStore bestBlock: {} -> {}", bestBlock, prevIdx);
                 break;
             }
@@ -108,6 +111,10 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
 
         //GenesisBlock skips the newBlock verification
         if (lastConfirmedBlock != null) {
+            if (!verifyBlockHeight(block)) {
+                return BusinessError.UNKNOWN_BLOCK_HEIGHT.toValue(); // Immediate return if invalid blockHeight
+            }
+
             check |= verifyNewBlock(block);
         }
 
@@ -123,10 +130,6 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
 
     private int verifyNewBlock(ConsensusBlock<T> nextBlock) {
         int check = BusinessError.VALID.toValue();
-
-        check |= BusinessError.addCode(verifyBlockHeight(nextBlock), BusinessError.UNKNOWN_BLOCK_HEIGHT);
-
-        //TODO Return immediately if blockHeight validation is failed.
 
         check |= BusinessError.addCode(verifyBlockHash(nextBlock), BusinessError.INVALID_BLOCK_HASH);
 
