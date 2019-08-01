@@ -16,6 +16,7 @@ import io.yggdrash.contract.core.channel.ContractMethodType;
 import io.yggdrash.core.blockchain.LogIndexer;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.osgi.service.ContractConstants;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.errorcode.SystemError;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
@@ -57,6 +58,7 @@ public class ContractExecutor {
     private final Condition isBlockExecuting = locker.newCondition();
 
     private boolean isTx = false;
+
 
     ContractExecutor(Framework framework, ContractStore contractStore, SystemProperties systemProperties,
                      LogStore logStore) {
@@ -128,7 +130,7 @@ public class ContractExecutor {
         contractCache.cacheContract(contractVersion, service);
 
         Map<String, Method> methodMap = contractCache.getContractMethodMap(
-                String.format("contract/system/%s", contractVersion), methodType); //temporary
+                String.format("%s/%s", ContractConstants.SUFFIX_SYSTEM_CONTRACT, contractVersion), methodType); //temporary
 
         if (methodMap == null || methodMap.get(methodName) == null) {
             txReceipt.setStatus(ExecuteStatus.ERROR);
@@ -235,7 +237,6 @@ public class ContractExecutor {
         locker.lock();
         isTx = false;
         // Set Coupler Contract and contractCache
-        log.debug("Service Map Size : {} ", serviceMap.size());
         coupler.setContract(serviceMap, contractCache);
 
         List<Transaction> txList = nextBlock.getBody().getTransactionList();

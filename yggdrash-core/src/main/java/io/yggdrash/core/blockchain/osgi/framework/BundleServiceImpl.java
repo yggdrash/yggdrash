@@ -1,6 +1,7 @@
 package io.yggdrash.core.blockchain.osgi.framework;
 
 import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.core.blockchain.osgi.service.ContractConstants;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -14,9 +15,6 @@ import java.io.InputStream;
 
 public class BundleServiceImpl implements BundleService {
     private static final Logger log = LoggerFactory.getLogger(BundleServiceImpl.class);
-
-    private static final String SUFFIX_SYSTEM_CONTRACT = "contract/system";
-    private static final String SUFFIX_USER_CONTRACT = "contract/user";
 
     @Override
     public Bundle install(BundleContext context, ContractVersion contractVersion, File file, boolean isSystem) throws IOException, BundleException {
@@ -89,10 +87,10 @@ public class BundleServiceImpl implements BundleService {
         return findBundleByContractVersion(context, contractVersion);
     }
 
-    private String location(boolean isSystme, ContractVersion contractVersion) {
-        return isSystme
-                ? String.format("%s/%s", SUFFIX_SYSTEM_CONTRACT, contractVersion.toString())
-                : String.format("%s/%s", SUFFIX_USER_CONTRACT, contractVersion.toString());
+    private String location(boolean isSystem, ContractVersion contractVersion) {
+        return isSystem
+                ? String.format("%s/%s", ContractConstants.SUFFIX_SYSTEM_CONTRACT, contractVersion.toString())
+                : String.format("%s/%s", ContractConstants.SUFFIX_USER_CONTRACT, contractVersion.toString());
     }
 
     private Bundle findBundleByContractVersion(BundleContext context, ContractVersion contractVersion) {

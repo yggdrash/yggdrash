@@ -9,11 +9,13 @@ import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.framework.BundleService;
 import io.yggdrash.core.blockchain.osgi.framework.FrameworkLauncher;
+import io.yggdrash.core.blockchain.osgi.service.ContractConstants;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.LogStore;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -56,9 +58,6 @@ import java.util.jar.Manifest;
 
 public class ContractManager {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
-
-    private static final String SUFFIX_SYSTEM_CONTRACT = "contract/system";
-    private static final String SUFFIX_USER_CONTRACT = "contract/user";
 
     private final String bootBranchId;
     private final ContractStore contractStore;
@@ -139,8 +138,10 @@ public class ContractManager {
                     bundle = install(bootBranchId, contractVersion, true);
                 } catch (IOException e) {
                     log.error("ContractFile has an Error with {}", e.getMessage());
+                    continue;
                 } catch (BundleException e) {
                     log.error("ContractFile {} failed to install with {}", contractVersion, e.getMessage());
+                    continue;
                 }
             }
 
@@ -183,7 +184,7 @@ public class ContractManager {
         }
 
         boolean isSystemContract = bundle.getLocation()
-                .startsWith(SUFFIX_SYSTEM_CONTRACT);
+                .startsWith(ContractConstants.SUFFIX_SYSTEM_CONTRACT);
 
         for (ServiceReference serviceRef : serviceRefs) {
             Object service = context.getService(serviceRef);
@@ -375,7 +376,19 @@ public class ContractManager {
     }
 
     public TransactionRuntimeResult executeTx(Transaction tx) {
-        return contractExecutor.executeTx(serviceMap, tx);
+        switch (Hex.encodeHexString(tx.getHeader().getType())) {
+            case ContractConstants.BUNDLE_CONTRACT:
+                log.debug("Contract Executor type is bundle");
+                return contractExecutor.executeTx(serviceMap, tx);
+            case ContractConstants.VERSIONING_CONTRACT:
+                log.debug("Contract Executor type is versioning");
+                return null;
+            default:
+                log.error("Unknown Contract Type in Transaction Header");
+                return null;
+        }
+
+//        return contractExecutor.executeTx(serviceMap, tx);
     }
 
     public void commitBlockResult(BlockRuntimeResult result) {
@@ -527,7 +540,7 @@ public class ContractManager {
         infos.add(admin.newConditionalPermissionInfo(
                 String.format("%s-system-file", permissionKey),
                 new ConditionInfo[] {new ConditionInfo(BundleLocationCondition.class.getName(),
-                        new String[] {String.format("%s/*", SUFFIX_SYSTEM_CONTRACT)})
+                        new String[] {String.format("%s/*", ContractConstants.SUFFIX_SYSTEM_CONTRACT)})
                 },
                 systemPermissions.toArray(new PermissionInfo[systemPermissions.size()]),
                 ConditionalPermissionInfo.ALLOW));
@@ -542,7 +555,7 @@ public class ContractManager {
         infos.add(admin.newConditionalPermissionInfo(
                 String.format("%s-user-file", permissionKey),
                 new ConditionInfo[] {new ConditionInfo(BundleLocationCondition.class.getName(),
-                        new String[] {String.format("%s/*", SUFFIX_USER_CONTRACT)})
+                        new String[] {String.format("%s/*", ContractConstants.SUFFIX_USER_CONTRACT)})
                 },
                 userPermissions.toArray(new PermissionInfo[userPermissions.size()]),
                 ConditionalPermissionInfo.ALLOW));
@@ -562,4 +575,6 @@ public class ContractManager {
     private String contractFilePath(ContractVersion contractVersion) {
         return this.contractPath + File.separator + contractVersion + ".jar";
     }
+
+
 }
