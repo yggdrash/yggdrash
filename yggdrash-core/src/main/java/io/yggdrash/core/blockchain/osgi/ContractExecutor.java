@@ -343,9 +343,19 @@ public class ContractExecutor {
 
         JsonObject txBody = tx.getBody().getBody();
         String contractVersion = txBody.get("contractVersion").getAsString();
+        String methodName = txBody.get("method").getAsString();
+
+        contractCache.cacheContract(contractVersion, service);
+
+        Method method = contractCache.getContractMethodMap(contractVersion, ContractMethodType.INVOKE).get(methodName);
 
         trAdapter.setTransactionReceipt(txReceipt);
-        service.updateProposer(txBody);
+
+        try {
+            method.invoke(service, txBody);
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
 
         txRuntimeResult.setChangeValues(contractStore.getTmpStateStore().changeValues());
 

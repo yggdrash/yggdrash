@@ -44,8 +44,21 @@ public class ContractTestUtils {
         }
 
         params.addProperty("contractVersion", "4adc453cbd99b3be960118e9eced4b5dad435d0f");
+        params.addProperty("method", "updateProposer");
 
         return params;
+    }
+
+    public static JsonObject versionVoteTxBodyJson(String txId, boolean aggree) {
+        JsonObject params = new JsonObject();
+        params.addProperty("txId", txId);
+        params.addProperty("agree", aggree);
+        params.addProperty("method", "vote");
+
+        params.addProperty("contractVersion", "4adc453cbd99b3be960118e9eced4b5dad435d0f");
+
+        return params;
+
     }
 
     public static JsonObject createParams(String key, String value) {

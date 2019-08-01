@@ -2,6 +2,7 @@ package io.yggdrash.core.blockchain.osgi.service;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
@@ -22,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class VersioningContract {
@@ -38,7 +40,7 @@ public class VersioningContract {
         ReadWriterStore<String, JsonObject> state;
 
         @ContractBranchStateStore
-        ReadWriterStore<String, JsonObject> branchStore;
+        BranchStateStore branchStore;
 
         @ContractTransactionReceipt
         TransactionReceipt txReceipt;
@@ -54,7 +56,12 @@ public class VersioningContract {
                 String upgradeContract = params.get("contract").getAsString();
                 byte[] binaryFile = base64Dec(upgradeContract.getBytes("UTF-8"));
 
-                if (!validatorVerify() || (binaryFile == null) || !sizeVerify(binaryFile)) {
+                if (!validatorVerify()) {
+                    setErrorTxReceipt("Validator is empty");
+                    return txReceipt;
+                }
+
+                if ((binaryFile == null) || !sizeVerify(binaryFile)) {
                     return txReceipt;
                 }
 
@@ -68,6 +75,7 @@ public class VersioningContract {
                 } catch (Exception e) {
                     log.error(e.toString());
                     txReceipt.setStatus(ExecuteStatus.FALSE);
+                    txReceipt.addLog(e.getMessage());
                 }
             } catch (Exception e) {
                 log.warn("Failed to convert json = {}", params);
@@ -124,10 +132,13 @@ public class VersioningContract {
         }
 
         private boolean validatorVerify() {
-            //TODO change get validator in branch store
-            JsonObject validators = branchStore.get("validatorSet");
-            for (String v : validators.keySet()) {
-                if (!v.isEmpty() && v.equals(txReceipt.getIssuer())) {
+
+            if (branchStore.getValidators() == null) {
+                return false;
+            }
+
+            for (String key : branchStore.getValidators().getValidatorMap().keySet()) {
+                if (!key.isEmpty() && key.equals(txReceipt.getIssuer())) {
                     return true;
                 }
             }
@@ -230,6 +241,34 @@ public class VersioningContract {
         private static byte[] base64Dec(byte[] buffer) {
             return Base64.decodeBase64(buffer);
         }
+
+
+
+        private void setErrorTxReceipt(String msg) {
+            this.txReceipt.setStatus(ExecuteStatus.ERROR);
+            this.txReceipt.addLog(msg);
+        }
+
+        private void setFalseTxReceipt(String msg) {
+            this.txReceipt.setStatus(ExecuteStatus.FALSE);
+            this.txReceipt.addLog(msg);
+        }
+
+        private void setFalseTxReceipt(List<String> msgs) {
+            this.txReceipt.setStatus(ExecuteStatus.FALSE);
+            msgs.forEach(l -> this.txReceipt.addLog(l));
+        }
+
+        private void setSuccessTxReceipt(String msg) {
+            this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
+            this.txReceipt.addLog(msg);
+        }
+
+        private void setSuccessTxReceipt(List<String> msgs) {
+            this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
+            msgs.forEach(l -> this.txReceipt.addLog(l));
+        }
+
     }
 
 

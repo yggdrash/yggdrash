@@ -248,14 +248,49 @@ public class ContractExecutorTest {
     }
 
     @Test
-    public void executeVersionTxTest() throws DecoderException, IOException {
-        Transaction tx = generateHeaderTypeTx(VERSIONING_TX);
+    public void executeVersionProposalTest() throws DecoderException, IOException {
+        String filePath = Objects.requireNonNull(
+                getClass().getClassLoader().getResource(String.format("contracts/%s.jar", contractVersion))).getFile();
+
+        JsonObject txBody = ContractTestUtils.versionUpdateTxBodyJson(new File(filePath));
+
+        Assert.assertThat(txBody.size(), CoreMatchers.is(3));
+
+        Transaction tx = new TransactionBuilder()
+                .setType(Hex.decodeHex(VERSIONING_TX))
+                .setTxBody(txBody)
+                .setWallet(wallet)
+                .setBranchId(branchId)
+                .build();
 
         TransactionRuntimeResult result = manager.executeTx(tx);
 
-        Assert.assertNotNull("TransctionRuntimeResult is null", result);
+        Assert.assertNotNull("TransactionRuntimeResult is null", result);
 
-        TransactionReceipt receipt = result.getReceipt();
+        // Validator set not found in Branch Store.
+        Assert.assertThat(result.getReceipt().getStatus(), CoreMatchers.is(ExecuteStatus.ERROR));
+        Assert.assertThat(result.getReceipt().getTxLog().get(0), CoreMatchers.is("Validator is empty"));
+
+    }
+
+    @Test
+    public void executeVersionVoteTest() throws DecoderException {
+        JsonObject txBody = ContractTestUtils.versionVoteTxBodyJson(
+                "a2b0f5fce600eb6c595b28d6253bed92be0568eda2b0f5fce600eb6c595b28d6253bed92be0568ed",
+                true);
+
+        Transaction tx = new TransactionBuilder()
+                .setType(Hex.decodeHex(VERSIONING_TX))
+                .setTxBody(txBody)
+                .setWallet(wallet)
+                .setBranchId(branchId)
+                .build();
+
+        TransactionRuntimeResult result = manager.executeTx(tx);
+
+        Assert.assertNotNull("TransactionRuntimeResult is null", result);
+        // UpdateProposal TX doesn't exist.
+        Assert.assertThat(result.getReceipt().getStatus(), CoreMatchers.is(ExecuteStatus.FALSE));
 
     }
 
@@ -410,23 +445,6 @@ public class ContractExecutorTest {
         JsonObject txBody = ContractTestUtils.transferTxBodyJson(TestConstants.TRANSFER_TO, amount, contractVersion);
         TransactionBuilder builder = new TransactionBuilder();
         return builder.setTxBody(txBody).setWallet(wallet).setBranchId(branchId).build();
-    }
-
-    private Transaction generateHeaderTypeTx(String version) throws DecoderException, IOException {
-
-        String filePath = Objects.requireNonNull(
-                getClass().getClassLoader().getResource(String.format("contracts/%s.jar", contractVersion))).getFile();
-
-        JsonObject txBody = ContractTestUtils.versionUpdateTxBodyJson(new File(filePath));
-
-        Assert.assertThat(txBody.size(), CoreMatchers.is(2));
-
-        TransactionBuilder builder = new TransactionBuilder();
-        return builder.setType(Hex.decodeHex(version))
-                .setTxBody(txBody)
-                .setWallet(wallet)
-                .setBranchId(branchId)
-                .build();
     }
 
     private void setNamespace(String symbolicName) {
