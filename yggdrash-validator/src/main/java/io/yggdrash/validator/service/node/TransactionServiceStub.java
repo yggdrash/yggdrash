@@ -70,7 +70,7 @@ public class TransactionServiceStub extends TransactionServiceGrpc.TransactionSe
             @Override
             public void onNext(Proto.Transaction protoTx) {
                 Transaction tx = new TransactionImpl(protoTx);
-                log.debug("Received transaction: hash={}, {}", tx.getHash(), this);
+                log.trace("Received transaction: hash={}", tx.getHash());
                 if (tx.getBranchId().equals(blockChain.getBranchId())
                         && blockChain.getBlockChainManager().verify(tx) == BusinessError.VALID.toValue()) {
                     blockChain.getBlockChainManager().addTransaction(tx);

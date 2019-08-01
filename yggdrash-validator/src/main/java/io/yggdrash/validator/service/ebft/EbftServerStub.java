@@ -42,7 +42,7 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
     public void multicastTransaction(Proto.Transaction protoTx,
                                      StreamObserver<CommonProto.Empty> responseObserver) {
         Transaction tx = new TransactionImpl(protoTx);
-        log.debug("Received transaction: hash={}, {}", tx.getHash(), this);
+        log.trace("Received transaction: hash={}", tx.getHash());
         if (tx.getBranchId().equals(blockChain.getBranchId())
                 && blockChain.getBlockChainManager().verify(tx) == BusinessError.VALID.toValue()) {
             blockChain.getBlockChainManager().addTransaction(tx);
