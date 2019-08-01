@@ -210,6 +210,7 @@ public class ContractExecutor {
                 isBlockExecuting.await();
             } catch (InterruptedException e) {
                 log.warn("executeTx err : {}", e.getMessage());
+                Thread.currentThread().interrupt();
             }
         }
         isTx = true;
