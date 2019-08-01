@@ -19,6 +19,7 @@ package io.yggdrash;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.BlockChain;
@@ -30,6 +31,7 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.PbftBlockChainMock;
 import io.yggdrash.core.blockchain.PbftBlockMock;
+import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBody;
 import io.yggdrash.core.blockchain.TransactionBuilder;
@@ -38,7 +40,9 @@ import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.blockchain.osgi.ContractManagerBuilder;
-import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
+import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkConfig;
+import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkLauncher;
+import io.yggdrash.core.blockchain.osgi.framework.BundleServiceImpl;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.store.BlockChainStore;
@@ -47,6 +51,8 @@ import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.PbftBlockStoreMock;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
+import org.junit.Assert;
+import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +69,9 @@ public class BlockChainTestUtils {
     private static final Logger log = LoggerFactory.getLogger(BlockChainTestUtils.class);
     private ContractVersion stem;
 
+    public static GenesisBlock getGenesis() {
+        return genesis;
+    }
 
     private BlockChainTestUtils() {
     }
@@ -158,23 +167,44 @@ public class BlockChainTestUtils {
         BlockChainStoreBuilder builder = BlockChainStoreBuilder.newBuilder(genesis.getBranch().getBranchId())
                 .setBlockStoreFactory(PbftBlockStoreMock::new)
                 .withProductionMode(isProductionMode)
-                .withDataBasePath(config.getDatabasePath())
-        ;
+                .withDataBasePath(config.getDatabasePath());
         BlockChainStore bcStore = builder.build();
 
         ContractStore contractStore = bcStore.getContractStore();
-        ContractPolicyLoader contractPolicyLoader = new ContractPolicyLoader();
+
+        BootFrameworkConfig bootFrameworkConfig = new BootFrameworkConfig(config, genesis.getBranchId());
+        BootFrameworkLauncher bootFrameworkLauncher = new BootFrameworkLauncher(bootFrameworkConfig);
+        BundleServiceImpl bundleService = new BundleServiceImpl();
+        SystemProperties systemProperties = createDefaultSystemProperties();
 
         ContractManager contractManager = ContractManagerBuilder.newInstance()
-                .withFrameworkFactory(contractPolicyLoader.getFrameworkFactory())
-                .withContractManagerConfig(contractPolicyLoader.getContractManagerConfig())
-                .withBranchId(genesis.getBranch().getBranchId().toString())
+                .withGenesis(genesis)
+                .withBootFramework(bootFrameworkLauncher)
+                .withBundleManager(bundleService)
+                .withDefaultConfig(config)
                 .withContractStore(contractStore)
-                .withDataBasePath(config.getDatabasePath())
-                .withOsgiPath(config.getOsgiPath())
-                .withContractPath(config.getContractPath())
-                .withLogStore(bcStore.getLogStore())
+                .withLogStore(bcStore.getLogStore()) // is this logstore for what?
+                .withSystemProperties(systemProperties)
                 .build();
+
+
+        for (BranchContract bc : genesis.getBranch().getBranchContracts()) {
+            try {
+                Bundle bundle = contractManager.install(genesis.getBranchId().toString(), bc.getContractVersion(), true);
+                Assert.assertNotNull("bundle is null ", bundle);
+                contractManager.start(bundle);
+                contractManager.inject(genesis.getBranchId().toString(), bc.getContractVersion());
+                contractManager.registerServiceMap(genesis.getBranchId().toString(), bc.getContractVersion(), bundle);
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
+        }
+
+        Assert.assertTrue(contractManager.getBundles(genesis.getBranchId().toString()).length
+                >= genesis.getBranch().getBranchContracts().size());
+
+        Assert.assertTrue(contractManager.getServiceMap().size()
+                >= genesis.getBranch().getBranchContracts().size());
 
         BlockChainManager blockChainManager = new BlockChainManagerImpl(bcStore);
 
@@ -226,10 +256,10 @@ public class BlockChainTestUtils {
     }
 
     private static List<ConsensusBlock<PbftProto.PbftBlock>> createBlockList(
-                                                        List<ConsensusBlock<PbftProto.PbftBlock>> blockList,
-                                                        ConsensusBlock<PbftProto.PbftBlock> prevBlock,
-                                                        List<Transaction> blockBody,
-                                                        int height) {
+            List<ConsensusBlock<PbftProto.PbftBlock>> blockList,
+            ConsensusBlock<PbftProto.PbftBlock> prevBlock,
+            List<Transaction> blockBody,
+            int height) {
         while (blockList.size() < height) {
             blockList.add(prevBlock);
             if (blockBody != null) {
@@ -303,5 +333,16 @@ public class BlockChainTestUtils {
                 chain, txVersion, Constants.EMPTY_BYTE8, timestamp, transactionBody);
         byte[] sign = Constants.EMPTY_SIGNATURE;
         return new TransactionImpl(txHeader, sign, transactionBody);
+    }
+
+
+    public static SystemProperties createDefaultSystemProperties() {
+        return SystemProperties.SystemPropertiesBuilder
+                .newBuilder()
+                .setElasticsearchHost("127.0.0.1")
+                .setElasticsearchPort(9200)
+                .setEventStore(null)
+                .build();
+
     }
 }

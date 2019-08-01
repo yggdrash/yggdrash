@@ -150,15 +150,10 @@ public class BranchGroup {
         }
         try {
             BlockChain chain = branches.get(branchId);
-            return chain.getContractManager().query(contractVersion, method, params);
+            return chain.getContractManager().query(branchId.toString(), contractVersion, method, params);
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }
-    }
-
-    // not yet implemented
-    public Object tmpQuery(BranchId branchId, String contractVersion, String method, JsonObject params) {
-        return branches.get(branchId).getContractManager().query(contractVersion, method, params);
     }
 
     public long countOfTxs(BranchId branchId) {

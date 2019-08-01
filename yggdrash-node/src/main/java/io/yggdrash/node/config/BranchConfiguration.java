@@ -29,7 +29,9 @@ import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.blockchain.osgi.ContractManagerBuilder;
-import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
+import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkConfig;
+import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkLauncher;
+import io.yggdrash.core.blockchain.osgi.framework.BundleServiceImpl;
 import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
@@ -73,11 +75,11 @@ public class BranchConfiguration {
     // TODO Remove Default Branch Load
     @Profile(ActiveProfiles.NODE)
     @Bean
-    BlockChain yggdrash(BranchGroup branchGroup, ContractPolicyLoader policyLoader) throws IOException {
+    BlockChain yggdrash(BranchGroup branchGroup) throws IOException {
         GenesisBlock genesis = GenesisBlock.of(yggdrashResource.getInputStream());
         BlockChain yggdrash = branchGroup.getBranch(genesis.getBranchId());
         if (yggdrash == null) {
-            yggdrash = createBranch(genesis, policyLoader);
+            yggdrash = createBranch(genesis);
             branchGroup.addBranch(yggdrash);
         }
         return yggdrash;
@@ -89,13 +91,7 @@ public class BranchConfiguration {
     }
 
     @Bean
-    ContractPolicyLoader policyLoader() {
-        return new ContractPolicyLoader();
-    }
-
-    @Bean
-    BranchLoader branchLoader(DefaultConfig defaultConfig, BranchGroup branchGroup,
-                              ContractPolicyLoader policyLoader, Environment env) {
+    BranchLoader branchLoader(DefaultConfig defaultConfig, BranchGroup branchGroup, Environment env) {
 
         BranchLoader branchLoader = new BranchLoader(defaultConfig.getBranchPath());
         boolean isValidator = Arrays.asList(env.getActiveProfiles()).contains(ActiveProfiles.VALIDATOR);
@@ -111,7 +107,7 @@ public class BranchConfiguration {
                 if (branchGroup.getBranch(genesis.getBranchId()) != null) {
                     continue;
                 }
-                BlockChain bc = createBranch(genesis, policyLoader);
+                BlockChain bc = createBranch(genesis);
                 branchGroup.addBranch(bc);
             }
         } catch (Exception e) {
@@ -120,7 +116,7 @@ public class BranchConfiguration {
         return branchLoader;
     }
 
-    private BlockChain createBranch(GenesisBlock genesis, ContractPolicyLoader policyLoader) {
+    private BlockChain createBranch(GenesisBlock genesis) {
         log.info("createBranch {} {}", genesis.getBranch().getBranchId(), genesis.getBranch().getName());
 
         try {
@@ -134,7 +130,7 @@ public class BranchConfiguration {
             ;
             BlockChainStore blockChainStore = builder.build();
             BlockChain blockChain =
-                    getBlockChain(defaultConfig, genesis, blockChainStore, policyLoader, branchId, systemProperties);
+                    getBlockChain(defaultConfig, genesis, blockChainStore, branchId, systemProperties);
 
             log.info("Branch is Ready {}", blockChain.getBranchId());
 
@@ -148,7 +144,6 @@ public class BranchConfiguration {
     static BlockChain getBlockChain(DefaultConfig config,
                                     GenesisBlock genesis,
                                     BlockChainStore blockChainStore,
-                                    ContractPolicyLoader policyLoader,
                                     BranchId branchId,
                                     SystemProperties systemProperties) {
 
@@ -157,16 +152,13 @@ public class BranchConfiguration {
         BlockChainManager blockChainManager = new BlockChainManagerImpl(blockChainStore);
 
         ContractManager contractManager = ContractManagerBuilder.newInstance()
-                .withFrameworkFactory(policyLoader.getFrameworkFactory())
-                .withContractManagerConfig(policyLoader.getContractManagerConfig())
-                .withBranchId(branchId.toString())
+                .withGenesis(genesis)
+                .withBootFramework(new BootFrameworkLauncher(new BootFrameworkConfig(config, branchId)))
+                .withBundleManager(new BundleServiceImpl())
+                .withDefaultConfig(config)
                 .withContractStore(contractStore)
-                .withOsgiPath(config.getOsgiPath())
-                .withDataBasePath(config.getDatabasePath())
-                .withContractPath(config.getContractPath())
-                .withSystemProperties(systemProperties)
-                .withLogStore(blockChainStore.getLogStore())
-                .withContractRepository(config.getContractRepositoryUrl())
+                .withLogStore(blockChainStore.getLogStore()) // is this logstore for what?
+                .withSystemProperties(systemProperties) // Contract Executor. do not need contractManager.
                 .build();
 
         return BlockChainBuilder.newBuilder()
@@ -177,4 +169,5 @@ public class BranchConfiguration {
                 .setFactory(ValidatorService.factory())
                 .build();
     }
+
 }

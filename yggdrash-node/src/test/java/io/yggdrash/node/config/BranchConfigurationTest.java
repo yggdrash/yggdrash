@@ -26,7 +26,6 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
-import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -50,7 +49,6 @@ public class BranchConfigurationTest {
     private static final Logger log = LoggerFactory.getLogger(BranchConfigurationTest.class);
 
     private static final DefaultConfig config = new DefaultConfig();
-    private static final ContractPolicyLoader policyLoader = new ContractPolicyLoader();
     private static final ResourceLoader resourceLoader = new DefaultResourceLoader();
 
     private BranchConfiguration branchConfig;
@@ -67,7 +65,7 @@ public class BranchConfigurationTest {
 
         saveFile(branchId, branchJson);
         BranchGroup branchGroup = branchConfig.branchGroup();
-        branchConfig.branchLoader(config, branchGroup, policyLoader, new MockEnvironment());
+        branchConfig.branchLoader(config, branchGroup, new MockEnvironment());
         File branchDir = new File(config.getBranchPath(), branchId.toString());
         FileUtils.deleteQuietly(branchDir);
 

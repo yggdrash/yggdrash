@@ -169,7 +169,7 @@ public class VerifierUtils {
             verifyCode |= 0x100;
         }
 
-        log.debug("Transaction Verify CODE : {}", verifyCode);
+        log.trace("Transaction Verify CODE : {}", verifyCode);
 
         return verifyCode;
 
