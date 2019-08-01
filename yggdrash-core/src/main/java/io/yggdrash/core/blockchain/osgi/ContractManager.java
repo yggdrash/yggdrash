@@ -290,27 +290,11 @@ public class ContractManager {
         return contractExecutor.getCurLogIndex();
     }
 
-    public void reloadInject(String branchId) throws IllegalAccessException {
-        Bundle[] bundles = findBundleContext(branchId).getBundles();
-
-        for (Bundle bundle : bundles) {
-            inject(findBundleContext(branchId), bundle);
-        }
-    }
-
     private boolean verifyManifest(Manifest manifest) {
         String manifestVersion = manifest.getMainAttributes().getValue("Bundle-ManifestVersion");
         String bundleSymbolicName = manifest.getMainAttributes().getValue("Bundle-SymbolicName");
         String bundleVersion = manifest.getMainAttributes().getValue("Bundle-Version");
         return verifyManifest(manifestVersion, bundleSymbolicName, bundleVersion);
-    }
-
-    @Deprecated
-    private boolean verifyManifest(Bundle bundle) {
-        String bundleManifestVersion = bundle.getHeaders().get("Bundle-ManifestVersion");
-        String bundleSymbolicName = bundle.getHeaders().get("Bundle-SymbolicName");
-        String bundleVersion = bundle.getHeaders().get("Bundle-Version");
-        return verifyManifest(bundleManifestVersion, bundleSymbolicName, bundleVersion);
     }
 
     private boolean verifyManifest(String manifestVersion, String bundleSymbolicName, String bundleVersion) {
@@ -329,15 +313,6 @@ public class ContractManager {
         }
 
         return true;
-    }
-
-    @Deprecated
-    public List<ContractStatus> searchContracts() {
-        List<ContractStatus> result = new ArrayList<>();
-        for (Bundle bundle : findBundleContext(bootBranchId).getBundles()) {
-            result.add(getContractStatus(bundle));
-        }
-        return result;
     }
 
     public List<ContractStatus> searchContracts(String branchId) {

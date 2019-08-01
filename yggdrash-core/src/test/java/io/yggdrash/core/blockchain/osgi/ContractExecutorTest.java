@@ -44,6 +44,7 @@ import io.yggdrash.core.store.PbftBlockStoreMock;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Assert;
@@ -83,6 +84,8 @@ public class ContractExecutorTest {
     private String namespace;
 
     private GenesisBlock genesis;
+
+    private static String VERSIONING_TX = "0000000000000001";
 
     @Before
     public void setUp() throws Exception {
@@ -243,6 +246,13 @@ public class ContractExecutorTest {
         assertTrue(contractStore.getTransactionReceiptStore().contains(errTx.getHash().toString()));
     }
 
+    @Test
+    public void executeVersioningTx() throws DecoderException {
+        Transaction tx = generateHeaderTypeTx(VERSIONING_TX);
+        TransactionRuntimeResult result = manager.executeTx(tx);
+        Assert.assertNull(result);
+    }
+
     private void buildExecutor() {
         DefaultConfig config = new DefaultConfig();
         BlockChainStore bcStore = BlockChainStoreBuilder.newBuilder(branchId)
@@ -276,7 +286,7 @@ public class ContractExecutorTest {
         List<ContractStatus> contractStatusList = manager.searchContracts(branchId.toString());
         Assert.assertTrue(2 >= contractStatusList.size());
 
-        for (ContractStatus cs : manager.searchContracts(branchId.toString())) {
+        for (ContractStatus cs : contractStatusList) {
             String bundleSymbolicName = cs.getSymbolicName();
             byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(bundleSymbolicName.getBytes());
             this.namespace = new String(Base64.encodeBase64(bundleSymbolicSha3));
@@ -317,7 +327,7 @@ public class ContractExecutorTest {
     }
 
     private boolean checkExistContract(String contractVersion) {
-        for (ContractStatus cs : manager.searchContracts()) {
+        for (ContractStatus cs : manager.searchContracts(branchId.toString())) {
             if (cs.getLocation().lastIndexOf(contractVersion) > 0) {
                 return true;
             }
@@ -394,6 +404,16 @@ public class ContractExecutorTest {
         JsonObject txBody = ContractTestUtils.transferTxBodyJson(TestConstants.TRANSFER_TO, amount, contractVersion);
         TransactionBuilder builder = new TransactionBuilder();
         return builder.setTxBody(txBody).setWallet(wallet).setBranchId(branchId).build();
+    }
+
+    private Transaction generateHeaderTypeTx(String version) throws DecoderException {
+        JsonObject txBody = ContractTestUtils.transferTxBodyJson(TestConstants.TRANSFER_TO, BigInteger.valueOf(100), contractVersion);
+        TransactionBuilder builder = new TransactionBuilder();
+        return builder.setType(Hex.decodeHex(version))
+                .setTxBody(txBody)
+                .setWallet(wallet)
+                .setBranchId(branchId)
+                .build();
     }
 
     private void setNamespace(String symbolicName) {
