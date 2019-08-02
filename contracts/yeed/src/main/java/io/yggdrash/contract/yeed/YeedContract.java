@@ -119,7 +119,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
         @ContractQuery
         @Override
         public BigInteger balanceOf(JsonObject params) {
-            String address = params.get("address").getAsString();
+            String address = params.get("address").getAsString().toLowerCase();
             return getBalance(address);
         }
 
@@ -147,8 +147,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
         @ContractQuery
         @Override
         public BigInteger allowance(JsonObject params) {
-            String owner = params.get("owner").getAsString();
-            String spender = params.get("spender").getAsString();
+            String owner = params.get("owner").getAsString().toLowerCase();
+            String spender = params.get("spender").getAsString().toLowerCase();
             String approveKey = approveKey(owner, spender);
 
             return getBalance(approveKey);
