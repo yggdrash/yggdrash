@@ -351,10 +351,10 @@ public class ContractManager {
 
     public TransactionRuntimeResult executeTx(Transaction tx) {
         switch (Hex.encodeHexString(tx.getHeader().getType())) {
-            case ContractConstants.BUNDLE_CONTRACT:
+            case ContractConstants.BUNDLE_TRANSACTION:
                 log.debug("Contract Executor type is bundle");
                 return contractExecutor.executeTx(serviceMap, tx);
-            case ContractConstants.VERSIONING_CONTRACT:
+            case ContractConstants.VERSIONING_TRANSACTION:
                 log.debug("Contract Executor type is versioning");
                 try {
                     return contractExecutor.versioningService(tx);
