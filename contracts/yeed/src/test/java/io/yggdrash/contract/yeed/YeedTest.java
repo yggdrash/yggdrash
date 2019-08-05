@@ -111,18 +111,19 @@ public class YeedTest {
     @Test
     public void balanceOf() {
         BigInteger res = getBalance(ADDRESS_1);
+        BigInteger res2 = getBalance(ADDRESS_1.toUpperCase());
 
         assertEquals(BigInteger.valueOf(1000000000), res);
+        assertEquals(res2, res);
     }
 
     @Test
     public void allowance() {
-        String paramStr = "{\"owner\" : \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\","
-                + "\"spender\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\"}";
-
-        BigInteger res = yeedContract.allowance(createParams(paramStr));
+        BigInteger res = getAllowance(ADDRESS_1, ADDRESS_2);
+        BigInteger res2 = getAllowance(ADDRESS_1.toUpperCase(), ADDRESS_2.toUpperCase());
 
         assertEquals(BigInteger.ZERO, res);
+        assertEquals(res2, res);
     }
 
     @Test

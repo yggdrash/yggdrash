@@ -16,12 +16,12 @@
 
 package io.yggdrash.node.config;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
@@ -33,7 +33,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -43,6 +42,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @Ignore
 public class BranchConfigurationTest {
@@ -61,7 +64,9 @@ public class BranchConfigurationTest {
     @Test
     public void branchLoaderTest() throws IOException {
         JsonObject branchJson = getBranchJson();
-        BranchId branchId = BranchId.of(branchJson);
+        Branch branch = getBranchByJsonObj(branchJson);
+        BranchId branchId = branch.getBranchId();
+        log.debug("branchId : {}", branchId);
 
         saveFile(branchId, branchJson);
         BranchGroup branchGroup = branchConfig.branchGroup();
@@ -69,26 +74,29 @@ public class BranchConfigurationTest {
         File branchDir = new File(config.getBranchPath(), branchId.toString());
         FileUtils.deleteQuietly(branchDir);
 
-        BlockChain branch = branchGroup.getBranch(branchId);
-        assert branch != null;
-        assert branch.getBranchId().equals(branchId);
-        assertTransaction(branch);
+        BlockChain blockChain = branchGroup.getBranch(branchId);
+        assertNotNull(blockChain);
+        assertEquals(blockChain.getBranchId(), branchId);
+        assertTransaction(blockChain);
     }
 
     private void assertTransaction(BlockChain branch) throws IOException {
         ConsensusBlock genesis = branch.getBlockChainManager().getBlockByIndex(0);
         log.debug(genesis.toJsonObject().toString());
         Transaction genesisTx = genesis.getBody().getTransactionList().get(0);
-        String txSignature = Hex.toHexString(genesisTx.getSignature());
-        JsonObject branchJson = getBranchJson();
-        assert txSignature.equals(branchJson.get("signature").getAsString());
 
-        JsonArray jsonArrayTxBody = genesisTx.toJsonObject().getAsJsonArray("body");
-        assert jsonArrayTxBody.size() == 1;
-        JsonObject jsonObjectTxBody = jsonArrayTxBody.get(0).getAsJsonObject();
-        assert jsonObjectTxBody.has("method");
-        assert jsonObjectTxBody.has("branch");
-        assert jsonObjectTxBody.has("params");
+        JsonObject jsonTxBody = genesisTx.toJsonObject().getAsJsonObject("body");
+        assertTrue(jsonTxBody.has("method"));
+        assertTrue(jsonTxBody.has("contractVersion"));
+        assertTrue(jsonTxBody.has("params"));
+        assertTrue(jsonTxBody.has("isSystem"));
+        assertTrue(jsonTxBody.has("consensus"));
+    }
+
+    private Branch getBranchByJsonObj(JsonObject branchJson) throws IOException {
+        Resource resource = resourceLoader.getResource("classpath:/branch-yggdrash.json");
+        Reader json = new InputStreamReader(resource.getInputStream(), FileUtil.DEFAULT_CHARSET);
+        return Branch.of(branchJson);
     }
 
     private JsonObject getBranchJson() throws IOException {
