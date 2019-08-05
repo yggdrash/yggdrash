@@ -1,5 +1,6 @@
 package io.yggdrash.core.blockchain.osgi.framework;
 
+import io.yggdrash.core.blockchain.BranchId;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.launch.Framework;
@@ -37,9 +38,9 @@ public class BootFrameworkLauncher implements FrameworkLauncher {
     }
 
     @Override
-    public String getBranchId() {
+    public BranchId getBranchId() {
         String storageProperty = this.framework.getBundleContext().getProperty("org.osgi.framework.storage");
-        return storageProperty.substring(storageProperty.lastIndexOf('/') + 1);
+        return BranchId.of(storageProperty.substring(storageProperty.lastIndexOf('/') + 1));
     }
 
     @Override

@@ -324,7 +324,7 @@ public class ContractExecutorTest {
 
         this.executor = manager.getContractExecutor();
 
-        List<ContractStatus> contractStatusList = manager.searchContracts(branchId.toString());
+        List<ContractStatus> contractStatusList = manager.searchContracts(branchId);
         Assert.assertTrue(2 >= contractStatusList.size());
 
         for (ContractStatus cs : contractStatusList) {
@@ -348,13 +348,13 @@ public class ContractExecutorTest {
 
         assert coinContractFile.exists();
 
-        Bundle bundle = manager.install(branchId.toString(), contractVersion, coinContractFile, true);
+        Bundle bundle = manager.install(branchId, contractVersion, coinContractFile, true);
 
         manager.start(bundle);
-        manager.inject(branchId.toString(), contractVersion);
-        manager.registerServiceMap(branchId.toString(), contractVersion, bundle);
+        manager.inject(branchId, contractVersion);
+        manager.registerServiceMap(branchId, contractVersion, bundle);
 
-        for (ContractStatus cs : manager.searchContracts(branchId.toString())) {
+        for (ContractStatus cs : manager.searchContracts(branchId)) {
             String bundleSymbolicName = cs.getSymbolicName();
             byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(bundleSymbolicName.getBytes());
             this.namespace = new String(Base64.encodeBase64(bundleSymbolicSha3));
@@ -368,7 +368,7 @@ public class ContractExecutorTest {
     }
 
     private boolean checkExistContract(String contractVersion) {
-        for (ContractStatus cs : manager.searchContracts(branchId.toString())) {
+        for (ContractStatus cs : manager.searchContracts(branchId)) {
             if (cs.getLocation().lastIndexOf(contractVersion) > 0) {
                 return true;
             }

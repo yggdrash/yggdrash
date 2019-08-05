@@ -1,7 +1,7 @@
 package io.yggdrash.core.blockchain.osgi.framework;
 
 import io.yggdrash.common.contract.ContractVersion;
-import io.yggdrash.core.blockchain.osgi.service.ContractConstants;
+import io.yggdrash.core.blockchain.osgi.ContractConstants;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;

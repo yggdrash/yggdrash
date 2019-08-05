@@ -1,4 +1,4 @@
-package io.yggdrash.core.blockchain.osgi.service;
+package io.yggdrash.core.blockchain.osgi;
 
 public class ContractConstants {
     private ContractConstants() {

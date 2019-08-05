@@ -37,16 +37,16 @@ import java.util.Objects;
 public class ContractManagerTest {
     private static final Logger log = LoggerFactory.getLogger(ContractManagerBuilderTest.class);
 
-    private ContractManager manager;
-    private DefaultConfig config;
-    private GenesisBlock genesis;
-    private SystemProperties systemProperties;
-    private BranchId branchId;
-    private BlockChainStore bcStore;
-    private ContractStore contractStore;
+    private static ContractManager manager;
+    private static DefaultConfig config;
+    private static GenesisBlock genesis;
+    private static SystemProperties systemProperties;
+    private static BranchId branchId;
+    private static BlockChainStore bcStore;
+    private static ContractStore contractStore;
 
-    private GenesisBlock coinGenesis;
-    private BranchId coinBranchId;
+    private static GenesisBlock coinGenesis;
+    private static BranchId coinBranchId;
 
     private ContractExecutor executor;
 
@@ -59,7 +59,7 @@ public class ContractManagerTest {
     }
 
     public void printBundles() {
-        Bundle[] bundles = this.manager.getBundles(branchId.toString());
+        Bundle[] bundles = this.manager.getBundles(branchId);
         log.info("The number of installed bundles: {}", bundles.length);
         for (Bundle bundle : bundles) {
             log.info("Bundle Id : {}\tBundle Symbol : {}\tBundle location : {}",
@@ -76,8 +76,8 @@ public class ContractManagerTest {
     public void multiBranchTest() throws IOException {
         generateNewCoinBranch();
 
-        HashMap<String, FrameworkLauncher> launcherMap = manager.getFrameworkHashMap();
-        FrameworkLauncher coinFramework = launcherMap.get(coinBranchId.toString());
+        HashMap<BranchId, FrameworkLauncher> launcherMap = manager.getFrameworkHashMap();
+        FrameworkLauncher coinFramework = launcherMap.get(coinBranchId);
 
         Assert.assertEquals("Invalid framework size", 2, launcherMap.size());
         Assert.assertNotNull("FrameworkLauncher is null", coinFramework);
@@ -87,11 +87,11 @@ public class ContractManagerTest {
 
     @Test
     public void uninstallTest() {
-        Bundle bundle = manager.getBundle(branchId.toString(), coinContract);
+        Bundle bundle = manager.getBundle(branchId, coinContract);
         if (bundle == null) {
             log.debug("Coin bundle does not exist");
         } else {
-            manager.uninstall(branchId.toString(), coinContract);
+            manager.uninstall(branchId, coinContract);
         }
     }
 
@@ -115,16 +115,16 @@ public class ContractManagerTest {
         Assert.assertTrue("Failed to verify contract file", verified);
 
         try {
-            Bundle coinBundle = manager.install(branchId.toString(), contractVersion, true);
+            Bundle coinBundle = manager.install(branchId, contractVersion, true);
             manager.start(coinBundle);
-            manager.inject(branchId.toString(), contractVersion);
-            manager.registerServiceMap(branchId.toString(), contractVersion, coinBundle);
+            manager.inject(branchId, contractVersion);
+            manager.registerServiceMap(branchId, contractVersion, coinBundle);
 
         } catch (IOException | IllegalAccessException | BundleException e) {
             log.error(e.getMessage());
         }
 
-        Bundle[] bundles = manager.getBundles(branchId.toString());
+        Bundle[] bundles = manager.getBundles(branchId);
         Map<String, Object> serviceMap = manager.getServiceMap();
 
         Assert.assertTrue("Failed to install COIN-CONTRACT on osgi", bundles.length > 1);

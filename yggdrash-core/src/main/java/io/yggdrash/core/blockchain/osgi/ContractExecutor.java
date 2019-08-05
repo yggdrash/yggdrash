@@ -16,7 +16,6 @@ import io.yggdrash.contract.core.channel.ContractMethodType;
 import io.yggdrash.core.blockchain.LogIndexer;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.blockchain.osgi.service.ContractConstants;
 import io.yggdrash.core.blockchain.osgi.service.VersioningContract;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.errorcode.SystemError;
