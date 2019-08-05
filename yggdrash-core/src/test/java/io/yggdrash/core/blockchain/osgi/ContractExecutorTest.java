@@ -44,8 +44,10 @@ import io.yggdrash.core.store.PbftBlockStoreMock;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -83,6 +85,8 @@ public class ContractExecutorTest {
     private String namespace;
 
     private GenesisBlock genesis;
+
+    private static String VERSIONING_TX = "0000000000000001";
 
     @Before
     public void setUp() throws Exception {
@@ -243,6 +247,53 @@ public class ContractExecutorTest {
         assertTrue(contractStore.getTransactionReceiptStore().contains(errTx.getHash().toString()));
     }
 
+    @Test
+    public void executeVersionProposalTest() throws DecoderException, IOException {
+        String filePath = Objects.requireNonNull(
+                getClass().getClassLoader().getResource(String.format("contracts/%s.jar", contractVersion))).getFile();
+
+        JsonObject txBody = ContractTestUtils.versionUpdateTxBodyJson(new File(filePath));
+
+        Assert.assertThat(txBody.size(), CoreMatchers.is(3));
+
+        Transaction tx = new TransactionBuilder()
+                .setType(Hex.decodeHex(VERSIONING_TX))
+                .setTxBody(txBody)
+                .setWallet(wallet)
+                .setBranchId(branchId)
+                .build();
+
+        TransactionRuntimeResult result = manager.executeTx(tx);
+
+        Assert.assertNotNull("TransactionRuntimeResult is null", result);
+
+        // Validator set not found in Branch Store.
+        Assert.assertThat(result.getReceipt().getStatus(), CoreMatchers.is(ExecuteStatus.ERROR));
+        Assert.assertThat(result.getReceipt().getTxLog().get(0), CoreMatchers.is("Validator is empty"));
+
+    }
+
+    @Test
+    public void executeVersionVoteTest() throws DecoderException {
+        JsonObject txBody = ContractTestUtils.versionVoteTxBodyJson(
+                "a2b0f5fce600eb6c595b28d6253bed92be0568eda2b0f5fce600eb6c595b28d6253bed92be0568ed",
+                true);
+
+        Transaction tx = new TransactionBuilder()
+                .setType(Hex.decodeHex(VERSIONING_TX))
+                .setTxBody(txBody)
+                .setWallet(wallet)
+                .setBranchId(branchId)
+                .build();
+
+        TransactionRuntimeResult result = manager.executeTx(tx);
+
+        Assert.assertNotNull("TransactionRuntimeResult is null", result);
+        // UpdateProposal TX doesn't exist.
+        Assert.assertThat(result.getReceipt().getStatus(), CoreMatchers.is(ExecuteStatus.FALSE));
+
+    }
+
     private void buildExecutor() {
         DefaultConfig config = new DefaultConfig();
         BlockChainStore bcStore = BlockChainStoreBuilder.newBuilder(branchId)
@@ -273,10 +324,10 @@ public class ContractExecutorTest {
 
         this.executor = manager.getContractExecutor();
 
-        List<ContractStatus> contractStatusList = manager.searchContracts(branchId.toString());
+        List<ContractStatus> contractStatusList = manager.searchContracts(branchId);
         Assert.assertTrue(2 >= contractStatusList.size());
 
-        for (ContractStatus cs : manager.searchContracts(branchId.toString())) {
+        for (ContractStatus cs : contractStatusList) {
             String bundleSymbolicName = cs.getSymbolicName();
             byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(bundleSymbolicName.getBytes());
             this.namespace = new String(Base64.encodeBase64(bundleSymbolicSha3));
@@ -297,13 +348,13 @@ public class ContractExecutorTest {
 
         assert coinContractFile.exists();
 
-        Bundle bundle = manager.install(branchId.toString(), contractVersion, coinContractFile, true);
+        Bundle bundle = manager.install(branchId, contractVersion, coinContractFile, true);
 
         manager.start(bundle);
-        manager.inject(branchId.toString(), contractVersion);
-        manager.registerServiceMap(branchId.toString(), contractVersion, bundle);
+        manager.inject(branchId, contractVersion);
+        manager.registerServiceMap(branchId, contractVersion, bundle);
 
-        for (ContractStatus cs : manager.searchContracts(branchId.toString())) {
+        for (ContractStatus cs : manager.searchContracts(branchId)) {
             String bundleSymbolicName = cs.getSymbolicName();
             byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(bundleSymbolicName.getBytes());
             this.namespace = new String(Base64.encodeBase64(bundleSymbolicSha3));
@@ -317,7 +368,7 @@ public class ContractExecutorTest {
     }
 
     private boolean checkExistContract(String contractVersion) {
-        for (ContractStatus cs : manager.searchContracts()) {
+        for (ContractStatus cs : manager.searchContracts(branchId)) {
             if (cs.getLocation().lastIndexOf(contractVersion) > 0) {
                 return true;
             }

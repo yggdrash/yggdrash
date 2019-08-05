@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
@@ -14,6 +15,7 @@ import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.LogStore;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -57,10 +59,7 @@ import java.util.jar.Manifest;
 public class ContractManager {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
 
-    private static final String SUFFIX_SYSTEM_CONTRACT = "contract/system";
-    private static final String SUFFIX_USER_CONTRACT = "contract/user";
-
-    private final String bootBranchId;
+    private final BranchId bootBranchId;
     private final ContractStore contractStore;
     private final LogStore logStore;
 
@@ -73,14 +72,14 @@ public class ContractManager {
     private ContractExecutor contractExecutor;
 
     private final BundleService bundleService;
-    private final HashMap<String, FrameworkLauncher> frameworkHashMap = new HashMap<>();
+    private final HashMap<BranchId, FrameworkLauncher> frameworkHashMap = new HashMap<>();
     private final DefaultConfig defaultConfig;
     private final GenesisBlock genesis;
 
     ContractManager(GenesisBlock genesis, FrameworkLauncher frameworkLauncher, BundleService bundleService, DefaultConfig defaultConfig,
                     ContractStore contractStore, LogStore logStore, SystemProperties systemProperties) {
 
-        this.bootBranchId = genesis.getBranchId().toString();
+        this.bootBranchId = genesis.getBranchId();
         this.contractStore = contractStore;
         this.logStore = logStore;
 
@@ -139,8 +138,10 @@ public class ContractManager {
                     bundle = install(bootBranchId, contractVersion, true);
                 } catch (IOException e) {
                     log.error("ContractFile has an Error with {}", e.getMessage());
+                    continue;
                 } catch (BundleException e) {
                     log.error("ContractFile {} failed to install with {}", contractVersion, e.getMessage());
+                    continue;
                 }
             }
 
@@ -168,7 +169,7 @@ public class ContractManager {
         return contractStore.getBranchStore().getBranchContacts();
     }
 
-    public void inject(String branchId, ContractVersion contractVersion) throws IllegalAccessException {
+    public void inject(BranchId branchId, ContractVersion contractVersion) throws IllegalAccessException {
         BundleContext context = findBundleContext(branchId);
         Bundle bundle = bundleService.getBundle(context, contractVersion);
 
@@ -183,7 +184,7 @@ public class ContractManager {
         }
 
         boolean isSystemContract = bundle.getLocation()
-                .startsWith(SUFFIX_SYSTEM_CONTRACT);
+                .startsWith(ContractConstants.SUFFIX_SYSTEM_CONTRACT);
 
         for (ServiceReference serviceRef : serviceRefs) {
             Object service = context.getService(serviceRef);
@@ -191,11 +192,11 @@ public class ContractManager {
         }
     }
 
-    public Bundle getBundle(String branchId, ContractVersion contractVersion) {
+    public Bundle getBundle(BranchId branchId, ContractVersion contractVersion) {
         return bundleService.getBundle(findBundleContext(branchId), contractVersion);
     }
 
-    public Bundle[] getBundles(String branchId) {
+    public Bundle[] getBundles(BranchId branchId) {
         return bundleService.getBundles(findBundleContext(branchId));
     }
 
@@ -203,12 +204,11 @@ public class ContractManager {
         this.frameworkHashMap.put(launcher.getBranchId(), launcher);
     }
 
-    private BundleContext findBundleContext(String branchId) {
-        // todo : implements framework not found exception.
+    private BundleContext findBundleContext(BranchId branchId) {
         return this.frameworkHashMap.get(branchId).getBundleContext();
     }
 
-    public Bundle install(String branchId, ContractVersion contractVersion, File contractFile, boolean isSystem) throws IOException, BundleException {
+    public Bundle install(BranchId branchId, ContractVersion contractVersion, File contractFile, boolean isSystem) throws IOException, BundleException {
         Bundle bundle = bundleService.getBundle(findBundleContext(branchId), contractVersion);
 
         try (JarFile jarFile = new JarFile(contractFile)) {
@@ -225,7 +225,7 @@ public class ContractManager {
         return null;
     }
 
-    public Bundle install(String branchId, ContractVersion contractVersion, boolean isSystem) throws IOException, BundleException {
+    public Bundle install(BranchId branchId, ContractVersion contractVersion, boolean isSystem) throws IOException, BundleException {
         File contractFile = new File(defaultConfig.getContractPath() + File.separator + contractVersion + ".jar");
         return install(branchId, contractVersion, contractFile, isSystem);
     }
@@ -242,13 +242,13 @@ public class ContractManager {
         return true;
     }
 
-    public void registerServiceMap(String branchId, ContractVersion contractVersion, Bundle bundle) {
+    public void registerServiceMap(BranchId branchId, ContractVersion contractVersion, Bundle bundle) {
         BundleContext context = findBundleContext(branchId);
         Object obj = context.getService(bundle.getRegisteredServices()[0]);
         this.serviceMap.put(contractVersion.toString(), obj);
     }
 
-    public void uninstall(String branchId, ContractVersion contractVersion) {
+    public void uninstall(BranchId branchId, ContractVersion contractVersion) {
         try {
             bundleService.uninstall(findBundleContext(branchId), contractVersion);
         } catch (BundleException e) {
@@ -256,7 +256,7 @@ public class ContractManager {
         }
     }
 
-    public void start(String branchId, ContractVersion contractVersion) throws BundleException {
+    public void start(BranchId branchId, ContractVersion contractVersion) throws BundleException {
         Bundle bundle = bundleService.getBundle(findBundleContext(branchId), contractVersion);
         start(bundle);
     }
@@ -289,27 +289,11 @@ public class ContractManager {
         return contractExecutor.getCurLogIndex();
     }
 
-    public void reloadInject(String branchId) throws IllegalAccessException {
-        Bundle[] bundles = findBundleContext(branchId).getBundles();
-
-        for (Bundle bundle : bundles) {
-            inject(findBundleContext(branchId), bundle);
-        }
-    }
-
     private boolean verifyManifest(Manifest manifest) {
         String manifestVersion = manifest.getMainAttributes().getValue("Bundle-ManifestVersion");
         String bundleSymbolicName = manifest.getMainAttributes().getValue("Bundle-SymbolicName");
         String bundleVersion = manifest.getMainAttributes().getValue("Bundle-Version");
         return verifyManifest(manifestVersion, bundleSymbolicName, bundleVersion);
-    }
-
-    @Deprecated
-    private boolean verifyManifest(Bundle bundle) {
-        String bundleManifestVersion = bundle.getHeaders().get("Bundle-ManifestVersion");
-        String bundleSymbolicName = bundle.getHeaders().get("Bundle-SymbolicName");
-        String bundleVersion = bundle.getHeaders().get("Bundle-Version");
-        return verifyManifest(bundleManifestVersion, bundleSymbolicName, bundleVersion);
     }
 
     private boolean verifyManifest(String manifestVersion, String bundleSymbolicName, String bundleVersion) {
@@ -330,16 +314,7 @@ public class ContractManager {
         return true;
     }
 
-    @Deprecated
-    public List<ContractStatus> searchContracts() {
-        List<ContractStatus> result = new ArrayList<>();
-        for (Bundle bundle : findBundleContext(bootBranchId).getBundles()) {
-            result.add(getContractStatus(bundle));
-        }
-        return result;
-    }
-
-    public List<ContractStatus> searchContracts(String branchId) {
+    public List<ContractStatus> searchContracts(BranchId branchId) {
         List<ContractStatus> result = new ArrayList<>();
         Bundle[] bundleList = findBundleContext(branchId).getBundles();
         for (Bundle bundle : bundleList) {
@@ -365,7 +340,7 @@ public class ContractManager {
         );
     }
 
-    public Object query(String branchId, String contractVersion, String methodName, JsonObject params) {
+    public Object query(BranchId branchId, String contractVersion, String methodName, JsonObject params) {
         Bundle bundle = bundleService.getBundle(findBundleContext(branchId), ContractVersion.of(contractVersion));
         return bundle != null ? contractExecutor.query(contractVersion, serviceMap.get(contractVersion), methodName, params) : null;
     }
@@ -375,7 +350,24 @@ public class ContractManager {
     }
 
     public TransactionRuntimeResult executeTx(Transaction tx) {
-        return contractExecutor.executeTx(serviceMap, tx);
+        switch (Hex.encodeHexString(tx.getHeader().getType())) {
+            case ContractConstants.BUNDLE_CONTRACT:
+                log.debug("Contract Executor type is bundle");
+                return contractExecutor.executeTx(serviceMap, tx);
+            case ContractConstants.VERSIONING_CONTRACT:
+                log.debug("Contract Executor type is versioning");
+                try {
+                    return contractExecutor.versioningService(tx);
+                } catch (IllegalAccessException e) {
+                    log.error(e.getMessage());
+                    return null;
+                }
+            default:
+                log.error("Unknown Contract Type in Transaction Header");
+                return null;
+        }
+
+//        return contractExecutor.executeTx(serviceMap, tx);
     }
 
     public void commitBlockResult(BlockRuntimeResult result) {
@@ -449,7 +441,7 @@ public class ContractManager {
     }
 
 
-    private void setDefaultPermission(String branchId) {
+    private void setDefaultPermission(BranchId branchId) {
         BundleContext context = frameworkHashMap.get(branchId).getBundleContext();
         String permissionKey = String.format("%s-container-permission", branchId);
 
@@ -527,7 +519,7 @@ public class ContractManager {
         infos.add(admin.newConditionalPermissionInfo(
                 String.format("%s-system-file", permissionKey),
                 new ConditionInfo[] {new ConditionInfo(BundleLocationCondition.class.getName(),
-                        new String[] {String.format("%s/*", SUFFIX_SYSTEM_CONTRACT)})
+                        new String[] {String.format("%s/*", ContractConstants.SUFFIX_SYSTEM_CONTRACT)})
                 },
                 systemPermissions.toArray(new PermissionInfo[systemPermissions.size()]),
                 ConditionalPermissionInfo.ALLOW));
@@ -542,7 +534,7 @@ public class ContractManager {
         infos.add(admin.newConditionalPermissionInfo(
                 String.format("%s-user-file", permissionKey),
                 new ConditionInfo[] {new ConditionInfo(BundleLocationCondition.class.getName(),
-                        new String[] {String.format("%s/*", SUFFIX_USER_CONTRACT)})
+                        new String[] {String.format("%s/*", ContractConstants.SUFFIX_USER_CONTRACT)})
                 },
                 userPermissions.toArray(new PermissionInfo[userPermissions.size()]),
                 ConditionalPermissionInfo.ALLOW));
@@ -555,11 +547,11 @@ public class ContractManager {
         return this.serviceMap;
     }
 
-    public HashMap<String, FrameworkLauncher> getFrameworkHashMap() {
-        return frameworkHashMap;
-    }
-
     private String contractFilePath(ContractVersion contractVersion) {
         return this.contractPath + File.separator + contractVersion + ".jar";
+    }
+
+    public HashMap<BranchId, FrameworkLauncher> getFrameworkHashMap() {
+        return frameworkHashMap;
     }
 }

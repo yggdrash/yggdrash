@@ -190,17 +190,17 @@ public class BlockChainTestUtils {
 
         for (BranchContract bc : genesis.getBranch().getBranchContracts()) {
             try {
-                Bundle bundle = contractManager.install(genesis.getBranchId().toString(), bc.getContractVersion(), true);
+                Bundle bundle = contractManager.install(genesis.getBranchId(), bc.getContractVersion(), true);
                 Assert.assertNotNull("bundle is null ", bundle);
                 contractManager.start(bundle);
-                contractManager.inject(genesis.getBranchId().toString(), bc.getContractVersion());
-                contractManager.registerServiceMap(genesis.getBranchId().toString(), bc.getContractVersion(), bundle);
+                contractManager.inject(genesis.getBranchId(), bc.getContractVersion());
+                contractManager.registerServiceMap(genesis.getBranchId(), bc.getContractVersion(), bundle);
             } catch (Exception e) {
                 log.error(e.getMessage());
             }
         }
 
-        Assert.assertTrue(contractManager.getBundles(genesis.getBranchId().toString()).length
+        Assert.assertTrue(contractManager.getBundles(genesis.getBranchId()).length
                 >= genesis.getBranch().getBranchContracts().size());
 
         Assert.assertTrue(contractManager.getServiceMap().size()

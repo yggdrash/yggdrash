@@ -1,5 +1,6 @@
 package io.yggdrash.core.blockchain.osgi.framework;
 
+import io.yggdrash.core.blockchain.BranchId;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
@@ -15,7 +16,7 @@ public interface FrameworkLauncher {
 
     Map<String, String> getConfig();
 
-    String getBranchId();
+    BranchId getBranchId();
 
     BundleContext getBundleContext();
 

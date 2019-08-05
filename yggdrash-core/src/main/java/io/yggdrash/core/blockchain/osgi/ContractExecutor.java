@@ -16,6 +16,7 @@ import io.yggdrash.contract.core.channel.ContractMethodType;
 import io.yggdrash.core.blockchain.LogIndexer;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.osgi.service.VersioningContract;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.errorcode.SystemError;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
@@ -57,6 +58,7 @@ public class ContractExecutor {
     private final Condition isBlockExecuting = locker.newCondition();
 
     private boolean isTx = false;
+
 
     ContractExecutor(Framework framework, ContractStore contractStore, SystemProperties systemProperties,
                      LogStore logStore) {
@@ -128,7 +130,7 @@ public class ContractExecutor {
         contractCache.cacheContract(contractVersion, service);
 
         Map<String, Method> methodMap = contractCache.getContractMethodMap(
-                String.format("contract/system/%s", contractVersion), methodType); //temporary
+                String.format("%s/%s", ContractConstants.SUFFIX_SYSTEM_CONTRACT, contractVersion), methodType); //temporary
 
         if (methodMap == null || methodMap.get(methodName) == null) {
             txReceipt.setStatus(ExecuteStatus.ERROR);
@@ -236,7 +238,6 @@ public class ContractExecutor {
         locker.lock();
         isTx = false;
         // Set Coupler Contract and contractCache
-        log.debug("Service Map Size : {} ", serviceMap.size());
         coupler.setContract(serviceMap, contractCache);
 
         List<Transaction> txList = nextBlock.getBody().getTransactionList();
@@ -299,5 +300,67 @@ public class ContractExecutor {
         String contractVersion = tx.getBody().getBody().get("contractVersion").getAsString();
 
         return new TransactionReceiptImpl(txId, txSize, issuer, contractVersion);
+    }
+
+
+    public TransactionRuntimeResult versioningService(Transaction tx) throws IllegalAccessException {
+        VersioningContract.VersioningContractService service = new VersioningContract.VersioningContractService();
+
+        locker.lock();
+        while (!isTx) {
+            try {
+                isBlockExecuting.await();
+            } catch (InterruptedException e) {
+                log.warn("executeTx err : {} ", e.getMessage());
+            }
+        }
+        isTx = true;
+
+        TransactionReceipt txReceipt = createTransactionReceipt(tx);
+        TransactionRuntimeResult txRuntimeResult = new TransactionRuntimeResult(tx);
+
+        // inject
+
+        Field[] fields = service.getClass().getDeclaredFields();
+
+        for (Field field : fields) {
+            field.setAccessible(true);
+            for (Annotation annotation : field.getDeclaredAnnotations()) {
+                if (annotation.annotationType().equals(ContractStateStore.class)) {
+                    StoreAdapter adapterStore = new StoreAdapter(contractStore.getStateStore(), "versioning");
+                    field.set(service, adapterStore); //default => tmpStateStore
+                }
+                if (annotation.annotationType().equals(ContractTransactionReceipt.class)) {
+                    field.set(service, trAdapter);
+                }
+
+                if (annotation.annotationType().equals(ContractBranchStateStore.class)) {
+                    field.set(service, contractStore.getBranchStore());
+                }
+            }
+        }
+
+        JsonObject txBody = tx.getBody().getBody();
+        String contractVersion = txBody.get("contractVersion").getAsString();
+        String methodName = txBody.get("method").getAsString();
+
+        contractCache.cacheContract(contractVersion, service);
+
+        Method method = contractCache.getContractMethodMap(contractVersion, ContractMethodType.INVOKE).get(methodName);
+
+        trAdapter.setTransactionReceipt(txReceipt);
+
+        try {
+            method.invoke(service, txBody);
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+
+        txRuntimeResult.setChangeValues(contractStore.getTmpStateStore().changeValues());
+
+        txRuntimeResult.setTransactionReceipt(txReceipt);
+        contractStore.getTmpStateStore().close();
+        locker.unlock();
+        return txRuntimeResult;
     }
 }
