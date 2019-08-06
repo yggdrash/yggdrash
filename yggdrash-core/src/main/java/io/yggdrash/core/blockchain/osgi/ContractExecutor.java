@@ -127,8 +127,6 @@ public class ContractExecutor {
                                       ContractMethodType methodType, TransactionReceipt txReceipt,
                                       JsonObject endBlockParams) {
 
-        contractCache.cacheContract(contractVersion, service);
-
         Map<String, Method> methodMap = contractCache.getContractMethodMap(
                 String.format("%s/%s", ContractConstants.SUFFIX_SYSTEM_CONTRACT, contractVersion), methodType); //temporary
 
