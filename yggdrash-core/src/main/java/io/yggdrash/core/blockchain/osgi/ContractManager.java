@@ -20,18 +20,8 @@ import org.apache.commons.io.IOUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.BundlePermission;
-import org.osgi.framework.CapabilityPermission;
-import org.osgi.framework.PackagePermission;
-import org.osgi.framework.ServicePermission;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
-import org.osgi.service.condpermadmin.BundleLocationCondition;
-import org.osgi.service.condpermadmin.ConditionInfo;
-import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
-import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
-import org.osgi.service.condpermadmin.ConditionalPermissionUpdate;
-import org.osgi.service.permissionadmin.PermissionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,11 +29,9 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FilePermission;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.ReflectPermission;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -52,7 +40,6 @@ import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.PropertyPermission;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
@@ -64,7 +51,6 @@ public class ContractManager {
     private final LogStore logStore;
 
     private final String contractRepositoryUrl;
-    private final String databasePath;
     private final String contractPath;
     private final SystemProperties systemProperties;
     private final Map<String, Object> serviceMap; // contractVersion, service of bundle
@@ -83,7 +69,6 @@ public class ContractManager {
         this.contractStore = contractStore;
         this.logStore = logStore;
 
-        this.databasePath = defaultConfig.getDatabasePath();
         this.contractPath = defaultConfig.getContractPath();
         this.contractRepositoryUrl = defaultConfig.getContractRepositoryUrl();
 
@@ -99,8 +84,6 @@ public class ContractManager {
         this.genesis = genesis;
 
         initBootBundles();
-
-        setDefaultPermission(bootBranchId);
 
     }
 
@@ -351,10 +334,10 @@ public class ContractManager {
 
     public TransactionRuntimeResult executeTx(Transaction tx) {
         switch (Hex.encodeHexString(tx.getHeader().getType())) {
-            case ContractConstants.BUNDLE_CONTRACT:
+            case ContractConstants.BUNDLE_TRANSACTION:
                 log.debug("Contract Executor type is bundle");
                 return contractExecutor.executeTx(serviceMap, tx);
-            case ContractConstants.VERSIONING_CONTRACT:
+            case ContractConstants.VERSIONING_TRANSACTION:
                 log.debug("Contract Executor type is versioning");
                 try {
                     return contractExecutor.versioningService(tx);
@@ -438,109 +421,6 @@ public class ContractManager {
 
     public boolean deleteContractFile(File contractFile) {
         return contractFile.delete();
-    }
-
-
-    private void setDefaultPermission(BranchId branchId) {
-        BundleContext context = frameworkHashMap.get(branchId).getBundleContext();
-        String permissionKey = String.format("%s-container-permission", branchId);
-
-        ServiceReference<ConditionalPermissionAdmin> ref =
-                context.getServiceReference(ConditionalPermissionAdmin.class);
-        ConditionalPermissionAdmin admin = context.getService(ref);
-        ConditionalPermissionUpdate update = admin.newConditionalPermissionUpdate();
-        List<ConditionalPermissionInfo> infos = update.getConditionalPermissionInfos();
-
-        //Check existence
-        if (infos == null) {
-            return;
-        }
-
-        for (ConditionalPermissionInfo conditionalPermissionInfo : infos) {
-            if (conditionalPermissionInfo.getName().equals(permissionKey)) {
-                return;
-            }
-        }
-
-        List<PermissionInfo> defaultPermissions = new ArrayList<>();
-
-        defaultPermissions.add(new PermissionInfo(PropertyPermission.class.getName(),
-                "org.osgi.framework", "read"));
-        defaultPermissions.add(new PermissionInfo(PropertyPermission.class.getName(),
-                "com.fasterxml.jackson.core.util.BufferRecyclers.trackReusableBuffers", "read"));
-        defaultPermissions.add(new PermissionInfo(RuntimePermission.class.getName(),
-                "*", "accessDeclaredMembers"));
-        defaultPermissions.add(new PermissionInfo(ReflectPermission.class.getName(),
-                "*", "suppressAccessChecks"));
-        defaultPermissions.add(new PermissionInfo(PackagePermission.class.getName(),
-                "*", "import,export,exportonly"));
-        defaultPermissions.add(new PermissionInfo(CapabilityPermission.class.getName(),
-                "osgi.ee", "require"));
-        defaultPermissions.add(new PermissionInfo(CapabilityPermission.class.getName(),
-                "osgi.native", "require"));
-        defaultPermissions.add(new PermissionInfo(ServicePermission.class.getName(),
-                "*", "get,register"));
-        defaultPermissions.add(new PermissionInfo(BundlePermission.class.getName(),
-                "*", "provide,require,host,fragment"));
-
-        infos.add(admin.newConditionalPermissionInfo(
-                permissionKey,
-                new ConditionInfo[] {
-                        new ConditionInfo(BundleLocationCondition.class.getName(), new String[] {"*"})
-                },
-                defaultPermissions.toArray(new PermissionInfo[defaultPermissions.size()]),
-                ConditionalPermissionInfo.ALLOW));
-
-        //Allow file permission to system contract
-        // 시스템 컨트렉트 권한
-        // Branch State Store 권한추가 - 읽기/쓰기 권한
-        // 컨트렉트 폴더 읽기/쓰기 권한
-        // TODO 아카식 시스템 폴더 읽기/쓰기 권한
-
-        String stateStorePath = String.format("%s/%s/state", databasePath, branchId);
-        String stateStoreFile = String.format("%s/%s/state/*", databasePath, branchId);
-
-        String branchStorePath = String.format("%s/%s/branch", databasePath, branchId);
-        String branchStoreFile = String.format("%s/%s/branch/*", databasePath, branchId);
-        String allPermission = "read,write,delete";
-        String filePermissionName = FilePermission.class.getName();
-
-        List<PermissionInfo> commonPermissions = new ArrayList<>();
-        commonPermissions.add(new PermissionInfo(filePermissionName, stateStorePath, "read"));
-        commonPermissions.add(new PermissionInfo(filePermissionName, stateStoreFile, allPermission));
-        commonPermissions.add(new PermissionInfo(filePermissionName, branchStorePath, "read"));
-        commonPermissions.add(new PermissionInfo(filePermissionName, branchStoreFile, "read"));
-
-        List<PermissionInfo> systemPermissions = commonPermissions;
-        // Add Branch File Write
-        systemPermissions.add(new PermissionInfo(filePermissionName, branchStoreFile, allPermission));
-        // Bundle 파일의 위치로 권한을 할당한다.
-        // {BID}-container-permission-system-file
-        infos.add(admin.newConditionalPermissionInfo(
-                String.format("%s-system-file", permissionKey),
-                new ConditionInfo[] {new ConditionInfo(BundleLocationCondition.class.getName(),
-                        new String[] {String.format("%s/*", ContractConstants.SUFFIX_SYSTEM_CONTRACT)})
-                },
-                systemPermissions.toArray(new PermissionInfo[systemPermissions.size()]),
-                ConditionalPermissionInfo.ALLOW));
-
-        //Allow file permission to user contract
-        // 사용자 컨트렉트 권한
-        // Branch State Store 권한 추가 - 읽기 권한
-        // {BID}-container-permission-user-file
-        List<PermissionInfo> userPermissions = commonPermissions;
-        userPermissions.add(new PermissionInfo(filePermissionName, branchStoreFile, "read"));
-
-        infos.add(admin.newConditionalPermissionInfo(
-                String.format("%s-user-file", permissionKey),
-                new ConditionInfo[] {new ConditionInfo(BundleLocationCondition.class.getName(),
-                        new String[] {String.format("%s/*", ContractConstants.SUFFIX_USER_CONTRACT)})
-                },
-                userPermissions.toArray(new PermissionInfo[userPermissions.size()]),
-                ConditionalPermissionInfo.ALLOW));
-
-        boolean isSuccess = update.commit();
-        log.info("Load complete policy: branchID - {}, isSuccess - {}", branchId, isSuccess);
     }
 
     public Map<String, Object> getServiceMap() {
