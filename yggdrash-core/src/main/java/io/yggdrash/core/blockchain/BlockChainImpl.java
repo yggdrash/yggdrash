@@ -132,8 +132,8 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
             int verificationCode = blockChainManager.verify(nextBlock);
             if (verificationCode != BusinessError.VALID.toValue()) {
-                log.warn("Add Block failed. Index : {}, ErrorLogs : {}",
-                        nextBlock.getIndex(), BusinessError.getErrorLogsMap(verificationCode));
+                log.debug("Add Block failed. Index : {}, ErrorLogs : {}",
+                        nextBlock.getIndex(), BusinessError.getErrorLogsMap(verificationCode).values());
                 return BusinessError.getErrorLogsMap(verificationCode);
             }
             // Add best Block
