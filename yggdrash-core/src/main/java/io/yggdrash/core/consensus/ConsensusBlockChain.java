@@ -5,6 +5,7 @@ import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.store.BlockKeyStore;
 
+import java.util.List;
 import java.util.Map;
 
 public interface ConsensusBlockChain<T, V> {
@@ -18,7 +19,7 @@ public interface ConsensusBlockChain<T, V> {
 
     Map<String, V> getUnConfirmedData();
 
-    ConsensusBlock<T> addBlock(ConsensusBlock<T> block);
+    Map<String, List<String>> addBlock(ConsensusBlock<T> block); // return errorLogs
 
     boolean isValidator(String addr);
 

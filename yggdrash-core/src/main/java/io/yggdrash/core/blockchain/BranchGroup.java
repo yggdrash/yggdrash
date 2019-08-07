@@ -109,15 +109,15 @@ public class BranchGroup {
         return branches.get(branchId).getBlockChainManager().getTxByHash(hash);
     }
 
-    ConsensusBlock addBlock(ConsensusBlock block) {
+    Map<String, List<String>> addBlock(ConsensusBlock block) {
         return addBlock(block, true);
     }
 
-    public ConsensusBlock addBlock(ConsensusBlock block, boolean broadcast) {
+    public Map<String, List<String>> addBlock(ConsensusBlock block, boolean broadcast) {
         if (branches.containsKey(block.getBranchId())) {
             return branches.get(block.getBranchId()).addBlock(block, broadcast);
         }
-        return block;
+        return SystemError.getErrorLogsMap(SystemError.BRANCH_NOT_FOUND.toValue());
     }
 
     public ConsensusBlock getBlockByIndex(BranchId branchId, long index) {

@@ -13,11 +13,15 @@
 package io.yggdrash.core.net;
 
 import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.ContractTestUtils;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BlockChainSyncManager;
+import io.yggdrash.core.blockchain.Branch;
+import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.p2p.BlockChainHandler;
 import io.yggdrash.core.p2p.PeerHandlerMock;
+import io.yggdrash.mock.ContractMock;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -44,12 +48,37 @@ public class BlockChainSyncManagerTest {
     }
 
     @Test
-    public void syncBlock() throws Exception {
+    public void syncBlock() {
         assertThat(blockChainManager.getLastIndex()).isEqualTo(0);
 
         syncManager.syncBlock(handler, blockChain);
 
         assertThat(blockChainManager.getLastIndex()).isEqualTo(33);
+    }
+
+    @Test
+    public void syncBlockFailed() {
+        GenesisBlock genesisBlock = createGenesisBlock();
+        BlockChain otherBlockChain = BlockChainTestUtils.createBlockChain(genesisBlock, false);
+
+        syncManager.syncBlock(handler, otherBlockChain);
+    }
+
+    private GenesisBlock createGenesisBlock() {
+        Branch branch = createTestBranch();
+        return GenesisBlock.of(branch);
+    }
+
+    private Branch createTestBranch() {
+        ContractMock contractMock = ContractMock.builder()
+                .setName("TEST")
+                .setSymbol("TEST")
+                .setProperty("TEST")
+                .setDescription("TEST")
+                .setContractName("TEST_CONTRACT")
+                .setContractDescription("TEST_CONTRACT")
+                .build();
+        return ContractTestUtils.createBranch(contractMock);
     }
 
     @Test
