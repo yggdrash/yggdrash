@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
@@ -42,6 +43,7 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     private final TransactionStore transactionStore;
     private final TransactionReceiptStore transactionReceiptStore;
     private final BlockChainStore blockChainStore;
+    private final ReentrantLock lock = new ReentrantLock();
 
     private ConsensusBlock<T> lastConfirmedBlock;
 
@@ -166,7 +168,7 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
 
         // Store Block Index and Block Data
         this.blockStore.addBlock(nextBlock);
-        this.lastConfirmedBlock = nextBlock;
+        setLastConfirmedBlock(nextBlock);
 
         batchTxs(nextBlock);
     }
@@ -197,7 +199,12 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     }
 
     private void setLastConfirmedBlock(ConsensusBlock<T> block) {
-        this.lastConfirmedBlock = block;
+        try {
+            lock.lock();
+            this.lastConfirmedBlock = block;
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
