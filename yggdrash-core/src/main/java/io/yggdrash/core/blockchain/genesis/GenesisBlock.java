@@ -11,6 +11,7 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.consensus.Consensus;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -90,6 +91,10 @@ public class GenesisBlock {
 
     public static GenesisBlock of(InputStream is) throws IOException {
         Branch branch = Branch.of(is);
+        return new GenesisBlock(branch);
+    }
+
+    public static GenesisBlock of(Branch branch) {
         return new GenesisBlock(branch);
     }
 

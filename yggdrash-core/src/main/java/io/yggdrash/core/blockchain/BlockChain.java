@@ -29,9 +29,9 @@ public interface BlockChain<T, V> extends ConsensusBlockChain<T, V> {
 
     Branch getBranch();
 
-    ConsensusBlock<T> addBlock(ConsensusBlock<T> block, boolean broadcast);
+    Map<String, List<String>> addBlock(ConsensusBlock<T> block, boolean broadcast); // return errorLogs
 
-    Map<String, List<String>> addTransaction(Transaction tx); //return errorLogs
+    Map<String, List<String>> addTransaction(Transaction tx); // return errorLogs
 
     ContractManager getContractManager();
 

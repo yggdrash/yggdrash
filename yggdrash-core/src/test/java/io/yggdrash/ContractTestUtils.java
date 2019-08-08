@@ -22,7 +22,9 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.utils.SerializationUtil;
+import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.mock.ContractMock;
 import org.apache.commons.codec.binary.Base64;
 import org.spongycastle.util.encoders.Hex;
 
@@ -37,10 +39,10 @@ public class ContractTestUtils {
     public static JsonObject versionUpdateTxBodyJson(File file) throws IOException {
         JsonObject params = new JsonObject();
 
-        try (FileInputStream is = new FileInputStream(file)){
+        try (FileInputStream is = new FileInputStream(file)) {
             byte[] contractBinary =  new byte[Math.toIntExact(file.length())];
             is.read(contractBinary);
-            params.addProperty("contract" , new String(Base64.encodeBase64(contractBinary)));
+            params.addProperty("contract", new String(Base64.encodeBase64(contractBinary)));
         }
 
         params.addProperty("contractVersion", "4adc453cbd99b3be960118e9eced4b5dad435d0f");
@@ -110,6 +112,18 @@ public class ContractTestUtils {
         txBody.add("params", params);
 
         return txBody;
+    }
+
+    public static Branch createBranch(ContractMock contractMock) {
+        JsonObject branchJson = contractMock.mock();
+        return Branch.of(branchJson);
+    }
+
+    public static JsonObject createParamForCreateBranch(JsonObject branchObj) {
+        JsonObject param = new JsonObject();
+        param.add("branch", branchObj);
+        param.addProperty("serviceFee", BigInteger.valueOf(100));
+        return param;
     }
 
     public static JsonObject createSampleBranchJson() {

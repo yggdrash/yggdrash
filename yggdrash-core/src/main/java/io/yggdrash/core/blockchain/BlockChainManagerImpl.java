@@ -155,7 +155,7 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     }
 
     @Override
-    public ConsensusBlock<T> addBlock(ConsensusBlock<T> nextBlock) {
+    public void addBlock(ConsensusBlock<T> nextBlock) {
         // A block may contain txs not received by txApi and those txs also have to be stored in the storage
         for (Transaction tx : nextBlock.getBody().getTransactionList()) {
             if (transactionReceiptStore.contains(tx.getHash().toString())
@@ -169,7 +169,6 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
         this.lastConfirmedBlock = nextBlock;
 
         batchTxs(nextBlock);
-        return nextBlock;
     }
 
     private void batchTxs(ConsensusBlock<T> block) {

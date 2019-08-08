@@ -21,7 +21,6 @@ import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.TestConstants.CiTest;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NotValidateException;
@@ -31,8 +30,11 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class BlockChainTest extends CiTest {
 
@@ -63,27 +65,30 @@ public class BlockChainTest extends CiTest {
         ConsensusBlock block = blockChainManager.getLastConfirmedBlock(); // goto Genesis
         long nextIndex = blockChainManager.getLastIndex() + 1;
         ConsensusBlock testBlock = getBlockFixture(nextIndex, block.getHash());
-        blockChain.addBlock(testBlock, false);
+        Map<String, List<String>> errorLogs = blockChain.addBlock(block, false);
 
-        assertThat(blockChainManager.getBlockByIndex(nextIndex)).isEqualTo(testBlock);
+        assertEquals(1, errorLogs.size());
+        assertTrue(errorLogs.keySet().contains("BusinessError"));
+        assertEquals(1, errorLogs.get("BusinessError").size());
+        assertTrue(errorLogs.get("BusinessError").contains("Unknown BlockHeight"));
     }
 
     @Test
     public void invalidBlockHashExceptionMustOccur() {
-        thrown.expect(FailedOperationException.class);
-        thrown.expectMessage("Invalid data format,Invalid BlockHash");
-
         BlockChain blockChain = generateTestBlockChain(false);
         Sha3Hash prevHash = new Sha3Hash("9358");
         ConsensusBlock block = getBlockFixture(1L, prevHash);
-        blockChain.addBlock(block, false);
+        Map<String, List<String>> errorLogs = blockChain.addBlock(block, false);
+
+        assertEquals(1, errorLogs.size());
+        assertTrue(errorLogs.keySet().contains("BusinessError"));
+        assertEquals(2, errorLogs.get("BusinessError").size());
+        assertTrue(errorLogs.get("BusinessError").contains("Invalid data format"));
+        assertTrue(errorLogs.get("BusinessError").contains("Invalid BlockHash"));
     }
 
     @Test
     public void unknownBlockHeightExceptionNustOccur() {
-        thrown.expect(FailedOperationException.class);
-        thrown.expectMessage("Unknown BlockHeight");
-
         BlockChain blockChain = generateTestBlockChain(false);
         Sha3Hash prevHash = new Sha3Hash("9358");
         ConsensusBlock block = getBlockFixture(2L, prevHash);

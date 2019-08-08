@@ -161,10 +161,14 @@ public class BlockChainTestUtils {
     }
 
     public static BlockChain createBlockChain(boolean isProductionMode) {
+        return createBlockChain(genesis, isProductionMode);
+    }
+
+    public static BlockChain createBlockChain(GenesisBlock genesis, boolean isProductionMode) {
         log.debug("createBlockChain isProdMode : {}", isProductionMode);
-        log.debug("createBlockChain branchId : {}", genesis.getBranch().getBranchId().toString());
+        log.debug("createBlockChain branchId : {}", genesis.getBranchId().toString());
         DefaultConfig config = new DefaultConfig();
-        BlockChainStoreBuilder builder = BlockChainStoreBuilder.newBuilder(genesis.getBranch().getBranchId())
+        BlockChainStoreBuilder builder = BlockChainStoreBuilder.newBuilder(genesis.getBranchId())
                 .setBlockStoreFactory(PbftBlockStoreMock::new)
                 .withProductionMode(isProductionMode)
                 .withDataBasePath(config.getDatabasePath());
