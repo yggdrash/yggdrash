@@ -66,29 +66,34 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
 
     @Override
     public void loadTransaction() {
-        // load recent 1000 block
-        // Start Block and End Block
-        long bestBlock = branchStore.getBestBlock();
-        long loadStart = bestBlock > 1000 ? bestBlock - 1000 : 0;
-        for (long i = loadStart; i <= bestBlock; i++) { // TODO Consider block verification (genesis, prevHash ...)
-            // Load recent block and update cache
-            ConsensusBlock<T> block = getBlockByIndex(i);
-            // TODO Node can be shutdown before blockStore.addBlock()
-            // addBlock(): branchStore.setBestBlock() -> executeTransactions() -> blockStore.addBlock()
-            if (block == null) {
-                long prevIdx = i - 1;
-                ConsensusBlock<T> curBestBlock = getBlockByIndex(prevIdx);
-                branchStore.setBestBlock(curBestBlock);
-                //Set lastConfirmedBlock to the changed bestBlock. Currently, the lastConfirmedBlock is null
-                setLastConfirmedBlock(curBestBlock);
-                log.warn("Reset branchStore bestBlock: {} -> {}", bestBlock, prevIdx);
-                break;
+        try {
+            lock.lock();
+            // load recent 1000 block
+            // Start Block and End Block
+            long bestBlock = branchStore.getBestBlock();
+            long loadStart = bestBlock > 1000 ? bestBlock - 1000 : 0;
+            for (long i = loadStart; i <= bestBlock; i++) { // TODO Consider block verification (genesis, prevHash ...)
+                // Load recent block and update cache
+                ConsensusBlock<T> block = getBlockByIndex(i);
+                // TODO Node can be shutdown before blockStore.addBlock()
+                // addBlock(): branchStore.setBestBlock() -> executeTransactions() -> blockStore.addBlock()
+                if (block == null) {
+                    long prevIdx = i - 1;
+                    ConsensusBlock<T> curBestBlock = getBlockByIndex(prevIdx);
+                    branchStore.setBestBlock(curBestBlock);
+                    //Set lastConfirmedBlock to the changed bestBlock. Currently, the lastConfirmedBlock is null
+                    setLastConfirmedBlock(curBestBlock);
+                    log.warn("Reset branchStore bestBlock: {} -> {}", bestBlock, prevIdx);
+                    break;
+                }
+                updateTxCache(block);
+                // Set Last Best Block
+                if (i == bestBlock) {
+                    setLastConfirmedBlock(block);
+                }
             }
-            updateTxCache(block);
-            // Set Last Best Block
-            if (i == bestBlock) {
-                setLastConfirmedBlock(block);
-            }
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -158,19 +163,24 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
 
     @Override
     public void addBlock(ConsensusBlock<T> nextBlock) {
-        // A block may contain txs not received by txApi and those txs also have to be stored in the storage
-        for (Transaction tx : nextBlock.getBody().getTransactionList()) {
-            if (transactionReceiptStore.contains(tx.getHash().toString())
-                    && transactionReceiptStore.get(tx.getHash().toString()).getStatus() != ExecuteStatus.ERROR) {
-                addTransaction(tx);
+        try {
+            lock.lock();
+            // A block may contain txs not received by txApi and those txs also have to be stored in the storage
+            for (Transaction tx : nextBlock.getBody().getTransactionList()) {
+                if (transactionReceiptStore.contains(tx.getHash().toString())
+                        && transactionReceiptStore.get(tx.getHash().toString()).getStatus() != ExecuteStatus.ERROR) {
+                    addTransaction(tx);
+                }
             }
+
+            // Store Block Index and Block Data
+            this.blockStore.addBlock(nextBlock);
+            setLastConfirmedBlock(nextBlock);
+
+            batchTxs(nextBlock);
+        } finally {
+            lock.unlock();
         }
-
-        // Store Block Index and Block Data
-        this.blockStore.addBlock(nextBlock);
-        setLastConfirmedBlock(nextBlock);
-
-        batchTxs(nextBlock);
     }
 
     private void batchTxs(ConsensusBlock<T> block) {
@@ -199,12 +209,7 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     }
 
     private void setLastConfirmedBlock(ConsensusBlock<T> block) {
-        try {
-            lock.lock();
-            this.lastConfirmedBlock = block;
-        } finally {
-            lock.unlock();
-        }
+        this.lastConfirmedBlock = block;
     }
 
     @Override
