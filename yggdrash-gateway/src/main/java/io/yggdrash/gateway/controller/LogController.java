@@ -37,19 +37,19 @@ public class LogController {
 
     @GetMapping("/{index}")
     public ResponseEntity getLog(@PathVariable(name = BRANCH_ID) String branchId,
-                                 @RequestParam long index) {
+                                 @PathVariable(name = "index") long index) {
         return ResponseEntity.ok(branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getLog(index));
     }
 
-    @GetMapping("/{start}/{offset}")
+    @GetMapping
     public ResponseEntity getLogs(@PathVariable(name = BRANCH_ID) String branchId,
-                                  @RequestParam long start,
-                                  @RequestParam long offset) {
+                                  @RequestParam(name = "start") long start,
+                                  @RequestParam(name = "offset") long offset) {
         return ResponseEntity.ok(branchGroup.getBranch(BranchId.of(branchId)).getContractManager()
                 .getLogs(start, offset));
     }
 
-    @GetMapping("/curIndex")
+    @GetMapping("/last")
     public ResponseEntity curIndex(@PathVariable(name = BRANCH_ID) String branchId) {
         return ResponseEntity.ok(branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getCurLogIndex());
     }
