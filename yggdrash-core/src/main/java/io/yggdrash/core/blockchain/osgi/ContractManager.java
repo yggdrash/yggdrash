@@ -5,6 +5,7 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.Log;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
@@ -261,11 +262,11 @@ public class ContractManager {
         return contractPath;
     }
 
-    public String getLog(long index) {
+    public Log getLog(long index) {
         return contractExecutor.getLog(index);
     }
 
-    public List<String> getLogs(long start, long offset) {
+    public List<Log> getLogs(long start, long offset) {
         return contractExecutor.getLogs(start, offset);
     }
 

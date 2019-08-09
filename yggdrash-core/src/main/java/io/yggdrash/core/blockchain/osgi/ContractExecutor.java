@@ -13,6 +13,7 @@ import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.channel.ContractMethodType;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.Log;
 import io.yggdrash.core.blockchain.LogIndexer;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
@@ -63,11 +64,11 @@ public class ContractExecutor {
 
     // TODO Implements endBlock Executions
 
-    String getLog(long index) {
+    Log getLog(long index) {
         return logIndexer.getLog(index);
     }
 
-    List<String> getLogs(long start, long offset) {
+    List<Log> getLogs(long start, long offset) {
         return logIndexer.getLogs(start, offset);
     }
 

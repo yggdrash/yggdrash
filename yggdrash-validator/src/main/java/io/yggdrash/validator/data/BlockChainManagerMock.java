@@ -53,8 +53,8 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     }
 
     @Override
-    public ConsensusBlock<T> addBlock(ConsensusBlock<T> nextBlock) {
-        return blockChainManager.addBlock(nextBlock);
+    public void addBlock(ConsensusBlock<T> nextBlock) {
+        blockChainManager.addBlock(nextBlock);
     }
 
     @Override
