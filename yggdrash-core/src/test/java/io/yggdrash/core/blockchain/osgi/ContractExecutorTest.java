@@ -97,7 +97,7 @@ public class ContractExecutorTest {
         generateGenesisBlock();
 
         buildExecutor();
-        createBundle();
+//        createBundle();
         initGenesis(); //alloc process (executeTxs)
     }
 
@@ -198,6 +198,7 @@ public class ContractExecutorTest {
                         getNamespaceKey(txs.get(0).getAddress().toString())).get(BALANCE).getAsString());
 
         assertTrue(res.getTxReceipts().get(1).getTxLog().contains("Error Code:34002, Msg:Insufficient funds"));
+        assertTrue(res.getTxReceipts().get(2).getTxLog().contains(SystemError.CONTRACT_VERSION_NOT_FOUND.toString()));
     }
 
     @Test
@@ -253,8 +254,6 @@ public class ContractExecutorTest {
                 getClass().getClassLoader().getResource(String.format("contracts/%s.jar", contractVersion))).getFile();
 
         JsonObject txBody = ContractTestUtils.versionUpdateTxBodyJson(new File(filePath));
-
-        Assert.assertThat(txBody.size(), CoreMatchers.is(3));
 
         Transaction tx = new TransactionBuilder()
                 .setType(Hex.decodeHex(VERSIONING_TX))
@@ -324,20 +323,8 @@ public class ContractExecutorTest {
 
         this.executor = manager.getContractExecutor();
 
-        List<ContractStatus> contractStatusList = manager.searchContracts(branchId);
-        Assert.assertTrue(2 >= contractStatusList.size());
-
-        for (ContractStatus cs : contractStatusList) {
-            String bundleSymbolicName = cs.getSymbolicName();
-            byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(bundleSymbolicName.getBytes());
-            this.namespace = new String(Base64.encodeBase64(bundleSymbolicSha3));
-
-            log.debug("Description {}", cs.getDescription());
-            log.debug("Location {}", cs.getLocation());
-            log.debug("SymbolicName {}", cs.getSymbolicName());
-            log.debug("Version {}", cs.getVersion());
-            log.debug(Long.toString(cs.getId()));
-        }
+        Map<String, Object> serviceMap = manager.getServiceMap();
+        setNamespace(serviceMap.get(contractVersion.toString()));
 
     }
 
@@ -389,13 +376,6 @@ public class ContractExecutorTest {
     private void initGenesis() {
 
         List<Transaction> txList = genesisBlock.getBody().getTransactionList();
-        Map<String, Object> serviceMap = manager.getServiceMap();
-        String version = txList.get(0).getBody().getBody().get("contractVersion").getAsString();
-        Object service = serviceMap.get(version);
-
-        assertEquals(1, txList.size());
-        assertEquals(1, serviceMap.size());
-        assert service != null;
 
         BlockRuntimeResult res = manager.executeTxs(genesisBlock);
         TransactionReceipt receipt = res.getTxReceipts().get(0);
@@ -447,11 +427,11 @@ public class ContractExecutorTest {
         return builder.setTxBody(txBody).setWallet(wallet).setBranchId(branchId).build();
     }
 
-    private void setNamespace(String symbolicName) {
-        byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(symbolicName.getBytes());
+    private void setNamespace(Object service) {
+        String name = service.getClass().getName();
+        byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(name.getBytes());
         this.namespace = new String(Base64.encodeBase64(bundleSymbolicSha3));
-        log.debug("bundleSymbolicName {} , nameSpace {}", symbolicName, this.namespace);
-
+        log.debug("serviceName {} , nameSpace {}", name, this.namespace);
     }
 
     private String getNamespaceKey(String key) {

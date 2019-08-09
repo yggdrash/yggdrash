@@ -43,10 +43,10 @@ public class ContractTestUtils {
             params.addProperty("contract" , new String(Base64.encodeBase64(contractBinary)));
         }
 
-        params.addProperty("contractVersion", "4adc453cbd99b3be960118e9eced4b5dad435d0f");
-        params.addProperty("method", "updateProposer");
+//        params.addProperty("contractVersion", "4adc453cbd99b3be960118e9eced4b5dad435d0f");
+//        params.addProperty("method", "updateProposer");
 
-        return params;
+        return txBodyJson("updateProposer", params);
     }
 
     public static JsonObject versionVoteTxBodyJson(String txId, boolean agree) {
@@ -54,10 +54,16 @@ public class ContractTestUtils {
         params.addProperty("txId", txId);
         params.addProperty("agree", agree);
         params.addProperty("method", "vote");
-        params.addProperty("contractVersion", "4adc453cbd99b3be960118e9eced4b5dad435d0f");
+        return txBodyJson("vote", params);
 
-        return params;
+    }
 
+    private static JsonObject txBodyJson(String method, JsonObject params) {
+        JsonObject txBody = new JsonObject();
+        txBody.addProperty("method", method);
+        txBody.add("params", params);
+
+        return txBody;
     }
 
     public static JsonObject createParams(String key, String value) {
