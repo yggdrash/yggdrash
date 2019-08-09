@@ -60,15 +60,15 @@ public class LogIndexerTest {
     @Test
     public void getLogTest() {
         for (int i = 0; i < 100; i++) {
-            assertEquals(String.format(logFormat, i % 10), logIndexer.getLog(i));
+            assertEquals(String.format(logFormat, i % 10), logIndexer.getLog(i).getMsg());
         }
     }
 
     @Test
     public void getLogsTest() {
         int i = 0;
-        for (String log : logIndexer.getLogs(0, 10)) {
-            assertEquals(String.format(logFormat, i++), log);
+        for (Log log : logIndexer.getLogs(0, 9)) {
+            assertEquals(String.format(logFormat, i++), log.getMsg());
         }
     }
 
@@ -83,7 +83,8 @@ public class LogIndexerTest {
             assertTrue(receiptStore.contains(tx.getHash().toString()));
             assertEquals(size, receiptStore.get(tx.getHash().toString()).getTxLog().size());
         }
-        assertEquals(100, logStore.curIndex());
+        assertEquals(100, logStore.size());
+        assertEquals(100, logStore.getIndex());
     }
 
     private List<Transaction> generateTxs(int size) {

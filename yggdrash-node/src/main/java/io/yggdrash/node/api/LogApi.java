@@ -16,6 +16,7 @@ import com.googlecode.jsonrpc4j.JsonRpcError;
 import com.googlecode.jsonrpc4j.JsonRpcErrors;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
+import io.yggdrash.core.blockchain.Log;
 import io.yggdrash.core.exception.NonExistObjectException;
 
 import java.util.List;
@@ -33,8 +34,8 @@ public interface LogApi {
      */
     @JsonRpcErrors(
             {@JsonRpcError(exception = NonExistObjectException.class, code = NonExistObjectException.CODE)})
-    String getLog(@JsonRpcParam(value = BRANCH_ID) String branchId,
-                  @JsonRpcParam(value = "index") long index);
+    Log getLog(@JsonRpcParam(value = BRANCH_ID) String branchId,
+               @JsonRpcParam(value = "index") long index);
 
     /**
      * Returns the logs of offset from start
@@ -46,9 +47,9 @@ public interface LogApi {
      */
     @JsonRpcErrors(
             {@JsonRpcError(exception = NonExistObjectException.class, code = NonExistObjectException.CODE)})
-    List<String> getLogs(@JsonRpcParam(value = BRANCH_ID) String branchId,
-                         @JsonRpcParam(value = "start") long start,
-                         @JsonRpcParam(value = "offset") long offset);
+    List<Log> getLogs(@JsonRpcParam(value = BRANCH_ID) String branchId,
+                      @JsonRpcParam(value = "start") long start,
+                      @JsonRpcParam(value = "offset") long offset);
 
     /**
      * Returns the logs of offset from start filtered by regex
@@ -61,10 +62,10 @@ public interface LogApi {
      */
     @JsonRpcErrors(
             {@JsonRpcError(exception = NonExistObjectException.class, code = NonExistObjectException.CODE)})
-    List<String> getLogs(@JsonRpcParam(value = BRANCH_ID) String branchId,
-                         @JsonRpcParam(value = "regex") String regex,
-                         @JsonRpcParam(value = "start") long start,
-                         @JsonRpcParam(value = "offset") long offset);
+    List<Log> getLogs(@JsonRpcParam(value = BRANCH_ID) String branchId,
+                      @JsonRpcParam(value = "regex") String regex,
+                      @JsonRpcParam(value = "start") long start,
+                      @JsonRpcParam(value = "offset") long offset);
 
     /**
      * Returns the current index of logStore
