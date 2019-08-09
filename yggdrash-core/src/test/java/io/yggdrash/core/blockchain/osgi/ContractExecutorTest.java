@@ -157,7 +157,7 @@ public class ContractExecutorTest {
 
         manager.commitBlockResult(res);
 
-        assertEquals(20, manager.getCurLogIndex());
+        assertEquals(19, manager.getCurLogIndex());
         assertEquals(0, contractStore.getTmpStateStore().changeValues().size()); //revert after checkTx
         //changed values have been updated (issuer had been allocated coin when initializing genesis)
         assertEquals(11, contractStore.getStateStore().getStateSize());
@@ -228,7 +228,7 @@ public class ContractExecutorTest {
 
         manager.commitBlockResult(res);
 
-        assertEquals(11, manager.getCurLogIndex());
+        assertEquals(10, manager.getCurLogIndex());
         assertEquals(0, contractStore.getTmpStateStore().changeValues().size());
         //TransactionReceiptStore contains errorReceipt
         assertTrue(contractStore.getTransactionReceiptStore().contains(errTx.getHash().toString()));
@@ -240,7 +240,7 @@ public class ContractExecutorTest {
 
         manager.commitBlockResult(res);
 
-        assertEquals(12, manager.getCurLogIndex());
+        assertEquals(11, manager.getCurLogIndex());
         assertEquals(ExecuteStatus.SUCCESS, res.getTxReceipts().get(0).getStatus());
         assertEquals(2, res.getBlockResult().size());
         assertEquals(0, contractStore.getTmpStateStore().changeValues().size());
@@ -421,7 +421,7 @@ public class ContractExecutorTest {
         for (TransactionReceipt receipt : res.getTxReceipts()) {
             log.debug("commitBlockResult : txHash = {}, logSize = {}", receipt.getTxId(), receipt.getTxLog().size());
             IntStream.range(0, receipt.getTxLog().size()).forEach(
-                    i -> assertEquals(receipt.getTxLog().get(i), manager.getLog(i)));
+                    i -> assertEquals(receipt.getTxLog().get(i), manager.getLog(i).getMsg()));
             receipt.getTxLog().containsAll(manager.getLogs(0, receipt.getTxLog().size()));
             assertTrue(receiptStore.contains(receipt.getTxId()));
         }
@@ -434,7 +434,7 @@ public class ContractExecutorTest {
         }
 
         assertEquals(0, contractStore.getTmpStateStore().changeValues().size());
-        assertEquals(10, manager.getCurLogIndex());
+        assertEquals(9, manager.getCurLogIndex());
     }
 
     private Transaction generateTx(BigInteger amount) {

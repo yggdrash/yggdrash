@@ -15,6 +15,7 @@ package io.yggdrash.node.api;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,19 +35,19 @@ public class LogApiImpl implements LogApi {
     }
 
     @Override
-    public String getLog(String branchId, long index) {
+    public Log getLog(String branchId, long index) {
         return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getLog(index);
     }
 
     @Override
-    public List<String> getLogs(String branchId, long start, long offset) {
+    public List<Log> getLogs(String branchId, long start, long offset) {
         return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getLogs(start, offset);
     }
 
     @Override
-    public List<String> getLogs(String branchId, String regex, long start, long offset) {
+    public List<Log> getLogs(String branchId, String regex, long start, long offset) {
         return getLogs(branchId, start, offset).stream()
-                .filter(log -> Pattern.compile(regex).matcher(log).find())
+                .filter(l -> Pattern.compile(regex).matcher(l.getMsg()).find())
                 .collect(Collectors.toList());
     }
 

@@ -13,6 +13,7 @@ import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.InjectEvent;
 import io.yggdrash.contract.core.channel.ContractMethodType;
+import io.yggdrash.core.blockchain.Log;
 import io.yggdrash.core.blockchain.LogIndexer;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
@@ -71,11 +72,11 @@ public class ContractExecutor {
         coupler = new ContractChannelCoupler();
     }
 
-    String getLog(long index) {
+    Log getLog(long index) {
         return logIndexer.getLog(index);
     }
 
-    List<String> getLogs(long start, long offset) {
+    List<Log> getLogs(long start, long offset) {
         return logIndexer.getLogs(start, offset);
     }
 
@@ -127,8 +128,9 @@ public class ContractExecutor {
                                       ContractMethodType methodType, TransactionReceipt txReceipt,
                                       JsonObject endBlockParams) {
 
+        //temporary
         Map<String, Method> methodMap = contractCache.getContractMethodMap(
-                String.format("%s/%s", ContractConstants.SUFFIX_SYSTEM_CONTRACT, contractVersion), methodType); //temporary
+                String.format("%s/%s", ContractConstants.SUFFIX_SYSTEM_CONTRACT, contractVersion), methodType);
 
         if (methodMap == null || methodMap.get(methodName) == null) {
             txReceipt.setStatus(ExecuteStatus.ERROR);

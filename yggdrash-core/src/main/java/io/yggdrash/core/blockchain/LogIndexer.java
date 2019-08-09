@@ -36,7 +36,7 @@ public class LogIndexer {
     }
 
     public void put(String txId, int size) { //TODO check log duplicated
-        //log.debug("put logs : txId = {}, size = {}", txId, size);
+        log.debug("put logs : txId = {}, size = {}", txId, size);
         IntStream.range(0, size).mapToObj(i -> String.format(keyFormat, txId, i)).forEach(logStore::put);
     }
 
@@ -44,22 +44,28 @@ public class LogIndexer {
         return logStore.get(logIndex);
     }
 
-    public String getLog(long logIndex) {
+    public Log getLog(long logIndex) {
+        if (logIndex < 0 || logIndex > curIndex()) {
+            return Log.createBy(logIndex, "", "Log not exists");
+        }
+
         String val = get(logIndex);
         int separator = val.indexOf(keySeparator);
         String txId = val.substring(0, separator);
         int indexOfReceipt = Integer.parseInt(val.substring(separator + 1));
+        String log = receiptStore.get(txId).getTxLog().get(indexOfReceipt);
 
-        return receiptStore.get(txId).getTxLog().get(indexOfReceipt);
+        return Log.createBy(logIndex, txId, log);
     }
 
-    public List<String> getLogs(long start, long offset) {
+    public List<Log> getLogs(long from, long offset) {
+        long start = from < 0 ? 0 : from;
         long end = offset > curIndex() ? curIndex() : offset;
-        return LongStream.range(start, end).mapToObj(this::getLog).collect(Collectors.toList());
+        return LongStream.rangeClosed(start, end).mapToObj(this::getLog).collect(Collectors.toList());
     }
 
     public long curIndex() {
-        return logStore.curIndex();
+        return logStore.size() - 1;
     }
 
     public boolean contains(long logIndex) {

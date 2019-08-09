@@ -37,7 +37,7 @@ public class LogStoreTest {
     }
 
     private void putAndGetTest() {
-        long curIndex = store.curIndex();
+        long curIndex = store.size();
 
         if (!prodMode) {
             assertEquals(0, curIndex);
@@ -64,7 +64,7 @@ public class LogStoreTest {
         assertEquals(val1, store.get(curIndex + 1));
         assertEquals(val2, store.get(curIndex + 2));
 
-        assertEquals(curIndex + 3, store.curIndex());
+        assertEquals(curIndex + 3, store.size());
 
         store.close();
     }

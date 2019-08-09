@@ -13,7 +13,13 @@
 package io.yggdrash.node.api;
 
 import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.Log;
+import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.proto.PbftProto;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +57,7 @@ public class LogApiImplTest {
     @Test
     public void getLogJsonRpcTest() {
         try {
-            String res = LOG_API.getLog(branchId, 0);
+            LOG_API.getLog(branchId, 0);
         } catch (Exception e) {
             log.debug("getLogTest :: ERR => {}", e.getMessage());
         }
@@ -60,7 +66,15 @@ public class LogApiImplTest {
     @Test
     public void getLogsJsonRpcTest() {
         try {
-            //LOG_API.getLogs(branchId, 0, 9);
+            LOG_API.getLogs(branchId, 0, 9);
+        } catch (Exception e) {
+            log.debug("getLogsTest :: ERR => {}", e.getMessage());
+        }
+    }
+
+    @Test
+    public void getLogsByRegexJsonRpcTest() {
+        try {
             LOG_API.getLogs(branchId, "\\W*(Total)\\W*", 0, 100);
         } catch (Exception e) {
             log.debug("getLogsTest :: ERR => {}", e.getMessage());
@@ -77,10 +91,56 @@ public class LogApiImplTest {
     }
 
     @Test
+    public void getLogsOverallTest() {
+        BlockChain bc = branchGroup.getBranch(BranchId.of(branchId));
+        BlockChainManager mgr = bc.getBlockChainManager();
+
+        assertEquals("Last Index", 0, mgr.getLastIndex());
+        assertEquals("Tx Count", 3, mgr.countOfTxs());
+        assertEquals("Current Index", 8, logApi.curIndex(branchId));
+
+        ConsensusBlock<PbftProto.PbftBlock> block = BlockChainTestUtils.createBlockListFilledWithTx(1, 33).get(0);
+        bc.addBlock(block);
+
+        assertEquals("Last Index", 1, mgr.getLastIndex());
+        assertEquals("Tx Count", 36, mgr.countOfTxs());
+        assertEquals("Current Index", 41, logApi.curIndex(branchId));
+
+
+        Log log = logApi.getLog(branchId, 33);
+        List<Log> logs = logApi.getLogs(branchId, 33, 33);
+
+        assertEquals("Size of logs", 1, logs.size());
+        assertEquals(log.getMsg(), logs.get(0).getMsg());
+
+        long curIndex = logApi.curIndex(branchId);
+        log = logApi.getLog(branchId, curIndex);
+        logs = logApi.getLogs(branchId, curIndex, curIndex);
+
+        assertEquals(1, logs.size());
+        assertEquals(log.getMsg(), logs.get(0).getMsg());
+
+        // Logs of executed transactions when the block was added.
+        List<Log> regLogs = logApi.getLogs(branchId, "Transferred", 0, curIndex);
+        assertEquals(33, regLogs.size());
+
+        log = logApi.getLog(branchId, 0);
+        logs = logApi.getLogs(branchId, 0, 0);
+        assertEquals(log.getMsg(), logs.get(0).getMsg());
+
+        logs = logApi.getLogs(branchId, -1, 0);
+        assertEquals(log.getMsg(), logs.get(0).getMsg());
+
+        log = logApi.getLog(branchId, -1);
+        assertEquals("Log not exists", log.getMsg());
+    }
+
+    @Test
     public void getLogsByRegexTest() {
-        List<String> res = logApi.getLogs(branchId, "\\W*(Total)\\W*", 0, 100);
+        List<Log> res = logApi.getLogs(branchId, "\\W*(Total)\\W*", 0, 100);
         assertEquals(1, res.size());
-        res.stream().map(l -> l.contains("Total Supply is 1994000000000000000000000")).forEach(Assert::assertTrue);
+        res.stream().map(l -> l.getMsg().contains("Total Supply is 1994000000000000000000000"))
+                .forEach(Assert::assertTrue);
 
         res = logApi.getLogs(branchId, "\\W*(TTotal)\\W*", 0, 100);
         assertEquals(0, res.size());

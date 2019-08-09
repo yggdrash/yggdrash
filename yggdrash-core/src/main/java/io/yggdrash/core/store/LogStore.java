@@ -30,7 +30,7 @@ public class LogStore {
         log.debug("Current Log Index : {}", index);
     }
 
-    private long getIndex() {
+    public long getIndex() {
         byte[] originIndex = db.get("index".getBytes());
         return originIndex != null ? ByteBuffer.wrap(originIndex).getLong() : 0;
     }
@@ -41,13 +41,14 @@ public class LogStore {
 
     public void put(String value) {
         db.put(Longs.toByteArray(index++), value.getBytes());
+        putIndex();
     }
 
     public String get(long index) {
         return new String(db.get(Longs.toByteArray(index)));
     }
 
-    public long curIndex() {
+    public long size() {
         return index;
     }
 
