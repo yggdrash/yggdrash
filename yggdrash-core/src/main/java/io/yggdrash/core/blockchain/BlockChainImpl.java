@@ -126,14 +126,15 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     }
 
     @Override
-    public ConsensusBlock<T> addBlock(ConsensusBlock<T> nextBlock, boolean broadcast) {
+    public Map<String, List<String>> addBlock(ConsensusBlock<T> nextBlock, boolean broadcast) {
         try {
             lock.lock();
 
             int verificationCode = blockChainManager.verify(nextBlock);
             if (verificationCode != BusinessError.VALID.toValue()) {
-                log.warn("Add Block failed. {}", nextBlock.getBlock().toJsonObject().toString());
-                throw new FailedOperationException(String.join(",", BusinessError.errorLogs(verificationCode)));
+                log.debug("Add Block failed. Index : {}, ErrorLogs : {}",
+                        nextBlock.getIndex(), BusinessError.getErrorLogsMap(verificationCode).values());
+                return BusinessError.getErrorLogsMap(verificationCode);
             }
             // Add best Block
             branchStore.setBestBlock(nextBlock);
@@ -159,11 +160,11 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             lock.unlock();
         }
 
-        return nextBlock;
+        return new HashMap<>();
     }
 
     @Override
-    public ConsensusBlock<T> addBlock(ConsensusBlock<T> block) {
+    public Map<String, List<String>> addBlock(ConsensusBlock<T> block) {
         return addBlock(block, true);
     }
 

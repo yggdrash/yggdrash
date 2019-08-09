@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -138,11 +140,11 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
     }
 
     @Override
-    public ConsensusBlock<PbftProto.PbftBlock> addBlock(ConsensusBlock<PbftProto.PbftBlock> block) {
+    public Map<String, List<String>> addBlock(ConsensusBlock<PbftProto.PbftBlock> block) {
         blockChainManagerMock.addBlock(block); // todo: check efficiency & change index
         this.blockKeyStore.put(block.getIndex(), block.getHash().getBytes());
         loggingBlock((PbftBlock) block);
-        return block;
+        return new HashMap<>();
     }
 
     @Override

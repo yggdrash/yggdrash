@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -143,7 +145,7 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
     }
 
     @Override
-    public ConsensusBlock<EbftProto.EbftBlock> addBlock(ConsensusBlock<EbftProto.EbftBlock> block) {
+    public Map<String, List<String>> addBlock(ConsensusBlock<EbftProto.EbftBlock> block) {
         this.lock.lock();
         try {
             blockChainManagerMock.addBlock(block); // todo: check efficiency & change index
@@ -152,7 +154,7 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
         } finally {
             this.lock.unlock();
         }
-        return block;
+        return new HashMap<>();
     }
 
     @Override
