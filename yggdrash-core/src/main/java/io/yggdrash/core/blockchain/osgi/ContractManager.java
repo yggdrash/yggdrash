@@ -336,10 +336,10 @@ public class ContractManager {
     public TransactionRuntimeResult executeTx(Transaction tx) {
         switch (Hex.encodeHexString(tx.getHeader().getType())) {
             case ContractConstants.BUNDLE_TRANSACTION:
-                log.debug("Contract Executor type is bundle");
+                log.trace("Contract Executor type is bundle");
                 return contractExecutor.executeTx(serviceMap, tx);
             case ContractConstants.VERSIONING_TRANSACTION:
-                log.debug("Contract Executor type is versioning");
+                log.trace("Contract Executor type is versioning");
                 try {
                     return contractExecutor.versioningService(tx);
                 } catch (IllegalAccessException e) {
@@ -350,8 +350,6 @@ public class ContractManager {
                 log.error("Unknown Contract Type in Transaction Header");
                 return null;
         }
-
-//        return contractExecutor.executeTx(serviceMap, tx);
     }
 
     public void commitBlockResult(BlockRuntimeResult result) {
