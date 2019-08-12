@@ -107,7 +107,7 @@ public class TransactionApiImpl implements TransactionApi {
         if (errorLogs.size() > 0) {
             log.warn("SendRawTransaction Error : {}", errorLogs);
         } else {
-            log.debug("SendRawTransaction Success : {}", transaction.getHash());
+            log.trace("SendRawTransaction Success : {}", transaction.getHash());
         }
 
         return errorLogs.size() > 0
