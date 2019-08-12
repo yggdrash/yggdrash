@@ -42,39 +42,33 @@ public class ContractCacheImpl implements ContractCache {
     }
 
     public void cacheContract(String contractName, Object service) {
-        // Assume one service
-
         List<Method> serviceMethods = Arrays.stream(service.getClass().getDeclaredMethods())
                 .filter(method -> Modifier.isPublic(method.getModifiers()))
                 .collect(Collectors.toList());
 
-        if (invokeTransactionMethods.get(contractName) == null) {
-            Map<String, Method> methods = serviceMethods.stream()
-                    .filter(method -> method.isAnnotationPresent(InvokeTransaction.class))
-                    .collect(Collectors.toMap(Method::getName, m -> m));
-            invokeTransactionMethods.put(contractName, methods);
-        }
+        Map<String, Method> invokeMap = invokeTransactionMethods.computeIfAbsent(contractName,
+                k -> serviceMethods.stream()
+                .filter(method -> method.isAnnotationPresent(InvokeTransaction.class))
+                .collect(Collectors.toMap(Method::getName, m -> m)));
+        invokeTransactionMethods.put(contractName, invokeMap);
 
-        if (contractChannelMethods.get(contractName) == null) {
-            Map<String, Method> methods = serviceMethods.stream()
-                    .filter(method -> method.isAnnotationPresent(ContractChannelMethod.class))
-                    .collect(Collectors.toMap(Method::getName, m -> m));
-            contractChannelMethods.put(contractName, methods);
-        }
+        Map<String, Method> channelMap = contractChannelMethods.computeIfAbsent(contractName,
+                k -> serviceMethods.stream()
+                        .filter(method -> method.isAnnotationPresent(ContractChannelMethod.class))
+                        .collect(Collectors.toMap(Method::getName, m -> m)));
+        contractChannelMethods.put(contractName, channelMap);
 
-        if (queryMethods.get(contractName) == null) {
-            Map<String, Method> methods = serviceMethods.stream()
-                    .filter(method -> method.isAnnotationPresent(ContractQuery.class))
-                    .collect(Collectors.toMap(Method::getName, m -> m));
-            queryMethods.put(contractName, methods);
-        }
+        Map<String, Method> queryMethodMap = queryMethods.computeIfAbsent(contractName,
+                k -> serviceMethods.stream()
+                        .filter(method -> method.isAnnotationPresent(ContractQuery.class))
+                        .collect(Collectors.toMap(Method::getName, m -> m)));
+        queryMethods.put(contractName, queryMethodMap);
 
-        if (endBlockMethods.get(contractName) == null) {
-            Map<String, Method> methods = serviceMethods.stream()
-                    .filter(method -> method.isAnnotationPresent(ContractEndBlock.class))
-                    .collect(Collectors.toMap(Method::getName, m -> m));
-            endBlockMethods.put(contractName, methods);
-        }
+        Map<String, Method> endBlockMap = endBlockMethods.computeIfAbsent(contractName,
+                k -> serviceMethods.stream()
+                        .filter(method -> method.isAnnotationPresent(ContractEndBlock.class))
+                        .collect(Collectors.toMap(Method::getName, m -> m)));
+        endBlockMethods.put(contractName, endBlockMap);
     }
 
     @Override
@@ -92,5 +86,33 @@ public class ContractCacheImpl implements ContractCache {
                 return new HashMap<>();
         }
     }
+
+    Map<String, Method> getContractMethodMap(String contractVersion, ContractMethodType type, Object service) {
+        switch (type) {
+            case QUERY:
+                if (this.queryMethods.get(contractVersion) == null) {
+                    this.cacheContract(contractVersion, service);
+                }
+                return this.queryMethods.get(contractVersion);
+            case INVOKE:
+                if (this.invokeTransactionMethods.get(contractVersion) == null) {
+                    this.cacheContract(contractVersion, service);
+                }
+                return this.invokeTransactionMethods.get(contractVersion);
+            case END_BLOCK:
+                if (this.endBlockMethods.get(contractVersion) == null) {
+                    this.cacheContract(contractVersion, service);
+                }
+                return this.endBlockMethods.get(contractVersion);
+            case CHANNEL_METHOD:
+                if (this.contractChannelMethods.get(contractVersion) == null) {
+                    this.cacheContract(contractVersion, service);
+                }
+                return this.contractChannelMethods.get(contractVersion);
+            default:
+                return new HashMap<>();
+        }
+    }
+
 
 }
