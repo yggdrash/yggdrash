@@ -30,6 +30,7 @@ import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+
 public class VesionContractTest {
     private static final VersioningContract.VersioningContractService service =
             new VersioningContract.VersioningContractService();
@@ -86,13 +87,12 @@ public class VesionContractTest {
                 getClass().getClassLoader().getResource(String.format("contracts/%s.jar", updateContract))).getFile();
 
         JsonObject params = ContractTestUtils.versionUpdateTxBodyJson(new File(filePath));
-        service.updateProposer(params);
+        service.updateProposer(params.getAsJsonObject("params"));
 
         assertThat(receipt.getStatus()).isEqualTo(ExecuteStatus.SUCCESS);
 
     }
 
-    @Test
     public void votingSuccessTest() throws Exception {
         TransactionReceipt updateReceipt = createTxReceipt(issuer1);
         adapter.setTransactionReceipt(updateReceipt);
@@ -101,17 +101,18 @@ public class VesionContractTest {
                 getClass().getClassLoader().getResource(String.format("contracts/%s.jar", updateContract))).getFile();
 
         JsonObject updateParam = ContractTestUtils.versionUpdateTxBodyJson(new File(filePath));
-        service.updateProposer(updateParam);
+        service.updateProposer(updateParam.getAsJsonObject("params"));
 
         assertThat(updateReceipt.getStatus()).isEqualTo(ExecuteStatus.SUCCESS);
 
         // file upload & start vote
 
         JsonObject agree = ContractTestUtils.versionVoteTxBodyJson(updateReceipt.getTxId(), true);
+        JsonObject agreeParam = agree.getAsJsonObject("params");
         JsonObject disagree = ContractTestUtils.versionVoteTxBodyJson(updateReceipt.getTxId(), true);
 
         // vote validator-1 : agree
-        service.vote(agree);
+        service.vote(agreeParam);
 
 
         // vote validator-2 : agree
@@ -119,7 +120,7 @@ public class VesionContractTest {
         voteReceipt2.setTxId(updateReceipt.getTxId());
         adapter.setTransactionReceipt(voteReceipt2);
 
-        service.vote(agree);
+        service.vote(agreeParam);
 
         assertThat(voteReceipt2.getStatus()).isEqualTo(ExecuteStatus.SUCCESS);
 
@@ -127,7 +128,7 @@ public class VesionContractTest {
         voteReceipt3.setTxId(updateReceipt.getTxId());
         adapter.setTransactionReceipt(voteReceipt3);
 
-        service.vote(agree);
+        service.vote(agreeParam);
 
         assertThat(voteReceipt3.getStatus()).isEqualTo(ExecuteStatus.SUCCESS);
 
@@ -137,50 +138,6 @@ public class VesionContractTest {
 
     }
 
-//    @Test
-//    public void votingFailTest() throws Exception {
-//        String issuer = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";
-//        TransactionReceipt preReceipt = new TransactionReceiptImpl();
-//        preReceipt.setBlockHeight(10L);
-//        preReceipt.setIssuer(issuer);
-//        preReceipt.setTxId("a2b0f5fce600eb6c595b28d6253bed92be0568eda2b0f5fce600eb6c595b28d6253bed92be0568ed");
-//        txReceiptField.set(service, preReceipt);
-//        Path currentRelativePath = Paths.get("");
-//        String s = currentRelativePath.toAbsolutePath().toString();
-//        String s2 = String.format("%s/%s", s, "build");
-//        String result = String.format("%s/%s", s2, "contract");
-//        JsonObject params = createUpdateParams(result);
-//        service.updateProposer(params);
-//
-//        service.vote(createVoteParams(true));
-//        String issuer2 = "d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95";
-//        preReceipt.setIssuer(issuer2);
-//
-//        service.vote(createVoteParams(false));
-//
-//        String issuer3 = "d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95";
-//        preReceipt.setIssuer(issuer3);
-//        TransactionReceipt receipt = service.vote(createVoteParams(false));
-//    }
-//
-//    @Test
-//    public void notValidatorvotingTest() throws Exception {
-//        String issuer = "0dc4393d2a5721e885f3abc5aab0ac4ed2b1cd95";
-//        TransactionReceipt preReceipt = new TransactionReceiptImpl();
-//        preReceipt.setBlockHeight(10L);
-//        preReceipt.setIssuer(issuer);
-//        preReceipt.setTxId("a2b0f5fce600eb6c595b28d6253bed92be0568eda2b0f5fce600eb6c595b28d6253bed92be0568ed");
-//        txReceiptField.set(service, preReceipt);
-//        Path currentRelativePath = Paths.get("");
-//        String s = currentRelativePath.toAbsolutePath().toString();
-//        String s2 = String.format("%s/%s", s, "build");
-//        String result = String.format("%s/%s", s2, "contract");
-//        JsonObject params = createUpdateParams(result);
-//        service.updateProposer(params);
-//        TransactionReceipt receipt = service.vote(createVoteParams(true));
-//        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
-//    }
-
     private TransactionReceipt createTxReceipt(String issuer) {
         TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setIssuer(issuer);
@@ -189,57 +146,6 @@ public class VesionContractTest {
 
         return receipt;
     }
-
-//    private JsonObject createVoteParams(boolean vote) {
-//        JsonObject params = new JsonObject();
-//        params.addProperty("txId",
-//                "a2b0f5fce600eb6c595b28d6253bed92be0568eda2b0f5fce600eb6c595b28d6253bed92be0568ed");
-//        params.addProperty("agree", vote);
-//        return params;
-//    }
-//
-//    private JsonObject createUpdateParams(String path) {
-//        String bash64String = new String(convertVersionToBase64(path));
-//        JsonObject params = new JsonObject();
-//        params.addProperty("contractVersion", "4adc453cbd99b3be960118e9eced4b5dad435d0f");
-//        params.addProperty("contract", bash64String);
-//        return params;
-//    }
-//
-//    private byte[] convertVersionToBase64(String contractPath) {
-//        contractFile(contractPath);
-//        if (contractFile.exists()) {
-//            byte[] fileArray = loadContract(contractFile);
-//            return base64Enc(fileArray);
-//        }
-//        return null;
-//    }
-//
-//    private void contractFile(String path) {
-//        try (Stream<Path> filePathStream = Files.walk(Paths.get(String.valueOf(path)))) {
-//            filePathStream.forEach(p -> {
-//                File contractPath = new File(p.toString());
-//                this.contractFile = contractPath;
-//            });
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-//    private static byte[] loadContract(File contractFile) {
-//        byte[] contractBinary;
-//        try (FileInputStream inputStream = new FileInputStream(contractFile)) {
-//            contractBinary = new byte[Math.toIntExact(contractFile.length())];
-//            inputStream.read(contractBinary);
-//        } catch (IOException e) {
-//            return null;
-//        }
-//        return contractBinary;
-//    }
-//
-//    private static byte[] base64Enc(byte[] buffer) {
-//        return Base64.encodeBase64(buffer);
-//    }
 
     public class TestBranchStateStore implements BranchStateStore {
         ValidatorSet set = new ValidatorSet();

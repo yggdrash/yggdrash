@@ -30,7 +30,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 
@@ -58,7 +57,7 @@ public class ContractManagerTest {
         this.executor = manager.getContractExecutor();
     }
 
-    public void printBundles() {
+    private void printBundles() {
         Bundle[] bundles = this.manager.getBundles(branchId);
         log.info("The number of installed bundles: {}", bundles.length);
         for (Bundle bundle : bundles) {
@@ -125,12 +124,7 @@ public class ContractManagerTest {
         }
 
         Bundle[] bundles = manager.getBundles(branchId);
-        Map<String, Object> serviceMap = manager.getServiceMap();
-
         Assert.assertTrue("Failed to install COIN-CONTRACT on osgi", bundles.length > 1);
-        Assert.assertNotNull("Failed to register COIN_CONTRACT on service map",
-                serviceMap.get(contractVersion.toString()));
-
         printBundles();
     }
 

@@ -11,12 +11,12 @@ import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.framework.BundleService;
 import io.yggdrash.core.blockchain.osgi.framework.FrameworkLauncher;
+import io.yggdrash.core.blockchain.osgi.service.VersioningContract;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.LogStore;
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -54,14 +54,14 @@ public class ContractManager {
     private final String contractRepositoryUrl;
     private final String contractPath;
     private final SystemProperties systemProperties;
-    private final Map<String, Object> serviceMap; // contractVersion, service of bundle
-
     private ContractExecutor contractExecutor;
 
     private final BundleService bundleService;
     private final HashMap<BranchId, FrameworkLauncher> frameworkHashMap = new HashMap<>();
     private final DefaultConfig defaultConfig;
     private final GenesisBlock genesis;
+
+    private Map<String, Object> serviceMap;
 
     ContractManager(GenesisBlock genesis, FrameworkLauncher frameworkLauncher, BundleService bundleService, DefaultConfig defaultConfig,
                     ContractStore contractStore, LogStore logStore, SystemProperties systemProperties) {
@@ -72,20 +72,27 @@ public class ContractManager {
 
         this.contractPath = defaultConfig.getContractPath();
         this.contractRepositoryUrl = defaultConfig.getContractRepositoryUrl();
-
         this.systemProperties = systemProperties;
-        this.serviceMap = new HashMap<>();
 
-        // todo: remove This.
-        contractExecutor = new ContractExecutor(frameworkLauncher.getFramework(), contractStore, systemProperties, logStore);
+        contractExecutor = new ContractExecutor(contractStore, logStore);
 
         this.frameworkHashMap.put(frameworkLauncher.getBranchId(), frameworkLauncher);
         this.bundleService = bundleService;
         this.defaultConfig = defaultConfig;
         this.genesis = genesis;
 
+        this.serviceMap = new HashMap<>();
+
         initBootBundles();
 
+        VersioningContract.VersioningContractService service = new VersioningContract.VersioningContractService();
+        serviceMap.put(ContractConstants.VERSIONING_TRANSACTION, service);
+
+        try {
+            contractExecutor.injectField(new ArrayList<>(serviceMap.values()));
+        } catch (IllegalAccessException e) {
+            log.error(e.getMessage());
+        }
     }
 
     private void initBootBundles() {
@@ -114,7 +121,6 @@ public class ContractManager {
 
             verifyContractFile(contractFile, contractVersion);
 
-            BundleContext context = frameworkHashMap.get(bootBranchId).getBundleContext();
             Bundle bundle = getBundle(bootBranchId, contractVersion);
 
             if (bundle == null) {
@@ -137,12 +143,6 @@ public class ContractManager {
             }
 
             registerServiceMap(bootBranchId, contractVersion, bundle);
-
-            try {
-                inject(context, bundle);
-            } catch (IllegalAccessException e) {
-                log.error("Bundle {} failed to inject with {}", bundle.getSymbolicName(), e.getMessage());
-            }
         }
     }
 
@@ -172,7 +172,7 @@ public class ContractManager {
 
         for (ServiceReference serviceRef : serviceRefs) {
             Object service = context.getService(serviceRef);
-            contractExecutor.injectFields(bundle, service, isSystemContract);
+//            contractExecutor.injectFields(bundle, service, isSystemContract);
         }
     }
 
@@ -228,8 +228,9 @@ public class ContractManager {
 
     public void registerServiceMap(BranchId branchId, ContractVersion contractVersion, Bundle bundle) {
         BundleContext context = findBundleContext(branchId);
-        Object obj = context.getService(bundle.getRegisteredServices()[0]);
-        this.serviceMap.put(contractVersion.toString(), obj);
+        Object service = context.getService(bundle.getRegisteredServices()[0]);
+        this.serviceMap.put(contractVersion.toString(), service);
+
     }
 
     public void uninstall(BranchId branchId, ContractVersion contractVersion) {
@@ -325,8 +326,7 @@ public class ContractManager {
     }
 
     public Object query(BranchId branchId, String contractVersion, String methodName, JsonObject params) {
-        Bundle bundle = bundleService.getBundle(findBundleContext(branchId), ContractVersion.of(contractVersion));
-        return bundle != null ? contractExecutor.query(contractVersion, serviceMap.get(contractVersion), methodName, params) : null;
+        return contractExecutor.query(serviceMap, contractVersion, methodName, params);
     }
 
     public BlockRuntimeResult executeTxs(ConsensusBlock nextBlock) {
@@ -334,24 +334,8 @@ public class ContractManager {
     }
 
     public TransactionRuntimeResult executeTx(Transaction tx) {
-        switch (Hex.encodeHexString(tx.getHeader().getType())) {
-            case ContractConstants.BUNDLE_TRANSACTION:
-                log.debug("Contract Executor type is bundle");
-                return contractExecutor.executeTx(serviceMap, tx);
-            case ContractConstants.VERSIONING_TRANSACTION:
-                log.debug("Contract Executor type is versioning");
-                try {
-                    return contractExecutor.versioningService(tx);
-                } catch (IllegalAccessException e) {
-                    log.error(e.getMessage());
-                    return null;
-                }
-            default:
-                log.error("Unknown Contract Type in Transaction Header");
-                return null;
-        }
+        return contractExecutor.executeTx(serviceMap, tx);
 
-//        return contractExecutor.executeTx(serviceMap, tx);
     }
 
     public void commitBlockResult(BlockRuntimeResult result) {
@@ -424,15 +408,15 @@ public class ContractManager {
         return contractFile.delete();
     }
 
-    public Map<String, Object> getServiceMap() {
-        return this.serviceMap;
-    }
-
     private String contractFilePath(ContractVersion contractVersion) {
         return this.contractPath + File.separator + contractVersion + ".jar";
     }
 
     public HashMap<BranchId, FrameworkLauncher> getFrameworkHashMap() {
         return frameworkHashMap;
+    }
+
+    public Map<String, Object> getServiceMap() {
+        return serviceMap;
     }
 }
