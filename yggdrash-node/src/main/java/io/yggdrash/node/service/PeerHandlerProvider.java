@@ -108,7 +108,7 @@ public class PeerHandlerProvider {
         // Use the asynchronous stub for this method.
         @Override
         public void broadcastBlock(ConsensusBlock<PbftProto.PbftBlock> block) {
-            log.debug("Broadcasting blocks -> {}", getPeer().getYnodeUri());
+            log.trace("Broadcasting blocks -> {}", getPeer().getYnodeUri());
 
             blockingStub.withDeadlineAfter(TIMEOUT_BLOCK, TimeUnit.SECONDS).broadcastPbftBlock(block.getInstance());
         }
@@ -159,7 +159,7 @@ public class PeerHandlerProvider {
         // Use the asynchronous stub for this method.
         @Override
         public void broadcastBlock(ConsensusBlock<EbftProto.EbftBlock> block) {
-            log.debug("Broadcasting blocks -> {}", getPeer().getYnodeUri());
+            log.trace("Broadcasting blocks -> {}", getPeer().getYnodeUri());
 
             blockingStub.withDeadlineAfter(TIMEOUT_BLOCK, TimeUnit.SECONDS).broadcastEbftBlock(block.getInstance());
         }
