@@ -117,6 +117,7 @@ public class ContractExecutor {
         Object service = serviceMap.get(contractVersion);
         if (service == null) {
             log.error("This service that contract version {} is not registered", contractVersion);
+            return null;
         }
 
         Method method = contractCache.getContractMethodMap(contractVersion, ContractMethodType.QUERY, service).get(methodName);
