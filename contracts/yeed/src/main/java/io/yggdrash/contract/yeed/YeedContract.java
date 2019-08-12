@@ -111,7 +111,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
         }
 
         /**
-         * Gets the balance of the specified address
+         * Gets the balance of the specified addressgit
          * params owner   The address to query the balance of
          *
          * @return A BigInteger representing the amount owned by the passed address
@@ -270,7 +270,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
             boolean isTransfer = transfer(from, to, amount, fee);
             if (log.isDebugEnabled() && isTransfer) {
                 log.debug("[Transferred] Transfer {} from {} to {}", amount, from, to);
-                log.debug("Balance of From ({}) : {} To ({}) : {}", from, getBalance(from), to, getBalance(to));
+                log.trace("Balance of From ({}) : {} To ({}) : {}", from, getBalance(from), to, getBalance(to));
             }
             return txReceipt;
         }
