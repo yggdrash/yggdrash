@@ -97,7 +97,7 @@ public class ContractExecutorTest {
         generateGenesisBlock();
 
         buildExecutor();
-//        createBundle();
+        createBundle();
         initGenesis(); //alloc process (executeTxs)
     }
 
@@ -324,7 +324,10 @@ public class ContractExecutorTest {
         this.executor = manager.getContractExecutor();
 
         Map<String, Object> serviceMap = manager.getServiceMap();
+
         setNamespace(serviceMap.get(contractVersion.toString()));
+
+        manager.getBundles(branchId);
 
     }
 

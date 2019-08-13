@@ -89,7 +89,7 @@ public class ContractManager {
         serviceMap.put(ContractConstants.VERSIONING_TRANSACTION, service);
 
         try {
-            contractExecutor.injectField(new ArrayList<>(serviceMap.values()));
+            contractExecutor.injectField(service);
         } catch (IllegalAccessException e) {
             log.error(e.getMessage());
         }
@@ -143,6 +143,12 @@ public class ContractManager {
             }
 
             registerServiceMap(bootBranchId, contractVersion, bundle);
+
+            try {
+                inject(findBundleContext(bootBranchId), bundle);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -172,7 +178,7 @@ public class ContractManager {
 
         for (ServiceReference serviceRef : serviceRefs) {
             Object service = context.getService(serviceRef);
-//            contractExecutor.injectFields(bundle, service, isSystemContract);
+            contractExecutor.injectFields(bundle, service, isSystemContract);
         }
     }
 
