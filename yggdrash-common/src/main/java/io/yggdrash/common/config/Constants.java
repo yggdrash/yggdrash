@@ -13,7 +13,7 @@ public final class Constants {
 
     //yggdrash.conf
     public static final String NODE_NAME = "yggdrash";
-    public static final String NODE_VERSION = "0.7.0";
+    public static final String NODE_VERSION = "0.7.1";
 
     public static final int BRANCH_LENGTH = 20;
     public static final int BRANCH_HEX_LENGTH = BRANCH_LENGTH * 2;
