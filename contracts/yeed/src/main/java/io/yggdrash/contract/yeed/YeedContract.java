@@ -111,7 +111,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
         }
 
         /**
-         * Gets the balance of the specified address
+         * Gets the balance of the specified addressgit
          * params owner   The address to query the balance of
          *
          * @return A BigInteger representing the amount owned by the passed address

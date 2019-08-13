@@ -128,6 +128,9 @@ public class ContractExecutor {
         }
 
         try {
+            if (method.getParameterCount() == 0) {
+                return method.invoke(service);
+            }
             return method.invoke(service, params);
         } catch (IllegalAccessException | InvocationTargetException e) {
             log.error("Query method failed with {}", e.getMessage());

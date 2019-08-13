@@ -325,7 +325,7 @@ public class ContractManager {
         );
     }
 
-    public Object query(BranchId branchId, String contractVersion, String methodName, JsonObject params) {
+    public Object query(String contractVersion, String methodName, JsonObject params) {
         return contractExecutor.query(serviceMap, contractVersion, methodName, params);
     }
 
