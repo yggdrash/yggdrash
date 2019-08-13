@@ -76,36 +76,43 @@ public class ContractExecutor {
         return logIndexer.curIndex();
     }
 
-    public void injectField(ArrayList<Object> services) throws IllegalAccessException {
-
+    public void injectField(ArrayList<Object> services) throws IllegalAccessException, ExecutorException {
         for (Object service : services) {
-            Field[] fields = service.getClass().getDeclaredFields();
+            inject(service);
+        }
+    }
 
-            for (Field field : fields) {
-                field.setAccessible(true);
+    public void inject(Object service) throws ExecutorException, IllegalAccessException {
+        if (service == null) {
+            throw new ExecutorException(SystemError.CONTRACT_VERSION_NOT_FOUND);
+        }
+        Field[] fields = service.getClass().getDeclaredFields();
 
-                for (Annotation annotation : field.getDeclaredAnnotations()) {
-                    if (annotation.annotationType().equals(ContractStateStore.class)) {
-                        String nameSpace = namespace(service.getClass().getName());
-                        log.debug("serviceName {} , nameSpace {}", service.getClass().getName(), nameSpace);
-                        StoreAdapter adapterStore = new StoreAdapter(contractStore.getTmpStateStore(), nameSpace);
-                        field.set(service, adapterStore); //default => tmpStateStore
-                    }
+        for (Field field : fields) {
+            field.setAccessible(true);
 
-                    if (annotation.annotationType().equals(ContractBranchStateStore.class)) {
-                        field.set(service, contractStore.getBranchStore());
-                    }
-
-                    if (annotation.annotationType().equals(ContractTransactionReceipt.class)) {
-                        field.set(service, trAdapter);
-                    }
-
-                    if (annotation.annotationType().equals(ContractChannelField.class)) {
-                        field.set(service, coupler);
-                    }
+            for (Annotation annotation : field.getDeclaredAnnotations()) {
+                if (annotation.annotationType().equals(ContractStateStore.class)) {
+                    String nameSpace = namespace(service.getClass().getName());
+                    StoreAdapter adapterStore = new StoreAdapter(contractStore.getTmpStateStore(), nameSpace);
+                    field.set(service, adapterStore); //default => tmpStateStore
                 }
+
+                if (annotation.annotationType().equals(ContractBranchStateStore.class)) {
+                    field.set(service, contractStore.getBranchStore());
+                }
+
+                if (annotation.annotationType().equals(ContractTransactionReceipt.class)) {
+                    field.set(service, trAdapter);
+                }
+
+                if (annotation.annotationType().equals(ContractChannelField.class)) {
+                    field.set(service, coupler);
+                }
+
             }
         }
+
     }
 
     private String namespace(String name) {
@@ -205,8 +212,9 @@ public class ContractExecutor {
             }
 
             blockRuntimeResult.addTxReceipt(txReceipt);
-            log.debug("{} : {}", txReceipt.getTxId(), txReceipt.isSuccess());
-
+            if (!txReceipt.isSuccess()) {
+                log.warn("{} : {}", txReceipt.getTxId(), txReceipt.isSuccess());
+            }
         }
 
         contractStore.getTmpStateStore().close(); // clear(revert) tmpStateStore
@@ -258,7 +266,7 @@ public class ContractExecutor {
         } catch (IllegalAccessException e) {
             log.error("CallContractMethod : {} and bundle {} ", methodName, contractVersion);
         } catch (InvocationTargetException e) {
-            log.debug("CallContractMethod ApplicationErrorLog : {}", e.getCause().toString());
+            log.error("CallContractMethod ApplicationErrorLog : {}", e.getCause().toString());
             trAdapter.addLog(e.getCause().getMessage());
         } catch (IllegalArgumentException e) {
             e.getStackTrace();

@@ -189,7 +189,7 @@ public class BlockChainTestUtils {
                 .withSystemProperties(systemProperties)
                 .build();
 
-        Assert.assertTrue(contractManager.getBundles(genesis.getBranchId()).length
+        Assert.assertTrue(contractManager.getBundles().length
                 >= genesis.getBranch().getBranchContracts().size());
 
         BlockChainManager blockChainManager = new BlockChainManagerImpl(bcStore);

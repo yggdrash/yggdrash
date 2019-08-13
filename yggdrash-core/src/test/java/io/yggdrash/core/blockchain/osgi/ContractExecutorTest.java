@@ -51,7 +51,6 @@ import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -326,32 +325,6 @@ public class ContractExecutorTest {
         Map<String, Object> serviceMap = manager.getServiceMap();
         setNamespace(serviceMap.get(contractVersion.toString()));
 
-    }
-
-    private void createBundle() throws Exception {
-        String filePath = Objects.requireNonNull(
-                getClass().getClassLoader().getResource(String.format("contracts/%s.jar", contractVersion))).getFile();
-        File coinContractFile = new File(filePath);
-
-        assert coinContractFile.exists();
-
-        Bundle bundle = manager.install(branchId, contractVersion, coinContractFile, true);
-
-        manager.start(bundle);
-        manager.inject(branchId, contractVersion);
-        manager.registerServiceMap(branchId, contractVersion, bundle);
-
-        for (ContractStatus cs : manager.searchContracts(branchId)) {
-            String bundleSymbolicName = cs.getSymbolicName();
-            byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(bundleSymbolicName.getBytes());
-            this.namespace = new String(Base64.encodeBase64(bundleSymbolicSha3));
-
-            log.debug("Description {}", cs.getDescription());
-            log.debug("Location {}", cs.getLocation());
-            log.debug("SymbolicName {}", cs.getSymbolicName());
-            log.debug("Version {}", cs.getVersion());
-            log.debug(Long.toString(cs.getId()));
-        }
     }
 
     private boolean checkExistContract(String contractVersion) {
