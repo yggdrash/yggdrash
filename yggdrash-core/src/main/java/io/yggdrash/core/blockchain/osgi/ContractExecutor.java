@@ -25,6 +25,7 @@ import io.yggdrash.core.store.LogStore;
 import io.yggdrash.core.store.StoreAdapter;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.apache.commons.codec.binary.Base64;
+import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
@@ -33,7 +34,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -76,36 +76,69 @@ public class ContractExecutor {
         return logIndexer.curIndex();
     }
 
-    public void injectField(ArrayList<Object> services) throws IllegalAccessException {
+    public void injectField(Object service) throws IllegalAccessException {
 
-        for (Object service : services) {
-            Field[] fields = service.getClass().getDeclaredFields();
+        Field[] fields = service.getClass().getDeclaredFields();
 
-            for (Field field : fields) {
-                field.setAccessible(true);
+        for (Field field : fields) {
+            field.setAccessible(true);
 
-                for (Annotation annotation : field.getDeclaredAnnotations()) {
-                    if (annotation.annotationType().equals(ContractStateStore.class)) {
-                        String nameSpace = namespace(service.getClass().getName());
-                        log.debug("serviceName {} , nameSpace {}", service.getClass().getName(), nameSpace);
-                        StoreAdapter adapterStore = new StoreAdapter(contractStore.getTmpStateStore(), nameSpace);
-                        field.set(service, adapterStore); //default => tmpStateStore
-                    }
+            for (Annotation annotation : field.getDeclaredAnnotations()) {
+                if (annotation.annotationType().equals(ContractStateStore.class)) {
+                    String nameSpace = namespace(service.getClass().getName());
+                    log.debug("serviceName {} , nameSpace {}", service.getClass().getName(), nameSpace);
+                    StoreAdapter adapterStore = new StoreAdapter(contractStore.getTmpStateStore(), nameSpace);
+                    field.set(service, adapterStore); //default => tmpStateStore
+                }
 
-                    if (annotation.annotationType().equals(ContractBranchStateStore.class)) {
-                        field.set(service, contractStore.getBranchStore());
-                    }
+                if (annotation.annotationType().equals(ContractBranchStateStore.class)) {
+                    field.set(service, contractStore.getBranchStore());
+                }
 
-                    if (annotation.annotationType().equals(ContractTransactionReceipt.class)) {
-                        field.set(service, trAdapter);
-                    }
+                if (annotation.annotationType().equals(ContractTransactionReceipt.class)) {
+                    field.set(service, trAdapter);
+                }
 
-                    if (annotation.annotationType().equals(ContractChannelField.class)) {
-                        field.set(service, coupler);
-                    }
+                if (annotation.annotationType().equals(ContractChannelField.class)) {
+                    field.set(service, coupler);
                 }
             }
         }
+    }
+
+    void injectFields(Bundle bundle, Object service, boolean isSystemContract)
+            throws IllegalAccessException {
+
+        Field[] fields = service.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true);
+
+            for (Annotation annotation : field.getDeclaredAnnotations()) {
+                if (annotation.annotationType().equals(ContractStateStore.class)) {
+                    String bundleSymbolicName = bundle.getSymbolicName();
+                    byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(bundleSymbolicName.getBytes());
+                    String nameSpace = new String(Base64.encodeBase64(bundleSymbolicSha3));
+                    log.debug("bundleSymbolicName {} , nameSpace {}", bundleSymbolicName, nameSpace);
+                    StoreAdapter adapterStore = new StoreAdapter(contractStore.getTmpStateStore(), nameSpace);
+                    field.set(service, adapterStore); //default => tmpStateStore
+                }
+
+                if (isSystemContract && annotation.annotationType().equals(ContractBranchStateStore.class)) {
+                    field.set(service, contractStore.getBranchStore());
+                }
+
+                if (annotation.annotationType().equals(ContractTransactionReceipt.class)) {
+                    field.set(service, trAdapter);
+                }
+
+                if (annotation.annotationType().equals(ContractChannelField.class)) {
+                    field.set(service, coupler);
+                }
+                //todo : event store implementation
+            }
+        }
+
+        contractCache.cacheContract(bundle.getLocation(), service);
     }
 
     private String namespace(String name) {
