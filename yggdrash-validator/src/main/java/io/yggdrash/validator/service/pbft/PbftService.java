@@ -803,10 +803,10 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     private void updateNodeMap(Map<String, PbftClientStub> nodeMap, String address, String host, int port) {
-        PbftClientStub client = new PbftClientStub(address, host, port);
-        if (client.getId().equals(myNode.getId())) {
+        if (myNode.getId().equals(address + "@" + host + ":" + port)) {
             nodeMap.put(myNode.getAddr(), myNode);
         } else {
+            PbftClientStub client = new PbftClientStub(address, host, port);
             nodeMap.put(client.getAddr(), client);
         }
     }
