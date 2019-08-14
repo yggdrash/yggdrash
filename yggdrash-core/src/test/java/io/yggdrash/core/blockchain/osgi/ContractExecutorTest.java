@@ -62,7 +62,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -97,8 +96,8 @@ public class ContractExecutorTest {
         generateGenesisBlock();
 
         buildExecutor();
-        createBundle();
         initGenesis(); //alloc process (executeTxs)
+
     }
 
     @Test
@@ -323,42 +322,12 @@ public class ContractExecutorTest {
 
         this.executor = manager.getContractExecutor();
 
-        Map<String, Object> serviceMap = manager.getServiceMap();
+        setNamespace();
 
-        setNamespace(serviceMap.get(contractVersion.toString()));
-
-        manager.getBundles(branchId);
-
-    }
-
-    private void createBundle() throws Exception {
-        String filePath = Objects.requireNonNull(
-                getClass().getClassLoader().getResource(String.format("contracts/%s.jar", contractVersion))).getFile();
-        File coinContractFile = new File(filePath);
-
-        assert coinContractFile.exists();
-
-        Bundle bundle = manager.install(branchId, contractVersion, coinContractFile, true);
-
-        manager.start(bundle);
-        manager.inject(branchId, contractVersion);
-        manager.registerServiceMap(branchId, contractVersion, bundle);
-
-        for (ContractStatus cs : manager.searchContracts(branchId)) {
-            String bundleSymbolicName = cs.getSymbolicName();
-            byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(bundleSymbolicName.getBytes());
-            this.namespace = new String(Base64.encodeBase64(bundleSymbolicSha3));
-
-            log.debug("Description {}", cs.getDescription());
-            log.debug("Location {}", cs.getLocation());
-            log.debug("SymbolicName {}", cs.getSymbolicName());
-            log.debug("Version {}", cs.getVersion());
-            log.debug(Long.toString(cs.getId()));
-        }
     }
 
     private boolean checkExistContract(String contractVersion) {
-        for (ContractStatus cs : manager.searchContracts(branchId)) {
+        for (ContractStatus cs : manager.searchContracts()) {
             if (cs.getLocation().lastIndexOf(contractVersion) > 0) {
                 return true;
             }
@@ -430,8 +399,9 @@ public class ContractExecutorTest {
         return builder.setTxBody(txBody).setWallet(wallet).setBranchId(branchId).build();
     }
 
-    private void setNamespace(Object service) {
-        String name = service.getClass().getName();
+    private void setNamespace() {
+        Bundle bundle = manager.getBundle(contractVersion);
+        String name = bundle.getSymbolicName();
         byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(name.getBytes());
         this.namespace = new String(Base64.encodeBase64(bundleSymbolicSha3));
         log.debug("serviceName {} , nameSpace {}", name, this.namespace);

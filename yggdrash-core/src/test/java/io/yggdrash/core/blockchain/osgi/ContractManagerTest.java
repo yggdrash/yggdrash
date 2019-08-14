@@ -2,7 +2,6 @@ package io.yggdrash.core.blockchain.osgi;
 
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.SystemProperties;
@@ -17,6 +16,7 @@ import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
 import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.PbftBlockStoreMock;
+import org.apache.commons.codec.binary.Hex;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,11 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
 
 
 public class ContractManagerTest {
@@ -47,18 +43,20 @@ public class ContractManagerTest {
     private static GenesisBlock coinGenesis;
     private static BranchId coinBranchId;
 
-    private ContractExecutor executor;
+    private static ContractExecutor executor;
 
     private static ContractVersion coinContract = ContractVersion.of("8c65bc05e107aab9ceaa872bbbb2d96d57811de4");
+    ContractVersion notExistedVersion = ContractVersion.of(Hex.encodeHexString("Wrong ContractVersion".getBytes()));
 
     @Before
     public void setUp() throws Exception {
-        this.manager = initContractManager();
-        this.executor = manager.getContractExecutor();
+        manager = initContractManager();
+        executor = manager.getContractExecutor();
+
     }
 
     private void printBundles() {
-        Bundle[] bundles = this.manager.getBundles(branchId);
+        Bundle[] bundles = manager.getBundles();
         log.info("The number of installed bundles: {}", bundles.length);
         for (Bundle bundle : bundles) {
             log.info("Bundle Id : {}\tBundle Symbol : {}\tBundle location : {}",
@@ -67,44 +65,26 @@ public class ContractManagerTest {
     }
 
     @Test
-    public void coinContractInstallTest() {
-        installByVersion(branchId, coinContract);
-    }
-
-    @Test
-    public void multiBranchTest() throws IOException {
-        generateNewCoinBranch();
-
-        HashMap<BranchId, FrameworkLauncher> launcherMap = manager.getFrameworkHashMap();
-        FrameworkLauncher coinFramework = launcherMap.get(coinBranchId);
-
-        Assert.assertEquals("Invalid framework size", 2, launcherMap.size());
-        Assert.assertNotNull("FrameworkLauncher is null", coinFramework);
-
-        installByVersion(coinBranchId, coinContract);
+    public void coinContractInstallTest() throws IOException {
+        installByVersion(coinContract);
     }
 
     @Test
     public void uninstallTest() {
-        Bundle bundle = manager.getBundle(branchId, coinContract);
+        Bundle bundle = manager.getBundle(coinContract);
         if (bundle == null) {
             log.debug("Coin bundle does not exist");
         } else {
-            manager.uninstall(branchId, coinContract);
+            manager.uninstall(coinContract);
         }
     }
 
-    private void installByVersion(BranchId branchId, ContractVersion contractVersion) {
+    private void installByVersion(ContractVersion contractVersion) throws IOException {
         File coinFile = null;
         if (manager.isContractFileExist(contractVersion)) {
             coinFile = new File(config.getContractPath() + File.separator + contractVersion + ".jar");
         } else {
-            try {
-                coinFile = manager.downloader(contractVersion);
-            } catch (IOException e) {
-                log.error(e.getMessage());
-                manager.deleteContractFile(new File(config.getContractPath() + File.separator + contractVersion + ".jar"));
-            }
+            coinFile = manager.downloader(contractVersion);
         }
 
         Assert.assertNotNull("Failed to download COIN-CONTRACT File on system", coinFile);
@@ -114,57 +94,39 @@ public class ContractManagerTest {
         Assert.assertTrue("Failed to verify contract file", verified);
 
         try {
-            Bundle coinBundle = manager.install(branchId, contractVersion, true);
+            Bundle coinBundle = manager.install(contractVersion, true);
             manager.start(coinBundle);
-            manager.inject(branchId, contractVersion);
-            manager.registerServiceMap(branchId, contractVersion, coinBundle);
+            manager.registerServiceMap(contractVersion, coinBundle);
+            manager.inject(contractVersion);
 
-        } catch (IOException | IllegalAccessException | BundleException e) {
+        } catch (IOException | BundleException | IllegalAccessException e) {
             log.error(e.getMessage());
         }
 
-        Bundle[] bundles = manager.getBundles(branchId);
+        Bundle[] bundles = manager.getBundles();
         Assert.assertTrue("Failed to install COIN-CONTRACT on osgi", bundles.length > 1);
         printBundles();
     }
 
-    private void generateNewCoinBranch() throws IOException {
-        String filePath = Objects.requireNonNull(
-                getClass().getClassLoader().getResource("branch-coin.json")).getFile();
-        File coinBranchFile = new File(filePath);
-        this.coinGenesis = GenesisBlock.of(new FileInputStream(coinBranchFile));
-        this.coinBranchId = this.coinGenesis.getBranchId();
-
-        FrameworkConfig bootFrameworkConfig = new BootFrameworkConfig(config, coinGenesis.getBranchId());
-        FrameworkLauncher coinFramework = new BootFrameworkLauncher(bootFrameworkConfig);
-
-        manager.addFramework(coinFramework);
-    }
-
     private ContractManager initContractManager() throws IOException, BundleException {
-        this.config = new DefaultConfig();
-        this.genesis = BlockChainTestUtils.getGenesis();
-        this.systemProperties = BlockChainTestUtils.createDefaultSystemProperties();
+        config = new DefaultConfig();
+        genesis = BlockChainTestUtils.getGenesis();
+        systemProperties = BlockChainTestUtils.createDefaultSystemProperties();
 
-        this.branchId = genesis.getBranchId();
+        branchId = genesis.getBranchId();
 
-
-        this.bcStore = BlockChainStoreBuilder.newBuilder(branchId)
+        bcStore = BlockChainStoreBuilder.newBuilder(branchId)
                 .withDataBasePath(config.getDatabasePath())
                 .withProductionMode(config.isProductionMode())
                 .setConsensusAlgorithm(null)
                 .setBlockStoreFactory(PbftBlockStoreMock::new)
                 .build();
 
-        this.contractStore = bcStore.getContractStore();
+        contractStore = bcStore.getContractStore();
 
         FrameworkConfig bootFrameworkConfig = new BootFrameworkConfig(config, branchId);
         FrameworkLauncher bootFrameworkLauncher = new BootFrameworkLauncher(bootFrameworkConfig);
         BundleService bundleService = new BundleServiceImpl();
-
-        List<BranchContract> genesisContractList = genesis.getBranch().getBranchContracts();
-
-        assert genesisContractList.size() > 0;
 
         ContractManager manager = ContractManagerBuilder.newInstance()
                 .withGenesis(genesis)
@@ -176,11 +138,8 @@ public class ContractManagerTest {
                 .withSystemProperties(systemProperties)
                 .build();
 
-        assert manager != null;
-        assert manager.getContractExecutor() != null;
-
+        Assert.assertNotNull("Manager is null", manager);
         return manager;
-
     }
 
 }

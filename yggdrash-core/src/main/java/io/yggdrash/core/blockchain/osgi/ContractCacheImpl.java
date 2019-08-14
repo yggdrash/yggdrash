@@ -87,7 +87,8 @@ public class ContractCacheImpl implements ContractCache {
         }
     }
 
-    Map<String, Method> getContractMethodMap(String contractVersion, ContractMethodType type, Object service) {
+    @Override
+    public Map<String, Method> getContractMethodMap(String contractVersion, ContractMethodType type, Object service) {
         switch (type) {
             case QUERY:
                 if (this.queryMethods.get(contractVersion) == null) {
