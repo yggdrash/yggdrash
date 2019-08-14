@@ -88,7 +88,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         this.viewNumber = this.blockChain.getBlockChainManager().getLastIndex() + 1;
         this.seqNumber = this.blockChain.getBlockChainManager().getLastIndex() + 1;
 
-
         printInitInfo();
     }
 
@@ -218,10 +217,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
                 try {
                     client.multicastPbftMessage(PbftMessage.toProto(message));
                 } catch (Exception e) {
-                    log.debug("multicast exception: {}", e.getMessage());
-                    log.debug("client: {}", client.getId());
-                    log.debug("message: {}", message);
-                    // continue
+                    log.debug("multicastMessage exception: {} {} {}", client.getId(), message, e.getMessage());
                 }
             }
         }
@@ -238,8 +234,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
                 log.debug("BroadcastBlock [{}]{} to {}:{}", block.getIndex(), block.getHash(),
                         client.getHost(), client.getPort());
             } catch (Exception e) {
-                log.debug("BroadcastBlock exception: {}", e.getMessage());
-                log.debug("client: {}", client.getId());
+                log.debug("BroadcastBlock exception: {} {}", client.getId(), e.getMessage());
             }
         }
     }
