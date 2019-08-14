@@ -21,6 +21,7 @@ import org.apache.commons.io.IOUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
 import org.slf4j.Logger;
@@ -92,11 +93,9 @@ public class ContractManager {
         serviceMap.put(ContractConstants.VERSIONING_TRANSACTION, service);
 
         try {
-            contractExecutor.injectField(new ArrayList<>(serviceMap.values()));
+            contractExecutor.injectNodeContract(service);
         } catch (IllegalAccessException e) {
             log.error(e.getMessage());
-        } catch (ExecutorException e) {
-            e.printStackTrace();
         }
     }
 
@@ -130,7 +129,7 @@ public class ContractManager {
 
             if (bundle == null) {
                 try {
-                    bundle = install(bootBranchId, contractVersion, true);
+                    bundle = install(contractVersion, true);
                 } catch (IOException e) {
                     log.error("ContractFile has an Error with {}", e.getMessage());
                     continue;
@@ -148,6 +147,12 @@ public class ContractManager {
             }
 
             registerServiceMap(contractVersion, bundle);
+
+            try {
+                inject(framework.getBundleContext(), bundle);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -162,14 +167,25 @@ public class ContractManager {
         return contractStore.getBranchStore().getBranchContacts();
     }
 
-    public void inject(ContractVersion contractVersion) {
-        Object service = serviceMap.get(contractVersion.toString());
-        try {
-            contractExecutor.inject(service);
-        } catch (ExecutorException e) {
-            log.error("This service that contract version {} is not registered", contractVersion);
-        } catch (IllegalAccessException e) {
-            log.error(e.getMessage());
+    public void inject(ContractVersion contractVersion) throws IllegalAccessException {
+        BundleContext context = framework.getBundleContext();
+        Bundle bundle = getBundle(contractVersion);
+        inject(context, bundle);
+    }
+
+    private void inject(BundleContext context, Bundle bundle) throws IllegalAccessException {
+        ServiceReference<?>[] serviceRefs = bundle.getRegisteredServices();
+        if (serviceRefs == null) {
+            log.error("No available service in bundle {}", bundle.getSymbolicName());
+            return;
+        }
+
+        boolean isSystemContract = bundle.getLocation()
+                .startsWith(ContractConstants.SUFFIX_SYSTEM_CONTRACT);
+
+        for (ServiceReference serviceRef : serviceRefs) {
+            Object service = context.getService(serviceRef);
+            contractExecutor.injectBundleContract(bundle, service, isSystemContract);
         }
     }
 
@@ -181,7 +197,7 @@ public class ContractManager {
         return bundleService.getBundles(framework.getBundleContext());
     }
 
-    public Bundle install(BranchId branchId, ContractVersion contractVersion, File contractFile, boolean isSystem) throws IOException, BundleException {
+    public Bundle install(ContractVersion contractVersion, File contractFile, boolean isSystem) throws IOException, BundleException {
         Bundle bundle = bundleService.getBundle(framework.getBundleContext(), contractVersion);
 
         try (JarFile jarFile = new JarFile(contractFile)) {
@@ -198,9 +214,9 @@ public class ContractManager {
         return null;
     }
 
-    public Bundle install(BranchId branchId, ContractVersion contractVersion, boolean isSystem) throws IOException, BundleException {
+    public Bundle install(ContractVersion contractVersion, boolean isSystem) throws IOException, BundleException {
         File contractFile = new File(defaultConfig.getContractPath() + File.separator + contractVersion + ".jar");
-        return install(branchId, contractVersion, contractFile, isSystem);
+        return install(contractVersion, contractFile, isSystem);
     }
 
     private boolean isInstalledContract(JarFile jarFile, Bundle bundle) throws IOException {
@@ -222,7 +238,7 @@ public class ContractManager {
 
     }
 
-    public void uninstall(BranchId branchId, ContractVersion contractVersion) {
+    public void uninstall(ContractVersion contractVersion) {
         try {
             bundleService.uninstall(framework.getBundleContext(), contractVersion);
         } catch (BundleException e) {
@@ -230,7 +246,7 @@ public class ContractManager {
         }
     }
 
-    public void start(BranchId branchId, ContractVersion contractVersion) throws BundleException {
+    public void start(ContractVersion contractVersion) throws BundleException {
         Bundle bundle = bundleService.getBundle(framework.getBundleContext(), contractVersion);
         start(bundle);
     }
@@ -288,7 +304,7 @@ public class ContractManager {
         return true;
     }
 
-    public List<ContractStatus> searchContracts(BranchId branchId) {
+    public List<ContractStatus> searchContracts() {
         List<ContractStatus> result = new ArrayList<>();
         Bundle[] bundleList = bundleService.getBundles(framework.getBundleContext());
         for (Bundle bundle : bundleList) {

@@ -75,7 +75,7 @@ public class ContractManagerTest {
         if (bundle == null) {
             log.debug("Coin bundle does not exist");
         } else {
-            manager.uninstall(branchId, coinContract);
+            manager.uninstall(coinContract);
         }
     }
 
@@ -94,12 +94,12 @@ public class ContractManagerTest {
         Assert.assertTrue("Failed to verify contract file", verified);
 
         try {
-            Bundle coinBundle = manager.install(branchId, contractVersion, true);
+            Bundle coinBundle = manager.install(contractVersion, true);
             manager.start(coinBundle);
             manager.registerServiceMap(contractVersion, coinBundle);
             manager.inject(contractVersion);
 
-        } catch (IOException | BundleException e) {
+        } catch (IOException | BundleException | IllegalAccessException e) {
             log.error(e.getMessage());
         }
 

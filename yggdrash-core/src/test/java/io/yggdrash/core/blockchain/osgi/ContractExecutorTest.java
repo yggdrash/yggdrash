@@ -51,6 +51,7 @@ import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +62,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -96,8 +96,8 @@ public class ContractExecutorTest {
         generateGenesisBlock();
 
         buildExecutor();
-//        createBundle();
         initGenesis(); //alloc process (executeTxs)
+
     }
 
     @Test
@@ -322,13 +322,12 @@ public class ContractExecutorTest {
 
         this.executor = manager.getContractExecutor();
 
-        Map<String, Object> serviceMap = manager.getServiceMap();
-        setNamespace(serviceMap.get(contractVersion.toString()));
+        setNamespace();
 
     }
 
     private boolean checkExistContract(String contractVersion) {
-        for (ContractStatus cs : manager.searchContracts(branchId)) {
+        for (ContractStatus cs : manager.searchContracts()) {
             if (cs.getLocation().lastIndexOf(contractVersion) > 0) {
                 return true;
             }
@@ -400,8 +399,9 @@ public class ContractExecutorTest {
         return builder.setTxBody(txBody).setWallet(wallet).setBranchId(branchId).build();
     }
 
-    private void setNamespace(Object service) {
-        String name = service.getClass().getName();
+    private void setNamespace() {
+        Bundle bundle = manager.getBundle(contractVersion);
+        String name = bundle.getSymbolicName();
         byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(name.getBytes());
         this.namespace = new String(Base64.encodeBase64(bundleSymbolicSha3));
         log.debug("serviceName {} , nameSpace {}", name, this.namespace);

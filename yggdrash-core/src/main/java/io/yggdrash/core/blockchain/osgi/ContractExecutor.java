@@ -12,7 +12,6 @@ import io.yggdrash.contract.core.annotation.ContractChannelField;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.channel.ContractMethodType;
-import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Log;
 import io.yggdrash.core.blockchain.LogIndexer;
 import io.yggdrash.core.blockchain.Transaction;
@@ -25,6 +24,7 @@ import io.yggdrash.core.store.LogStore;
 import io.yggdrash.core.store.StoreAdapter;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.apache.commons.codec.binary.Base64;
+import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
@@ -33,7 +33,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,8 +61,6 @@ public class ContractExecutor {
         this.coupler = new ContractChannelCoupler();
     }
 
-    // TODO Implements endBlock Executions
-
     Log getLog(long index) {
         return logIndexer.getLog(index);
     }
@@ -76,16 +73,16 @@ public class ContractExecutor {
         return logIndexer.curIndex();
     }
 
-    public void injectField(ArrayList<Object> services) throws IllegalAccessException, ExecutorException {
-        for (Object service : services) {
-            inject(service);
-        }
+    void injectNodeContract(Object service) throws IllegalAccessException {
+        inject(service, namespace(service.getClass().getName()));
     }
 
-    public void inject(Object service) throws ExecutorException, IllegalAccessException {
-        if (service == null) {
-            throw new ExecutorException(SystemError.CONTRACT_VERSION_NOT_FOUND);
-        }
+    void injectBundleContract(Bundle bundle, Object service, boolean isSystemContract) throws IllegalAccessException {
+
+        inject(service, namespace(bundle.getSymbolicName()));
+    }
+
+    private void inject(Object service, String namespace) throws IllegalAccessException {
         Field[] fields = service.getClass().getDeclaredFields();
 
         for (Field field : fields) {
@@ -93,8 +90,8 @@ public class ContractExecutor {
 
             for (Annotation annotation : field.getDeclaredAnnotations()) {
                 if (annotation.annotationType().equals(ContractStateStore.class)) {
-                    String nameSpace = namespace(service.getClass().getName());
-                    StoreAdapter adapterStore = new StoreAdapter(contractStore.getTmpStateStore(), nameSpace);
+                    log.trace("service name : {} \t namespace : {}", service.getClass().getName(), namespace);
+                    StoreAdapter adapterStore = new StoreAdapter(contractStore.getTmpStateStore(), namespace);
                     field.set(service, adapterStore); //default => tmpStateStore
                 }
 
@@ -110,9 +107,9 @@ public class ContractExecutor {
                     field.set(service, coupler);
                 }
 
+                // todo : Implements event store policy. 190814 - lucas
             }
         }
-
     }
 
     private String namespace(String name) {
@@ -182,7 +179,6 @@ public class ContractExecutor {
         locker.lock();
         isTx = false;
         // Set Coupler Contract and contractCache
-        // TODO: update coupler logic
         coupler.setContract(serviceMap, contractCache);
 
         List<Transaction> txList = nextBlock.getBody().getTransactionList();
@@ -227,12 +223,9 @@ public class ContractExecutor {
 
     private Set<Map.Entry<String, JsonObject>> getRuntimeResult(Map<String, Object> serviceMap, Transaction tx, TransactionReceipt txReceipt) throws ExecutorException {
 
-        BranchId branchId = tx.getBranchId();
         JsonObject txBody = tx.getBody().getBody();
-        // TODO Check if txBody.get("contractVersion") == null
 
         String contractVersion = null;
-
         if (txBody.get("contractVersion") == null) {
             contractVersion = Hex.toHexString(tx.getHeader().getType());
         } else {
@@ -250,6 +243,7 @@ public class ContractExecutor {
 
         }
 
+        // TODO : implement endBlock policy. 190814 - lucas
         Method method = contractCache.getContractMethodMap(contractVersion, ContractMethodType.INVOKE, service).get(methodName);
 
         if (method == null) {
@@ -269,10 +263,9 @@ public class ContractExecutor {
         } catch (IllegalAccessException e) {
             log.error("CallContractMethod : {} and bundle {} ", methodName, contractVersion);
         } catch (InvocationTargetException e) {
-            log.error("CallContractMethod ApplicationErrorLog : {}", e.getCause().toString());
+            log.error("Invoke method error in tx id : {} caused by {}", txReceipt.getTxId(), e.getCause().toString());
             trAdapter.addLog(e.getCause().getMessage());
         } catch (IllegalArgumentException e) {
-            e.getStackTrace();
             log.error(e.getMessage());
         }
 
