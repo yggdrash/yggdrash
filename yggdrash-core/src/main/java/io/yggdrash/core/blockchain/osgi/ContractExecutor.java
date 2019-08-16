@@ -292,7 +292,7 @@ public class ContractExecutor {
     private static TransactionReceipt createTransactionReceipt(Transaction tx) {
         String txId = tx.getHash().toString();
         long txSize = tx.getBody().getLength();
-        String issuer = tx.getAddress().toString();
+        String issuer = tx.getAddress().toString().toLowerCase();
 
         if (tx.getBody().getBody().get("contractVersion") == null) {
             return new TransactionReceiptImpl(txId, txSize, issuer);

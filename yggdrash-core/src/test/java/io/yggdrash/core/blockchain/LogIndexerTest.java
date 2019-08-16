@@ -95,7 +95,7 @@ public class LogIndexerTest {
 
     private TransactionReceipt generateReceipt(Transaction tx, int size) {
         TransactionReceipt receipt = new TransactionReceiptImpl(
-                tx.getHash().toString(), tx.getLength(), tx.getAddress().toString());
+                tx.getHash().toString(), tx.getLength(), tx.getAddress().toString().toLowerCase());
 
         IntStream.range(0, size)
                 .mapToObj(i -> String.format(logFormat, i))
