@@ -66,6 +66,10 @@ public class YeedContract implements BundleActivator, ServiceListener {
     private static final String BALANCE = "balance";
     private static final String FEE = "fee";
 
+    // TODO Base Fee is Network Fee - Governance Change this value
+    // BASE FEE = 10^8;
+    private static BigInteger BASE_FEE = BigInteger.TEN.pow(8);
+
     @Override
     public void start(BundleContext context) {
         log.info("Start Yeed contract");
