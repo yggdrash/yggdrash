@@ -38,14 +38,14 @@ public class TransactionReceiptImpl implements TransactionReceipt {
     public TransactionReceiptImpl(String txId, Long txSize, String issuer) {
         this.txId = txId;
         this.txSize = txSize;
-        this.issuer = issuer;
+        this.setIssuer(issuer);
     }
 
     public TransactionReceiptImpl(String txId, Long txSize, String issuer, String contractVersion) {
         this.txId = txId;
         this.txSize = txSize;
-        this.issuer = issuer;
         this.contractVersion = contractVersion;
+        this.setIssuer(issuer);
     }
 
     @Override
@@ -135,7 +135,7 @@ public class TransactionReceiptImpl implements TransactionReceipt {
 
     @Override
     public void setIssuer(String issuer) {
-        this.issuer = issuer;
+        this.issuer = issuer.toLowerCase();
     }
 
     public String transactionMethod() {

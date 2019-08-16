@@ -12,7 +12,7 @@ public class TransactionReceiptAdapterTest {
     public void testTransactionReceipt() {
         TransactionReceipt tr = new TransactionReceiptImpl();
 
-        tr.setIssuer("TEST");
+        tr.setIssuer("test");
         tr.setStatus(ExecuteStatus.ERROR);
         tr.addLog("LOG1");
         tr.setBlockHeight(1000L);
@@ -21,12 +21,12 @@ public class TransactionReceiptAdapterTest {
         adapter.setTransactionReceipt(tr);
 
 
-        adapter.setIssuer("TEST111");
+        adapter.setIssuer("test111");
         adapter.setStatus(ExecuteStatus.SUCCESS);
         adapter.addLog("LOG2");
         adapter.setBlockHeight(2000L);
 
-        assertEquals("TEST", tr.getIssuer());
+        assertEquals("test", tr.getIssuer());
 
         assert adapter.getStatus() == ExecuteStatus.SUCCESS;
         assert adapter.getTxLog().size() == 2;
