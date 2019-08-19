@@ -59,6 +59,7 @@ public class BlockServiceConsumer<T> implements BlockConsumer<T> {
         return blockList;
     }
 
+    //TODO check syncronization about addBlock()
     @Override
     public void broadcastBlock(ConsensusBlock<T> block) {
         try {
@@ -70,12 +71,6 @@ public class BlockServiceConsumer<T> implements BlockConsumer<T> {
                 return;
             } else if (receivedIndex == nextIndex) {
                 branchGroup.addBlock(block, true);
-            } else {
-                // Catchup Event!
-                if (listener != null) {
-                    log.info("CatchUp required. received={} expected={}", receivedIndex, nextIndex);
-                    listener.catchUpRequest(block);
-                }
             }
         } catch (Exception e) {
             log.debug("BroadcastBlock ERR={}", e.getMessage());

@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, PbftMessage> {
 
@@ -38,6 +39,7 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
     private final BlockChainManagerMock<PbftProto.PbftBlock> blockChainManagerMock;
     private final PbftBlock genesisBlock;
     private final Consensus consensus;
+    private final ReentrantLock lock = new ReentrantLock();
 
     public PbftBlockChain(Block genesisBlock, String dbPath,
                           String blockKeyStorePath, String blockStorePath) {
@@ -137,6 +139,11 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
     @Override
     public Map<String, PbftMessage> getUnConfirmedData() {
         return unConfirmedMsgMap;
+    }
+
+    @Override
+    public ReentrantLock getLock() {
+        return lock;
     }
 
     @Override

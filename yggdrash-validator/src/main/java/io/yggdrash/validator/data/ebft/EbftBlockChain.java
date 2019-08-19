@@ -145,6 +145,11 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
     }
 
     @Override
+    public ReentrantLock getLock() {
+        return lock;
+    }
+
+    @Override
     public Map<String, List<String>> addBlock(ConsensusBlock<EbftProto.EbftBlock> block) {
         this.lock.lock();
         try {

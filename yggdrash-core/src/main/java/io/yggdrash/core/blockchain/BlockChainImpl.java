@@ -91,8 +91,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         // TODO new Validators
         //branchStore.setValidators(branch.getValidators());
         branchStore.setBranchContracts(branch.getBranchContracts());
-
-
     }
 
     @Override
@@ -222,6 +220,11 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         } else {
             return this.branchStore.getBranchContacts();
         }
+    }
+
+    @Override
+    public ReentrantLock getLock() {
+        return lock;
     }
 
     @Override
