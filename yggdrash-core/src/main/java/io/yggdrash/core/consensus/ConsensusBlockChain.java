@@ -21,6 +21,8 @@ public interface ConsensusBlockChain<T, V> {
 
     Map<String, List<String>> addBlock(ConsensusBlock<T> block); // return errorLogs
 
+    Map<String, List<String>> addBlock(ConsensusBlock<T> block, boolean broadcast); // return errorLogs
+
     boolean isValidator(String addr);
 
     ValidatorSet getValidators();

@@ -148,6 +148,14 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
     }
 
     @Override
+    public Map<String, List<String>> addBlock(ConsensusBlock<PbftProto.PbftBlock> block, boolean broadcast) {
+        blockChainManagerMock.addBlock(block); // todo: check efficiency & change index & change broadcast param
+        this.blockKeyStore.put(block.getIndex(), block.getHash().getBytes());
+        loggingBlock((PbftBlock) block);
+        return new HashMap<>();
+    }
+
+    @Override
     public boolean isValidator(String addr) {
         return true;
     }
