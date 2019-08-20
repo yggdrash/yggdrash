@@ -248,13 +248,8 @@ public class ContractExecutorTest {
     }
 
     @Test
-    public void executeVersionProposalTest() throws DecoderException, IOException {
-        String filePath = Objects.requireNonNull(
-                getClass().getClassLoader().getResource(String.format("contracts/%s.jar", contractVersion))).getFile();
-
-        JsonObject txBody = ContractTestUtils.versionUpdateTxBodyJson(new File(filePath));
-
-        Assert.assertThat(txBody.size(), CoreMatchers.is(3));
+    public void executeVersionProposalTest() throws DecoderException {
+        JsonObject txBody = ContractTestUtils.contractProposeTxBodyJson(contractVersion.toString());
 
         Transaction tx = new TransactionBuilder()
                 .setType(Hex.decodeHex(VERSIONING_TX))
@@ -268,17 +263,15 @@ public class ContractExecutorTest {
         Assert.assertNotNull("TransactionRuntimeResult is null", result);
 
         // Validator set not found in Branch Store.
-        Assert.assertThat(result.getReceipt().getStatus(), CoreMatchers.is(ExecuteStatus.ERROR));
-        Assert.assertThat(result.getReceipt().getTxLog().get(0), CoreMatchers.is("Validator is empty"));
+        Assert.assertThat(result.getReceipt().getStatus(), CoreMatchers.is(ExecuteStatus.FALSE));
+        Assert.assertThat(result.getReceipt().getTxLog().get(0), CoreMatchers.is("Validator verification failed"));
 
     }
 
     @Test
     public void executeVersionVoteTest() throws DecoderException {
-        JsonObject txBody = ContractTestUtils.versionVoteTxBodyJson(
-                "a2b0f5fce600eb6c595b28d6253bed92be0568eda2b0f5fce600eb6c595b28d6253bed92be0568ed",
-                true);
-
+        String txId = "34eec4dcb662e54492e3b69adb1d2dce5d7451ca6d22221c38ce5bc6f8871b51";
+        JsonObject txBody = ContractTestUtils.contractVoteTxBodyJson(txId, true);
         Transaction tx = new TransactionBuilder()
                 .setType(Hex.decodeHex(VERSIONING_TX))
                 .setTxBody(txBody)

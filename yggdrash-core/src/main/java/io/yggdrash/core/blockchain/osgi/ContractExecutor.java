@@ -304,7 +304,7 @@ public class ContractExecutor {
 
 
     public TransactionRuntimeResult versioningService(Transaction tx) throws IllegalAccessException {
-        VersioningContract.VersioningContractService service = new VersioningContract.VersioningContractService();
+        VersioningContract service = new VersioningContract();
 
         locker.lock();
         while (!isTx) {

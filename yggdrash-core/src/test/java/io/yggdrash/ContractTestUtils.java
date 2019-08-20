@@ -25,41 +25,46 @@ import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.mock.ContractMock;
-import org.apache.commons.codec.binary.Base64;
 import org.spongycastle.util.encoders.Hex;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
 public class ContractTestUtils {
 
-    public static JsonObject versionUpdateTxBodyJson(File file) throws IOException {
-        JsonObject params = new JsonObject();
-
-        try (FileInputStream is = new FileInputStream(file)) {
-            byte[] contractBinary =  new byte[Math.toIntExact(file.length())];
-            is.read(contractBinary);
-            params.addProperty("contract", new String(Base64.encodeBase64(contractBinary)));
-        }
-
-        params.addProperty("contractVersion", "4adc453cbd99b3be960118e9eced4b5dad435d0f");
-        params.addProperty("method", "updateProposer");
-
-        return params;
+    public static JsonObject contractProposeTxBodyJson(String contractVersion) {
+        return nodeContractTxBodJson("propose", contractProposeParam(contractVersion));
     }
 
-    public static JsonObject versionVoteTxBodyJson(String txId, boolean agree) {
-        JsonObject params = new JsonObject();
-        params.addProperty("txId", txId);
-        params.addProperty("agree", agree);
-        params.addProperty("method", "vote");
-        params.addProperty("contractVersion", "4adc453cbd99b3be960118e9eced4b5dad435d0f");
+    public static JsonObject contractVoteTxBodyJson(String txId, boolean agree) {
+        return nodeContractTxBodJson("vote", contractVoteParam(txId, agree));
+    }
 
-        return params;
+    private static JsonObject nodeContractTxBodJson(String method, JsonObject params) {
+        JsonObject txBody = new JsonObject();
+        txBody.addProperty("contractVersion", "nodeContract"); //TODO Remove this property
+        txBody.addProperty("method", method);
+        txBody.add("params", params);
 
+        return txBody;
+    }
+
+    private static JsonObject contractProposeParam(String contractVersion) {
+        JsonObject param = new JsonObject();
+        param.addProperty("contractVersion", contractVersion);
+        param.addProperty("sourceUrl", "https://github.com/yggdrash/yggdrash");
+        param.addProperty("buildVersion", "1.8.0_172");
+        param.addProperty("votingPeriod", 200L);
+
+        return param;
+    }
+
+    private static JsonObject contractVoteParam(String txId, boolean agree) {
+        JsonObject param = new JsonObject();
+        param.addProperty("txId", txId);
+        param.addProperty("agree", agree);
+
+        return param;
     }
 
     public static JsonObject createParams(String key, String value) {

@@ -29,6 +29,7 @@ import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.blockchain.osgi.ContractManagerBuilder;
+import io.yggdrash.core.blockchain.osgi.Downloader;
 import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkConfig;
 import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkLauncher;
 import io.yggdrash.core.blockchain.osgi.framework.BundleServiceImpl;
@@ -55,8 +56,6 @@ import java.util.Arrays;
 @EnableScheduling
 public class BranchConfiguration {
     private static final Logger log = LoggerFactory.getLogger(BranchConfiguration.class);
-
-    //private final StoreBuilder storeBuilder;
 
     private final DefaultConfig defaultConfig;
 
@@ -168,6 +167,11 @@ public class BranchConfiguration {
                 .setContractManager(contractManager)
                 .setFactory(ValidatorService.factory())
                 .build();
+    }
+
+    @Bean
+    Downloader downloader(DefaultConfig defaultConfig) {
+        return new Downloader(defaultConfig);
     }
 
 }

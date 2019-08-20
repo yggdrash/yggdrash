@@ -26,15 +26,10 @@ import org.osgi.framework.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Dictionary;
@@ -51,7 +46,6 @@ public class ContractManager {
     private final ContractStore contractStore;
     private final LogStore logStore;
 
-    private final String contractRepositoryUrl;
     private final String contractPath;
     private final SystemProperties systemProperties;
     private final Map<String, Object> serviceMap; // contractVersion, service of bundle
@@ -71,7 +65,6 @@ public class ContractManager {
         this.logStore = logStore;
 
         this.contractPath = defaultConfig.getContractPath();
-        this.contractRepositoryUrl = defaultConfig.getContractRepositoryUrl();
 
         this.systemProperties = systemProperties;
         this.serviceMap = new HashMap<>();
@@ -105,7 +98,7 @@ public class ContractManager {
                 contractFile = new File(contractFilePath(contractVersion));
             } else {
                 try {
-                    contractFile = downloader(contractVersion);
+                    contractFile = Downloader.downloadContract(contractVersion);
                 } catch (IOException e) {
                     log.error("Failed to download Contract File {}.jar on system with {}", contractVersion, e.getMessage());
                     deleteContractFile(new File(contractFilePath(contractVersion)));
@@ -350,8 +343,6 @@ public class ContractManager {
                 log.error("Unknown Contract Type in Transaction Header");
                 return null;
         }
-
-//        return contractExecutor.executeTx(serviceMap, tx);
     }
 
     public void commitBlockResult(BlockRuntimeResult result) {
@@ -377,34 +368,6 @@ public class ContractManager {
         }
 
         return contractFile.isFile();
-    }
-
-    public File downloader(ContractVersion version) throws IOException {
-
-        int bufferSize = 1024;
-
-        try (OutputStream outputStream = new BufferedOutputStream(
-                new FileOutputStream(contractFilePath(version)))) {
-            log.info("-------Download Start------");
-            URL url = new URL(this.contractRepositoryUrl + version + ".jar");
-            byte[] buf = new byte[bufferSize];
-            int byteWritten = 0;
-
-            URLConnection connection = url.openConnection();
-            InputStream inputStream = connection.getInputStream();
-
-            int byteRead;
-            while ((byteRead = inputStream.read(buf)) != -1) {
-                outputStream.write(buf, 0, byteRead);
-                byteWritten += byteRead;
-            }
-
-            log.info("Download Successfully.");
-            log.info("Contract Version : {}\t of bytes : {}", version, byteWritten);
-            log.info("-------Download End--------");
-        }
-        return new File(contractFilePath(version));
-
     }
 
     public boolean verifyContractFile(File contractFile, ContractVersion contractVersion) {

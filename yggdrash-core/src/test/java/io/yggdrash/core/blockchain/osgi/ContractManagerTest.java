@@ -101,7 +101,7 @@ public class ContractManagerTest {
             coinFile = new File(config.getContractPath() + File.separator + contractVersion + ".jar");
         } else {
             try {
-                coinFile = manager.downloader(contractVersion);
+                coinFile = Downloader.downloadContract(contractVersion);
             } catch (IOException e) {
                 log.error(e.getMessage());
                 manager.deleteContractFile(new File(config.getContractPath() + File.separator + contractVersion + ".jar"));
