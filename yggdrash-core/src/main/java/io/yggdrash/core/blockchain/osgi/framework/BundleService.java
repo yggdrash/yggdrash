@@ -27,9 +27,4 @@ public interface BundleService {
 
     Bundle[] getBundles(BundleContext context);
 
-
-
-//    void setDefaultPermission(BundleContext context, String branchId);
-
-
 }

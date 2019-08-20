@@ -19,7 +19,6 @@ package io.yggdrash;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.BlockChain;
@@ -52,7 +51,6 @@ import io.yggdrash.core.store.PbftBlockStoreMock;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
 import org.junit.Assert;
-import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -191,23 +189,7 @@ public class BlockChainTestUtils {
                 .withSystemProperties(systemProperties)
                 .build();
 
-
-        for (BranchContract bc : genesis.getBranch().getBranchContracts()) {
-            try {
-                Bundle bundle = contractManager.install(genesis.getBranchId(), bc.getContractVersion(), true);
-                Assert.assertNotNull("bundle is null ", bundle);
-                contractManager.start(bundle);
-                contractManager.inject(genesis.getBranchId(), bc.getContractVersion());
-                contractManager.registerServiceMap(genesis.getBranchId(), bc.getContractVersion(), bundle);
-            } catch (Exception e) {
-                log.error(e.getMessage());
-            }
-        }
-
-        Assert.assertTrue(contractManager.getBundles(genesis.getBranchId()).length
-                >= genesis.getBranch().getBranchContracts().size());
-
-        Assert.assertTrue(contractManager.getServiceMap().size()
+        Assert.assertTrue(contractManager.getBundles().length
                 >= genesis.getBranch().getBranchContracts().size());
 
         BlockChainManager blockChainManager = new BlockChainManagerImpl(bcStore);

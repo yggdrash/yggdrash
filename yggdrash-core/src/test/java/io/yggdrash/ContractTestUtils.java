@@ -42,7 +42,6 @@ public class ContractTestUtils {
 
     private static JsonObject nodeContractTxBodJson(String method, JsonObject params) {
         JsonObject txBody = new JsonObject();
-        txBody.addProperty("contractVersion", "nodeContract"); //TODO Remove this property
         txBody.addProperty("method", method);
         txBody.add("params", params);
 

@@ -80,7 +80,7 @@ public class ContractManagerBuilderTest {
         assert manager != null;
         assert manager.getContractExecutor() != null;
 
-        for (ContractStatus cs : manager.searchContracts(branchId)) {
+        for (ContractStatus cs : manager.searchContracts()) {
             log.debug("Description {}", cs.getDescription());
             log.debug("Location {}", cs.getLocation());
             log.debug("SymbolicName {}", cs.getSymbolicName());

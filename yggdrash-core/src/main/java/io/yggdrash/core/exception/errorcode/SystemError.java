@@ -21,7 +21,8 @@ public enum SystemError {
     //Errors are included in the exception handling message.
     VALID(33000),                      //1000000011101000
     BRANCH_NOT_FOUND(33001),           //1000000011101001
-    CONTRACT_VERSION_NOT_FOUND(33002)  //1000000011101010
+    CONTRACT_VERSION_NOT_FOUND(33002),  //1000000011101010
+    CONTRACT_METHOD_NOT_FOUND(33003)    //1000000011101011
     ;
     private int code;
 
@@ -41,12 +42,18 @@ public enum SystemError {
         return code;
     }
 
+
+    @Override
     public String toString() {
+
         if (code == BRANCH_NOT_FOUND.code) {
             return "Branch doesn't exist";
         }
         if (code == CONTRACT_VERSION_NOT_FOUND.code) {
             return "ContractVersion doesn't exist";
+        }
+        if (code == CONTRACT_METHOD_NOT_FOUND.code) {
+            return "Contract Method doesn't exist";
         }
 
         return "";

@@ -33,7 +33,7 @@ public class ContractController {
         if (blockChain == null) {
             return Collections.emptyList();
         }
-        return blockChain.getContractManager().searchContracts(BranchId.of(branchId));
+        return blockChain.getContractManager().searchContracts();
     }
 
     @GetMapping("/{branchId}/query")

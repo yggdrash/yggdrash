@@ -62,7 +62,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -97,8 +96,8 @@ public class ContractExecutorTest {
         generateGenesisBlock();
 
         buildExecutor();
-        createBundle();
         initGenesis(); //alloc process (executeTxs)
+
     }
 
     @Test
@@ -198,6 +197,7 @@ public class ContractExecutorTest {
                         getNamespaceKey(txs.get(0).getAddress().toString())).get(BALANCE).getAsString());
 
         assertTrue(res.getTxReceipts().get(1).getTxLog().contains("Error Code:34002, Msg:Insufficient funds"));
+        assertTrue(res.getTxReceipts().get(2).getTxLog().contains(SystemError.CONTRACT_VERSION_NOT_FOUND.toString()));
     }
 
     @Test
@@ -317,51 +317,12 @@ public class ContractExecutorTest {
 
         this.executor = manager.getContractExecutor();
 
-        List<ContractStatus> contractStatusList = manager.searchContracts(branchId);
-        Assert.assertTrue(2 >= contractStatusList.size());
+        setNamespace();
 
-        for (ContractStatus cs : contractStatusList) {
-            String bundleSymbolicName = cs.getSymbolicName();
-            byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(bundleSymbolicName.getBytes());
-            this.namespace = new String(Base64.encodeBase64(bundleSymbolicSha3));
-
-            log.debug("Description {}", cs.getDescription());
-            log.debug("Location {}", cs.getLocation());
-            log.debug("SymbolicName {}", cs.getSymbolicName());
-            log.debug("Version {}", cs.getVersion());
-            log.debug(Long.toString(cs.getId()));
-        }
-
-    }
-
-    private void createBundle() throws Exception {
-        String filePath = Objects.requireNonNull(
-                getClass().getClassLoader().getResource(String.format("contracts/%s.jar", contractVersion))).getFile();
-        File coinContractFile = new File(filePath);
-
-        assert coinContractFile.exists();
-
-        Bundle bundle = manager.install(branchId, contractVersion, coinContractFile, true);
-
-        manager.start(bundle);
-        manager.inject(branchId, contractVersion);
-        manager.registerServiceMap(branchId, contractVersion, bundle);
-
-        for (ContractStatus cs : manager.searchContracts(branchId)) {
-            String bundleSymbolicName = cs.getSymbolicName();
-            byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(bundleSymbolicName.getBytes());
-            this.namespace = new String(Base64.encodeBase64(bundleSymbolicSha3));
-
-            log.debug("Description {}", cs.getDescription());
-            log.debug("Location {}", cs.getLocation());
-            log.debug("SymbolicName {}", cs.getSymbolicName());
-            log.debug("Version {}", cs.getVersion());
-            log.debug(Long.toString(cs.getId()));
-        }
     }
 
     private boolean checkExistContract(String contractVersion) {
-        for (ContractStatus cs : manager.searchContracts(branchId)) {
+        for (ContractStatus cs : manager.searchContracts()) {
             if (cs.getLocation().lastIndexOf(contractVersion) > 0) {
                 return true;
             }
@@ -382,13 +343,6 @@ public class ContractExecutorTest {
     private void initGenesis() {
 
         List<Transaction> txList = genesisBlock.getBody().getTransactionList();
-        Map<String, Object> serviceMap = manager.getServiceMap();
-        String version = txList.get(0).getBody().getBody().get("contractVersion").getAsString();
-        Object service = serviceMap.get(version);
-
-        assertEquals(1, txList.size());
-        assertEquals(1, serviceMap.size());
-        assert service != null;
 
         BlockRuntimeResult res = manager.executeTxs(genesisBlock);
         TransactionReceipt receipt = res.getTxReceipts().get(0);
@@ -440,11 +394,12 @@ public class ContractExecutorTest {
         return builder.setTxBody(txBody).setWallet(wallet).setBranchId(branchId).build();
     }
 
-    private void setNamespace(String symbolicName) {
-        byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(symbolicName.getBytes());
+    private void setNamespace() {
+        Bundle bundle = manager.getBundle(contractVersion);
+        String name = bundle.getSymbolicName();
+        byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(name.getBytes());
         this.namespace = new String(Base64.encodeBase64(bundleSymbolicSha3));
-        log.debug("bundleSymbolicName {} , nameSpace {}", symbolicName, this.namespace);
-
+        log.debug("serviceName {} , nameSpace {}", name, this.namespace);
     }
 
     private String getNamespaceKey(String key) {
