@@ -321,6 +321,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 addBalanceTo(txReceipt.getBranchId(), fee);
                 return true;
             } else {
+                log.debug("is Not transferable");
                 return false;
             }
         }
@@ -441,6 +442,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
             String contractName = this.branchStateStore.getContractName(otherContract);
             String contractAccount = String.format("%s%s", PrefixKeyEnum.CONTRACT_ACCOUNT, contractName);
 
+            String issuer = this.txReceipt.getIssuer();
             String fromAccount = params.get("from").getAsString();
             String toAccount = params.get("to").getAsString();
             BigInteger amount = params.get("amount").getAsBigInteger();
@@ -452,13 +454,15 @@ public class YeedContract implements BundleActivator, ServiceListener {
             }
 
             if (toAccount.equalsIgnoreCase(contractName) &&
-                    fromAccount.equalsIgnoreCase(this.txReceipt.getIssuer())) {
+                    fromAccount.equalsIgnoreCase(issuer)) {
                 // deposit
                 return transfer(fromAccount, contractAccount, amount, serviceFee);
             } else if (fromAccount.equalsIgnoreCase(contractName)) { // withdraw
+                // withdraw service fee is used contract Account
                 return transfer(contractAccount, toAccount, amount, serviceFee);
-            }
 
+            }
+            this.txReceipt.addLog("Transfer channel fail");
             return false; // If neither deposit nor withdraw
         }
 
