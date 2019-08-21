@@ -52,7 +52,6 @@ public class ContractManagerTest {
     public void setUp() throws Exception {
         manager = initContractManager();
         executor = manager.getContractExecutor();
-
     }
 
     private void printBundles() {
@@ -84,7 +83,7 @@ public class ContractManagerTest {
         if (manager.isContractFileExist(contractVersion)) {
             coinFile = new File(config.getContractPath() + File.separator + contractVersion + ".jar");
         } else {
-            coinFile = manager.downloader(contractVersion);
+            coinFile = Downloader.downloadContract(contractVersion);
         }
 
         Assert.assertNotNull("Failed to download COIN-CONTRACT File on system", coinFile);
