@@ -62,6 +62,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -77,7 +78,7 @@ public class ContractExecutorTest {
     private ConsensusBlock<PbftProto.PbftBlock> genesisBlock;
     private Transaction genesisTx;
     private BranchId branchId;
-    private ContractVersion contractVersion = ContractVersion.of("8c65bc05e107aab9ceaa872bbbb2d96d57811de4");
+    private ContractVersion contractVersion = ContractVersion.of("d878eda1493fc95f5dafecfbf5ae59d1cc706d3b");
     private ContractStore contractStore;
     private ContractManager manager;
     private ContractExecutor executor;
@@ -97,7 +98,6 @@ public class ContractExecutorTest {
 
         buildExecutor();
         initGenesis(); //alloc process (executeTxs)
-
     }
 
     @Test
@@ -129,6 +129,65 @@ public class ContractExecutorTest {
         assertEquals(0, contractStore.getTmpStateStore().changeValues().size()); //revert after checkTx
         assertEquals(10, contractStore.getStateStore().getStateSize()); //same with origin state
         assertFalse(contractStore.getTransactionReceiptStore().contains(tx.getHash().toString()));
+    }
+
+    @Test
+    public void doesNotReflectChangedStateOfErrorTx() {
+        /*
+        Burn function added to coinContract for testing and the business logic is not suitable for actually using.
+
+        The purpose of this test is to ensure that if the result of the transaction is an Error,
+        the contract is executed and does not reflect the changed state.
+
+        If the result of the transaction is a failure,
+        the changed status value will be saved unlike in the case of an error.
+
+        [Test Scenario]
+        The balance of issuer is 10000000.
+        It returns an error if the amount of fee is greater than issuer balance.
+        ContractExecutor should update the state except for the changed status value in case of error.
+        */
+
+        // Create a transaction list includes success and error ones.
+        List<Transaction> txList = new ArrayList<>();
+
+        // Add success transactions and error transactions
+        txList.add(createBurnTx("100"));
+        txList.add(createBurnTx("10000000"));
+        txList.add(createBurnTx("100"));
+        txList.add(createBurnTx("10000000"));
+
+        // Create a block with the txList which should be added to blockChain.
+        ConsensusBlock<PbftProto.PbftBlock> nextBlock = BlockChainTestUtils.createNextBlock(
+                wallet, txList, genesisBlock);
+
+        // Execute the created block.
+        BlockRuntimeResult res = manager.executeTxs(nextBlock);
+
+        // Result
+        assertEquals("TxReceipts size", 4, res.getTxReceipts().size());
+        assertEquals("TxReceipt status", ExecuteStatus.SUCCESS, res.getTxReceipts().get(0).getStatus());
+        assertEquals("TxReceipt status", ExecuteStatus.ERROR, res.getTxReceipts().get(1).getStatus());
+        assertEquals("TxReceipt status", ExecuteStatus.SUCCESS, res.getTxReceipts().get(2).getStatus());
+        assertEquals("TxReceipt status", ExecuteStatus.ERROR, res.getTxReceipts().get(3).getStatus());
+        assertEquals("Tx blockHeight", Long.valueOf(1), res.getTxReceipts().get(0).getBlockHeight());
+
+        Map<String, JsonObject> blockResult = res.getBlockResult();
+        String issuerBalance = blockResult.get(getNamespaceKey(wallet.getHexAddress())).get("balance").getAsString();
+        String totalBalance = blockResult.get(getNamespaceKey("TOTAL_SUPPLY")).get("balance").getAsString();
+
+        assertEquals("999800", issuerBalance);
+        assertEquals("1993999999999999999999700", totalBalance);
+    }
+
+    private Transaction createBurnTx(String fee) {
+        JsonObject params = new JsonObject();
+        params.addProperty("amount", "100");
+        params.addProperty("fee", fee);
+
+        JsonObject txBody = ContractTestUtils.txBodyJson(contractVersion, "burn", params, false);
+
+        return new TransactionBuilder().setTxBody(txBody).setWallet(wallet).setBranchId(branchId).build();
     }
 
     @Test
@@ -196,7 +255,7 @@ public class ContractExecutorTest {
                 res.getBlockResult().get(
                         getNamespaceKey(txs.get(0).getAddress().toString())).get(BALANCE).getAsString());
 
-        assertTrue(res.getTxReceipts().get(1).getTxLog().contains("Error Code:34002, Msg:Insufficient funds"));
+        assertTrue(res.getTxReceipts().get(1).getTxLog().contains("Insufficient funds"));
         assertTrue(res.getTxReceipts().get(2).getTxLog().contains(SystemError.CONTRACT_VERSION_NOT_FOUND.toString()));
     }
 
