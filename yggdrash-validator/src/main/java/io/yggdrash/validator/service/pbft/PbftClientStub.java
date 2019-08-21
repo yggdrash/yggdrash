@@ -4,6 +4,7 @@ import io.grpc.Context;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
@@ -51,6 +52,7 @@ public class PbftClientStub implements ConsensusClientStub<PbftBlock> {
             try {
                 this.channel = ManagedChannelBuilder.forAddress(host, port)
                         .usePlaintext()
+                        .maxInboundMessageSize(Constants.MAX_GRPC_MESSAGE_LIMIT)
                         .build();
                 blockingStub = PbftServiceGrpc.newBlockingStub(channel);
             } catch (Exception e) {
