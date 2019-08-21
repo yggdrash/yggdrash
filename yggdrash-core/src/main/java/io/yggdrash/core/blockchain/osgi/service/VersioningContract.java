@@ -1,3 +1,15 @@
+/*
+ * Copyright 2019 Akashic Foundation
+ * Licensed under the Apache License, Version 2.0 (the “License”);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an “AS IS” BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License
+ */
+
 package io.yggdrash.core.blockchain.osgi.service;
 
 import com.google.gson.JsonObject;
@@ -12,260 +24,157 @@ import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.store.ReadWriterStore;
-import org.apache.commons.codec.binary.Base64;
+import io.yggdrash.core.blockchain.osgi.Downloader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
+
 public class VersioningContract {
-    public static class VersioningContractService {
 
-        private static final Logger log = LoggerFactory.getLogger(VersioningContract.class);
+    private static final Logger log = LoggerFactory.getLogger(VersioningContract.class);
+    private static final String SUFFIX_TEMP_CONTRACT = "/update-temp-contracts";
+    private static final String SUFFIX_CONTRACT = "/.yggdrash/contract";
 
-        private static final Long MAX_FILE_LENGTH = 5242880L; // default 5MB bytes
-        private static final String SUFFIX_UPDATE_CONTRACT = "/update-temp-contracts";
-        private static final String SUFFIX_CONTRACT = "/.yggdrash/contract";
-        private static final String SUFFIX = ".jar";
+    @ContractStateStore
+    ReadWriterStore<String, JsonObject> state;
 
-        @ContractStateStore
-        ReadWriterStore<String, JsonObject> state;
+    @ContractBranchStateStore
+    BranchStateStore branchStore;
 
-        @ContractBranchStateStore
-        BranchStateStore branchStore;
+    @ContractTransactionReceipt
+    TransactionReceipt txReceipt;
 
-        @ContractTransactionReceipt
-        TransactionReceipt txReceipt;
-
-        @InvokeTransaction
-        public TransactionReceipt updateProposer(JsonObject params) {
-            // TODO 컨트랙트 조회
-            VersioningContractStateValue stateValue;
-            try {
-                stateValue = VersioningContractStateValue.of(txReceipt.getTxId());
-                stateValue.init();
-
-                String upgradeContract = params.get("contract").getAsString();
-                byte[] binaryFile = base64Dec(upgradeContract.getBytes("UTF-8"));
-
-                if (!validatorVerify()) {
-                    setErrorTxReceipt("Validator is empty");
-                    return txReceipt;
-                }
-
-                if ((binaryFile == null) || !sizeVerify(binaryFile)) {
-                    return txReceipt;
-                }
-
-                try {
-                    writeTempContract(stateValue, binaryFile, params);
-                    state.put(txReceipt.getTxId(),
-                            stateValue.getJson().get(txReceipt.getTxId()).getAsJsonObject());
-                    txReceipt.setStatus(ExecuteStatus.SUCCESS);
-                    log.info("[Contract | update] TX Id => " + txReceipt.getTxId());
-                    log.info("[Contract | update] Contract State => " + stateValue.getJson());
-                } catch (Exception e) {
-                    log.error(e.toString());
-                    txReceipt.setStatus(ExecuteStatus.FALSE);
-                    txReceipt.addLog(e.getMessage());
-                }
-            } catch (Exception e) {
-                log.warn("Failed to convert json = {}", params);
-            }
-            return txReceipt;
-        }
-
-        @InvokeTransaction
-        public TransactionReceipt vote(JsonObject params) {
-            txReceipt.setStatus(ExecuteStatus.FALSE);
-            VersioningContractStateValue stateValue;
-            try {
-                ContractVote contractVote = JsonUtil.generateJsonToClass(params.toString(), ContractVote.class);
-                stateValue = VersioningContractStateValue.of(getContractSet(contractVote.getTxId()));
-                Long targetBlockHeight = stateValue.getContractSet().getTargetBlockHeight();
-                Long currentBlockHeight = txReceipt.getBlockHeight();
-
-                if (currentBlockHeight > targetBlockHeight) {
-                    removeTempContract(stateValue);
-                    txReceipt.setStatus(ExecuteStatus.FALSE);
-                    return txReceipt;
-                }
-
-                if (stateValue.getContractSet().isUpgradable()) {
-                    //TODO updatable 이면 컨트랙트 파일 이동
-                    moveTempContract(stateValue);
-                    removeTempContract(stateValue);
-                    txReceipt.setStatus(ExecuteStatus.SUCCESS);
-                } else {
-                    setVote(stateValue, contractVote, txReceipt.getIssuer());
-                    state.put(contractVote.getTxId(),
-                            stateValue.getJson().get(contractVote.getTxId()).getAsJsonObject());
-                    txReceipt.setStatus(ExecuteStatus.SUCCESS);
-                }
-                log.info("[Contract | Vote] Possible Upgrade  => "
-                        + stateValue.getJson().get(contractVote.getTxId()).getAsJsonObject().get("upgradable"));
-                log.info("[Contract | Vote] Contract State => "
-                        + stateValue.getJson().get(contractVote.getTxId()).getAsJsonObject().get("votedState"));
-            } catch (Exception e) {
-                txReceipt.setStatus(ExecuteStatus.FALSE);
-                log.warn("Failed to vote = {}", params);
-            }
-            return txReceipt;
-        }
-
-        @ContractQuery
-        public ContractSet updateStatus(JsonObject params) {
-            ContractSet contractSet = null;
-            JsonObject json = state.get(params.get("txId").getAsString());
-            if (json != null) {
-                contractSet = JsonUtil.generateJsonToClass(json.toString(), ContractSet.class);
-            }
-            return contractSet;
-        }
-
-        private boolean validatorVerify() {
-
-            if (branchStore.getValidators() == null) {
-                return false;
-            }
-
-            for (String key : branchStore.getValidators().getValidatorMap().keySet()) {
-                if (!key.isEmpty() && key.equals(txReceipt.getIssuer())) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private void setStateValue(VersioningContractStateValue stateValue, byte[] contractBinary, JsonObject params) {
-            if (params.has("votePeorid")) {
-                stateValue.setBlockHeight(txReceipt.getBlockHeight(),
-                        params.get("votePeorid").getAsLong());
-            } else {
-                stateValue.setBlockHeight(txReceipt.getBlockHeight());
-            }
-            stateValue.setTargetContractVersion(params.get("contractVersion").getAsString());
-            stateValue.setUpdateContract(contractBinary);
-
-            Set<String> validatorSet = new HashSet<>(branchStore.getValidators().getValidatorMap().keySet());
-            stateValue.setVotable(txReceipt.getIssuer(), validatorSet);
-        }
-
-        private void writeTempContract(VersioningContractStateValue stateValue, byte[] binaryFile, JsonObject params) {
-            try {
-                setStateValue(stateValue, binaryFile, params);
-                FileOutputStream fos;
-                String tempContractPath = getTempContractPath();
-
-                File fileDir = new File(tempContractPath);
-                if (!fileDir.exists()) {
-                    fileDir.mkdirs();
-                }
-                ContractVersion version = ContractVersion.of(binaryFile);
-                File destFile = new File(tempContractPath + File.separator + version + SUFFIX);
-                destFile.setReadOnly();
-
-                fos = new FileOutputStream(destFile);
-                fos.write(binaryFile);
-                fos.close();
-            } catch (Exception e) {
-                log.error(e.toString());
-                txReceipt.setStatus(ExecuteStatus.FALSE);
-            }
-        }
-
-        private ContractSet getContractSet(String txId) {
-            ContractSet contractSet = null;
-            JsonObject json = state.get(txId);
-            if (json != null) {
-                contractSet = JsonUtil.generateJsonToClass(json.toString(), ContractSet.class);
-            }
-            return contractSet;
-        }
-
-        private boolean sizeVerify(byte[] binaryFile) {
-            if (binaryFile.length > MAX_FILE_LENGTH) {
-                return false;
-            }
-            return true;
-        }
-
-        private String getTempContractPath() {
-            String tempContractPath = String.format("%s/%s", getContractPath(), SUFFIX_UPDATE_CONTRACT);
-            return tempContractPath;
-        }
-
-        private String getContractPath() {
-            Path path = Paths.get(System.getProperty("user.dir"));
-            String contractPath = String.format("%s/%s", path.getParent(), SUFFIX_CONTRACT);
-            return contractPath;
-        }
-
-        private void setVote(VersioningContractStateValue stateValue, ContractVote contractVote, String issuer) {
-            stateValue.voting(contractVote, issuer);
-        }
-
-        private void removeTempContract(VersioningContractStateValue stateValue) {
-            ContractVersion version = ContractVersion
-                    .of(stateValue.getContractSet().getUpdateContract());
-            String contract = String.format("%s/%s", getTempContractPath(), version.toString() + SUFFIX);
-            File contractFile = new File(contract);
-            contractFile.delete();
-        }
-
-        private void moveTempContract(VersioningContractStateValue stateValue) throws IOException {
-            ContractVersion version = ContractVersion
-                    .of(stateValue.getContractSet().getUpdateContract());
-            Path file = Paths.get(String.format("%s/%s", getTempContractPath(), version.toString() + SUFFIX));
-            log.debug(version.toString());
-            Path movePath = Paths.get(getContractPath());
-            File f = new File(String.format("%s/%s", getContractPath(), version.toString() + SUFFIX));
-            if (f.isFile()) {
-                return;
-            }
-            Files.move(file, movePath.resolve(file.getFileName()));
-        }
-
-        private static byte[] base64Dec(byte[] buffer) {
-            return Base64.decodeBase64(buffer);
-        }
-
-
-
-        private void setErrorTxReceipt(String msg) {
-            this.txReceipt.setStatus(ExecuteStatus.ERROR);
-            this.txReceipt.addLog(msg);
-        }
-
-        private void setFalseTxReceipt(String msg) {
-            this.txReceipt.setStatus(ExecuteStatus.FALSE);
-            this.txReceipt.addLog(msg);
-        }
-
-        private void setFalseTxReceipt(List<String> msgs) {
-            this.txReceipt.setStatus(ExecuteStatus.FALSE);
-            msgs.forEach(l -> this.txReceipt.addLog(l));
-        }
-
-        private void setSuccessTxReceipt(String msg) {
-            this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
-            this.txReceipt.addLog(msg);
-        }
-
-        private void setSuccessTxReceipt(List<String> msgs) {
-            this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
-            msgs.forEach(l -> this.txReceipt.addLog(l));
-        }
-
+    @ContractQuery
+    public ContractProposal proposalStatus(JsonObject params) {
+        return getProposal(params.get("txId").getAsString());
     }
 
+    @InvokeTransaction
+    public TransactionReceipt propose(JsonObject params) {
+        // Verify that the issuer is a validator
+        if (!isValidator()) {
+            setFalseTxReceipt("Validator verification failed");
+            return txReceipt;
+        }
+
+        // Create a contract proposal with parameters.
+        String txId = txReceipt.getTxId();
+        long blockHeight = txReceipt.getBlockHeight();
+        String contractVersion = params.get("contractVersion").getAsString();
+        String sourceUrl = params.get("sourceUrl").getAsString();
+        String buildVersion = params.get("buildVersion").getAsString();
+        Set<String> validatorSet = new HashSet<>(branchStore.getValidators().getValidatorMap().keySet());
+
+        ContractProposal proposal = new ContractProposal(
+                txId, contractVersion, sourceUrl, buildVersion, blockHeight, validatorSet);
+
+        JsonObject proposalObj = JsonUtil.parseJsonObject(proposal);
+
+        // Store the proposal in stateStore
+        state.put(txId, proposalObj);
+
+        setSuccessTxReceipt("Contract proposal has been issued");
+        log.info("Contract Proposal : txId = {}, proposal = {}", txId, proposalObj);
+
+        return txReceipt;
+    }
+
+    @InvokeTransaction
+    public TransactionReceipt vote(JsonObject params) {
+        // Verify that the issuer is a validator
+        if (!isValidator()) {
+            setFalseTxReceipt("Validator verification failed");
+            return txReceipt;
+        }
+
+        String txId = params.get("txId").getAsString();
+        ContractProposal proposal = getProposal(txId);
+        // Verify the proposal exists
+        if (proposal == null) {
+            setFalseTxReceipt("Contract proposal not found");
+            return txReceipt;
+        }
+
+        long curBlockHeight = txReceipt.getBlockHeight();
+        // Verify the proposal is expired
+        if (proposal.isExpired(curBlockHeight)) {
+            setFalseTxReceipt("Contract proposal has already expired");
+            return txReceipt;
+        }
+
+        String issuer = txReceipt.getIssuer();
+        boolean agree = params.get("agree").getAsBoolean();
+
+        proposal.vote(issuer, agree);
+        state.put(txId, JsonUtil.parseJsonObject(proposal));
+
+        setSuccessTxReceipt("Update proposal voting is in progress");
+
+        String contractVersion = proposal.getContractVersion();
+        // Verify the voting is finished
+        if (proposal.isVotingFinished()) {
+            try {
+                downloadContractFile(contractVersion);
+                setSuccessTxReceipt("Contract file has been downloaded");
+
+                moveTmpContract(contractVersion);
+                setSuccessTxReceipt("Update proposal voting was completed successfully");
+            } catch (IOException e) {
+                setFalseTxReceipt("Contract file download failed or cannot be located");
+                return txReceipt;
+            }
+        }
+
+        return txReceipt;
+    }
+
+    private void moveTmpContract(String contractVersion) throws IOException {
+        Path tmp = Paths.get(String.format("%s/%s", tmpContractPath(), contractVersion + ".jar"));
+        Path origin = Paths.get(contractPath());
+        Files.move(tmp, origin.resolve(tmp.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    private File downloadContractFile(String contractVersion) throws IOException {
+        return Downloader.downloadContract(tmpContractPath(), ContractVersion.of(contractVersion));
+    }
+
+    private String tmpContractPath() {
+        return String.format("%s%s", contractPath(), SUFFIX_TEMP_CONTRACT);
+    }
+
+    private String contractPath() {
+        Path path = Paths.get(System.getProperty("user.dir"));
+        return String.format("%s%s", path.getParent(), SUFFIX_CONTRACT);
+    }
+
+    private ContractProposal getProposal(String txId) {
+        JsonObject proposalObj = state.get(txId);
+        return proposalObj != null
+                ? JsonUtil.generateJsonToClass(proposalObj.toString(), ContractProposal.class) : null;
+    }
+
+    private boolean isValidator() {
+        return branchStore.getValidators() != null && branchStore.getValidators().getValidatorMap().keySet().stream()
+                .anyMatch(key -> !key.isEmpty() && key.equals(txReceipt.getIssuer()));
+    }
+
+    private void setFalseTxReceipt(String msg) {
+        this.txReceipt.setStatus(ExecuteStatus.FALSE);
+        this.txReceipt.addLog(msg);
+    }
+
+    private void setSuccessTxReceipt(String msg) {
+        this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
+        this.txReceipt.addLog(msg);
+    }
 
 }

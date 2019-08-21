@@ -88,7 +88,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         this.viewNumber = this.blockChain.getBlockChainManager().getLastIndex() + 1;
         this.seqNumber = this.blockChain.getBlockChainManager().getLastIndex() + 1;
 
-
         printInitInfo();
     }
 
@@ -218,10 +217,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
                 try {
                     client.multicastPbftMessage(PbftMessage.toProto(message));
                 } catch (Exception e) {
-                    log.debug("multicast exception: {}", e.getMessage());
-                    log.debug("client: {}", client.getId());
-                    log.debug("message: {}", message);
-                    // continue
+                    log.debug("multicastMessage exception: {} {} {}", client.getId(), message, e.getMessage());
                 }
             }
         }
@@ -238,8 +234,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
                 log.debug("BroadcastBlock [{}]{} to {}:{}", block.getIndex(), block.getHash(),
                         client.getHost(), client.getPort());
             } catch (Exception e) {
-                log.debug("BroadcastBlock exception: {}", e.getMessage());
-                log.debug("client: {}", client.getId());
+                log.debug("BroadcastBlock exception: {} {}", client.getId(), e.getMessage());
             }
         }
     }
@@ -521,7 +516,9 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     private void resetUnConfirmedBlock(long index) {
         for (String key : this.blockChain.getUnConfirmedData().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedData().get(key);
-            if (pbftMessage.getSeqNumber() <= index) {
+            if (pbftMessage == null) {
+                continue;
+            } else if (pbftMessage.getSeqNumber() <= index) {
                 pbftMessage.clear();
                 this.blockChain.getUnConfirmedData().remove(key);
             }
@@ -540,7 +537,9 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         Map<String, PbftMessage> msgMap = new TreeMap<>();
         for (String key : this.blockChain.getUnConfirmedData().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedData().get(key);
-            if (pbftMessage.getViewNumber() == viewNumber
+            if (pbftMessage == null) {
+                continue;
+            } else if (pbftMessage.getViewNumber() == viewNumber
                     && pbftMessage.getSeqNumber() == seqNumber
                     && pbftMessage.getType().equals(msg)) {
                 msgMap.put(key, pbftMessage);
@@ -567,7 +566,9 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     private void resetUnConfirmedMessage(long viewNumber, long seqNumber) {
         for (String key : this.blockChain.getUnConfirmedData().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedData().get(key);
-            if (pbftMessage.getViewNumber() < viewNumber
+            if (pbftMessage == null) {
+                continue;
+            } else if (pbftMessage.getViewNumber() < viewNumber
                     || pbftMessage.getSeqNumber() < seqNumber) {
                 pbftMessage.clear();
                 this.blockChain.getUnConfirmedData().remove(key);
@@ -583,7 +584,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     public void checkNode() {
         for (Map.Entry<String, PbftClientStub> entry : totalValidatorMap.entrySet()) {
             PbftClientStub client = entry.getValue();
-            if (client.isMyclient() || client.getChannel() == null) {
+            if (client == null || client.isMyclient() || client.getChannel() == null) {
                 continue;
             }
 
@@ -604,6 +605,9 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
     private void checkNodeStatus(PbftClientStub client) {
         PbftStatus myStatus = getMyNodeStatus();
+        if (myStatus == null) {
+            return;
+        }
         log.trace("My PbftStatus is {}", myStatus);
 
         PbftStatus pbftStatus = client.exchangePbftStatus(PbftStatus.toProto(myStatus));
@@ -644,7 +648,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
             return;
         }
 
-        PbftBlock pbftBlock;
         long lastConfirmedBlockIndex = this.blockChain.getBlockChainManager().getLastIndex();
         log.debug("Block syncing Node: {} From: {} To: {}",
                 client.getId(), lastConfirmedBlockIndex + 1, untilBlockIndex);
@@ -660,10 +663,11 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         }
 
         int i = 0;
+        PbftBlock pbftBlock;
         for (; i < pbftBlockList.size(); i++) {
             pbftBlock = pbftBlockList.get(i);
             if (!PbftVerifier.INSTANCE.verify(pbftBlock)
-                    || this.blockChain.addBlock(pbftBlock) == null) {
+                    || this.blockChain.addBlock(pbftBlock, false).size() > 0) {
                 log.warn("Failed verifing a block when syncing");
                 client.setIsRunning(false);
                 for (PbftBlock pbBlock : pbftBlockList) {
@@ -703,8 +707,9 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     public void updateUnconfirmedMsgMap(Map<String, PbftMessage> newPbftMessageMap) {
         for (Map.Entry<String, PbftMessage> entry : newPbftMessageMap.entrySet()) {
             PbftMessage pbftMessage = entry.getValue();
-
-            if (pbftMessage.getViewNumber() >= this.viewNumber
+            if (pbftMessage == null) {
+                continue;
+            } else if (pbftMessage.getViewNumber() >= this.viewNumber
                     || pbftMessage.getSeqNumber() >= this.seqNumber) {
                 updateUnconfirmedMsg(entry.getValue());
             }
@@ -716,8 +721,9 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         Map<String, PbftMessage> pbftMessageMap = new TreeMap<>();
         for (String key : this.blockChain.getUnConfirmedData().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedData().get(key);
-            if (pbftMessage != null
-                    && pbftMessage.getSeqNumber() > index
+            if (pbftMessage == null) {
+                continue;
+            } else if (pbftMessage.getSeqNumber() > index
                     && pbftMessage.getViewNumber() >= this.viewNumber) {
                 pbftMessageMap.put(key, pbftMessage.clone());
             }
@@ -803,10 +809,10 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     private void updateNodeMap(Map<String, PbftClientStub> nodeMap, String address, String host, int port) {
-        PbftClientStub client = new PbftClientStub(address, host, port);
-        if (client.getId().equals(myNode.getId())) {
+        if (myNode.getId().equals(address + "@" + host + ":" + port)) {
             nodeMap.put(myNode.getAddr(), myNode);
         } else {
+            PbftClientStub client = new PbftClientStub(address, host, port);
             nodeMap.put(client.getAddr(), client);
         }
     }
