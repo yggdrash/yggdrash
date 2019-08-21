@@ -77,8 +77,7 @@ public class ContractExecutor {
         inject(service, namespace(service.getClass().getName()));
     }
 
-    void injectBundleContract(Bundle bundle, Object service, boolean isSystemContract) throws IllegalAccessException {
-
+    void injectBundleContract(Bundle bundle, Object service) throws IllegalAccessException {
         inject(service, namespace(bundle.getSymbolicName()));
     }
 
@@ -211,8 +210,9 @@ public class ContractExecutor {
             }
 
             blockRuntimeResult.addTxReceipt(txReceipt);
+
             if (!txReceipt.isSuccess()) {
-                log.warn("{} : {}", txReceipt.getTxId(), txReceipt.isSuccess());
+                log.warn("TxId : {}, log : {}", txReceipt.getTxId(), txReceipt.getTxLog());
             }
         }
 
@@ -240,7 +240,6 @@ public class ContractExecutor {
         if (service == null) {
             log.error("This service that contract version {} is not registered", contractVersion);
             throw new ExecutorException(SystemError.CONTRACT_VERSION_NOT_FOUND);
-
         }
 
         // TODO : implement endBlock policy. 190814 - lucas

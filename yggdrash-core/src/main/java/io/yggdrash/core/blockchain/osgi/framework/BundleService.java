@@ -2,7 +2,6 @@ package io.yggdrash.core.blockchain.osgi.framework;
 
 import io.yggdrash.common.contract.ContractVersion;
 import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 
 import java.io.File;
@@ -11,20 +10,22 @@ import java.io.IOException;
 public interface BundleService {
 
     // Bundle Actions
-    Bundle install(BundleContext context, ContractVersion contractVersion, File file, boolean isSystem) throws IOException, BundleException;
+    Bundle install(ContractVersion contractVersion, File file) throws IOException, BundleException;
 
-    void uninstall(BundleContext context, ContractVersion contractVersion) throws BundleException;
+    void uninstall(ContractVersion contractVersion) throws BundleException;
 
-    void start(BundleContext context, ContractVersion contractVersion) throws BundleException;
+    void start(ContractVersion contractVersion) throws BundleException;
 
     void start(Bundle bundle) throws BundleException;
 
-    void stop(BundleContext context,  ContractVersion contractVersion) throws BundleException;
+    void stop(ContractVersion contractVersion) throws BundleException;
 
-    int getBundleState(BundleContext context,  ContractVersion contractVersion);
+    int getBundleState(ContractVersion contractVersion);
 
-    Bundle getBundle(BundleContext context, ContractVersion contractVersion);
+    Bundle[] getBundles();
 
-    Bundle[] getBundles(BundleContext context);
+    Bundle getBundle(ContractVersion contractVersion);
+
+    Object getBundleService(Bundle bundle);
 
 }

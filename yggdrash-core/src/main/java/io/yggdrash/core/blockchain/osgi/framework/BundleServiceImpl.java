@@ -16,17 +16,42 @@ import java.io.InputStream;
 public class BundleServiceImpl implements BundleService {
     private static final Logger log = LoggerFactory.getLogger(BundleServiceImpl.class);
 
-    @Override
-    public Bundle install(BundleContext context, ContractVersion contractVersion, File file, boolean isSystem) throws IOException, BundleException {
+    private final BundleContext context;
 
-        try (InputStream fs = new FileInputStream(file.getAbsolutePath())) {
-            return context.installBundle(location(isSystem, contractVersion), fs);
+    public BundleServiceImpl(BundleContext context) {
+        this.context = context;
+
+        // todo : remove this code when bundle location prefix all removed.
+        uninstallPrefixedBundle();
+    }
+
+    private void uninstallPrefixedBundle() {
+        Bundle[] bundles = getBundles();
+
+        // bundles[0] is System Bundle
+        for (int i = 1; i < bundles.length; i++) {
+            if (bundles[i].getLocation().startsWith(ContractConstants.SUFFIX_SYSTEM_CONTRACT)) {
+                try {
+                    log.debug("remove old bundle {}", bundles[i].getLocation());
+                    bundles[i].uninstall();
+                } catch (BundleException e) {
+                    log.trace(e.getMessage());
+                }
+            }
         }
     }
 
     @Override
-    public void uninstall(BundleContext context, ContractVersion contractVersion) throws BundleException {
-        Bundle bundle = findBundleByContractVersion(context, contractVersion);
+    public Bundle install(ContractVersion contractVersion, File file) throws IOException, BundleException {
+
+        try (InputStream fs = new FileInputStream(file.getAbsolutePath())) {
+            return context.installBundle(contractVersion.toString(), fs);
+        }
+    }
+
+    @Override
+    public void uninstall(ContractVersion contractVersion) throws BundleException {
+        Bundle bundle = getBundle(contractVersion);
         if (bundle != null) {
             bundle.uninstall();
             return;
@@ -35,8 +60,8 @@ public class BundleServiceImpl implements BundleService {
     }
 
     @Override
-    public void start(BundleContext context, ContractVersion contractVersion) throws BundleException {
-        Bundle bundle = findBundleByContractVersion(context, contractVersion);
+    public void start(ContractVersion contractVersion) throws BundleException {
+        Bundle bundle = getBundle(contractVersion);
         if (bundle != null) {
             bundle.start();
             return;
@@ -50,8 +75,8 @@ public class BundleServiceImpl implements BundleService {
     }
 
     @Override
-    public void stop(BundleContext context,  ContractVersion contractVersion) throws BundleException {
-        Bundle bundle = findBundleByContractVersion(context, contractVersion);
+    public void stop(ContractVersion contractVersion) throws BundleException {
+        Bundle bundle = getBundle(contractVersion);
         if (bundle != null) {
             bundle.stop();
             return;
@@ -60,8 +85,8 @@ public class BundleServiceImpl implements BundleService {
     }
 
     @Override
-    public int getBundleState(BundleContext context,  ContractVersion contractVersion) {
-        Bundle bundle = findBundleByContractVersion(context, contractVersion);
+    public int getBundleState(ContractVersion contractVersion) {
+        Bundle bundle = getBundle(contractVersion);
         if (bundle != null) {
             return bundle.getState();
         }
@@ -69,41 +94,19 @@ public class BundleServiceImpl implements BundleService {
         return -1;
     }
 
-    public Bundle getBundle(BundleContext context, long bundleId) {
-        return context.getBundle(bundleId);
-    }
-
     @Override
-    public Bundle getBundle(BundleContext context, ContractVersion contractVersion) {
-        return findBundleByContractVersion(context, contractVersion);
-    }
-
-    @Override
-    public Bundle[] getBundles(BundleContext context) {
+    public Bundle[] getBundles() {
         return context.getBundles();
     }
 
-    public Bundle getBundle(BundleContext context, String contractVersion) {
-        return findBundleByContractVersion(context, contractVersion);
+    @Override
+    public Bundle getBundle(ContractVersion contractVersion) {
+        return context.getBundle(contractVersion.toString());
     }
 
-    private String location(boolean isSystem, ContractVersion contractVersion) {
-        return isSystem
-                ? String.format("%s/%s", ContractConstants.SUFFIX_SYSTEM_CONTRACT, contractVersion.toString())
-                : String.format("%s/%s", ContractConstants.SUFFIX_USER_CONTRACT, contractVersion.toString());
-    }
-
-    private Bundle findBundleByContractVersion(BundleContext context, ContractVersion contractVersion) {
-        return findBundleByContractVersion(context, contractVersion.toString());
-    }
-
-    private Bundle findBundleByContractVersion(BundleContext context, String contractVersion) {
-        for (Bundle bundle : context.getBundles()) {
-            if (bundle.getLocation().contains(contractVersion)) {
-                return bundle;
-            }
-        }
-        return null;
+    @Override
+    public Object getBundleService(Bundle bundle) {
+        return context.getService(bundle.getRegisteredServices()[0]);
     }
 
 }
