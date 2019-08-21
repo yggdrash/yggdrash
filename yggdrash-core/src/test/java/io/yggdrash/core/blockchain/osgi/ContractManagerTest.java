@@ -25,6 +25,7 @@ import org.osgi.framework.BundleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 
 
@@ -51,7 +52,6 @@ public class ContractManagerTest {
     public void setUp() throws Exception {
         manager = initContractManager();
         executor = manager.getContractExecutor();
-
     }
 
     private void printBundles() {
@@ -63,10 +63,10 @@ public class ContractManagerTest {
         }
     }
 
-//    @Test
-//    public void coinContractInstallTest() throws IOException {
-//        installByVersion(coinContract);
-//    }
+    @Test
+    public void coinContractInstallTest() throws IOException {
+        installByVersion(coinContract);
+    }
 
     @Test
     public void uninstallTest() {
@@ -78,34 +78,34 @@ public class ContractManagerTest {
         }
     }
 
-//    private void installByVersion(ContractVersion contractVersion) throws IOException {
-//        File coinFile = null;
-//        if (manager.isContractFileExist(contractVersion)) {
-//            coinFile = new File(config.getContractPath() + File.separator + contractVersion + ".jar");
-//        } else {
-//            coinFile = manager.downloader(contractVersion);
-//        }
-//
-//        Assert.assertNotNull("Failed to download COIN-CONTRACT File on system", coinFile);
-//
-//        boolean verified = manager.verifyContractFile(coinFile, contractVersion);
-//
-//        Assert.assertTrue("Failed to verify contract file", verified);
-//
-//        try {
-//            Bundle coinBundle = manager.install(contractVersion, true);
-//            manager.start(coinBundle);
-//            manager.registerServiceMap(contractVersion, coinBundle);
-//            manager.inject(contractVersion);
-//
-//        } catch (IOException | BundleException | IllegalAccessException e) {
-//            log.error(e.getMessage());
-//        }
-//
-//        Bundle[] bundles = manager.getBundles();
-//        Assert.assertTrue("Failed to install COIN-CONTRACT on osgi", bundles.length > 1);
-//        printBundles();
-//    }
+    private void installByVersion(ContractVersion contractVersion) throws IOException {
+        File coinFile = null;
+        if (manager.isContractFileExist(contractVersion)) {
+            coinFile = new File(config.getContractPath() + File.separator + contractVersion + ".jar");
+        } else {
+            coinFile = Downloader.downloadContract(contractVersion);
+        }
+
+        Assert.assertNotNull("Failed to download COIN-CONTRACT File on system", coinFile);
+
+        boolean verified = manager.verifyContractFile(coinFile, contractVersion);
+
+        Assert.assertTrue("Failed to verify contract file", verified);
+
+        try {
+            Bundle coinBundle = manager.install(contractVersion);
+            manager.start(contractVersion);
+            manager.registerServiceMap(contractVersion, coinBundle);
+            manager.inject(coinBundle);
+
+        } catch (IOException | BundleException | IllegalAccessException e) {
+            log.error(e.getMessage());
+        }
+
+        Bundle[] bundles = manager.getBundles();
+        Assert.assertTrue("Failed to install COIN-CONTRACT on osgi", bundles.length > 1);
+        printBundles();
+    }
 
     private ContractManager initContractManager() throws IOException, BundleException {
         config = new DefaultConfig();
