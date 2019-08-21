@@ -206,14 +206,13 @@ public class ContractExecutor {
                 exceptionHandler(e, txReceipt);
             }
 
-            if (result != null) {
+            blockRuntimeResult.addTxReceipt(txReceipt);
+            if (!txReceipt.getStatus().equals(ExecuteStatus.ERROR)) {
                 blockRuntimeResult.setBlockResult(result);
+            } else {
+                log.warn("Error TxId={}, TxLog={}", txReceipt.getTxId(), txReceipt.getTxLog());
             }
 
-            blockRuntimeResult.addTxReceipt(txReceipt);
-            if (!txReceipt.isSuccess()) {
-                log.warn("{} : {}", txReceipt.getTxId(), txReceipt.isSuccess());
-            }
         }
 
         contractStore.getTmpStateStore().close(); // clear(revert) tmpStateStore
