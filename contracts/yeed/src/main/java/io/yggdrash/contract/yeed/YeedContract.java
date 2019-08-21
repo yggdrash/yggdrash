@@ -221,10 +221,6 @@ public class YeedContract implements BundleActivator, ServiceListener {
             String sender = txReceipt.getIssuer();
             BigInteger amount = params.get(AMOUNT).getAsBigInteger();
             BigInteger senderBalance = getBalance(sender);
-            if (!isTransferable(senderBalance, amount)) {
-                setErrorTxReceipt("Insufficient funds");
-                return txReceipt;
-            }
 
             BigInteger fee = params.has(FEE) ? params.get(FEE).getAsBigInteger() : BigInteger.ZERO;
             BigInteger networkFee = calculateFee();
@@ -233,6 +229,12 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 setErrorTxReceipt("Low transaction fee");
                 return txReceipt;
             }
+
+            if (!isTransferable(senderBalance, amount)) {
+                setErrorTxReceipt("Insufficient funds");
+                return txReceipt;
+            }
+
 
             boolean transferFee = transferFee(sender, fee);
             if (!transferFee) {
@@ -963,7 +965,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
             BigInteger balance = this.getBalance(issuer);
             // Can be charged Yeed once per account
             if (!this.store.contains(faucetKey) && balance.compareTo(BigInteger.ZERO) == 0) {
-                balance = balance.add(BigInteger.valueOf(1000L)); // Add 1000
+                balance = balance.add(BASE_CURRENCY.multiply(BigInteger.valueOf(1000L))); // Add 1000 YEED
 
                 // Update TOTAL SUPPLY
                 BigInteger totalSupply = this.totalSupply();
