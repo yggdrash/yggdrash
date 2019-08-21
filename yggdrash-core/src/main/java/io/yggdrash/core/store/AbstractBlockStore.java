@@ -56,6 +56,10 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
 
     @Override
     public void put(Sha3Hash key, ConsensusBlock<T> value) {
+        if (key == null || value == null) {
+            return;
+        }
+
         byte[] bytes = value.toBinary();
         if (bytes.length > Constants.MAX_MEMORY) {
             log.debug("block binary {} > {}", bytes.length, Constants.MAX_MEMORY);
@@ -78,7 +82,21 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
 
     @Override
     public boolean contains(Sha3Hash key) {
-        return db.get(key.getBytes()) != null;
+        if (key == null) {
+            return false;
+        }
+
+        // TODO: check syncronizing about blockchain data, this is a defence code about leveldb exceptions.
+        boolean result = false;
+        try {
+            if (db.get(key.getBytes()) != null) {
+                result = true;
+            }
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+        }
+
+        return result;
     }
 
     @Override
@@ -103,6 +121,9 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
 
     @Override
     public void addBlock(ConsensusBlock<T> block) {
+        if (block == null) {
+            return;
+        }
         // Add BlockIndex and Add Block Data
         long index = block.getIndex();
         byte[] indexKey = blockIndexKey(index);

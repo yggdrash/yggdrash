@@ -145,10 +145,28 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
     }
 
     @Override
+    public ReentrantLock getLock() {
+        return lock;
+    }
+
+    @Override
     public Map<String, List<String>> addBlock(ConsensusBlock<EbftProto.EbftBlock> block) {
         this.lock.lock();
         try {
             blockChainManagerMock.addBlock(block); // todo: check efficiency & change index
+            this.blockKeyStore.put(block.getIndex(), block.getHash().getBytes());
+            loggingBlock((EbftBlock) block);
+        } finally {
+            this.lock.unlock();
+        }
+        return new HashMap<>();
+    }
+
+    @Override
+    public Map<String, List<String>> addBlock(ConsensusBlock<EbftProto.EbftBlock> block, boolean broadcast) {
+        this.lock.lock();
+        try {
+            blockChainManagerMock.addBlock(block); // todo: check efficiency & change index & check broadcast param
             this.blockKeyStore.put(block.getIndex(), block.getHash().getBytes());
             loggingBlock((EbftBlock) block);
         } finally {
