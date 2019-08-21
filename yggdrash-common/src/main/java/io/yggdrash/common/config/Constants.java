@@ -27,6 +27,7 @@ public final class Constants {
 
     public static final long TIMESTAMP_2018 = 1514764800000L;
     public static final int MAX_MEMORY = 10000000;
+    public static final int MAX_GRPC_MESSAGE_LIMIT = 8192000;
 
     public static final int HASH_LENGTH = 32;
     public static final int SIGNATURE_LENGTH = 65;
