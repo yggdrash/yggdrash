@@ -33,7 +33,7 @@ public class CoinContractTest {
     private static final String ADDRESS_JSON_1 = String.format(ADDRESS_FORMAT, ADDRESS_1);
     private static final String ADDRESS_JSON_2 = String.format(ADDRESS_FORMAT, ADDRESS_2);
     private static final String INVALID_PARAMS = "Error Code:34001, Msg:Params not allowed";
-    private static final String INSUFFICIENT_FUNDS = "Error Code:34002, Msg:Insufficient funds";
+    private static final String INSUFFICIENT_FUNDS = "Insufficient funds";
     private Field txReceiptField;
 
     @Before
