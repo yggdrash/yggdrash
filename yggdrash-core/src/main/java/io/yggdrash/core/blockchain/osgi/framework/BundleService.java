@@ -1,11 +1,13 @@
 package io.yggdrash.core.blockchain.osgi.framework;
 
 import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.core.blockchain.osgi.ContractStatus;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public interface BundleService {
 
@@ -27,5 +29,7 @@ public interface BundleService {
     Bundle getBundle(ContractVersion contractVersion);
 
     Object getBundleService(Bundle bundle);
+
+    List<ContractStatus> getContractList();
 
 }

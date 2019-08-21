@@ -2,9 +2,11 @@ package io.yggdrash.core.blockchain.osgi.framework;
 
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.blockchain.osgi.ContractConstants;
+import io.yggdrash.core.blockchain.osgi.ContractStatus;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +14,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Dictionary;
+import java.util.List;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 public class BundleServiceImpl implements BundleService {
     private static final Logger log = LoggerFactory.getLogger(BundleServiceImpl.class);
@@ -44,10 +52,60 @@ public class BundleServiceImpl implements BundleService {
     @Override
     public Bundle install(ContractVersion contractVersion, File file) throws IOException, BundleException {
 
-        try (InputStream fs = new FileInputStream(file.getAbsolutePath())) {
-            return context.installBundle(contractVersion.toString(), fs);
+        Bundle bundle = getBundle(contractVersion);
+
+        try (JarFile jarFile = new JarFile(file);
+                InputStream fs = new FileInputStream(file.getAbsolutePath())) {
+            if (bundle != null && isInstalledContract(jarFile, bundle)) {
+                log.warn("Already installed bundle {}", contractVersion);
+                return bundle;
+            }
+
+            if (verifyManifest(jarFile.getManifest())) {
+                log.info("Installing  bundle {}", contractVersion);
+                return context.installBundle(contractVersion.toString(), fs);
+            }
         }
+        return null;
     }
+
+    private boolean isInstalledContract(JarFile jarFile, Bundle bundle) throws IOException {
+        List<String> bundleKeys = Collections.list(bundle.getHeaders().keys());
+        Manifest m = jarFile.getManifest();
+
+        for (String key : bundleKeys) {
+            if (!m.getMainAttributes().getValue(key).equals(bundle.getHeaders().get(key))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean verifyManifest(Manifest manifest) {
+        String manifestVersion = manifest.getMainAttributes().getValue("Bundle-ManifestVersion");
+        String bundleSymbolicName = manifest.getMainAttributes().getValue("Bundle-SymbolicName");
+        String bundleVersion = manifest.getMainAttributes().getValue("Bundle-Version");
+        return verifyManifest(manifestVersion, bundleSymbolicName, bundleVersion);
+    }
+
+    private boolean verifyManifest(String manifestVersion, String bundleSymbolicName, String bundleVersion) {
+        if (!"2".equals(manifestVersion)) {
+            log.error("Must set Bundle-ManifestVersion to 2");
+            return false;
+        }
+        if (bundleSymbolicName == null || "".equals(bundleSymbolicName)) {
+            log.error("Must set Bundle-SymbolicName");
+            return false;
+        }
+
+        if (bundleVersion == null || "".equals(bundleVersion)) {
+            log.error("Must set Bundle-Version");
+            return false;
+        }
+
+        return true;
+    }
+
 
     @Override
     public void uninstall(ContractVersion contractVersion) throws BundleException {
@@ -109,4 +167,30 @@ public class BundleServiceImpl implements BundleService {
         return context.getService(bundle.getRegisteredServices()[0]);
     }
 
+    @Override
+    public List<ContractStatus> getContractList() {
+        List<ContractStatus> contractStatusList = new ArrayList<>();
+
+        for (Bundle bundle: getBundles()) {
+            Dictionary<String, String> header = bundle.getHeaders();
+            int serviceCnt = bundle.getRegisteredServices() == null ? 0 : bundle.getRegisteredServices().length;
+
+            Version v = bundle.getVersion();
+            ContractStatus status = new ContractStatus(
+                    bundle.getSymbolicName(),
+                    String.format("%s.%s.%s", v.getMajor(), v.getMinor(), v.getMicro()),
+                    header.get("Bundle-Vendor"),
+                    header.get("Bundle-Description"),
+                    bundle.getBundleId(),
+                    bundle.getLocation(),
+                    bundle.getState(),
+                    serviceCnt
+            );
+            contractStatusList.add(status);
+        }
+
+        return contractStatusList;
+
+
+    }
 }
