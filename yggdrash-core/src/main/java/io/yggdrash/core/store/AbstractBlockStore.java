@@ -85,7 +85,18 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
         if (key == null) {
             return false;
         }
-        return db.get(key.getBytes()) != null;
+
+        // TODO: check syncronizing about blockchain data, this is a defence code about leveldb exceptions.
+        boolean result = false;
+        try {
+            if (db.get(key.getBytes()) != null) {
+                result = true;
+            }
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+        }
+
+        return result;
     }
 
     @Override
