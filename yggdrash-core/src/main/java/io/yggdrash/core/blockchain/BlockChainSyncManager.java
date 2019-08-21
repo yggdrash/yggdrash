@@ -80,8 +80,11 @@ public class BlockChainSyncManager implements SyncManager {
                     return true;
                 }
             }
-        } catch (InterruptedException | ExecutionException e) {
-            log.warn("[SyncManager] Sync Block ERR occurred: {}", e.getMessage(), e);
+        } catch (InterruptedException ie) {
+            log.warn("[SyncManager] Sync Block ERR occurred: {}", ie.getMessage());
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            log.warn("[SyncManager] Sync Block ERR occurred: {}", e.getMessage());
         }
 
         return false;
@@ -120,9 +123,11 @@ public class BlockChainSyncManager implements SyncManager {
                     txList.size(), peerHandler.getPeer().getYnodeUri());
             addTransaction(blockChain, txList);
 
-        } catch (InterruptedException | ExecutionException e) {
-            log.debug("[SyncManager] Sync Tx ERR occurred: {}", e.getMessage());
+        } catch (InterruptedException ie) {
+            log.debug("[SyncManager] Sync Tx ERR occurred: {}", ie.getMessage());
             Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            log.debug("[SyncManager] Sync Tx ERR occurred: {}", e.getMessage());
         }
     }
 
