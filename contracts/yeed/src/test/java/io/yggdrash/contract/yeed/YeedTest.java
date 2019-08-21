@@ -64,9 +64,9 @@ public class YeedTest {
     private static final String BRANCH_ID = "0x00";
     private TransactionReceiptAdapter adapter;
 
-    private BigInteger BASE_CURRENCY = BigInteger.TEN.pow(18);
+    private static BigInteger BASE_CURRENCY = BigInteger.TEN.pow(18);
     // 0.01 YEED
-    private BigInteger DEFAULT_FEE = BASE_CURRENCY.divide(BigInteger.valueOf(100L));
+    private static BigInteger DEFAULT_FEE = BASE_CURRENCY.divide(BigInteger.valueOf(100L));
 
     private JsonObject genesisParams = JsonUtil.parseJsonObject("{\"alloc\": "
             + "{\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\":{\"balance\": \"1000000000\"},"
@@ -82,7 +82,6 @@ public class YeedTest {
 
     @Before
     public void setUp() {
-        StateStore coinContractStateStore = new StateStore(new HashMapDbSource());
         BranchStateStore branchStateStore = branchStateStoreMock();
         branchStateStore.getValidators().getValidatorMap()
                 .put("81b7e08f65bdf5648606c89998a9cc8164397647",
@@ -90,7 +89,7 @@ public class YeedTest {
 
         adapter = new TransactionReceiptAdapter();
         yeedContract.txReceipt = adapter;
-        yeedContract.store = coinContractStateStore;
+        yeedContract.store = new StateStore(new HashMapDbSource());
         yeedContract.branchStateStore = branchStateStore;
 
         TransactionReceipt result = new TransactionReceiptImpl();
@@ -144,9 +143,9 @@ public class YeedTest {
     @Test
     public void transfer() {
 
-        BigInteger sendAmount = BASE_CURRENCY;
-        BigInteger senderAmount = getBalance(ADDRESS_1);
-        BigInteger receiveAmount = getBalance(ADDRESS_2);
+        BigInteger sendAmount = BASE_CURRENCY; // 1 YEED
+        final BigInteger sendAddress = getBalance(ADDRESS_1);
+        final BigInteger receiveAmount = getBalance(ADDRESS_2);
         BigInteger feeAmount = DEFAULT_FEE;
 
         JsonObject paramObj = new JsonObject();
@@ -154,7 +153,7 @@ public class YeedTest {
         paramObj.addProperty("amount", sendAmount);
         paramObj.addProperty("fee", feeAmount);
 
-        log.debug("{}:{}", ADDRESS_1, senderAmount);
+        log.debug("{}:{}", ADDRESS_1, sendAddress);
         log.debug("{}:{}", ADDRESS_2, receiveAmount);
 
         // SETUP
@@ -164,7 +163,7 @@ public class YeedTest {
 
         assertTrue(receipt.isSuccess());
 
-        BigInteger senderRemainAmount = senderAmount.subtract(feeAmount).subtract(sendAmount);
+        BigInteger senderRemainAmount = sendAddress.subtract(feeAmount).subtract(sendAmount);
         BigInteger receverRemainAmount = receiveAmount.add(sendAmount);
 
         assertEquals(senderRemainAmount, getBalance(ADDRESS_1));
@@ -206,9 +205,8 @@ public class YeedTest {
         String to = "cee3d4755e47055b530deeba062c5bd0c17eb00f";
 
         BigInteger approveBalance = BASE_CURRENCY.multiply(BigInteger.valueOf(1000L));
-        BigInteger transferFromBalance = BASE_CURRENCY.multiply(BigInteger.valueOf(700L));
-        BigInteger feeBalance = DEFAULT_FEE;
-        BigInteger toBalance = getBalance(to);
+        final BigInteger transferFromBalance = BASE_CURRENCY.multiply(BigInteger.valueOf(700L));
+        final BigInteger toBalance = getBalance(to);
         // APPROVE
         approveByOwner(owner, spender, approveBalance.toString());
 
@@ -228,7 +226,7 @@ public class YeedTest {
         // 700 YEED
         transferFromObject.addProperty("amount", transferFromBalance);
         // Fee is 0.01 YEED
-        transferFromObject.addProperty("fee", feeBalance);
+        transferFromObject.addProperty("fee", DEFAULT_FEE);
 
         TransactionReceipt receipt = setUpReceipt(spender);
 
@@ -236,7 +234,7 @@ public class YeedTest {
         yeedContract.transferFrom(transferFromObject);
 
         assertTrue(receipt.isSuccess());
-        assertEquals(approveBalance.subtract(transferFromBalance).subtract(feeBalance),
+        assertEquals(approveBalance.subtract(transferFromBalance).subtract(DEFAULT_FEE),
                 getAllowance(owner, spender));
         assertEquals(toBalance.add(transferFromBalance), getBalance(to));
 
@@ -256,7 +254,7 @@ public class YeedTest {
 
         allowanceBalance = getAllowance(owner, spender);
         // subtract feeBalance
-        allowanceBalance = allowanceBalance.subtract(feeBalance);
+        allowanceBalance = allowanceBalance.subtract(DEFAULT_FEE);
         addAmount(transferFromObject, allowanceBalance);
         // Transfer all amount of allowance
         yeedContract.transferFrom(transferFromObject);
@@ -271,8 +269,8 @@ public class YeedTest {
         paramObj.addProperty("amount", amount);
         paramObj.addProperty("fee", DEFAULT_FEE);
 
-        BigInteger spenderBalance = getBalance(spender);
-        BigInteger ownerBalance = getBalance(owner);
+        final BigInteger spenderBalance = getBalance(spender);
+        final BigInteger ownerBalance = getBalance(owner);
         TransactionReceipt receipt = setUpReceipt(owner);
 
         yeedContract.approve(paramObj);
@@ -774,8 +772,8 @@ public class YeedTest {
 
         setUpReceipt("0x00", issuer, BRANCH_ID, 1);
 
-        JsonObject emptyParam = new JsonObject();
-        BigInteger totalSupply = yeedContract.totalSupply();
+        final JsonObject emptyParam = new JsonObject();
+        final BigInteger totalSupply = yeedContract.totalSupply();
 
         JsonObject testTransfer = new JsonObject();
         testTransfer.addProperty("to","81b7e08f65bdf5648606c89998a9cc8164397647");
@@ -800,7 +798,7 @@ public class YeedTest {
     @Test
     public void sendSameAccount() {
         String issuer = "4d01e237570022440aa126ca0b63065d7f5fd589";
-        BigInteger balance = yeedContract.getBalance(issuer);
+        final BigInteger balance = yeedContract.getBalance(issuer);
         setUpReceipt("0x00", issuer, BRANCH_ID, 1);
 
         JsonObject testTransfer = new JsonObject();
@@ -816,8 +814,8 @@ public class YeedTest {
     @Test
     public void transferChannelTest() {
         String from = ADDRESS_1;
-        BigInteger serviceFee = DEFAULT_FEE;
-        BigInteger amount = BASE_CURRENCY.multiply(BigInteger.valueOf(1000L));
+        final BigInteger serviceFee = DEFAULT_FEE;
+        final BigInteger amount = BASE_CURRENCY.multiply(BigInteger.valueOf(1000L));
         String testContractName = "TEST";
 
         setUpReceipt("0x00", from, BRANCH_ID, 1);
@@ -842,16 +840,16 @@ public class YeedTest {
         assertEquals("Contract Stake Balance", amount, contractBalance);
 
         // Withdraw Test
-        amount = amount.subtract(serviceFee);
+        BigInteger withdrawAmount = amount.subtract(serviceFee);
         transferChannelTx.addProperty("from", testContractName);
         transferChannelTx.addProperty("to", from);
-        transferChannelTx.addProperty("amount", amount);
+        transferChannelTx.addProperty("amount", withdrawAmount);
         log.debug(transferChannelTx.toString());
         result = yeedContract.transferChannel(transferChannelTx);
 
         assertTrue("Result is True", result);
         BigInteger withdrawBalance = getBalance(from);
-        assertEquals("", depositBalance.add(amount), withdrawBalance);
+        assertEquals("", depositBalance.add(withdrawAmount), withdrawBalance);
 
         // Contract Balance is zero
         contractBalance = yeedContract.getContractBalanceOf(param);
