@@ -30,6 +30,8 @@ import org.spongycastle.util.encoders.Hex;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import static io.yggdrash.common.config.Constants.BASE_CURRENCY;
+
 public class ContractTestUtils {
 
     public static JsonObject contractProposeTxBodyJson(String contractVersion) {
@@ -76,6 +78,7 @@ public class ContractTestUtils {
         JsonObject params = new JsonObject();
         params.addProperty("to", to);
         params.addProperty("amount", amount);
+        params.addProperty("fee", BASE_CURRENCY.divide(BigInteger.valueOf(50L)));
         TestConstants.yggdrash();
         return txBodyJson(TestConstants.YEED_CONTRACT, "transfer", params, true);
     }
@@ -84,6 +87,7 @@ public class ContractTestUtils {
         JsonObject params = new JsonObject();
         params.addProperty("to", to);
         params.addProperty("amount", amount);
+        params.addProperty("fee", BASE_CURRENCY.divide(BigInteger.valueOf(50L)));
         TestConstants.yggdrash();
         return txBodyJson(contractVersion, "transfer", params, true);
     }
@@ -92,6 +96,7 @@ public class ContractTestUtils {
         JsonObject params = new JsonObject();
         params.addProperty("to", to);
         params.addProperty("amount", amount);
+        params.addProperty("fee", BASE_CURRENCY.divide(BigInteger.valueOf(50L)));
         return txBodyJson(TestConstants.YEED_CONTRACT, "create", params, true);
     }
 
