@@ -12,7 +12,6 @@ import io.yggdrash.contract.core.annotation.ContractChannelField;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.channel.ContractMethodType;
-import io.yggdrash.core.blockchain.Log;
 import io.yggdrash.core.blockchain.LogIndexer;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
@@ -20,7 +19,6 @@ import io.yggdrash.core.exception.errorcode.SystemError;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.ContractStore;
-import io.yggdrash.core.store.LogStore;
 import io.yggdrash.core.store.StoreAdapter;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.apache.commons.codec.binary.Base64;
@@ -53,32 +51,19 @@ public class ContractExecutor {
     private final Condition isBlockExecuting = locker.newCondition();
     private boolean isTx = false;
 
-    ContractExecutor(ContractStore contractStore, LogStore logStore) {
+    ContractExecutor(ContractStore contractStore, LogIndexer logIndexer) {
         this.contractStore = contractStore;
-        this.logIndexer = new LogIndexer(logStore, contractStore.getTransactionReceiptStore());
+        this.logIndexer = logIndexer;
         this.contractCache = new ContractCacheImpl();
         this.trAdapter = new TransactionReceiptAdapter();
         this.coupler = new ContractChannelCoupler();
-    }
-
-    Log getLog(long index) {
-        return logIndexer.getLog(index);
-    }
-
-    List<Log> getLogs(long start, long offset) {
-        return logIndexer.getLogs(start, offset);
-    }
-
-    long getCurLogIndex() {
-        return logIndexer.curIndex();
     }
 
     void injectNodeContract(Object service) throws IllegalAccessException {
         inject(service, namespace(service.getClass().getName()));
     }
 
-    void injectBundleContract(Bundle bundle, Object service, boolean isSystemContract) throws IllegalAccessException {
-
+    void injectBundleContract(Bundle bundle, Object service) throws IllegalAccessException {
         inject(service, namespace(bundle.getSymbolicName()));
     }
 
@@ -206,14 +191,13 @@ public class ContractExecutor {
                 exceptionHandler(e, txReceipt);
             }
 
-            if (result != null) {
+            blockRuntimeResult.addTxReceipt(txReceipt);
+            if (!txReceipt.getStatus().equals(ExecuteStatus.ERROR)) {
                 blockRuntimeResult.setBlockResult(result);
+            } else {
+                log.warn("Error TxId={}, TxLog={}", txReceipt.getTxId(), txReceipt.getTxLog());
             }
 
-            blockRuntimeResult.addTxReceipt(txReceipt);
-            if (!txReceipt.isSuccess()) {
-                log.warn("{} : {}", txReceipt.getTxId(), txReceipt.isSuccess());
-            }
         }
 
         contractStore.getTmpStateStore().close(); // clear(revert) tmpStateStore
@@ -225,7 +209,7 @@ public class ContractExecutor {
 
         JsonObject txBody = tx.getBody().getBody();
 
-        String contractVersion = null;
+        String contractVersion;
         if (txBody.get("contractVersion") == null) {
             contractVersion = Hex.toHexString(tx.getHeader().getType());
         } else {
@@ -240,7 +224,6 @@ public class ContractExecutor {
         if (service == null) {
             log.error("This service that contract version {} is not registered", contractVersion);
             throw new ExecutorException(SystemError.CONTRACT_VERSION_NOT_FOUND);
-
         }
 
         // TODO : implement endBlock policy. 190814 - lucas
@@ -263,7 +246,7 @@ public class ContractExecutor {
         } catch (IllegalAccessException e) {
             log.error("CallContractMethod : {} and bundle {} ", methodName, contractVersion);
         } catch (InvocationTargetException e) {
-            log.error("Invoke method error in tx id : {} caused by {}", txReceipt.getTxId(), e.getCause().toString());
+            log.error("Invoke method error in tx id : {} caused by {}", txReceipt.getTxId(), e.getCause());
             trAdapter.addLog(e.getCause().getMessage());
         } catch (IllegalArgumentException e) {
             log.error(e.getMessage());

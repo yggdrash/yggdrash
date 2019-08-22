@@ -36,6 +36,7 @@ public class CoinContract implements BundleActivator, ServiceListener {
     private static final Logger log = LoggerFactory.getLogger(CoinContract.class);
     private static final String AMOUNT = "amount";
     private static final String BALANCE = "balance";
+    private static final String FEE = "fee";
 
     @Override
     public void start(BundleContext context) {
@@ -96,8 +97,38 @@ public class CoinContract implements BundleActivator, ServiceListener {
         }
 
         /**
+         * This function is for testing, which contains inappropriate code
+         * params amount  Amount of coins to burn
+         * params fee     Transaction fee
+         *
+         * @return TransactionReceipt
+         */
+        @InvokeTransaction
+        public TransactionReceipt burn(JsonObject params) {
+            log.debug("\nburn :: params => {}", params);
+
+            BigInteger amount = getAsBigInteger(params, AMOUNT);
+            BigInteger totalSupply = getBalance(TOTAL_SUPPLY);
+            if (totalSupply.compareTo(amount) > 0) {
+                putBalance(TOTAL_SUPPLY, totalSupply.subtract(amount));
+            }
+
+            BigInteger fee = getAsBigInteger(params, FEE);
+            String issuer = txReceipt.getIssuer();
+            BigInteger issuerBalance = getBalance(issuer);
+            if (!require(issuerBalance, fee)) {
+                return txReceipt;
+            }
+
+            putBalance(issuer, issuerBalance.subtract(fee));
+            setSuccessTxReceipt("Coin burn completed. ");
+
+            return txReceipt;
+        }
+
+        /**
          * Function to check the amount of coin that an owner allowed to a spender
-         * params owner    The address which owns the funds.
+         * params owner    The address which owns the funds
          * params spender  The address which will spend the funds
          *
          * @return A BigInteger specifying the amount of coin still available for the spender
@@ -142,8 +173,7 @@ public class CoinContract implements BundleActivator, ServiceListener {
                 senderBalance = senderBalance.subtract(amount);
                 addBalanceTo(to, amount);
                 putBalance(sender, senderBalance);
-                txReceipt.setStatus(ExecuteStatus.SUCCESS);
-                txReceipt.addLog(String.format("[Transfer] Transferred %d to %s from %s", amount, to, sender));
+                setSuccessTxReceipt(String.format("Transfer %s from %s to %s", amount, to, sender));
                 Transfer(amount, sender, to);
             }
 
@@ -313,12 +343,12 @@ public class CoinContract implements BundleActivator, ServiceListener {
             return Hex.toHexString(approveKey);
         }
 
-        private boolean require(BigInteger targetBalance, BigInteger amount) throws ContractException {
-            if (targetBalance.subtract(amount).compareTo(BigInteger.ZERO) >= 0) { // same is  0, more is 1
+        private boolean require(BigInteger targetBalance, BigInteger amount) {
+            if (targetBalance.subtract(amount).compareTo(BigInteger.ZERO) >= 0) {
                 return true;
             } else {
-                txReceipt.setStatus(ExecuteStatus.ERROR);
-                throw new ContractException(Err.INSUFFICIENT_FUNDS.toValue(), Err.INSUFFICIENT_FUNDS.toString());
+                setErrorTxReceipt(Err.INSUFFICIENT_FUNDS.toString());
+                return false;
             }
         }
 
@@ -347,6 +377,16 @@ public class CoinContract implements BundleActivator, ServiceListener {
                 txReceipt.setStatus(ExecuteStatus.ERROR);
                 throw new ContractException(Err.INVALID_PARAMS.toValue(), Err.INVALID_PARAMS.toString());
             }
+        }
+
+        private void setErrorTxReceipt(String msg) {
+            this.txReceipt.setStatus(ExecuteStatus.ERROR);
+            this.txReceipt.addLog(msg);
+        }
+
+        private void setSuccessTxReceipt(String msg) {
+            this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
+            this.txReceipt.addLog(msg);
         }
 
         private void Transfer(BigInteger amount, String sender, String to) {

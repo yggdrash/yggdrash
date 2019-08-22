@@ -176,12 +176,11 @@ public class BlockChainTestUtils {
 
         BootFrameworkConfig bootFrameworkConfig = new BootFrameworkConfig(config, genesis.getBranchId());
         BootFrameworkLauncher bootFrameworkLauncher = new BootFrameworkLauncher(bootFrameworkConfig);
-        BundleServiceImpl bundleService = new BundleServiceImpl();
+        BundleServiceImpl bundleService = new BundleServiceImpl(bootFrameworkLauncher.getBundleContext());
         SystemProperties systemProperties = createDefaultSystemProperties();
 
         ContractManager contractManager = ContractManagerBuilder.newInstance()
                 .withGenesis(genesis)
-                .withBootFramework(bootFrameworkLauncher)
                 .withBundleManager(bundleService)
                 .withDefaultConfig(config)
                 .withContractStore(contractStore)
