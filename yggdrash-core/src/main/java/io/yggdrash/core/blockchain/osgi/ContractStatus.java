@@ -12,7 +12,7 @@ public class ContractStatus {
     private final Status status;
     private final int serviceCnt;
 
-    ContractStatus(String symbolicName, String version, String vendor, String description,
+    public ContractStatus(String symbolicName, String version, String vendor, String description,
                    long id, String location, int state, int serviceCnt) {
         this.symbolicName = symbolicName;
         this.version = version;
