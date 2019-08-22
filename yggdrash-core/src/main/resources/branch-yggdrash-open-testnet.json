@@ -2,17 +2,17 @@
   "name": "YGGDRASH",
   "symbol": "YGGDRASH",
   "property": "platform",
-  "description": "YGGDRASH TESTNET, TRUST-based Multi-dimensional Blockchain",
+  "description": "YGGDRASH TESTNET(Beta), TRUST-based Multi-dimensional Blockchain",
   "contracts": [
     {
-      "contractVersion": "178b44b22d8c6d5bb08175fa2fcab15122ca8d1e",
+      "contractVersion": "659fc8e95b1788220e36a3e1898c3ccf901a9b91",
       "init": {},
       "description": "The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.",
       "name": "STEM",
       "isSystem": true
     },
     {
-      "contractVersion": "19b9710dc8f0442d09a1b5e632f7200afe751d60",
+      "contractVersion": "b97b1292c756ea1fc8830657cde0450ad841e270",
       "isSystem": true,
       "init": {
         "alloc": {
@@ -39,24 +39,6 @@
           },
           "4e5cbe1d0db35add81e7f2840eeb250b5b469161": {
             "balance": "994000000000000000000000"
-          },
-          "415e01c639d83a13308264691330d4e9b68f1012": {
-            "balance": "1000000000000000000000"
-          },
-          "624d4ec36a83992d451b39ac9dd5b9cd36cde630": {
-            "balance": "1000000000000000000000"
-          },
-          "d8502005cd4154d8600fb6de4e1b84391b18c2d0": {
-            "balance": "1000000000000000000000"
-          },
-          "06afa0fdf4299e19e4bc084c1db7cbbfb5717272": {
-            "balance": "1000000000000000000000"
-          },
-          "be39c9238430846fe6bd94d883917d6c4f4d9620": {
-            "balance": "1000000000000000000000"
-          },
-          "8236e5ebc70a7fa47436b60b836454c1b2e4b88f": {
-            "balance": "1000000000000000000000"
           }
         }
       },
@@ -72,7 +54,9 @@
           "20a58d12133a5a4a6a4126fb2c77cda26d765fee",
           "59df14ab7c54430b5e7474a8b02a5d37984031bf",
           "1705f3e59375a142976308bc3c0c620ddd6db105",
-          "f2ce42aa0afd83ee2791789b1fe4dfbebde21344"
+          "f2ce42aa0afd83ee2791789b1fe4dfbebde21344",
+          "92ff0b8c305963753ac4f42b13adf2731d988992",
+          "da6f0698d3d014d13aef4ffdd8f891652198f10c"
         ]
       },
       "name": "DPoA",
