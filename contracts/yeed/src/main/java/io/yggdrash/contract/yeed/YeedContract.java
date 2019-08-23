@@ -68,10 +68,10 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
     @Override
     public void start(BundleContext context) {
-        log.info("Start Yeed contract");
+        log.info("Start YEED contract");
         // Find for service in another bundle
         Hashtable<String, String> props = new Hashtable<>();
-        props.put("YGGDRASH", "Yeed");
+        props.put("YGGDRASH", "YEED");
         context.registerService(YeedService.class.getName(), new YeedService(), props);
         // GetBundle and wire this service
     }
@@ -87,6 +87,13 @@ public class YeedContract implements BundleActivator, ServiceListener {
     }
 
     public static class YeedService implements CoinStandard {
+
+        // TODO Base Fee is Network Fee - Governance Change this value
+        // BASE FEE = 5*10^13
+        private static BigInteger BASE_FEE = BigInteger.valueOf(50000000000000L);
+        // 1 YEED = 1000000000000000000
+        private static BigInteger BASE_CURRENCY = BigInteger.TEN.pow(18);
+
         private static final String TOTAL_SUPPLY = "TOTAL_SUPPLY";
 
         @ContractTransactionReceipt
@@ -154,12 +161,6 @@ public class YeedContract implements BundleActivator, ServiceListener {
             return getBalance(approveKey);
         }
 
-        // Check transfer fee
-        public BigInteger checkFee(JsonObject params) {
-            // TODO FeeModel
-            return BigInteger.ZERO;
-        }
-
         /**
          * Pre-allocate yeed to addresses
          * params frontier The Frontier is the first live release of the Yggdrash network
@@ -172,11 +173,15 @@ public class YeedContract implements BundleActivator, ServiceListener {
         public TransactionReceipt init(JsonObject params) {
             // Set totalSupply to the sum of all balances of alloc
             BigInteger totalSupply = BigInteger.ZERO;
+
             JsonObject alloc = params.getAsJsonObject("alloc");
             for (Map.Entry<String, JsonElement> entry : alloc.entrySet()) {
                 String frontier = entry.getKey();
                 JsonObject value = entry.getValue().getAsJsonObject();
                 BigInteger balance = value.get(BALANCE).getAsBigInteger();
+                // apply BASE_CURRENCY
+                balance = balance.multiply(BASE_CURRENCY);
+
                 totalSupply = totalSupply.add(balance);
                 addBalanceTo(frontier, balance);
                 //putBalance(frontier, balance);
@@ -216,12 +221,21 @@ public class YeedContract implements BundleActivator, ServiceListener {
             String sender = txReceipt.getIssuer();
             BigInteger amount = params.get(AMOUNT).getAsBigInteger();
             BigInteger senderBalance = getBalance(sender);
+
+            BigInteger fee = params.has(FEE) ? params.get(FEE).getAsBigInteger() : BigInteger.ZERO;
+            BigInteger networkFee = calculateFee();
+            // Check Fee
+            if (networkFee.compareTo(fee) > 0) {
+                setErrorTxReceipt("Low transaction fee");
+                return txReceipt;
+            }
+
             if (!isTransferable(senderBalance, amount)) {
                 setErrorTxReceipt("Insufficient funds");
                 return txReceipt;
             }
 
-            BigInteger fee = params.has(FEE) ? params.get(FEE).getAsBigInteger() : BigInteger.ZERO;
+
             boolean transferFee = transferFee(sender, fee);
             if (!transferFee) {
                 setErrorTxReceipt("Invalid fee");
@@ -262,12 +276,23 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
             // Check amount and fee. The amount and fee must be greater than zero. (No fee is allowed currently)
             BigInteger fee = params.has(FEE) ? params.get(FEE).getAsBigInteger() : BigInteger.ZERO;
-            if (!isPositive(amount) || isNegative(fee)) {
-                setErrorTxReceipt("Invalid amount or fee");
+
+            BigInteger networkFee = calculateFee();
+            // Check Fee
+            if (networkFee.compareTo(fee) > 0) {
+                setErrorTxReceipt("Low transaction fee");
+                return txReceipt;
+            }
+
+            if (!isPositive(amount)) { // amount > 0
+                setErrorTxReceipt("Invalid amount");
                 return txReceipt;
             }
 
             boolean isTransfer = transfer(from, to, amount, fee);
+            // Set Transfer Result
+            setTransferExecute(isTransfer, from, to, amount, fee);
+
             if (log.isDebugEnabled() && isTransfer) {
                 log.debug("[Transferred] Transfer {} from {} to {}", amount, from, to);
                 log.trace("Balance of From ({}) : {} To ({}) : {}", from, getBalance(from), to, getBalance(to));
@@ -275,7 +300,14 @@ public class YeedContract implements BundleActivator, ServiceListener {
             return txReceipt;
         }
 
-        // Transfer amount A to B include fee
+        /**
+         * Transfer From Account to To Account, Amount, Network Fee
+         * @param from Account (Wallet, Deposit Account, ... )
+         * @param to Account (Wallet, Deposit Account, ... )
+         * @param amount BigInteger Asset value
+         * @param fee Network Fee Amount
+         * @return Transfer is Success or not
+         */
         protected boolean transfer(String from, String to, BigInteger amount, BigInteger fee) {
             BigInteger fromBalance = getBalance(from);
             BigInteger feeAmount = amount.add(fee);
@@ -287,11 +319,9 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 putBalance(from, fromBalance);
                 // Stores fee for each branchId to reward to the validators <branchId : fee>
                 addBalanceTo(txReceipt.getBranchId(), fee);
-                setSuccessTxReceipt(
-                        String.format("[Transferred] Transfer %s from %s to %s (fee:%s)", amount, from, to, fee));
                 return true;
             } else {
-                setErrorTxReceipt("Insufficient funds");
+                log.debug("is Not transferable");
                 return false;
             }
         }
@@ -300,10 +330,21 @@ public class YeedContract implements BundleActivator, ServiceListener {
             return amount.compareTo(BigInteger.ZERO) < 0; // -1
         }
 
+        /***
+         * Check amount is Positive
+         * Amount is more than Zero
+         * @param amount Check Value
+         * @return Value is more than Zero
+         */
         private boolean isPositive(BigInteger amount) {
-            return !(amount.compareTo(BigInteger.ZERO) <= 0); // 1
+            return amount.compareTo(BigInteger.ZERO) > 0; // amount > 0
         }
 
+        /***
+         * Check Account is exist and Asset is Zero
+         * @param account Check Account
+         * @return Account's Value is Zero (not exist or asset is Zero)
+         */
         private boolean isAccountEmpty(String account) { // pre verification
             return getBalance(account).compareTo(BigInteger.ZERO) == 0;
         }
@@ -343,8 +384,10 @@ public class YeedContract implements BundleActivator, ServiceListener {
             }
 
             BigInteger fee = params.has(FEE) ? params.get(FEE).getAsBigInteger() : BigInteger.ZERO;
-            if (isNegative(fee)) {
-                setErrorTxReceipt("Invalid fee");
+            BigInteger networkFee = calculateFee();
+            // Check Fee
+            if (networkFee.compareTo(fee) > 0) {
+                setErrorTxReceipt("Low transaction fee");
                 return txReceipt;
             }
 
@@ -359,67 +402,70 @@ public class YeedContract implements BundleActivator, ServiceListener {
             }
 
             boolean isTransfer = transfer(from, to, amount, fee);
-            if (!isTransfer) {
-                setFalseTxReceipt("Transfer failed");
+            setTransferExecute(isTransfer, from, to, amount, fee);
+
+            if (isTransfer) {
+                txReceipt.addLog(
+                        String.format("transferFrom %s from %s to %s fee %s by %s", amount, from, to, fee, sender));
+            } else {
+                // Transfer Error
                 return txReceipt;
             }
 
             approveValue = approveValue.subtract(amountFee);
             putBalance(approveKey, approveValue);
 
-            log.debug("[Transferred] Transfer {} from {} to {}", amount, from, to);
-            log.debug("Allowed amount of Sender ({}) : {}", sender, approveValue);
-            log.debug("Balance of From ({}) : {} Balance of To   ({}) : {}", from, getBalance(from),
-                    to, amount);
+            if (log.isDebugEnabled()) {
+                log.debug("[Transferred] Transfer {} from {} to {}", amount, from, to);
+                log.debug("Allowed amount of Sender ({}) : {}", sender, approveValue);
+                log.debug("Balance of From ({}) : {} Balance of To   ({}) : {}", from, getBalance(from),
+                        to, amount);
+            }
 
             return txReceipt;
         }
 
+        /***
+         * Other Contract Call to Channel method, YEED Transfer to other contract or account
+         * @param params {
+         *                  from: from Account (Contract Name or Wallet Account) ,
+         *                  to: to Account (Contract Name or Wallet Account),
+         *                  amount: Transfer Amount Value(BigInteger)
+         *                  serviceFee: Network Service Fee(BigInteger)
+         *               }
+         * @return Transfer is Success or not
+         */
         @ContractChannelMethod
-        public boolean transferChannel(JsonObject params) { // Call other contract to transfer
+        public boolean transferChannel(JsonObject params) {
             // Contract name base
             String otherContract = this.txReceipt.getContractVersion();
             String contractName = this.branchStateStore.getContractName(otherContract);
             String contractAccount = String.format("%s%s", PrefixKeyEnum.CONTRACT_ACCOUNT, contractName);
 
-            String fromAccount = params.get("from").getAsString();
-            String toAccount = params.get("to").getAsString();
-            BigInteger amount = params.get("amount").getAsBigInteger();
-
-            if (toAccount.equalsIgnoreCase(contractName)) { // deposit
-                // Check from is issuer
-                if (fromAccount.equalsIgnoreCase(this.txReceipt.getIssuer())) {
-                    return transfer(fromAccount, contractAccount, amount, BigInteger.ZERO); // No fee currently
-                } else {
-                    return false;
-                }
-            } else if (fromAccount.equalsIgnoreCase(contractName)) { // withdraw
-                return transfer(contractAccount, toAccount, amount, BigInteger.ZERO); // No fee currently
-            }
-
-            return false; // If neither deposit nor withdraw
-        }
-
-        @ContractChannelMethod
-        public boolean transferFromChannel(JsonObject params) {
-            String otherContract = this.txReceipt.getContractVersion();
-            String contractName = this.branchStateStore.getContractName(otherContract);
-            String contractAccount = String.format("%s%s", PrefixKeyEnum.CONTRACT_ACCOUNT, contractName);
-
+            String issuer = this.txReceipt.getIssuer();
             String fromAccount = params.get("from").getAsString();
             String toAccount = params.get("to").getAsString();
             BigInteger amount = params.get("amount").getAsBigInteger();
             BigInteger serviceFee = params.has("serviceFee")
                     ? params.get("serviceFee").getAsBigInteger() : BigInteger.ZERO;
 
-            if (toAccount.equalsIgnoreCase(contractName)) { // deposit
-                return transfer(fromAccount, contractAccount, amount, serviceFee);
-            } else if (fromAccount.equalsIgnoreCase(contractName)) { // withdraw
-                return transfer(contractAccount, toAccount, amount, serviceFee);
+            if (!isPositive(amount)) {
+                return false;
             }
 
+            if (toAccount.equalsIgnoreCase(contractName) &&
+                    fromAccount.equalsIgnoreCase(issuer)) {
+                // deposit
+                return transfer(fromAccount, contractAccount, amount, serviceFee);
+            } else if (fromAccount.equalsIgnoreCase(contractName)) { // withdraw
+                // withdraw service fee is used contract Account
+                return transfer(contractAccount, toAccount, amount, serviceFee);
+
+            }
+            this.txReceipt.addLog("Transfer channel fail");
             return false; // If neither deposit nor withdraw
         }
+
 
         protected boolean transferFee(String from, BigInteger fee) {
             if (fee.compareTo(BigInteger.ZERO) > 0) {
@@ -443,11 +489,13 @@ public class YeedContract implements BundleActivator, ServiceListener {
         private BigInteger getBalance(PrefixKeyEnum type, String address) {
             String searchAddress = String.format("%s%s",type.toValue(),address);
             JsonObject storeValue = store.get(searchAddress);
+            // TODO Store Base64 Encoding
             return storeValue != null && storeValue.has(BALANCE)
                     ? storeValue.get(BALANCE).getAsBigInteger() : BigInteger.ZERO;
         }
 
         private void putBalance(String address, BigInteger value) {
+            // TODO Store Base64 Encoding
             JsonObject storeValue = new JsonObject();
             storeValue.addProperty(BALANCE, value);
             address = PrefixKeyEnum.getAccountKey(address);
@@ -460,7 +508,26 @@ public class YeedContract implements BundleActivator, ServiceListener {
             return String.format("%s%s", PrefixKeyEnum.APPROVE.toValue(), HexUtil.toHexString(approveKey));
         }
 
-        // TODO withdraw fee amount by branchId
+
+        /***
+         * BASE FEE Model
+         * Transaction Byte length multiplex BASE_FEE (0.0005 YEED)
+         * @return Fee Value
+         */
+        private BigInteger calculateFee() {
+            return BASE_FEE.multiply(BigInteger.valueOf(this.txReceipt.getTxSize()));
+        }
+
+
+        private void setTransferExecute(boolean isTransfer, String from, String to, BigInteger amount, BigInteger fee) {
+            if (isTransfer) {
+                setSuccessTxReceipt(
+                        String.format("Transfer %s from %s to %s fee %s", amount, from, to, fee));
+            } else {
+                setErrorTxReceipt("Transfer error");
+            }
+        }
+
 
         @InvokeTransaction
         public void issuePropose(JsonObject params) {
@@ -471,8 +538,15 @@ public class YeedContract implements BundleActivator, ServiceListener {
             //TODO Check whether status is false or error
 
             // Check Issuer FEE and network FEE
-            if (!isPositive(stakeYeed) || !isPositive(fee)) {
-                setFalseTxReceipt("Invalid amount of stakeYeed or fee");
+            if (!isPositive(stakeYeed)) {
+                setFalseTxReceipt("Invalid amount of stakeYeed");
+                return;
+            }
+
+            BigInteger networkFee = calculateFee();
+            // Check Fee
+            if (networkFee.compareTo(fee) > 0) {
+                setErrorTxReceipt("Low transaction fee");
                 return;
             }
 
@@ -512,6 +586,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
             // The fee is transferred at the end (Issue closed or done)
             boolean isTransfer = transfer(issuer, propose.getProposeId(), stakeFee, BigInteger.ZERO);
+
+            setTransferExecute(isTransfer, issuer, propose.getProposeId(), stakeFee, BigInteger.ZERO);
             if (!isTransfer) {
                 txReceipt.addLog(String.format("Propose %s ISSUE Fail", propose.getProposeId()));
             }
@@ -568,11 +644,11 @@ public class YeedContract implements BundleActivator, ServiceListener {
             }
             */
 
-            // Check fee
-            if (isNegative(fee)) {
-                setErrorTxReceipt("Invalid amount of fee");
+            BigInteger networkFee = calculateFee();
+            // Check Fee
+            if (networkFee.compareTo(fee) > 0) {
+                setErrorTxReceipt("Low transaction fee");
                 return;
-                //return throw new RuntimeException("Invalid amount of fee");
             }
 
             // Check issuer balance
@@ -893,7 +969,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
             BigInteger balance = this.getBalance(issuer);
             // Can be charged Yeed once per account
             if (!this.store.contains(faucetKey) && balance.compareTo(BigInteger.ZERO) == 0) {
-                balance = balance.add(BigInteger.valueOf(1000L)); // Add 1000
+                balance = balance.add(BASE_CURRENCY.multiply(BigInteger.valueOf(1000L))); // Add 1000 YEED
 
                 // Update TOTAL SUPPLY
                 BigInteger totalSupply = this.totalSupply();
