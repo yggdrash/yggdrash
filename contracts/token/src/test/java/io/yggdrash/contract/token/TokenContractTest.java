@@ -35,7 +35,7 @@ public class TokenContractTest {
         System.out.println(service.totalSupply(null));
         System.out.println(service.balanceOf(null));
         System.out.println(service.burn(null));
-        System.out.println(service.closeExchange(null));
+        System.out.println(service.exchangeClose(null));
         System.out.println(service.createToken(null));
         System.out.println(service.depositYeedStakeToToken(null));
         System.out.println(service.destroyToken(null));
@@ -49,7 +49,7 @@ public class TokenContractTest {
         System.out.println(service.movePhasePause(null));
         System.out.println(service.movePhaseRun(null));
         System.out.println(service.movePhaseStop(null));
-        System.out.println(service.openExchange(null));
+        System.out.println(service.exchangeOpen(null));
         System.out.println(service.transfer(null));
         System.out.println(service.transferFrom(null));
         System.out.println(service.withdrawYeedStakeFromToken(null));
