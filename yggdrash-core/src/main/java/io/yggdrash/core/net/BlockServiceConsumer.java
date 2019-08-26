@@ -59,6 +59,7 @@ public class BlockServiceConsumer<T> implements BlockConsumer<T> {
         return blockList;
     }
 
+    //TODO check syncronization about addBlock()
     @Override
     public void broadcastBlock(ConsensusBlock<T> block) {
         try {

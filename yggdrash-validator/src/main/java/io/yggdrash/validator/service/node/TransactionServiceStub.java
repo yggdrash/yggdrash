@@ -102,7 +102,7 @@ public class TransactionServiceStub extends TransactionServiceGrpc.TransactionSe
                 try {
                     client.multicastTransaction(protoTx);
                 } catch (Exception e) {
-                    log.debug("multicastTransaction failed: {} ", client.getId());
+                    log.debug("multicastTransaction failed: {} {}", client.getId(), e.getMessage());
                 }
             }
         }

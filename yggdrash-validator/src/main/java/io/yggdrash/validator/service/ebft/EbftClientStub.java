@@ -4,6 +4,7 @@ import io.grpc.Context;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.EbftProto;
 import io.yggdrash.proto.EbftServiceGrpc;
@@ -43,6 +44,7 @@ public class EbftClientStub implements ConsensusClientStub<EbftBlock> {
 
         this.channel = ManagedChannelBuilder.forAddress(host, port)
                 .usePlaintext()
+                .maxInboundMessageSize(Constants.MAX_GRPC_MESSAGE_LIMIT)
                 .build();
         blockingStub = EbftServiceGrpc.newBlockingStub(channel);
     }

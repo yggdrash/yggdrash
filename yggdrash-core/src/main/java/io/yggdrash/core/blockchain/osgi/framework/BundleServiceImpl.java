@@ -2,9 +2,11 @@ package io.yggdrash.core.blockchain.osgi.framework;
 
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.blockchain.osgi.ContractConstants;
+import io.yggdrash.core.blockchain.osgi.ContractStatus;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,21 +14,102 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Dictionary;
+import java.util.List;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 public class BundleServiceImpl implements BundleService {
     private static final Logger log = LoggerFactory.getLogger(BundleServiceImpl.class);
 
-    @Override
-    public Bundle install(BundleContext context, ContractVersion contractVersion, File file, boolean isSystem) throws IOException, BundleException {
+    private final BundleContext context;
 
-        try (InputStream fs = new FileInputStream(file.getAbsolutePath())) {
-            return context.installBundle(location(isSystem, contractVersion), fs);
+    public BundleServiceImpl(BundleContext context) {
+        this.context = context;
+
+        // todo : remove this code when bundle location prefix all removed.
+        uninstallPrefixedBundle();
+    }
+
+    private void uninstallPrefixedBundle() {
+        Bundle[] bundles = getBundles();
+
+        // bundles[0] is System Bundle
+        for (int i = 1; i < bundles.length; i++) {
+            if (bundles[i].getLocation().startsWith(ContractConstants.SUFFIX_SYSTEM_CONTRACT)) {
+                try {
+                    log.debug("remove old bundle {}", bundles[i].getLocation());
+                    bundles[i].uninstall();
+                } catch (BundleException e) {
+                    log.trace(e.getMessage());
+                }
+            }
         }
     }
 
     @Override
-    public void uninstall(BundleContext context, ContractVersion contractVersion) throws BundleException {
-        Bundle bundle = findBundleByContractVersion(context, contractVersion);
+    public Bundle install(ContractVersion contractVersion, File file) throws IOException, BundleException {
+
+        Bundle bundle = getBundle(contractVersion);
+
+        try (JarFile jarFile = new JarFile(file);
+                InputStream fs = new FileInputStream(file.getAbsolutePath())) {
+            if (bundle != null && isInstalledContract(jarFile, bundle)) {
+                log.warn("Already installed bundle {}", contractVersion);
+                return bundle;
+            }
+
+            if (verifyManifest(jarFile.getManifest())) {
+                log.info("Installing  bundle {}", contractVersion);
+                return context.installBundle(contractVersion.toString(), fs);
+            }
+        }
+        return null;
+    }
+
+    private boolean isInstalledContract(JarFile jarFile, Bundle bundle) throws IOException {
+        List<String> bundleKeys = Collections.list(bundle.getHeaders().keys());
+        Manifest m = jarFile.getManifest();
+
+        for (String key : bundleKeys) {
+            if (!m.getMainAttributes().getValue(key).equals(bundle.getHeaders().get(key))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean verifyManifest(Manifest manifest) {
+        String manifestVersion = manifest.getMainAttributes().getValue("Bundle-ManifestVersion");
+        String bundleSymbolicName = manifest.getMainAttributes().getValue("Bundle-SymbolicName");
+        String bundleVersion = manifest.getMainAttributes().getValue("Bundle-Version");
+        return verifyManifest(manifestVersion, bundleSymbolicName, bundleVersion);
+    }
+
+    private boolean verifyManifest(String manifestVersion, String bundleSymbolicName, String bundleVersion) {
+        if (!"2".equals(manifestVersion)) {
+            log.error("Must set Bundle-ManifestVersion to 2");
+            return false;
+        }
+        if (bundleSymbolicName == null || "".equals(bundleSymbolicName)) {
+            log.error("Must set Bundle-SymbolicName");
+            return false;
+        }
+
+        if (bundleVersion == null || "".equals(bundleVersion)) {
+            log.error("Must set Bundle-Version");
+            return false;
+        }
+
+        return true;
+    }
+
+
+    @Override
+    public void uninstall(ContractVersion contractVersion) throws BundleException {
+        Bundle bundle = getBundle(contractVersion);
         if (bundle != null) {
             bundle.uninstall();
             return;
@@ -35,8 +118,8 @@ public class BundleServiceImpl implements BundleService {
     }
 
     @Override
-    public void start(BundleContext context, ContractVersion contractVersion) throws BundleException {
-        Bundle bundle = findBundleByContractVersion(context, contractVersion);
+    public void start(ContractVersion contractVersion) throws BundleException {
+        Bundle bundle = getBundle(contractVersion);
         if (bundle != null) {
             bundle.start();
             return;
@@ -50,8 +133,8 @@ public class BundleServiceImpl implements BundleService {
     }
 
     @Override
-    public void stop(BundleContext context,  ContractVersion contractVersion) throws BundleException {
-        Bundle bundle = findBundleByContractVersion(context, contractVersion);
+    public void stop(ContractVersion contractVersion) throws BundleException {
+        Bundle bundle = getBundle(contractVersion);
         if (bundle != null) {
             bundle.stop();
             return;
@@ -60,8 +143,8 @@ public class BundleServiceImpl implements BundleService {
     }
 
     @Override
-    public int getBundleState(BundleContext context,  ContractVersion contractVersion) {
-        Bundle bundle = findBundleByContractVersion(context, contractVersion);
+    public int getBundleState(ContractVersion contractVersion) {
+        Bundle bundle = getBundle(contractVersion);
         if (bundle != null) {
             return bundle.getState();
         }
@@ -69,41 +152,45 @@ public class BundleServiceImpl implements BundleService {
         return -1;
     }
 
-    public Bundle getBundle(BundleContext context, long bundleId) {
-        return context.getBundle(bundleId);
-    }
-
     @Override
-    public Bundle getBundle(BundleContext context, ContractVersion contractVersion) {
-        return findBundleByContractVersion(context, contractVersion);
-    }
-
-    @Override
-    public Bundle[] getBundles(BundleContext context) {
+    public Bundle[] getBundles() {
         return context.getBundles();
     }
 
-    public Bundle getBundle(BundleContext context, String contractVersion) {
-        return findBundleByContractVersion(context, contractVersion);
+    @Override
+    public Bundle getBundle(ContractVersion contractVersion) {
+        return context.getBundle(contractVersion.toString());
     }
 
-    private String location(boolean isSystem, ContractVersion contractVersion) {
-        return isSystem
-                ? String.format("%s/%s", ContractConstants.SUFFIX_SYSTEM_CONTRACT, contractVersion.toString())
-                : String.format("%s/%s", ContractConstants.SUFFIX_USER_CONTRACT, contractVersion.toString());
+    @Override
+    public Object getBundleService(Bundle bundle) {
+        return context.getService(bundle.getRegisteredServices()[0]);
     }
 
-    private Bundle findBundleByContractVersion(BundleContext context, ContractVersion contractVersion) {
-        return findBundleByContractVersion(context, contractVersion.toString());
-    }
+    @Override
+    public List<ContractStatus> getContractList() {
+        List<ContractStatus> contractStatusList = new ArrayList<>();
 
-    private Bundle findBundleByContractVersion(BundleContext context, String contractVersion) {
-        for (Bundle bundle : context.getBundles()) {
-            if (bundle.getLocation().contains(contractVersion)) {
-                return bundle;
-            }
+        for (Bundle bundle: getBundles()) {
+            Dictionary<String, String> header = bundle.getHeaders();
+            int serviceCnt = bundle.getRegisteredServices() == null ? 0 : bundle.getRegisteredServices().length;
+
+            Version v = bundle.getVersion();
+            ContractStatus status = new ContractStatus(
+                    bundle.getSymbolicName(),
+                    String.format("%s.%s.%s", v.getMajor(), v.getMinor(), v.getMicro()),
+                    header.get("Bundle-Vendor"),
+                    header.get("Bundle-Description"),
+                    bundle.getBundleId(),
+                    bundle.getLocation(),
+                    bundle.getState(),
+                    serviceCnt
+            );
+            contractStatusList.add(status);
         }
-        return null;
-    }
 
+        return contractStatusList;
+
+
+    }
 }

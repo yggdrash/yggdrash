@@ -68,7 +68,7 @@ public class BlockChainBuilder {
 
     private Map<ContractVersion, Contract> defaultContract() {
         // TODO System Default Contract
-        // VersionContract etc
+        // VersioningContract etc
 
         // TODO Default Contract has Config
         Map<ContractVersion, Contract> defaultContract = new HashMap<>();

@@ -7,6 +7,7 @@ import io.yggdrash.core.store.BlockKeyStore;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 public interface ConsensusBlockChain<T, V> {
     BranchId getBranchId();
@@ -21,9 +22,13 @@ public interface ConsensusBlockChain<T, V> {
 
     Map<String, List<String>> addBlock(ConsensusBlock<T> block); // return errorLogs
 
+    Map<String, List<String>> addBlock(ConsensusBlock<T> block, boolean broadcast); // return errorLogs
+
     boolean isValidator(String addr);
 
     ValidatorSet getValidators();
 
     BlockChainManager<T> getBlockChainManager();
+
+    ReentrantLock getLock();
 }

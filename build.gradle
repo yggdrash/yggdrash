@@ -132,6 +132,7 @@ project(':yggdrash-core') {
         compile "com.typesafe:config:${typesafeVersion}"
         compile 'org.beryx:text-io:3.3.0'
         compileOnly "javax.annotation:javax.annotation-api:${annotationVersion}"
+        testCompile "org.mockito:mockito-core:1.+"
         testCompile "org.assertj:assertj-core:${assertjVersion}"
     }
 

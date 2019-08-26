@@ -29,9 +29,12 @@ import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.blockchain.osgi.ContractManagerBuilder;
+import io.yggdrash.core.blockchain.osgi.Downloader;
 import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkConfig;
 import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkLauncher;
 import io.yggdrash.core.blockchain.osgi.framework.BundleServiceImpl;
+import io.yggdrash.core.blockchain.osgi.framework.FrameworkConfig;
+import io.yggdrash.core.blockchain.osgi.framework.FrameworkLauncher;
 import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
@@ -55,8 +58,6 @@ import java.util.Arrays;
 @EnableScheduling
 public class BranchConfiguration {
     private static final Logger log = LoggerFactory.getLogger(BranchConfiguration.class);
-
-    //private final StoreBuilder storeBuilder;
 
     private final DefaultConfig defaultConfig;
 
@@ -151,10 +152,13 @@ public class BranchConfiguration {
 
         BlockChainManager blockChainManager = new BlockChainManagerImpl(blockChainStore);
 
+        FrameworkConfig frameworkConfig = new BootFrameworkConfig(config, branchId);
+        FrameworkLauncher frameworkLauncher = new BootFrameworkLauncher(frameworkConfig);
+        BundleServiceImpl bundleService = new BundleServiceImpl(frameworkLauncher.getBundleContext());
+
         ContractManager contractManager = ContractManagerBuilder.newInstance()
                 .withGenesis(genesis)
-                .withBootFramework(new BootFrameworkLauncher(new BootFrameworkConfig(config, branchId)))
-                .withBundleManager(new BundleServiceImpl())
+                .withBundleManager(bundleService)
                 .withDefaultConfig(config)
                 .withContractStore(contractStore)
                 .withLogStore(blockChainStore.getLogStore()) // is this logstore for what?
@@ -168,6 +172,11 @@ public class BranchConfiguration {
                 .setContractManager(contractManager)
                 .setFactory(ValidatorService.factory())
                 .build();
+    }
+
+    @Bean
+    Downloader downloader(DefaultConfig defaultConfig) {
+        return new Downloader(defaultConfig);
     }
 
 }

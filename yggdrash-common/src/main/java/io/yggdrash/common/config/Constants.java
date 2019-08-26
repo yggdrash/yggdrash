@@ -4,6 +4,7 @@ import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.SerializationUtil;
 
 import java.io.File;
+import java.math.BigInteger;
 
 public final class Constants {
 
@@ -27,6 +28,7 @@ public final class Constants {
 
     public static final long TIMESTAMP_2018 = 1514764800000L;
     public static final int MAX_MEMORY = 10000000;
+    public static final int MAX_GRPC_MESSAGE_LIMIT = 8192000;
 
     public static final int HASH_LENGTH = 32;
     public static final int SIGNATURE_LENGTH = 65;
@@ -91,6 +93,8 @@ public final class Constants {
     public static final long TIMEOUT_TRANSACTION = 3;
     public static final long TIMEOUT_STATUS = 5;
 
+    // Base currency
+    public static final BigInteger BASE_CURRENCY = BigInteger.TEN.pow(18);
     public final class Limit {
         private Limit() {
         }
