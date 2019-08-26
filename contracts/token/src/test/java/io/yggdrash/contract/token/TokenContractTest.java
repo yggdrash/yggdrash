@@ -1,5 +1,10 @@
 package io.yggdrash.contract.token;
 
+import java.lang.reflect.Field;
+import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.BranchContract;
@@ -22,11 +27,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.lang.reflect.Field;
-import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class TokenContractTest {
 
@@ -103,21 +103,21 @@ public class TokenContractTest {
         this.adapter.setTransactionReceipt(tx);
 
         JsonObject createToken = new JsonObject();
-        createToken.addProperty("TOKEN_ID", "TEST_TOKEN");
+        createToken.addProperty("tokenId", "TEST_TOKEN");
         // 100 만개
-        createToken.addProperty("TOKEN_INIT_YEED_STAKE_AMOUNT", BigInteger.TEN.pow(24));
+        createToken.addProperty("tokenInitYeedStakeAmount", BigInteger.TEN.pow(24));
 
         // Create Token Object
-        createToken.addProperty("TOKEN_NAME", "TTOKEN");
+        createToken.addProperty("tokenName", "TTOKEN");
         // 100 억개
-        createToken.addProperty("TOKEN_INIT_MINT_AMOUNT", BigInteger.TEN.pow(30));
+        createToken.addProperty("tokenInitMintAmount", BigInteger.TEN.pow(30));
 
-        createToken.addProperty("TOKEN_MINTABLE", true);
-        createToken.addProperty("TOKEN_BURNABLE", true);
-        createToken.addProperty("TOKEN_EXCHANGEABLE", true);
+        createToken.addProperty("tokenMintable", true);
+        createToken.addProperty("tokenBurnable", true);
+        createToken.addProperty("tokenExchangeable", true);
 
-        createToken.addProperty("TOKEN_EX_TYPE", "TOKEN_EX_TYPE_FIXED");
-        createToken.addProperty("TOKEN_EX_RATE_T2Y", 1.0);
+        createToken.addProperty("tokenExType", "TOKEN_EX_TYPE_FIXED");
+        createToken.addProperty("tokenExRateT2Y", 1.0);
 
 
         tokenContract.createToken(createToken);
@@ -125,10 +125,6 @@ public class TokenContractTest {
         tx.getTxLog().stream().forEach(l -> log.debug(l));
 
         Assert.assertTrue("create Success", tx.isSuccess());
-
-
-
-
     }
 
 
