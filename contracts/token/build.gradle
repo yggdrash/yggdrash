@@ -125,4 +125,5 @@ jar {
 
 dependencies {
     compile project(':yggdrash-common')
+    testCompile project(':yggdrash-core')
 }

@@ -117,7 +117,7 @@ public class TokenContractTest {
         createToken.addProperty("TOKEN_EXCHANGEABLE", true);
 
         createToken.addProperty("TOKEN_EX_TYPE", "TOKEN_EX_TYPE_FIXED");
-        createToken.addProperty("TOKEN_EX_RATE_T2Y", 1.1);
+        createToken.addProperty("TOKEN_EX_RATE_T2Y", 1.0);
 
 
         tokenContract.createToken(createToken);
