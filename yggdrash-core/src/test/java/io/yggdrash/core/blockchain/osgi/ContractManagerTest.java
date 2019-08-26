@@ -25,9 +25,6 @@ import org.osgi.framework.BundleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-
 
 public class ContractManagerTest {
     private static final Logger log = LoggerFactory.getLogger(ContractManagerBuilderTest.class);
@@ -40,74 +37,32 @@ public class ContractManagerTest {
     private static BlockChainStore bcStore;
     private static ContractStore contractStore;
 
-    private static GenesisBlock coinGenesis;
-    private static BranchId coinBranchId;
-
-    private static ContractExecutor executor;
-
     private static ContractVersion coinContract = ContractVersion.of("8c65bc05e107aab9ceaa872bbbb2d96d57811de4");
     ContractVersion notExistedVersion = ContractVersion.of(Hex.encodeHexString("Wrong ContractVersion".getBytes()));
 
     @Before
     public void setUp() throws Exception {
         manager = initContractManager();
-        executor = manager.getContractExecutor();
-    }
-
-    private void printBundles() {
-        Bundle[] bundles = manager.getBundles();
-        log.info("The number of installed bundles: {}", bundles.length);
-        for (Bundle bundle : bundles) {
-            log.info("Bundle Id : {}\tBundle Symbol : {}\tBundle location : {}",
-                    bundle.getBundleId(), bundle.getSymbolicName(), bundle.getLocation());
-        }
     }
 
     @Test
-    public void coinContractInstallTest() throws IOException {
-        installByVersion(coinContract);
+    public void loadBundleTest() throws BundleException {
+        int numOfBundles = manager.getBundles().length;
+        manager.loadBundle(coinContract);
+        Assert.assertNotNull(manager.getBundle(coinContract));
+        Assert.assertEquals(numOfBundles + 1, manager.getBundles().length);
+        manager.uninstall(coinContract);
     }
 
     @Test
-    public void uninstallTest() {
-        Bundle bundle = manager.getBundle(coinContract);
-        if (bundle == null) {
-            log.debug("Coin bundle does not exist");
-        } else {
-            manager.uninstall(coinContract);
-        }
+    public void loadBundleDownloadFailTest() {
+        // not found in s3 repository.
+        int numOfBundles = manager.getBundles().length;
+        manager.loadBundle(notExistedVersion);
+        Assert.assertEquals(numOfBundles, manager.getBundles().length);
     }
 
-    private void installByVersion(ContractVersion contractVersion) throws IOException {
-        File coinFile = null;
-        if (manager.isContractFileExist(contractVersion)) {
-            coinFile = new File(config.getContractPath() + File.separator + contractVersion + ".jar");
-        } else {
-            coinFile = Downloader.downloadContract(contractVersion);
-        }
-
-        Assert.assertNotNull("Failed to download COIN-CONTRACT File on system", coinFile);
-
-        boolean verified = manager.verifyContractFile(coinFile, contractVersion);
-
-        Assert.assertTrue("Failed to verify contract file", verified);
-
-        try {
-            Bundle coinBundle = manager.install(contractVersion);
-            manager.start(contractVersion);
-            manager.registerServiceMap(contractVersion, coinBundle);
-            manager.inject(coinBundle);
-
-        } catch (IOException | BundleException | IllegalAccessException e) {
-            log.error(e.getMessage());
-        }
-
-        Bundle[] bundles = manager.getBundles();
-        Assert.assertTrue("Failed to install COIN-CONTRACT on osgi", bundles.length > 1);
-        printBundles();
-    }
-
-    private ContractManager initContractManager() throws IOException, BundleException {
+    private ContractManager initContractManager() {
         config = new DefaultConfig();
         genesis = BlockChainTestUtils.getGenesis();
         systemProperties = BlockChainTestUtils.createDefaultSystemProperties();
@@ -127,7 +82,9 @@ public class ContractManagerTest {
         FrameworkLauncher bootFrameworkLauncher = new BootFrameworkLauncher(bootFrameworkConfig);
         BundleService bundleService = new BundleServiceImpl(bootFrameworkLauncher.getBundleContext());
 
-        ContractManager manager = ContractManagerBuilder.newInstance()
+        new Downloader(config);
+
+        return ContractManagerBuilder.newInstance()
                 .withGenesis(genesis)
                 .withBundleManager(bundleService)
                 .withDefaultConfig(config)
@@ -135,9 +92,15 @@ public class ContractManagerTest {
                 .withLogStore(bcStore.getLogStore()) // is this logstore for what?
                 .withSystemProperties(systemProperties)
                 .build();
+    }
 
-        Assert.assertNotNull("Manager is null", manager);
-        return manager;
+    private void printBundles() {
+        Bundle[] bundles = manager.getBundles();
+        log.info("The number of installed bundles: {}", bundles.length);
+        for (Bundle bundle : bundles) {
+            log.info("Bundle Id : {}\tBundle Symbol : {}\tBundle location : {}",
+                    bundle.getBundleId(), bundle.getSymbolicName(), bundle.getLocation());
+        }
     }
 
 }

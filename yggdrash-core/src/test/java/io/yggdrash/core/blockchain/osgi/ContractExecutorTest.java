@@ -373,19 +373,8 @@ public class ContractExecutorTest {
                 .withSystemProperties(systemProperties)
                 .build();
 
-        this.executor = manager.getContractExecutor();
-
         setNamespace();
 
-    }
-
-    private boolean checkExistContract(String contractVersion) {
-        for (ContractStatus cs : manager.searchContracts()) {
-            if (cs.getLocation().lastIndexOf(contractVersion) > 0) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void generateGenesisBlock() throws IOException {

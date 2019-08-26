@@ -48,8 +48,8 @@ public class ContractCacheImpl implements ContractCache {
 
         Map<String, Method> invokeMap = invokeTransactionMethods.computeIfAbsent(contractName,
                 k -> serviceMethods.stream()
-                .filter(method -> method.isAnnotationPresent(InvokeTransaction.class))
-                .collect(Collectors.toMap(Method::getName, m -> m)));
+                        .filter(method -> method.isAnnotationPresent(InvokeTransaction.class))
+                        .collect(Collectors.toMap(Method::getName, m -> m)));
         invokeTransactionMethods.put(contractName, invokeMap);
 
         Map<String, Method> channelMap = contractChannelMethods.computeIfAbsent(contractName,
@@ -69,22 +69,6 @@ public class ContractCacheImpl implements ContractCache {
                         .filter(method -> method.isAnnotationPresent(ContractEndBlock.class))
                         .collect(Collectors.toMap(Method::getName, m -> m)));
         endBlockMethods.put(contractName, endBlockMap);
-    }
-
-    @Override
-    public Map<String, Method> getContractMethodMap(String contractVersion, ContractMethodType type) {
-        switch (type) {
-            case QUERY:
-                return this.queryMethods.get(contractVersion);
-            case INVOKE:
-                return this.invokeTransactionMethods.get(contractVersion);
-            case END_BLOCK:
-                return this.endBlockMethods.get(contractVersion);
-            case CHANNEL_METHOD:
-                return this.contractChannelMethods.get(contractVersion);
-            default:
-                return new HashMap<>();
-        }
     }
 
     @Override

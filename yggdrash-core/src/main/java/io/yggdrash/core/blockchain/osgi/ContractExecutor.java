@@ -59,40 +59,44 @@ public class ContractExecutor {
         this.coupler = new ContractChannelCoupler();
     }
 
-    void injectNodeContract(Object service) throws IllegalAccessException {
+    void injectNodeContract(Object service) {
         inject(service, namespace(service.getClass().getName()));
     }
 
-    void injectBundleContract(Bundle bundle, Object service) throws IllegalAccessException {
+    void injectBundleContract(Bundle bundle, Object service) {
         inject(service, namespace(bundle.getSymbolicName()));
     }
 
-    private void inject(Object service, String namespace) throws IllegalAccessException {
+    private void inject(Object service, String namespace) {
         Field[] fields = service.getClass().getDeclaredFields();
 
         for (Field field : fields) {
             field.setAccessible(true);
 
             for (Annotation annotation : field.getDeclaredAnnotations()) {
-                if (annotation.annotationType().equals(ContractStateStore.class)) {
-                    log.trace("service name : {} \t namespace : {}", service.getClass().getName(), namespace);
-                    StoreAdapter adapterStore = new StoreAdapter(contractStore.getTmpStateStore(), namespace);
-                    field.set(service, adapterStore); //default => tmpStateStore
-                }
+                try {
+                    if (annotation.annotationType().equals(ContractStateStore.class)) {
+                        log.trace("service name : {} \t namespace : {}", service.getClass().getName(), namespace);
+                        StoreAdapter adapterStore = new StoreAdapter(contractStore.getTmpStateStore(), namespace);
+                        field.set(service, adapterStore); //default => tmpStateStore
+                    }
 
-                if (annotation.annotationType().equals(ContractBranchStateStore.class)) {
-                    field.set(service, contractStore.getBranchStore());
-                }
+                    if (annotation.annotationType().equals(ContractBranchStateStore.class)) {
+                        field.set(service, contractStore.getBranchStore());
+                    }
 
-                if (annotation.annotationType().equals(ContractTransactionReceipt.class)) {
-                    field.set(service, trAdapter);
-                }
+                    if (annotation.annotationType().equals(ContractTransactionReceipt.class)) {
+                        field.set(service, trAdapter);
+                    }
 
-                if (annotation.annotationType().equals(ContractChannelField.class)) {
-                    field.set(service, coupler);
-                }
+                    if (annotation.annotationType().equals(ContractChannelField.class)) {
+                        field.set(service, coupler);
+                    }
+                    // todo : Implements event store policy. 190814 - lucas
 
-                // todo : Implements event store policy. 190814 - lucas
+                } catch (IllegalAccessException e) {
+                    log.warn(e.getMessage());
+                }
             }
         }
     }
@@ -214,6 +218,11 @@ public class ContractExecutor {
             contractVersion = Hex.toHexString(tx.getHeader().getType());
         } else {
             contractVersion = txBody.get("contractVersion").getAsString();
+        }
+
+        // todo: remove this test code;
+        if (contractVersion.equals("fb9454b7c5077a77747ccc290a12b4ce83750cad")) {
+            contractVersion = Hex.toHexString(tx.getHeader().getType());
         }
 
         String methodName = txBody.get("method").getAsString();
