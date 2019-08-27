@@ -6,6 +6,8 @@ import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.osgi.ContractStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +22,7 @@ import java.util.List;
 @RequestMapping("contract")
 public class ContractController {
 
+    private static final Logger log = LoggerFactory.getLogger(ContractController.class);
     private BranchGroup branchGroup;
 
     @Autowired
@@ -40,6 +43,12 @@ public class ContractController {
     public Object query(@PathVariable(name = "branchId") String branchId, String contract,
                         String method, @RequestParam(name = "params", required = false) String params) {
         JsonObject jsonParam = params != null ? JsonUtil.parseJsonObject(params) : null;
-        return branchGroup.query(BranchId.of(branchId), contract, method, jsonParam);
+        Object result = null;
+        try {
+            result = branchGroup.query(BranchId.of(branchId), contract, method, jsonParam);
+        } catch (Exception e) { // TODO: check more exceptions and logics
+            log.debug("Invalid branch {}", branchId);
+        }
+        return result;
     }
 }
