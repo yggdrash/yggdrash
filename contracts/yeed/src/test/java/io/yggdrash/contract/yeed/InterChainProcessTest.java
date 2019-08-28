@@ -5,7 +5,9 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.vo.dpoa.Validator;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
+import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
+import io.yggdrash.common.rlp.RLP;
 import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
@@ -722,6 +724,31 @@ public class InterChainProcessTest {
         JsonObject queryProposeResult = yeedContract.queryPropose(proposeQueryParam);
         log.debug(queryProposeResult.get("status").getAsString());
         assertEquals("propose Is DONE", queryProposeResult.get("status").getAsString(), ProposeStatus.DONE.toString());
+    }
+
+    @Test
+    public void rawTxGenerator() {
+
+        //EthereumTransaction tx = new EthereumTransaction();
+
+
+        byte[] nonce = RLP.encode(Integer.valueOf(1000));
+        byte[] gasPrice = RLP.encode(Integer.valueOf(1000));
+        byte[] gasLimit = RLP.encode(Integer.valueOf(1000));
+        byte[] receiveAddress = RLP.encodeElement(HexUtil.hexStringToBytes("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94"));
+        byte[] value = RLP.encodeElement(BigInteger.TEN.pow(18).toByteArray());
+        byte[] data = RLP.encodeElement(HexUtil.hexStringToBytes("0x"));
+
+        byte[] hash = RLP.encodeList(nonce, gasPrice, gasLimit, receiveAddress, value, data);
+        byte[] sha3hash = HashUtil.sha3(hash);
+
+
+
+
+//        byte[] v = RLP.encodeElement(HexUtil.hexStringToBytes("0x26"));
+//        byte[] r = RLP.encodeElement(HexUtil.hexStringToBytes(obj.get("r").getAsString()));
+//        byte[] s = RLP.encodeElement(HexUtil.hexStringToBytes(obj.get("s").getAsString()));
+        log.debug(HexUtil.toHexString(nonce));
     }
 
 }
