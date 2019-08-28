@@ -560,7 +560,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
             // TokenAddress is YEED TO TOKEN
             String tokenAddress = JsonUtil.parseString(params, "tokenAddress", "");
-            String receiveAddress = params.get("receiverAddress").getAsString();
+            String receiveAddress = params.get("receiverAddress").getAsString().toLowerCase();
             BigInteger receiveAsset = params.get("receiveAsset").getAsBigInteger();
             Integer receiveChainId = params.get("receiveChainId").getAsInt();
             long networkBlockHeight = params.get("networkBlockHeight").getAsLong();
@@ -569,7 +569,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
             String senderAddress = null;
             String inputData = null;
             if (ProposeType.YEED_TO_ETHER.equals(proposeType)) {
-                senderAddress = params.get("senderAddress").getAsString();
+                senderAddress = params.get("senderAddress").getAsString().toLowerCase();
                 if (!params.get("inputData").isJsonNull()) {
                     inputData = params.get("inputData").getAsString();
                 }
