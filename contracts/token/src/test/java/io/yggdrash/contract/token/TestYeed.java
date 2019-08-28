@@ -1,5 +1,8 @@
 package io.yggdrash.contract.token;
 
+import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.common.crypto.HashUtil;
@@ -12,9 +15,6 @@ import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.Map;
 
 public class TestYeed {
     private static final Logger log = LoggerFactory.getLogger(TestYeed.class);
@@ -74,11 +74,11 @@ public class TestYeed {
             if (fromAmount.compareTo(BigInteger.ZERO) >= 0) {
                 amount.put(from, fromAmount);
                 amount.put(to, toAmount);
+                txReceipt.setStatus(ExecuteStatus.SUCCESS);
             } else {
                 txReceipt.setStatus(ExecuteStatus.FALSE);
                 txReceipt.addLog("has no balance");
             }
-            txReceipt.setStatus(ExecuteStatus.SUCCESS);
         } else {
             txReceipt.setStatus(ExecuteStatus.FALSE);
             txReceipt.addLog("has no balance");
