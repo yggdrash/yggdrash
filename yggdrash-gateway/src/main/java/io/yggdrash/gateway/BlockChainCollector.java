@@ -26,12 +26,10 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.gateway.dto.BlockDto;
-import io.yggdrash.gateway.dto.TransactionDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -41,7 +39,6 @@ import java.util.Map;
  * 블록체인에서 발생되는 정보들을 외부 저장소에 수집합니다.
  */
 @Component
-@DependsOn("yggdrash")
 @ConditionalOnProperty("elasticsearch.host")
 public class BlockChainCollector implements BranchEventListener {
     private static final Logger log = LoggerFactory.getLogger(BlockChainCollector.class);

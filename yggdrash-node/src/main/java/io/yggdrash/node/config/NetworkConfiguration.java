@@ -33,7 +33,6 @@ import io.yggdrash.node.service.BlockServiceFactory;
 import io.yggdrash.node.springboot.grpc.GrpcServerBuilderConfigurer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -52,10 +51,6 @@ public class NetworkConfiguration {
     private static final Logger log = LoggerFactory.getLogger(NetworkConfiguration.class);
 
     private final List<Peer> validatorList;
-
-    @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
-    @Autowired(required = false)
-    BlockChain yggdrash;
 
     public NetworkConfiguration(NodeProperties nodeProperties) {
         if (nodeProperties.getValidatorList() == null) {
