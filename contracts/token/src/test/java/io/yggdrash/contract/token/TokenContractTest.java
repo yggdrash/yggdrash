@@ -1,6 +1,7 @@
 package io.yggdrash.contract.token;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
@@ -969,17 +970,227 @@ public class TokenContractTest {
         // NONEXISTENT TOKEN
         JsonObject params = new JsonObject();
         params.addProperty("tokenId", "NONE_TOKEN");
-        params.addProperty("tokenExTargetTokenId", "OTHER_TOKEN");
+        params.addProperty("tokenExTargetTokenId", "TARGET_TOKEN");
+
+        tokenContract.exchangeT2TOpen(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange open from nonexistent token should be failed", tx.isSuccess());
 
         // NOT OWNER
+        tx = new TransactionReceiptImpl("0x04", 300L, "1111111111111111111111111111111111111111");
+        this.adapter.setTransactionReceipt(tx);
+
+        params.addProperty("tokenId", "TEST_TOKEN");
+
+        tokenContract.exchangeT2TOpen(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange open by non-owner account should be failed", tx.isSuccess());
 
         // NONEXISTENT TARGET TOKEN
+        tx = new TransactionReceiptImpl("0x05", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        this.adapter.setTransactionReceipt(tx);
+
+        tokenContract.exchangeT2TOpen(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange open to nonexistent target token should be failed", tx.isSuccess());
 
         // create target token
+        createToken("0x06", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e",
+                "TARGET_TOKEN", "targetToken",
+                null, null, null, null, null, null, null);
 
         // NORMAL
+        tx = new TransactionReceiptImpl("0x07", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        this.adapter.setTransactionReceipt(tx);
+
+        tokenContract.exchangeT2TOpen(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Exchange open to target token is failed", tx.isSuccess());
 
         // ALREADY OPEN
+        tx = new TransactionReceiptImpl("0x08", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        this.adapter.setTransactionReceipt(tx);
+
+        tokenContract.exchangeT2TOpen(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange open to already open target token should be failed", tx.isSuccess());
+    }
+
+    @Test
+    public void exchangeT2TClose() {
+        TransactionReceipt tx = _testInit();
+
+        // NONEXISTENT TOKEN
+        JsonObject params = new JsonObject();
+        params.addProperty("tokenId", "NONE_TOKEN");
+        params.addProperty("tokenExTargetTokenId", "TARGET_TOKEN");
+
+        tokenContract.exchangeT2TClose(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange close from nonexistent token should be failed", tx.isSuccess());
+
+        // NOT OWNER
+        tx = new TransactionReceiptImpl("0x04", 300L, "1111111111111111111111111111111111111111");
+        this.adapter.setTransactionReceipt(tx);
+
+        params.addProperty("tokenId", "TEST_TOKEN");
+
+        tokenContract.exchangeT2TClose(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange close by non-owner account should be failed", tx.isSuccess());
+
+        // NONEXISTENT TARGET TOKEN
+        tx = new TransactionReceiptImpl("0x05", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        this.adapter.setTransactionReceipt(tx);
+
+        tokenContract.exchangeT2TClose(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange close to nonexistent target token should be failed", tx.isSuccess());
+
+        // create target token
+        createToken("0x06", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e",
+                "TARGET_TOKEN", "targetToken",
+                null, null, null, null, null, null, null);
+
+        // ALREADY CLOSED
+        tx = new TransactionReceiptImpl("0x07", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        this.adapter.setTransactionReceipt(tx);
+
+        tokenContract.exchangeT2TClose(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange close to already closed target token should be failed", tx.isSuccess());
+
+        // open
+        tx = new TransactionReceiptImpl("0x08", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        this.adapter.setTransactionReceipt(tx);
+
+        tokenContract.exchangeT2TOpen(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Exchange open to target token is failed", tx.isSuccess());
+
+        // NORMAL
+        tx = new TransactionReceiptImpl("0x09", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        this.adapter.setTransactionReceipt(tx);
+
+        tokenContract.exchangeT2TClose(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Exchange close to target token is failed", tx.isSuccess());
+    }
+
+    @Test
+    public void exchangeT2Y() {
+        createToken();
+
+        // NONEXISTENT TOKEN
+        String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
+        TransactionReceipt tx = new TransactionReceiptImpl("0x02", 300L, owner);
+        this.adapter.setTransactionReceipt(tx);
+
+        JsonObject params = new JsonObject();
+        params.addProperty("tokenId", "NONE_TOKEN");
+
+        tokenContract.exchangeT2Y(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange of nonexistent token should be failed", tx.isSuccess());
+
+        // NOT_RUNNING
+        tx = new TransactionReceiptImpl("0x03", 300L, owner);
+        this.adapter.setTransactionReceipt(tx);
+
+        params.addProperty("tokenId", "TEST_TOKEN");
+
+        tokenContract.exchangeT2Y(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange of not running token should be failed", tx.isSuccess());
+
+        // move phase to run
+        tx = new TransactionReceiptImpl("0x04", 300L, owner);
+        this.adapter.setTransactionReceipt(tx);
+        tokenContract.movePhaseRun(params);
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Move phase to run is failed", tx.isSuccess());
+
+        // issue token to account1
+        String account1 = "1111111111111111111111111111111111111111";
+
+        tx = new TransactionReceiptImpl("0x05", 300L, owner);
+        this.adapter.setTransactionReceipt(tx);
+        params.addProperty("to", account1);
+        params.addProperty("amount", BigInteger.valueOf(2000000).multiply(BigInteger.TEN.pow(18)));
+        tokenContract.transfer(params);
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Transfer is failed", tx.isSuccess());
+
+        // NEGATIVE AMOUNT
+        tx = new TransactionReceiptImpl("0x06", 300L, account1);
+        this.adapter.setTransactionReceipt(tx);
+
+        params.addProperty("amount", BigInteger.valueOf(-1).multiply(BigInteger.TEN.pow(18)));
+
+        tokenContract.exchangeT2Y(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange of negative amount should be failed", tx.isSuccess());
+
+        // INSUFFICIENT BALANCE
+        tx = new TransactionReceiptImpl("0x07", 300L, account1);
+        this.adapter.setTransactionReceipt(tx);
+
+        params.addProperty("amount", BigInteger.valueOf(2000001).multiply(BigInteger.TEN.pow(18)));
+
+        tokenContract.exchangeT2Y(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange over balance should be failed", tx.isSuccess());
+
+        // OVER YEED STAKE
+        tx = new TransactionReceiptImpl("0x08", 300L, account1);
+        this.adapter.setTransactionReceipt(tx);
+
+        params.addProperty("amount", BigInteger.valueOf(1000001).multiply(BigInteger.TEN.pow(18)));
+
+        tokenContract.exchangeT2Y(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange over yeed stake should be failed", tx.isSuccess());
+
+        // NORMAL
+        tx = new TransactionReceiptImpl("0x09", 300L, account1);
+        this.adapter.setTransactionReceipt(tx);
+
+        params.addProperty("amount", BigInteger.valueOf(400000).multiply(BigInteger.TEN.pow(18)));
+
+        tokenContract.exchangeT2Y(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Exchange is failed", tx.isSuccess());
+
+        // CHECK TOKEN BALANCE
+        params.addProperty("address", account1);
+        BigInteger tokenBalance = tokenContract.balanceOf(params);
+        Assert.assertEquals("Token balance should be 600000", 0, tokenBalance.compareTo(BigInteger.valueOf(1600000).multiply(BigInteger.TEN.pow(18))));
+
+        // CHECK YEED STAKE BALANCE
+        BigInteger yeedBalance = tokenContract.getYeedBalanceOf(params);
+        Assert.assertEquals("Yeed stake balance should be 600000", 0, yeedBalance.compareTo(BigInteger.valueOf(600000).multiply(BigInteger.TEN.pow(18))));
+    }
+
+    @Test
+    public void exchangeY2T() {
+        
     }
 
 
@@ -996,7 +1207,7 @@ public class TokenContractTest {
             Boolean burnable,
             Boolean exchangeable,
             String exType,
-            Double exRateT2Y) {
+            BigDecimal exRateT2Y) {
 
         if (txId == null) txId = "0x01";
         if (owner == null) owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
@@ -1008,7 +1219,7 @@ public class TokenContractTest {
         if (burnable == null) burnable = true;
         if (exchangeable == null) exchangeable = true;
         if (exType == null) exType = "TOKEN_EX_TYPE_FIXED";
-        if (exRateT2Y == null) exRateT2Y = 1.0;
+        if (exRateT2Y == null) exRateT2Y = new BigDecimal("1.0");
 
         TransactionReceipt tx = new TransactionReceiptImpl(txId, 300L, owner);
         this.adapter.setTransactionReceipt(tx);
@@ -1022,7 +1233,7 @@ public class TokenContractTest {
         createToken.addProperty("tokenBurnable", burnable.booleanValue());
         createToken.addProperty("tokenExchangeable", exchangeable.booleanValue());
         createToken.addProperty("tokenExType", exType);
-        createToken.addProperty("tokenExRateT2Y", exRateT2Y.doubleValue());
+        createToken.addProperty("tokenExRateT2Y", exRateT2Y);
 
         tokenContract.createToken(createToken);
         tx.getTxLog().stream().forEach(l -> log.debug(l));
@@ -1032,8 +1243,8 @@ public class TokenContractTest {
     private TransactionReceipt _testInit() {
         createToken();
 
-        String issuer = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
-        TransactionReceipt tx = new TransactionReceiptImpl("0x02", 300L, issuer);
+        String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
+        TransactionReceipt tx = new TransactionReceiptImpl("0x02", 300L, owner);
         this.adapter.setTransactionReceipt(tx);
 
         JsonObject params = new JsonObject();
@@ -1044,7 +1255,7 @@ public class TokenContractTest {
         tx.getTxLog().stream().forEach(l -> log.debug(l));
         Assert.assertTrue("movePhaseRun Success", tx.isSuccess());
 
-        tx = new TransactionReceiptImpl("0x03", 300L, issuer);
+        tx = new TransactionReceiptImpl("0x03", 300L, owner);
         this.adapter.setTransactionReceipt(tx);
 
         return tx;

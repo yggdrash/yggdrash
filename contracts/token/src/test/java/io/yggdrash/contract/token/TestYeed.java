@@ -27,6 +27,7 @@ public class TestYeed {
         amount.put("1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e", BigInteger.TEN.pow(40));
         amount.put("101167aaf090581b91c08480f6e559acdd9a3ddd", BigInteger.TEN.pow(40));
         amount.put("5244d8163ea6fdd62aa08ae878b084faa0b013be", BigInteger.TEN.pow(40));
+        amount.put("1111111111111111111111111111111111111111", BigInteger.valueOf(1234).multiply(BigInteger.TEN.pow(18)));
     }
 
     public void setTxReceipt(TransactionReceipt txReceipt) {
