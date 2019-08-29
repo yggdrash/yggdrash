@@ -771,8 +771,8 @@ public class InterChainProcessTest {
 
         EthereumTransaction tx = new EthereumTransaction(
                 0,
-                BigInteger.TEN.pow(10),
-                50000,
+                BigInteger.TEN.pow(10), // gasPrice
+                21000,
                 "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
                 BigInteger.TEN.pow(18),
                 null,
@@ -789,21 +789,12 @@ public class InterChainProcessTest {
         log.debug(HexUtil.toHexString(nonce));
     }
 
-    @Test
-    public void proposeFullTest() {
-        // TODO Create Issue By Receiver
-        // Receive Address ISSUER
-        // Receive Asset 1ETH
-        // Receive Network frontier
+    private String issuerPropose(String issuer, String senderAddress, BigInteger stakeYeed, BigInteger fee) {
+
         BigInteger receiveAsset = BigInteger.TEN.pow(18);
         // StakeYeed = 1YEED
         // Ratio -> 1:1
-        BigInteger stakeYeed = BigInteger.TEN.pow(18);
-        BigInteger fee = BigInteger.TEN.pow(17); // 0.1 YEED
         int receiveNetwork = 1; // frontier = 1
-        ECKey senderKey = new ECKey();
-        String senderAddress = HexUtil.toHexString(senderKey.getAddress());
-
 
         JsonObject propose = createProposal(
                 ISSUER,
@@ -835,12 +826,43 @@ public class InterChainProcessTest {
 
         Assert.assertTrue("Issuer Subtract Balance",
                 issuerBalance.subtract(stakeYeed).subtract(fee)
+                        .compareTo(issueAfterBalance) == 0);
+
+        return proposeId;
+    }
+
+    @Test
+    public void proposeFullTest() {
+        // 정상의 경우
+        // Create Issue By Receiver
+        // Receive Address ISSUER
+        // Receive Asset 1ETH
+        // Receive Network frontier
+
+        // StakeYeed = 1YEED
+        // Ratio -> 1:1
+        BigInteger stakeYeed = BigInteger.TEN.pow(18);
+        BigInteger fee = BigInteger.TEN.pow(17); // 0.1 YEED
+        ECKey senderKey = new ECKey();
+        String senderAddress = HexUtil.toHexString(senderKey.getAddress());
+
+        // Check Balance Issuer
+        BigInteger issuerBalance = getBalance(ISSUER);
+        BigInteger senderBalance = getBalance(senderAddress);
+
+        String proposeId = issuerPropose(ISSUER, senderAddress, stakeYeed, fee);
+
+        BigInteger issueAfterBalance = getBalance(ISSUER);
+
+        Assert.assertTrue("Issuer Subtract Balance",
+                issuerBalance.subtract(stakeYeed).subtract(fee)
                 .compareTo(issueAfterBalance) == 0);
 
-
+        TransactionReceipt sendReceipt = setUpReceipt("0x00", ISSUER, BRANCH_ID, 100);
         // Send YEED to senderAddress for Test
         yeedContract.transfer(ISSUER, senderAddress, BigInteger.TEN.pow(18), BigInteger.TEN.pow(17));
-        Assert.assertTrue(issueReceipt.getStatus() == ExecuteStatus.SUCCESS);
+
+        Assert.assertTrue("", getBalance(senderAddress).compareTo(BigInteger.ZERO) > 0);
 
         // Create Ethereum Transactiono by Sender
         //
@@ -893,8 +915,57 @@ public class InterChainProcessTest {
         Assert.assertEquals("SUCCESS ", ExecuteStatus.SUCCESS, confirmReceipt.getStatus());
         BigInteger senderAfterBalance = getBalance(senderAddress);
 
-        Assert.assertTrue("", senderAfterBalance.subtract(senderBeforeBalance)
+        Assert.assertTrue("전송전과 전송 후가 같다", senderAfterBalance.subtract(senderBeforeBalance)
                 .compareTo(stakeYeed) == 0);
+    }
+
+    @Test
+    public void retryEthTransaction() {
+        BigInteger stakeYeed = BigInteger.TEN.pow(18);
+        BigInteger fee = BigInteger.TEN.pow(17); // 0.1 YEED
+        ECKey senderKey = new ECKey();
+        String senderAddress = HexUtil.toHexString(senderKey.getAddress());
+
+
+        yeedContract.transfer(ISSUER, senderAddress, BigInteger.TEN.pow(18), BigInteger.TEN.pow(17));
+
+        String proposeId = issuerPropose(ISSUER, senderAddress, stakeYeed, fee);
+
+
+        EthereumTransaction ethereumTx = new EthereumTransaction(
+                0,
+                BigInteger.ZERO, // GasPrice
+                0, // GasLimit
+                ISSUER, // in ethereum network receiver is issuer
+                BigInteger.TEN.pow(17).multiply(BigInteger.valueOf(5L)), // 0.5ETH
+                null,
+                1 // fromtier
+        );
+        // sender sign and send to network
+        ethereumTx.sign(senderKey);
+
+        byte[] rawTransaction = ethereumTx.getEncoded();
+        String rawTxString = HexUtil.toHexString(rawTransaction);
+        TransactionReceipt proposeReceipt =
+                setUpReceipt("0x00", senderAddress, BRANCH_ID, 100);
+
+        JsonObject processJson = new JsonObject();
+        processJson.addProperty("proposeId", proposeId);
+        processJson.addProperty("rawTransaction", rawTxString);
+        processJson.addProperty("fee", fee); // 0.1
+
+        yeedContract.processPropose(processJson);
+        printTxLog();
+        Assert.assertEquals("Propose processing", ExecuteStatus.SUCCESS, proposeReceipt.getStatus());
+
+
+        // retry same processing
+        thrown.expect(RuntimeException.class);
+        yeedContract.processPropose(processJson);
+        printTxLog();
+        Assert.assertEquals("Propose processing", ExecuteStatus.ERROR, proposeReceipt.getStatus());
+
+
 
     }
 

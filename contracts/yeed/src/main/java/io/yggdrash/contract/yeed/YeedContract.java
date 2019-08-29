@@ -664,7 +664,6 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 transferFee(this.txReceipt.getIssuer(), fee);
                 return;
             }
-
             switch (propose.getProposeType()) {
                 case YEED_TO_ETHER:
                     processYeedToEth(propose, rawTransaction, fee);
@@ -750,6 +749,14 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 transferYeed = stakeYeed;
             }
 
+            // Transaction ID , propose ID, SendAddress, transfer YEED
+            TxConfirm confirm = new TxConfirm(
+                    propose.getProposeId(), pt.getTransactionHash(), pt.getSenderAddress(), transferYeed);
+            // confirm duplicate
+            log.debug("Confirm Id : {}", confirm.getTxConfirmId());
+            if (!processConfirmTx(propose, confirm)) {
+                throw new RuntimeException("Propose Confirm Duplicate");
+            }
             // Check the transaction issuer is same as the proposal issuer.
             boolean isProposerIssuer = propose.getIssuer().equals(this.txReceipt.getIssuer());
             if (isProposerIssuer && isProposeSender) {
@@ -773,18 +780,9 @@ public class YeedContract implements BundleActivator, ServiceListener {
                     }
                 }
             } else {
-                // Save Transaction confirm
-                // Transaction ID , propose ID, SendAddress, transfer YEED
-                TxConfirm confirm = new TxConfirm(
-                        propose.getProposeId(), pt.getTransactionHash(), pt.getSenderAddress(), transferYeed);
-
-                // Check confirmed txId exists
-                boolean isConfirmTxIdExists = processConfirmTx(propose, confirm);
-                if (isConfirmTxIdExists) {
-                    setProposeStatus(propose.getProposeId(), ProposeStatus.PROCESSING);
-                    this.txReceipt.addLog(
-                            String.format("Propose %s %s", propose.getProposeId(), ProposeStatus.PROCESSING));
-                }
+                setProposeStatus(propose.getProposeId(), ProposeStatus.PROCESSING);
+                this.txReceipt.addLog(
+                        String.format("Propose %s %s", propose.getProposeId(), ProposeStatus.PROCESSING));
             }
         }
 
