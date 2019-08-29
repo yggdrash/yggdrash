@@ -312,11 +312,14 @@ public class SwapEthTransactionTest {
         byte[] ethHex = HexUtil.hexStringToBytes(ethHexString);
 
 
-        EthereumTransaction tx = new EthereumTransaction(267436, BigInteger.valueOf(60000000000L),
+        EthereumTransaction tx = new EthereumTransaction(
+                267436,
+                BigInteger.valueOf(60000000000L),
                 45000,
-                "c3cf7a283a4415ce3c41f5374934612389334780", BigInteger.TEN.pow(18), null, 1
+                "c3cf7a283a4415ce3c41f5374934612389334780",
+                BigInteger.TEN.pow(18), null, 1
                 );
-        
+
         byte[] vByte = HexUtil.hexStringToBytes("0x1c");
         byte[] rByte = HexUtil.hexStringToBytes(obj.get("r").getAsString());
         byte[] sByte = HexUtil.hexStringToBytes(obj.get("s").getAsString());
