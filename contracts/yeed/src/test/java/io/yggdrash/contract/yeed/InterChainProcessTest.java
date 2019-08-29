@@ -969,6 +969,51 @@ public class InterChainProcessTest {
 
     }
 
+    @Test
+    public void invalidRawTranasction() {
+        BigInteger stakeYeed = BigInteger.TEN.pow(18);
+        BigInteger fee = BigInteger.TEN.pow(17); // 0.1 YEED
+        ECKey senderKey = new ECKey();
+        String senderAddress = HexUtil.toHexString(senderKey.getAddress());
+
+
+        yeedContract.transfer(ISSUER, senderAddress, BigInteger.TEN.pow(18), BigInteger.TEN.pow(17));
+
+        String proposeId = issuerPropose(ISSUER, senderAddress, stakeYeed, fee);
+
+
+        EthereumTransaction ethereumTx = new EthereumTransaction(
+                0,
+                BigInteger.ZERO, // GasPrice
+                0, // GasLimit
+                ISSUER, // in ethereum network receiver is issuer
+                BigInteger.TEN.pow(17).multiply(BigInteger.valueOf(5L)), // 0.5ETH
+                null,
+                1 // fromtier
+        );
+
+        ethereumTx.sign(senderKey);
+
+        log.debug(HexUtil.toHexString(ethereumTx.getValue()));
+
+        byte[] rawTransaction = ethereumTx.getEncoded();
+        String rawTxString = HexUtil.toHexString(rawTransaction);
+        rawTxString = rawTxString.replaceAll("06f05b59d3b20000", "06f05b59d3b30000");
+        log.debug(rawTxString);
+
+        TransactionReceipt proposeReceipt =
+                setUpReceipt("0x00", senderAddress, BRANCH_ID, 100);
+
+        JsonObject processJson = new JsonObject();
+        processJson.addProperty("proposeId", proposeId);
+        processJson.addProperty("rawTransaction", rawTxString);
+        processJson.addProperty("fee", fee); // 0.1
+
+        yeedContract.processPropose(processJson);
+        printTxLog();
+
+        Assert.assertEquals("Propose processing", ExecuteStatus.FALSE, proposeReceipt.getStatus());
+    }
 
 
 }
