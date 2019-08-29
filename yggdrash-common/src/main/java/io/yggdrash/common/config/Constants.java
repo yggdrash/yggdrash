@@ -81,6 +81,9 @@ public final class Constants {
     public static final String VALIDATOR_DATABASE_PATH = "yggdrash.validator.database.path";
     public static final String VALIDATOR_KEY_PATH = "yggdrash.validator.key.path";
     public static final String VALIDATOR_KEY_PASSWORD = "yggdrash.validator.key.password";
+    public static final String VALIDATOR_GRPC_HOST_CONF = "yggdrash.validator.host";
+    public static final String VALIDATOR_GRPC_PORT_CONF = "yggdrash.validator.port";
+    public static final String VALIDATOR_LOG_LEVEL_CONF = "yggdrash.validator.log.level";
 
     public static final String TIMEOUT_PING_PATH = "yggdrash.node.timeout.ping";
     public static final String TIMEOUT_BLOCK_PATH = "yggdrash.node.timeout.block";
