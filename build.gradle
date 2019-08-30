@@ -111,12 +111,28 @@ task copyContractToNode(type: Copy) {
 }
 
 task copyContractToProject(type: Copy) {
-    def projectContractPath = file('yggdrash-node/.yggdrash/contract')
+    def projectContractPath = file('.yggdrash/contract')
     projectContractPath.mkdirs()
 
     from resourceContractPath
     into projectContractPath
 
+}
+
+task copyBranchJsonToProject(type: Copy) {
+    def branchConfPath = file('yggdrash-core/src/main/resources/branch')
+    def testBranchConfPath = file('.yggdrash/branch')
+
+    from branchConfPath
+    into testBranchConfPath
+}
+
+task copyBranchJsonToNode(type: Copy) {
+    def branchConfPath = file('yggdrash-core/src/main/resources/branch')
+    def testBranchConfPath = file('yggdrash-node/.yggdrash/branch')
+
+    from branchConfPath
+    into testBranchConfPath
 }
 
 project(':yggdrash-core') {
@@ -248,7 +264,7 @@ project(':yggdrash-node') {
     bootJar.dependsOn customJar
     
     test {
-        dependsOn copyContractToNode
+        dependsOn copyContractToNode, copyBranchJsonToNode, copyBranchJsonToProject
 
         testLogging {
             events "passed", "skipped", "failed"
