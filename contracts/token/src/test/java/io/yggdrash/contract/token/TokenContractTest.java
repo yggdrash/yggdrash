@@ -101,6 +101,12 @@ public class TokenContractTest {
     public void createToken() {
         // NORMAL
         createToken(null, null, null, null, null, null, null, null, null, null, null);
+    }
+
+    @Test
+    public void createTokenDuplicated() {
+        // NORMAL
+        createToken(null, null, null, null, null, null, null, null, null, null, null);
 
         // DUPLICATED
         TransactionReceipt tx = new TransactionReceiptImpl("0x02", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
@@ -624,52 +630,72 @@ public class TokenContractTest {
 
     @Test
     public void approve() {
-        TransactionReceipt tx = _testInit();
+        String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
+        String spender = "0000000000000000000000000000000000000000";
+
+        createToken();
+
+        // NONEXISTENT TOKEN
+        TransactionReceipt tx = new TransactionReceiptImpl("0x02", 300L, owner);
+        this.adapter.setTransactionReceipt(tx);
 
         JsonObject params = new JsonObject();
+        params.addProperty("tokenId", "NONE_TOKEN");
+
+        tokenContract.approve(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Approve for nonexistent token should be failed", tx.isSuccess());
+
+        // NOT RUNNING
+        tx = new TransactionReceiptImpl("0x04", 300L, owner);
+        this.adapter.setTransactionReceipt(tx);
+
         params.addProperty("tokenId", "TEST_TOKEN");
-        params.addProperty("amount", BigInteger.valueOf(100000).multiply(BigInteger.TEN.pow(18)));
+
+        tokenContract.approve(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Approve for not running token should be failed", tx.isSuccess());
+
+        // move phase to run
+        tx = new TransactionReceiptImpl("0x05", 300L, owner);
+        this.adapter.setTransactionReceipt(tx);
+        tokenContract.movePhaseRun(params);
+
+        // INSUFFICIENT BALANCE
+        tx = new TransactionReceiptImpl("0x06", 300L, owner);
+        this.adapter.setTransactionReceipt(tx);
+
+        params.addProperty("amount", BigInteger.TEN.pow(40));
         params.addProperty("spender", "0000000000000000000000000000000000000000");
+
+        tokenContract.approve(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Approve over balance should be failed", tx.isSuccess());
+
+        // NORMAL
+        tx = new TransactionReceiptImpl("0x07", 300L, owner);
+        this.adapter.setTransactionReceipt(tx);
+
+        params.addProperty("amount", BigInteger.valueOf(100000).multiply(BigInteger.TEN.pow(18)));
 
         tokenContract.approve(params);
 
         tx.getTxLog().stream().forEach(l -> log.debug(l));
         Assert.assertTrue("The approve is failed", tx.isSuccess());
-    }
 
-    @Test
-    public void approveOverBalance() {
-        TransactionReceipt tx = _testInit();
-
-        JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "TEST_TOKEN");
-        params.addProperty("amount", BigInteger.valueOf(1000000000001L).multiply(BigInteger.TEN.pow(18)));
-        params.addProperty("spender", "0000000000000000000000000000000000000000");
-
-        // try approve initMint + 1
-        tokenContract.approve(params);
-
-        tx.getTxLog().stream().forEach(l -> log.debug(l));
-        Assert.assertFalse("The approve with amount over sender balance should be failed", tx.isSuccess());
-    }
-
-    @Test
-    public void approveNoneAccount() {
-        _testInit();
-
-        String issuer = "1111111111111111111111111111111111111111";
-        TransactionReceipt tx = new TransactionReceiptImpl("0x04", 300L, issuer);
+        // ALLOWANCE
+        tx = new TransactionReceiptImpl("0x08", 300L, owner);
         this.adapter.setTransactionReceipt(tx);
 
-        JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "TEST_TOKEN");
-        params.addProperty("amount", BigInteger.valueOf(1000000000001L).multiply(BigInteger.TEN.pow(18)));
-        params.addProperty("spender", "0000000000000000000000000000000000000000");
+        params.addProperty("owner", owner);
+        params.addProperty("spender", spender);
 
-        tokenContract.approve(params);
+        BigInteger result = tokenContract.allowance(params);
 
-        tx.getTxLog().stream().forEach(l -> log.debug(l));
-        Assert.assertFalse("The approve on nonexistent token should be failed", tx.isSuccess());
+        Assert.assertEquals("The result should match with approved value", 0, result.compareTo(getBigInt18(100000)));
     }
 
     @Test
@@ -1255,7 +1281,10 @@ public class TokenContractTest {
         Assert.assertEquals("Yeed stake balance should be 600000", 0, yeedBalance.compareTo(BigInteger.valueOf(1001000).multiply(BigInteger.TEN.pow(18))));
     }
 
-
+    @Test
+    public void exchangeT2T() {
+        // TODO : @kevin : 2019-08-30
+    }
 
 
 
@@ -1329,33 +1358,6 @@ public class TokenContractTest {
     }
 
 
-    private void ref() {
-        TokenContract contract = new TokenContract();
-        TokenContract.TokenService service = new TokenContract.TokenService();
-
-        System.out.println(service.approve(null));
-        System.out.println(service.allowance(null));
-        System.out.println(service.totalSupply(null));
-        System.out.println(service.balanceOf(null));
-        System.out.println(service.burn(null));
-        System.out.println(service.exchangeT2TClose(null));
-        System.out.println(service.createToken(null));
-        System.out.println(service.depositYeedStake(null));
-        System.out.println(service.destroyToken(null));
-        System.out.println(service.exchangeT2T(null));
-        System.out.println(service.exchangeT2Y(null));
-        System.out.println(service.exchangeY2T(null));
-        System.out.println(service.getYeedBalanceOf(null));
-        System.out.println(service.init(null));
-        System.out.println(service.mint(null));
-        System.out.println(service.movePhasePause(null));
-        System.out.println(service.movePhaseRun(null));
-        System.out.println(service.movePhaseStop(null));
-        System.out.println(service.exchangeT2TOpen(null));
-        System.out.println(service.transfer(null));
-        System.out.println(service.transferFrom(null));
-        System.out.println(service.withdrawYeedStake(null));
-    }
 
     class TokenBranchStateStore implements BranchStateStore {
 
