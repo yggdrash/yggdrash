@@ -99,13 +99,10 @@ public class TokenContractTest {
 
     @Test
     public void createToken() {
+        // NORMAL
         createToken(null, null, null, null, null, null, null, null, null, null, null);
-    }
 
-    @Test
-    public void createTokenDuplicate() {
-        createToken("0x01", null, null, null, null, null, null, null, null, null, null);
-
+        // DUPLICATED
         TransactionReceipt tx = new TransactionReceiptImpl("0x02", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
         this.adapter.setTransactionReceipt(tx);
 
@@ -129,19 +126,7 @@ public class TokenContractTest {
     public void totalSupply() {
         TransactionReceipt tx = _testInit();
 
-        JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "TEST_TOKEN");
-
-        BigInteger totalSupply = tokenContract.totalSupply(params);
-
-        tx.getTxLog().stream().forEach(l -> log.debug(l));
-        Assert.assertEquals("Total supply should match with initial mint", 0, totalSupply.compareTo(BigInteger.TEN.pow(30)));
-    }
-
-    @Test
-    public void totalSupplyNoneToken() {
-        TransactionReceipt tx = _testInit();
-
+        // NONEXISTENT TOKEN
         JsonObject params = new JsonObject();
         params.addProperty("tokenId", "NONE_TOKEN");
 
@@ -149,231 +134,233 @@ public class TokenContractTest {
 
         tx.getTxLog().stream().forEach(l -> log.debug(l));
         Assert.assertEquals("The result must be null", null, totalSupply);
+
+        // NORMAL
+        params.addProperty("tokenId", "TEST_TOKEN");
+
+        totalSupply = tokenContract.totalSupply(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertEquals("Total supply should match with initial mint", 0, totalSupply.compareTo(BigInteger.TEN.pow(30)));
     }
 
     @Test
     public void balanceOf() {
         TransactionReceipt tx = _testInit();
 
+        // NONEXISTENT TOKEN
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty("tokenId", "NONE_TOKEN");
         params.addProperty("address", tx.getIssuer());
 
         BigInteger result = tokenContract.totalSupply(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertEquals("The result must be null", null, result);
+
+        // NORMAL
+        params.addProperty("tokenId", "TEST_TOKEN");
+
+        result = tokenContract.totalSupply(params);
 
         tx.getTxLog().stream().forEach(l -> log.debug(l));
         Assert.assertEquals("The balance should match with initial mint!!!", 0, result.compareTo(BigInteger.TEN.pow(30)));
     }
 
     @Test
-    public void balanceOfNoneToken() {
-        TransactionReceipt tx = _testInit();
-
-        JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
-        params.addProperty("address", tx.getIssuer());
-
-        BigInteger result = tokenContract.totalSupply(params);
-
-        tx.getTxLog().stream().forEach(l -> log.debug(l));
-        Assert.assertEquals("The result must be null", null, result);
-    }
-
-    @Test
     public void getYeedBalanceOf() {
         TransactionReceipt tx = _testInit();
 
+        // NONEXISTENT TOKEN
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty("tokenId", "NONE_TOKEN");
 
         BigInteger result = tokenContract.getYeedBalanceOf(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertEquals("The result must be null", null, result);
+
+        // NORMAL
+        params.addProperty("tokenId", "TEST_TOKEN");
+
+        result = tokenContract.getYeedBalanceOf(params);
 
         tx.getTxLog().stream().forEach(l -> log.debug(l));
         Assert.assertEquals("The result should match with initial YEED stake", 0, result.compareTo(BigInteger.TEN.pow(24)));
     }
 
     @Test
-    public void getYeedBalanceOfNoneToken() {
+    public void allowance() {
         TransactionReceipt tx = _testInit();
+        String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
+        String spender = "0000000000000000000000000000000000000000";
+        String account2 = "2222222222222222222222222222222222222222";
 
+        // NONEXISTENT TOKEN
         JsonObject params = new JsonObject();
         params.addProperty("tokenId", "NONE_TOKEN");
+        params.addProperty("owner", owner);
+        params.addProperty("spender", spender);
 
-        BigInteger result = tokenContract.getYeedBalanceOf(params);
+        BigInteger result = tokenContract.allowance(params);
+
+        Assert.assertEquals("Allowance at nonexistent token should returns null", null, result);
+
+        // NOT APPROVED ACCOUNT
+        tx = new TransactionReceiptImpl("0x03", 300L, owner);
+        this.adapter.setTransactionReceipt(tx);
+
+        params.addProperty("tokenId", "TEST_TOKEN");
+
+        result = tokenContract.allowance(params);
+
+        Assert.assertEquals("Allowance of not approved account should be ZERO", 0, result.compareTo(BigInteger.ZERO));
+
+        // approve
+        tx = new TransactionReceiptImpl("0x03", 300L, owner);
+        this.adapter.setTransactionReceipt(tx);
+
+        params.addProperty("amount", getBigInt18(100000));
+
+        tokenContract.approve(params);
 
         tx.getTxLog().stream().forEach(l -> log.debug(l));
-        Assert.assertEquals("The result must be null", null, result);
-    }
+        Assert.assertTrue("The approve is failed", tx.isSuccess());
 
+        // NORMAL
+        tx = new TransactionReceiptImpl("0x04", 300L, owner);
+        this.adapter.setTransactionReceipt(tx);
 
-    @Test
-    public void allowance() {
-        approve();
+        result = tokenContract.allowance(params);
 
-        JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "TEST_TOKEN");
-        params.addProperty("owner", "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
-        params.addProperty("spender", "0000000000000000000000000000000000000000");
+        Assert.assertEquals("The result should match with approved value", 0, result.compareTo(getBigInt18(100000)));
 
-        BigInteger result = tokenContract.allowance(params);
+        // transferFrom
+        tx = new TransactionReceiptImpl("0x05", 300L, spender);
+        this.adapter.setTransactionReceipt(tx);
 
-        Assert.assertTrue("The result should match with approved value", result.compareTo(BigInteger.valueOf(100000).multiply(BigInteger.TEN.pow(18))) == 0);
-    }
+        params.addProperty("from", owner);
+        params.addProperty("to", account2);
+        params.addProperty("amount", getBigInt18(10000));
 
-    @Test
-    public void allowanceNoneToken() {
-        approve();
+        tokenContract.transferFrom(params);
 
-        JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
-        params.addProperty("owner", "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
-        params.addProperty("spender", "0000000000000000000000000000000000000000");
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Transfer from owner to account2 by spender is failed", tx.isSuccess());
 
-        BigInteger result = tokenContract.allowance(params);
+        // NORMAL after transferFrom
+        tx = new TransactionReceiptImpl("0x06", 300L, owner);
+        this.adapter.setTransactionReceipt(tx);
 
-        Assert.assertEquals("The result must be null", null, result);
-    }
+        result = tokenContract.allowance(params);
 
-    @Test
-    public void allowanceNotApprovedAccount() {
-        approve();
-
-        JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "TEST_TOKEN");
-        params.addProperty("owner", "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
-        params.addProperty("spender", "1111111111111111111111111111111111111111");
-
-        BigInteger result = tokenContract.allowance(params);
-
-        Assert.assertEquals("The allowance of not approved account should be ZERO", 0, result.compareTo(BigInteger.ZERO));
+        Assert.assertEquals("The result should match with approved value", 0, result.compareTo(getBigInt18(90000)));
     }
 
     @Test
     public void depositYeedStake() {
         TransactionReceipt tx = _testInit();
 
+        // NONEXISTENT TOKEN
         JsonObject params = new JsonObject();
+        params.addProperty("tokenId", "NONE_TOKEN");
+        params.addProperty("amount", getBigInt18(100));
+
+        tokenContract.depositYeedStake(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("The deposit to nonexistent token should be failed", tx.isSuccess());
+
+        // NOT OWNER
+        String issuer = "1111111111111111111111111111111111111111";
+        tx = new TransactionReceiptImpl("0x03", 300L, issuer);
+        this.adapter.setTransactionReceipt(tx);
+
         params.addProperty("tokenId", "TEST_TOKEN");
-        params.addProperty("amount", BigInteger.valueOf(100).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty("amount", getBigInt18(100));
+
+        tokenContract.depositYeedStake(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Deposit by who does not own token should be failed", tx.isSuccess());
+
+        // OVER BALANCE
+        String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
+        tx = new TransactionReceiptImpl("0x04", 300L, owner);
+        this.adapter.setTransactionReceipt(tx);
+
+        params.addProperty("amount", BigInteger.TEN.pow(50)); // balance == TEN.pow(40)
+
+        tokenContract.depositYeedStake(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Deposit over balance should be failed", tx.isSuccess());
+
+        // NORMAL
+        tx = new TransactionReceiptImpl("0x05", 300L, owner);
+        this.adapter.setTransactionReceipt(tx);
+
+        params.addProperty("amount", getBigInt18(100));
 
         tokenContract.depositYeedStake(params);
 
         tx.getTxLog().stream().forEach(l -> log.debug(l));
         Assert.assertTrue("Additional deposit of YEED stake is failed", tx.isSuccess());
 
+        // YEED BALANCE
         BigInteger result = tokenContract.getYeedBalanceOf(params);
 
-        Assert.assertEquals("The result should match with current YEED stake", 0, result.compareTo(BigInteger.valueOf(1000100).multiply(BigInteger.TEN.pow(18))));
-    }
-
-    @Test
-    public void depositYeedStakeNoneToken() {
-        TransactionReceipt tx = _testInit();
-
-        JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
-        params.addProperty("amount", BigInteger.valueOf(100).multiply(BigInteger.TEN.pow(18)));
-
-        tokenContract.depositYeedStake(params);
-
-        tx.getTxLog().stream().forEach(l -> log.debug(l));
-        Assert.assertFalse("The deposit to nonexistent token should be failed", tx.isSuccess());
-    }
-
-    @Test
-    public void depositYeedStakeNotOwner() {
-        _testInit();
-
-        JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "TEST_TOKEN");
-        params.addProperty("amount", BigInteger.valueOf(100).multiply(BigInteger.TEN.pow(18)));
-
-        String issuer = "1111111111111111111111111111111111111111";
-        TransactionReceipt tx = new TransactionReceiptImpl("0x04", 300L, issuer);
-        this.adapter.setTransactionReceipt(tx);
-
-        tokenContract.depositYeedStake(params);
-
-        tx.getTxLog().stream().forEach(l -> log.debug(l));
-        Assert.assertFalse("Deposit by who does not own token should be failed", tx.isSuccess());
-    }
-
-    @Test
-    public void depositYeedStakeOverBalance() {
-        TransactionReceipt tx = _testInit();
-
-        JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "TEST_TOKEN");
-        params.addProperty("amount", BigInteger.TEN.pow(50)); // balance == TEN.pow(40)
-
-        tokenContract.depositYeedStake(params);
-
-        tx.getTxLog().stream().forEach(l -> log.debug(l));
-        Assert.assertFalse("", tx.isSuccess());
+        Assert.assertEquals("The result should match with current YEED stake", 0, result.compareTo(getBigInt18(1000100)));
     }
 
     @Test
     public void withdrawYeedStake() {
         TransactionReceipt tx = _testInit();
 
+        // NONEXISTENT TOKEN
         JsonObject params = new JsonObject();
+        params.addProperty("tokenId", "NONE_TOKEN");
+
+        tokenContract.withdrawYeedStake(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Withdraw from nonexistent token should be failed", tx.isSuccess());
+
+        // NOT OWNER
+        tx = new TransactionReceiptImpl("0x04", 300L, "1111111111111111111111111111111111111111");
+        this.adapter.setTransactionReceipt(tx);
+
         params.addProperty("tokenId", "TEST_TOKEN");
-        params.addProperty("amount", BigInteger.valueOf(100).multiply(BigInteger.TEN.pow(18)));
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Withdraw by who does not own token should be failed", tx.isSuccess());
+
+        // OVER BALANCE
+        tx = new TransactionReceiptImpl("0x05", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        this.adapter.setTransactionReceipt(tx);
+
+        params.addProperty("amount", BigInteger.TEN.pow(50)); // balance == TEN.pow(40)
+
+        tokenContract.withdrawYeedStake(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Withdraw over YEED stake balance should be failed", tx.isSuccess());
+
+        // NORMAL
+        tx = new TransactionReceiptImpl("0x06", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        this.adapter.setTransactionReceipt(tx);
+
+        params.addProperty("amount", getBigInt18(100));
 
         tokenContract.withdrawYeedStake(params);
 
         tx.getTxLog().stream().forEach(l -> log.debug(l));
         Assert.assertTrue("Withdraw of YEED stake is failed", tx.isSuccess());
 
+        // CHECK BALANCE
         BigInteger result = tokenContract.getYeedBalanceOf(params);
 
-        Assert.assertEquals("The result should match with current YEED stake", 0, result.compareTo(BigInteger.valueOf(999900).multiply(BigInteger.TEN.pow(18))));
-    }
-
-    @Test
-    public void withdrawYeedStakeNoneToken() {
-        TransactionReceipt tx = _testInit();
-
-        JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
-        params.addProperty("amount", BigInteger.valueOf(100).multiply(BigInteger.TEN.pow(18)));
-
-        tokenContract.withdrawYeedStake(params);
-
-        tx.getTxLog().stream().forEach(l -> log.debug(l));
-        Assert.assertFalse("Withdraw from nonexistent token should be failed", tx.isSuccess());
-    }
-
-    @Test
-    public void withdrawYeedStakeNotOwner() {
-        _testInit();
-
-        JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "TEST_TOKEN");
-        params.addProperty("amount", BigInteger.valueOf(100).multiply(BigInteger.TEN.pow(18)));
-
-        String issuer = "1111111111111111111111111111111111111111";
-        TransactionReceipt tx = new TransactionReceiptImpl("0x04", 300L, issuer);
-        this.adapter.setTransactionReceipt(tx);
-
-        tokenContract.withdrawYeedStake(params);
-
-        tx.getTxLog().stream().forEach(l -> log.debug(l));
-        Assert.assertFalse("Withdraw by who does not own token should be failed", tx.isSuccess());
-    }
-
-    @Test
-    public void withdrawYeedStakeOverBalance() {
-        TransactionReceipt tx = _testInit();
-
-        JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "TEST_TOKEN");
-        params.addProperty("amount", BigInteger.valueOf(1000000000000000L).multiply(BigInteger.TEN.pow(18)));
-
-        tokenContract.withdrawYeedStake(params);
-
-        tx.getTxLog().stream().forEach(l -> log.debug(l));
-        Assert.assertFalse("Withdraw over YEED stake balance should be failed", tx.isSuccess());
+        Assert.assertEquals("The result should match with current YEED stake", 0, result.compareTo(getBigInt18(999900)));
     }
 
     @Test
@@ -1271,6 +1258,7 @@ public class TokenContractTest {
 
 
 
+
     private void createToken(
             String txId,
             String owner,
@@ -1334,6 +1322,10 @@ public class TokenContractTest {
         this.adapter.setTransactionReceipt(tx);
 
         return tx;
+    }
+
+    private BigInteger getBigInt18(long val) {
+        return BigInteger.valueOf(val).multiply(BigInteger.TEN.pow(18));
     }
 
 
