@@ -113,7 +113,7 @@ task copyContractToResource(type: Copy) {
 }
 
 task copyContractToProject(type: Copy) {
-    dependsOn copyContractToResrouce
+    dependsOn copyContractToResource
 
     from file("${buildContract}")
     into file("${projectContractPath}")
