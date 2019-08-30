@@ -873,7 +873,7 @@ public class InterChainProcessTest {
                 ISSUER, // in ethereum network receiver is issuer
                 BigInteger.TEN.pow(18), // 1ETH
                 null,
-                1 // fromtier
+                1 // frontier
         );
         // sender sign and send to network
         ethereumTx.sign(senderKey);
@@ -939,7 +939,7 @@ public class InterChainProcessTest {
                 ISSUER, // in ethereum network receiver is issuer
                 BigInteger.TEN.pow(17).multiply(BigInteger.valueOf(5L)), // 0.5ETH
                 null,
-                1 // fromtier
+                1 // frontier
         );
         // sender sign and send to network
         ethereumTx.sign(senderKey);
@@ -956,21 +956,21 @@ public class InterChainProcessTest {
 
         yeedContract.processPropose(processJson);
         printTxLog();
-        Assert.assertEquals("Propose processing", ExecuteStatus.SUCCESS, proposeReceipt.getStatus());
+        Assert.assertEquals("Propose processing SUCCESS", ExecuteStatus.SUCCESS, proposeReceipt.getStatus());
 
 
         // retry same processing
         thrown.expect(RuntimeException.class);
         yeedContract.processPropose(processJson);
         printTxLog();
-        Assert.assertEquals("Propose processing", ExecuteStatus.ERROR, proposeReceipt.getStatus());
+        Assert.assertEquals("Propose processing ERROR", ExecuteStatus.ERROR, proposeReceipt.getStatus());
 
 
 
     }
 
     @Test
-    public void invalidRawTranasction() {
+    public void invalidRawTransaction() {
         BigInteger stakeYeed = BigInteger.TEN.pow(18);
         BigInteger fee = BigInteger.TEN.pow(17); // 0.1 YEED
         ECKey senderKey = new ECKey();
@@ -989,17 +989,17 @@ public class InterChainProcessTest {
                 ISSUER, // in ethereum network receiver is issuer
                 BigInteger.TEN.pow(17).multiply(BigInteger.valueOf(5L)), // 0.5ETH
                 null,
-                1 // fromtier
+                1 // frontier
         );
 
         ethereumTx.sign(senderKey);
 
         log.debug(HexUtil.toHexString(ethereumTx.getValue()));
 
+        // rawValue Change, Value 1ETH to 1ETH - 65536 WEI
         byte[] rawTransaction = ethereumTx.getEncoded();
         String rawTxString = HexUtil.toHexString(rawTransaction);
         rawTxString = rawTxString.replaceAll("06f05b59d3b20000", "06f05b59d3b30000");
-        log.debug(rawTxString);
 
         TransactionReceipt proposeReceipt =
                 setUpReceipt("0x00", senderAddress, BRANCH_ID, 100);
@@ -1015,5 +1015,97 @@ public class InterChainProcessTest {
         Assert.assertEquals("Propose processing", ExecuteStatus.FALSE, proposeReceipt.getStatus());
     }
 
+    @Test
+    public void diviedEthSendTest() {
+        BigInteger stakeYeed = BigInteger.TEN.pow(18);
+        BigInteger fee = BigInteger.TEN.pow(17); // 0.1 YEED
+        ECKey senderKey = new ECKey();
+        String senderAddress = HexUtil.toHexString(senderKey.getAddress());
+
+
+        yeedContract.transfer(ISSUER, senderAddress, BigInteger.TEN.pow(18), BigInteger.TEN.pow(17));
+
+        String proposeId = issuerPropose(ISSUER, senderAddress, stakeYeed, fee);
+
+        BigInteger halfEth = BigInteger.TEN.pow(17).multiply(BigInteger.valueOf(5L));
+        EthereumTransaction ethereum1Tx = new EthereumTransaction(
+                0,
+                BigInteger.ZERO, // GasPrice
+                0, // GasLimit
+                ISSUER, // in ethereum network receiver is issuer
+                halfEth, // 0.5ETH
+                null,
+                1 // frontier
+        );
+        ethereum1Tx.sign(senderKey);
+
+        EthereumTransaction ethereum2Tx = new EthereumTransaction(
+                1,
+                BigInteger.ZERO, // GasPrice
+                0, // GasLimit
+                ISSUER, // in ethereum network receiver is issuer
+                halfEth, // 0.5ETH
+                null,
+                1 // frontier
+        );
+        ethereum2Tx.sign(senderKey);
+
+        BigInteger proposeStakeYeed = getBalance(proposeId);
+        log.debug("Propose Stake YEED : {}", proposeStakeYeed);
+        TransactionReceipt proposeReceipt =
+                setUpReceipt("0x0001", senderAddress, BRANCH_ID, 100);
+
+        JsonObject processJson = new JsonObject();
+        processJson.addProperty("proposeId", proposeId);
+        processJson.addProperty("rawTransaction", HexUtil.toHexString(ethereum1Tx.getEncoded()));
+        processJson.addProperty("fee", fee); // 0.1
+
+        yeedContract.processPropose(processJson);
+
+        Assert.assertTrue("Process Done", proposeReceipt.isSuccess());
+
+        Assert.assertTrue("", proposeStakeYeed.compareTo(getBalance(proposeId)) == 0);
+        log.debug("Propose Stake YEED : {}", proposeStakeYeed);
+
+        String confirm1Id = proposeConfirmIdFromLog(proposeReceipt.getTxLog());
+        Assert.assertNotNull("", confirm1Id);
+
+        // replace ethereum Tx2
+        processJson.addProperty("rawTransaction", HexUtil.toHexString(ethereum2Tx.getEncoded()));
+        proposeReceipt =
+                setUpReceipt("0x0002", senderAddress, BRANCH_ID, 100);
+        yeedContract.processPropose(processJson);
+
+        Assert.assertTrue("Process Done", proposeReceipt.isSuccess());
+        String confirm2Id = proposeConfirmIdFromLog(proposeReceipt.getTxLog());
+        Assert.assertNotNull("", confirm2Id);
+
+        TransactionReceipt confirmTr = setUpReceipt("0x00", VALIDATOR, BRANCH_ID, 100);
+
+        JsonObject confirmParams = new JsonObject();
+        //params.addProperty("proposeId", "18d48bc062ecab96a6d5b24791b5b41fdb69a12ef76d56f9f842871f92716b7a");
+        confirmParams.addProperty("txConfirmId", confirm1Id);
+        confirmParams.addProperty("txId", HexUtil.toHexString(ethereum1Tx.getHash()));
+        confirmParams.addProperty("status", TxConfirmStatus.DONE.toValue());
+        confirmParams.addProperty("blockHeight", 100010L);
+        confirmParams.addProperty("lastBlockHeight", 100030L);
+        confirmParams.addProperty("index", 1);
+
+        yeedContract.transactionConfirm(confirmParams);
+        proposeStakeYeed = proposeStakeYeed.subtract(halfEth);
+        BigInteger confirm1Balance = getBalance(proposeId);
+        log.debug("Remain Stake YEED : {} ", confirm1Balance);
+        Assert.assertTrue("", proposeStakeYeed.compareTo(confirm1Balance) == 0);
+        Assert.assertTrue("", confirmTr.isSuccess());
+
+        confirmParams.addProperty("txConfirmId", confirm2Id);
+        confirmParams.addProperty("txId", HexUtil.toHexString(ethereum2Tx.getHash()));
+        confirmParams.addProperty("status", TxConfirmStatus.DONE.toValue());
+
+        yeedContract.transactionConfirm(confirmParams);
+        Assert.assertTrue("", confirmTr.isSuccess());
+
+
+    }
 
 }

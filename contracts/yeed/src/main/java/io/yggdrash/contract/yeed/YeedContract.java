@@ -740,7 +740,9 @@ public class YeedContract implements BundleActivator, ServiceListener {
             BigInteger receiveValue = pt.getAsset();
             // Calculate ratio
             BigInteger ratio = propose.getReceiveAsset().divide(propose.getStakeYeed());
+            log.debug("Ratio : {}", ratio);
             BigInteger transferYeed = ratio.multiply(receiveValue);
+            log.debug("transferYeed : {}", transferYeed);
             BigInteger stakeYeed = getBalance(propose.getProposeId());
             stakeYeed = stakeYeed.subtract(propose.getFee());
 
@@ -894,7 +896,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                                 transferYeed = stakeYeed;
                             }
                             log.debug("stake YEED {}", stakeYeed);
-                            log.debug("TransferYeed YEED {}", txConfirm.getTransferYeed());
+                            log.debug("TransferYeed YEED {}", transferYeed);
                             log.debug("PI Fee {}", fee);
                             // Send transaction confirm
                             boolean transfer = transfer(pi.getProposeId(), txConfirm.getSenderAddress(),
@@ -902,16 +904,15 @@ public class YeedContract implements BundleActivator, ServiceListener {
                             if (transfer) {
                                 this.txReceipt.addLog(String.format("%s is DONE",txConfirm.getTxConfirmId()));
                                 // check propose
-                                if (fee.compareTo(BigInteger.ZERO) > 0) { // propose is done
-                                    setProposeStatus(pi.getProposeId(), ProposeStatus.DONE);
-                                }
                                 this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
                                 // Save Tx Confirm
                                 txConfirm.setStatus(TxConfirmStatus.DONE);
                                 // Save TxConfirm
                                 setTxConfirm(txConfirm);
+
                                 // propose is done
-                                if (stakeYeed.compareTo(transferYeed) == 0) {
+                                stakeYeed = stakeYeed.subtract(transferYeed);
+                                if (stakeYeed.compareTo(BigInteger.ZERO) == 0) {
                                     proposeProcessDone(pi, ProposeStatus.DONE, BigInteger.ZERO);
                                 }
                             } else {
