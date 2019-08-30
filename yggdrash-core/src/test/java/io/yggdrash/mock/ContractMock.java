@@ -121,7 +121,7 @@ public class ContractMock {
         JsonArray validators = new JsonArray();
         validators.add(validatorAddress);
         initObj.add("validators", validators);
-        governanceSampleContract.addProperty("contractVersion", "f5c6fc39956ed9d6592321894cad94f0c80dffdf");
+        governanceSampleContract.addProperty("contractVersion", "ca3c8385d8323f28280352f20a9e39f0e40837b9");
         governanceSampleContract.add("init", initObj);
         governanceSampleContract.addProperty("description", "This contract is for a validator.");
         governanceSampleContract.addProperty("name", governanceContract);
