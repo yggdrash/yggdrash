@@ -20,8 +20,8 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.exception.FailedOperationException;
-import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.contract.core.TransactionReceiptImpl;
+import io.yggdrash.contract.core.Receipt;
+import io.yggdrash.contract.core.ReceiptImpl;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
@@ -60,9 +60,9 @@ public class TransactionMockitoTest {
     private TransactionApiImpl txApiImpl;
     private String txId;
     private String blockId;
-    private TransactionReceipt txReceipt;
+    private Receipt txReceipt;
 
-    private HashMap<String, TransactionReceipt> txReceiptStore;
+    private HashMap<String, Receipt> txReceiptStore;
     private BranchId branchId;
 
     @Before
@@ -77,7 +77,7 @@ public class TransactionMockitoTest {
         txList.add(tx);
         txList.add(tx);
         txList.add(tx);
-        txReceipt = new TransactionReceiptImpl();
+        txReceipt = new ReceiptImpl();
         txReceipt.setTxId(txId);
         txReceiptStore.put(txId, txReceipt);
         ConsensusBlock genesis = BlockChainTestUtils.genesisBlock();
@@ -125,7 +125,7 @@ public class TransactionMockitoTest {
 
     @Test
     public void getTransactionReceiptTest() {
-        when(branchGroupMock.getTransactionReceipt(branchId, txId))
+        when(branchGroupMock.getReceipt(branchId, txId))
                 .thenReturn(txReceipt);
         TransactionReceiptDto res = txApiImpl.getTransactionReceipt(branchId.toString(), txId);
         assertEquals(res.txId, txId);

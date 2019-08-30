@@ -6,8 +6,8 @@ import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.utils.ContractUtils;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.contract.core.TransactionReceiptImpl;
+import io.yggdrash.contract.core.Receipt;
+import io.yggdrash.contract.core.ReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.exception.ContractException;
 import org.junit.Before;
@@ -58,7 +58,7 @@ public class CoinContractTest {
                 + " {\"balance\": \"1000000000\"},\"cee3d4755e47055b530deeba062c5bd0c17eb00f\":"
                 + " {\"balance\": \"998000000000\"}}}";
 
-        TransactionReceipt result = new TransactionReceiptImpl();
+        Receipt result = new ReceiptImpl();
 
         try {
             txReceiptField.set(coinContract, result);
@@ -71,7 +71,7 @@ public class CoinContractTest {
         }
 
         assertTrue(result.isSuccess());
-        assertEquals(4, result.getTxLog().size());
+        assertEquals(4, result.getLog().size());
     }
 
     @Test
@@ -102,7 +102,7 @@ public class CoinContractTest {
     public void transferExceptionTest() { // Handling ParamException & BalanceException
         String invalidParamStr = "{\"hello\" : \"yggdrash\",\"this\" : \"is for test\"}";
 
-        TransactionReceipt result = new TransactionReceiptImpl();
+        Receipt result = new ReceiptImpl();
         result.setIssuer(ADDRESS_1); // Sender is not set in baseContract because tx is not invoked yet
 
         try {
@@ -115,7 +115,7 @@ public class CoinContractTest {
             result.addLog(e.getMessage());
         }
 
-        assertTrue(result.getTxLog().contains(INVALID_PARAMS));
+        assertTrue(result.getLog().contains(INVALID_PARAMS));
         assertFalse(result.isSuccess()); // No change account balance
         assertEquals(BigInteger.valueOf(1000000000), coinContract.balanceOf(createParams(ADDRESS_JSON_1)));
         assertEquals(BigInteger.valueOf(1000000000), coinContract.balanceOf(createParams(ADDRESS_JSON_2)));
@@ -130,7 +130,7 @@ public class CoinContractTest {
             result.addLog(e.getMessage());
         }
 
-        assertTrue(result.getTxLog().contains(INSUFFICIENT_FUNDS));
+        assertTrue(result.getLog().contains(INSUFFICIENT_FUNDS));
         assertFalse(result.isSuccess()); // No change account balance
         assertEquals(BigInteger.valueOf(1000000000), coinContract.balanceOf(createParams(ADDRESS_JSON_1)));
         assertEquals(BigInteger.valueOf(1000000000), coinContract.balanceOf(createParams(ADDRESS_JSON_2)));
@@ -167,7 +167,7 @@ public class CoinContractTest {
     public void approveTest() {
         String invalidParamStr = "{\"hello\" : \"yggdrash\",\"this\" : \"is for test\"}";
 
-        TransactionReceipt result = new TransactionReceiptImpl();
+        Receipt result = new ReceiptImpl();
         result.setIssuer(ADDRESS_1); // Sender is not set in baseContract because tx is not invoked yet
 
         try {
@@ -180,7 +180,7 @@ public class CoinContractTest {
             result.addLog(e.getMessage());
         }
 
-        assertTrue(result.getTxLog().contains(INVALID_PARAMS));
+        assertTrue(result.getLog().contains(INVALID_PARAMS));
         assertFalse(result.isSuccess());
 
         invalidParamStr
@@ -193,7 +193,7 @@ public class CoinContractTest {
             result.addLog(e.getMessage());
         }
 
-        assertTrue(result.getTxLog().contains(INSUFFICIENT_FUNDS));
+        assertTrue(result.getLog().contains(INSUFFICIENT_FUNDS));
         assertFalse(result.isSuccess());
 
         String validParams = String.format("{\"spender\" : \"%s\",\"amount\" : \"1000\"}", ADDRESS_2);
@@ -221,7 +221,7 @@ public class CoinContractTest {
 
         String invalidParamStr = "{\"hello\" : \"yggdrash\",\"this\" : \"is for test\"}";
 
-        TransactionReceipt result = new TransactionReceiptImpl();
+        Receipt result = new ReceiptImpl();
         result.setIssuer(spender);
 
         try {
@@ -234,7 +234,7 @@ public class CoinContractTest {
             result.addLog(e.getMessage());
         }
 
-        assertTrue(result.getTxLog().contains(INVALID_PARAMS));
+        assertTrue(result.getLog().contains(INVALID_PARAMS));
         assertFalse(result.isSuccess());
 
         invalidParamStr = String.format("{\"from\" : \"%s\",\"to\" : \"%s\",\"amount\" : \"1000000000\"}", sender, to);
@@ -246,7 +246,7 @@ public class CoinContractTest {
             result.addLog(e.getMessage());
         }
 
-        assertTrue(result.getTxLog().contains(INSUFFICIENT_FUNDS));
+        assertTrue(result.getLog().contains(INSUFFICIENT_FUNDS));
         assertFalse(result.isSuccess());
 
         String validParamStr = String.format("{\"from\" : \"%s\",\"to\" : \"%s\",\"amount\" : \"700\"}", sender, to);
@@ -286,7 +286,7 @@ public class CoinContractTest {
     private void approveBySender(String spender, String sender, String amount) {
         String params = String.format("{\"spender\" : \"%s\",\"amount\" : \"%s\"}", ADDRESS_2, amount);
 
-        TransactionReceipt result = new TransactionReceiptImpl();
+        Receipt result = new ReceiptImpl();
         result.setIssuer(sender);
 
         try {
@@ -333,8 +333,8 @@ public class CoinContractTest {
     }
 
     private class MetaCoinContract extends CoinContract {
-        TransactionReceipt hello(JsonObject params) {
-            TransactionReceipt txReceipt = new TransactionReceiptImpl();
+        Receipt hello(JsonObject params) {
+            Receipt txReceipt = new ReceiptImpl();
             txReceipt.addLog(params.toString());
             txReceipt.setStatus(ExecuteStatus.SUCCESS);
             log.info("{}", txReceipt);

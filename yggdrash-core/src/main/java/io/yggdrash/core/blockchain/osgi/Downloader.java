@@ -70,7 +70,7 @@ public class Downloader {
             log.info("Download Contract Successfully. ContractVersion : {}\t of bytes : {}", version, byteWritten);
             log.info("-------Download Contract End--------");
         } catch (IOException e) {
-            log.warn("Download contract file failed, {}", e.getMessage());
+            log.error("Download contract file failed, {}", e.getMessage());
             new File(filePath).delete();
         }
         return new File(path);

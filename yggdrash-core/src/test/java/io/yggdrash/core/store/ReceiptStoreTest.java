@@ -18,24 +18,24 @@ package io.yggdrash.core.store;
 
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.contract.core.TransactionReceiptImpl;
+import io.yggdrash.contract.core.Receipt;
+import io.yggdrash.contract.core.ReceiptImpl;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TransactionReceiptStoreTest {
+public class ReceiptStoreTest {
 
-    private TransactionReceiptStore store;
+    private ReceiptStore store;
 
     @Before
     public void setUp() {
-        store = new TransactionReceiptStore(new HashMapDbSource());
+        store = new ReceiptStore(new HashMapDbSource());
     }
 
     @Test
-    public void testPutTransactionReceipt() {
-        TransactionReceipt receipt = new TransactionReceiptImpl();
+    public void testPutReceipt() {
+        Receipt receipt = new ReceiptImpl();
         receipt.setTxId("TEST_TRANSACTION");
         receipt.setStatus(ExecuteStatus.SUCCESS);
 
@@ -44,13 +44,13 @@ public class TransactionReceiptStoreTest {
     }
 
     @Test
-    public void testTransactionReceipt() {
-        TransactionReceipt receipt = new TransactionReceiptImpl();
+    public void testReceipt() {
+        Receipt receipt = new ReceiptImpl();
         receipt.setTxId("TEST_TRANSACTION_1234512345");
         receipt.setStatus(ExecuteStatus.SUCCESS);
         store.put(receipt);
 
-        TransactionReceipt receipt2 = store.get("TEST_TRANSACTION_1234512345");
+        Receipt receipt2 = store.get("TEST_TRANSACTION_1234512345");
 
         Assert.assertTrue(receipt.getTxId().equalsIgnoreCase(receipt2.getTxId()));
         Assert.assertEquals(receipt.getStatus(), receipt2.getStatus());

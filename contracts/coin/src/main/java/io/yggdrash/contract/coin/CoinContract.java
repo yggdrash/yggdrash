@@ -11,10 +11,10 @@ import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
-import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
+import io.yggdrash.contract.core.annotation.ContractReceipt;
 import io.yggdrash.contract.core.annotation.Genesis;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.annotation.ParamValidation;
@@ -59,8 +59,8 @@ public class CoinContract implements BundleActivator, ServiceListener {
     public static class CoinService implements CoinStandard {
         private static final String TOTAL_SUPPLY = "TOTAL_SUPPLY";
 
-        @ContractTransactionReceipt
-        TransactionReceipt txReceipt;
+        @ContractReceipt
+        Receipt txReceipt;
 
         @ContractStateStore
         ReadWriterStore<String, JsonObject> store;
@@ -123,12 +123,12 @@ public class CoinContract implements BundleActivator, ServiceListener {
          * params to      The address to transfer to
          * params amount  The amount to be transferred
          *
-         * @return TransactionReceipt
+         * @return Receipt
          */
         @InvokeTransaction
         @ParamValidation
         @Override
-        public TransactionReceipt transfer(JsonObject params) {
+        public Receipt transfer(JsonObject params) {
             log.debug("\ntransfer :: params => {}", params);
 
             String to = getAsString(params, "to").toLowerCase();
@@ -155,12 +155,12 @@ public class CoinContract implements BundleActivator, ServiceListener {
          * params spender  The address which will spend the funds
          * params amount   The amount of tokens to be spent
          *
-         * @return TransactionReceipt
+         * @return Receipt
          */
         @InvokeTransaction
         @ParamValidation
         @Override
-        public TransactionReceipt approve(JsonObject params) {
+        public Receipt approve(JsonObject params) {
             log.debug("\napprove :: params => {}", params);
 
             String spender = getAsString(params, "spender").toLowerCase();
@@ -189,12 +189,12 @@ public class CoinContract implements BundleActivator, ServiceListener {
          * params to      The address which you want to transfer to
          * params amount  The amount of tokens to be transferred
          *
-         * @return TransactionReceipt
+         * @return Receipt
          */
         @InvokeTransaction
         @ParamValidation
         @Override
-        public TransactionReceipt transferFrom(JsonObject params) {
+        public Receipt transferFrom(JsonObject params) {
             log.debug("\ntransferFrom :: params => {}", params);
 
             String from = getAsString(params, "from").toLowerCase();
@@ -227,11 +227,11 @@ public class CoinContract implements BundleActivator, ServiceListener {
          * params frontier The Frontier is the first live release of the Yggdrash network
          * params balance  The balance of frontier
          *
-         * @return TransactionReceipt
+         * @return Receipt
          */
         @Genesis
         @InvokeTransaction
-        public TransactionReceipt init(JsonObject params) {
+        public Receipt init(JsonObject params) {
             log.debug("\ngenesis :: params => {}", params);
 
             //totalSupply 는 alloc 의 balance 를 모두 더한 값으로 세팅

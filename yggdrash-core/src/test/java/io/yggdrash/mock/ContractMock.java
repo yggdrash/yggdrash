@@ -33,7 +33,7 @@ public class ContractMock {
 
     JsonObject sampleContract = new JsonObject();
     JsonObject governanceSampleContract = new JsonObject();
-    String contractVersion = "178b44b22d8c6d5bb08175fa2fcab15122ca8d1e";
+    String contractVersion = "9765cd283eec1d7174a9434df2843670ce1d6b22";
     JsonObject contractInit = new JsonObject();
     String contractDescription = "MOCK";
     String contractName = "MOCK";
@@ -121,7 +121,7 @@ public class ContractMock {
         JsonArray validators = new JsonArray();
         validators.add(validatorAddress);
         initObj.add("validators", validators);
-        governanceSampleContract.addProperty("contractVersion", "30783a1311b9c68dd3a92596d650ae6914b01658");
+        governanceSampleContract.addProperty("contractVersion", "f5c6fc39956ed9d6592321894cad94f0c80dffdf");
         governanceSampleContract.add("init", initObj);
         governanceSampleContract.addProperty("description", "This contract is for a validator.");
         governanceSampleContract.addProperty("name", governanceContract);

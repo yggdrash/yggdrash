@@ -77,6 +77,7 @@ public class BlockChainSyncManager implements SyncManager {
                 // Handling exception if the block was not added properly
                 Map<String, List<String>> errorLogs = blockChain.addBlock(block, false);
                 if (errorLogs.size() > 0) {
+                    log.warn("ErrorLogs: {}", errorLogs);
                     return true;
                 }
             }

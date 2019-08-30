@@ -13,7 +13,7 @@
 package io.yggdrash.validator.data;
 
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BlockChainManagerImpl;
@@ -103,8 +103,8 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     }
 
     @Override
-    public TransactionReceipt getTransactionReceipt(String txId) {
-        return blockChainManager.getTransactionReceipt(txId);
+    public Receipt getReceipt(String txId) {
+        return blockChainManager.getReceipt(txId);
     }
 
     @Override

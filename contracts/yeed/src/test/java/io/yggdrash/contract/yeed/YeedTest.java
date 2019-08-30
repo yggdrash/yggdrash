@@ -27,9 +27,9 @@ import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.contract.core.TransactionReceiptAdapter;
-import io.yggdrash.contract.core.TransactionReceiptImpl;
+import io.yggdrash.contract.core.Receipt;
+import io.yggdrash.contract.core.ReceiptAdapter;
+import io.yggdrash.contract.core.ReceiptImpl;
 import io.yggdrash.contract.yeed.ehtereum.EthTransaction;
 import io.yggdrash.contract.yeed.intertransfer.TxConfirmStatus;
 import io.yggdrash.contract.yeed.propose.ProposeStatus;
@@ -59,7 +59,7 @@ public class YeedTest {
     private static final String ADDRESS_1 = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94"; // validator
     private static final String ADDRESS_2 = "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e"; // validator
     private static final String BRANCH_ID = "0x00";
-    private TransactionReceiptAdapter adapter;
+    private ReceiptAdapter adapter;
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -72,8 +72,8 @@ public class YeedTest {
                 .put("81b7e08f65bdf5648606c89998a9cc8164397647",
                         new Validator("81b7e08f65bdf5648606c89998a9cc8164397647"));
 
-        adapter = new TransactionReceiptAdapter();
-        yeedContract.txReceipt = adapter;
+        adapter = new ReceiptAdapter();
+        yeedContract.receipt = adapter;
         yeedContract.store = coinContractStateStore;
         yeedContract.branchStateStore = branchStateStore;
 
@@ -89,7 +89,7 @@ public class YeedTest {
                 + "\"4d01e237570022440aa126ca0b63065d7f5fd589\":{\"balance\": \"10000000000000000000000\"}"
                 + "}}";
 
-        TransactionReceipt result = new TransactionReceiptImpl();
+        Receipt result = new ReceiptImpl();
         setUpReceipt(result);
 
         yeedContract.init(createParams(genesisStr));
@@ -136,7 +136,7 @@ public class YeedTest {
         log.debug("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94:{}", getBalance(ADDRESS_1));
         log.debug("1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e:{}", getBalance(ADDRESS_2));
 
-        TransactionReceipt receipt = setUpReceipt(ADDRESS_1);
+        Receipt receipt = setUpReceipt(ADDRESS_1);
 
         receipt = yeedContract.transfer(paramObj);
 
@@ -164,7 +164,7 @@ public class YeedTest {
         paramObj.addProperty("amount", -1000000);
         paramObj.addProperty("fee", -1000);
 
-        TransactionReceipt receipt = setUpReceipt(ADDRESS_1);
+        Receipt receipt = setUpReceipt(ADDRESS_1);
 
         receipt = yeedContract.transfer(paramObj);
 
@@ -184,7 +184,7 @@ public class YeedTest {
         transferFromObject.addProperty("to", to);
         transferFromObject.addProperty("amount", "700");
 
-        TransactionReceipt receipt = setUpReceipt(spender);
+        Receipt receipt = setUpReceipt(spender);
 
         receipt = yeedContract.transferFrom(transferFromObject);
 
@@ -199,7 +199,7 @@ public class YeedTest {
         log.debug("getAllowance : {}", getAllowance(owner, spender));
         printTxLog();
 
-        TransactionReceipt receipt2 = setUpReceipt("1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");
+        Receipt receipt2 = setUpReceipt("1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");
 
         yeedContract.transferFrom(transferFromObject);
 
@@ -219,7 +219,7 @@ public class YeedTest {
         paramObj.addProperty("spender", spender);
         paramObj.addProperty("amount", amount);
 
-        TransactionReceipt receipt = setUpReceipt(owner);
+        Receipt receipt = setUpReceipt(owner);
 
         yeedContract.approve(paramObj);
 
@@ -262,7 +262,7 @@ public class YeedTest {
 
         final BigInteger issuerOriginBalance = getBalance(issuer);
 
-        TransactionReceipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1); // 1 == current blockHeight
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1); // 1 == current blockHeight
 
         yeedContract.issuePropose(proposal);
 
@@ -271,7 +271,7 @@ public class YeedTest {
 
         String proposeIssueIdPatten = "Propose [a-f0-9]{64} ISSUED";
         Pattern p = Pattern.compile(proposeIssueIdPatten);
-        Matcher matcher = p.matcher(receipt.getTxLog().get(1));
+        Matcher matcher = p.matcher(receipt.getLog().get(1));
 
         boolean isMatched = matcher.find();
         assertTrue(isMatched);
@@ -363,7 +363,7 @@ public class YeedTest {
         param.addProperty("proposeId", proposeId);
 
         // Success case
-        TransactionReceipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1000000L);
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1000000L);
 
         BigInteger originProposalBalance = yeedContract.getBalance(proposeId);
 
@@ -401,7 +401,7 @@ public class YeedTest {
         BigInteger issuerOriginBalance = getBalance(issuer);
         log.debug("IssuerOriginBalance : {} ", issuerOriginBalance);
 
-        TransactionReceipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);  // 1 == current blockHeight
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);  // 1 == current blockHeight
 
         yeedContract.issuePropose(proposal);
 
@@ -416,7 +416,7 @@ public class YeedTest {
 
         String proposeIssueIdPatten = "Propose [a-f0-9]{64} ISSUED";
         Pattern p = Pattern.compile(proposeIssueIdPatten);
-        String firstLog = receipt.getTxLog().get(1);
+        String firstLog = receipt.getLog().get(1);
         Matcher matcher = p.matcher(firstLog);
         log.debug("Log 1 : {} ", firstLog);
 
@@ -491,13 +491,13 @@ public class YeedTest {
         BigInteger issuerOriginBalance = getBalance(issuer);
         log.debug("issuerOriginBalance  : {} ", issuerOriginBalance);
 
-        TransactionReceipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);
 
         yeedContract.issuePropose(proposal);
 
         assertSame(ExecuteStatus.SUCCESS, receipt.getStatus());
 
-        String proposalIssuedLog = receipt.getTxLog().get(1);
+        String proposalIssuedLog = receipt.getLog().get(1);
         log.debug("Log 1 : {} ", proposalIssuedLog);
         String proposeIssueIdPatten = "Propose [a-f0-9]{64} ISSUED";
         Pattern p = Pattern.compile(proposeIssueIdPatten);
@@ -533,7 +533,7 @@ public class YeedTest {
 
         assertEquals("Proposal processing failed", ExecuteStatus.FALSE, receipt.getStatus());
 
-        receipt.getTxLog().forEach(log::debug);
+        receipt.getLog().forEach(log::debug);
     }
 
     @Test
@@ -560,7 +560,7 @@ public class YeedTest {
 
         String transactionId = "0x02";
 
-        TransactionReceipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);
 
         yeedContract.issuePropose(proposal);
         assertSame(ExecuteStatus.FALSE, receipt.getStatus());
@@ -611,7 +611,7 @@ public class YeedTest {
         BigInteger issuerOriginBalance = getBalance(issuer);
         log.debug("issuerOriginBalance : {} ", issuerOriginBalance);
 
-        TransactionReceipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);
 
         yeedContract.issuePropose(proposal);
 
@@ -623,7 +623,7 @@ public class YeedTest {
         assertEquals(0, issuerOriginBalance.subtract(issuerBalanceAfterProposalIssued).compareTo(stakeYeed.add(fee)));
 
         // Get propose ID
-        String receiptForProposalIssued = receipt.getTxLog().get(1);
+        String receiptForProposalIssued = receipt.getLog().get(1);
         log.debug("Log 1 : {} ", receiptForProposalIssued);
         String proposeIssueIdPatten = "Propose [a-f0-9]{64} ISSUED";
         Pattern p = Pattern.compile(proposeIssueIdPatten);
@@ -719,18 +719,18 @@ public class YeedTest {
         testTransfer.addProperty("amount", BigInteger.valueOf(100L));
 
         yeedContract.transfer(testTransfer);
-        assertSame(ExecuteStatus.ERROR, yeedContract.txReceipt.getStatus()); // Insufficient funds
+        assertSame(ExecuteStatus.ERROR, yeedContract.receipt.getStatus()); // Insufficient funds
 
         yeedContract.faucet(param);
-        assertSame(ExecuteStatus.SUCCESS, yeedContract.txReceipt.getStatus());
+        assertSame(ExecuteStatus.SUCCESS, yeedContract.receipt.getStatus());
         assertTrue(yeedContract.totalSupply().compareTo(totalSupply) != 0);
 
         // Call faucet one more
         yeedContract.faucet(param);
-        assertSame(ExecuteStatus.ERROR, yeedContract.txReceipt.getStatus()); // Already received or has balance
+        assertSame(ExecuteStatus.ERROR, yeedContract.receipt.getStatus()); // Already received or has balance
 
         yeedContract.transfer(testTransfer);
-        assertSame(ExecuteStatus.SUCCESS, yeedContract.txReceipt.getStatus());
+        assertSame(ExecuteStatus.SUCCESS, yeedContract.receipt.getStatus());
     }
 
     @Test
@@ -811,15 +811,15 @@ public class YeedTest {
         return JsonUtil.parseJsonObject(paramStr);
     }
 
-    private TransactionReceipt createReceipt(String issuer) {
-        TransactionReceipt receipt = new TransactionReceiptImpl();
+    private Receipt createReceipt(String issuer) {
+        Receipt receipt = new ReceiptImpl();
         receipt.setIssuer(issuer);
         receipt.setBranchId(BRANCH_ID);
         return receipt;
     }
 
-    private TransactionReceipt createReceipt(String transactionId, String issuer, String branchId, long blockHeight) {
-        TransactionReceipt receipt = new TransactionReceiptImpl();
+    private Receipt createReceipt(String transactionId, String issuer, String branchId, long blockHeight) {
+        Receipt receipt = new ReceiptImpl();
         receipt.setTxId(transactionId);
         receipt.setIssuer(issuer);
         receipt.setBranchId(branchId);
@@ -827,18 +827,18 @@ public class YeedTest {
         return receipt;
     }
 
-    private void setUpReceipt(TransactionReceipt receipt) {
-        adapter.setTransactionReceipt(receipt);
+    private void setUpReceipt(Receipt receipt) {
+        adapter.setReceipt(receipt);
     }
 
-    private TransactionReceipt setUpReceipt(String issuer) {
-        TransactionReceipt receipt = createReceipt(issuer);
+    private Receipt setUpReceipt(String issuer) {
+        Receipt receipt = createReceipt(issuer);
         setUpReceipt(receipt);
         return receipt;
     }
 
-    private TransactionReceipt setUpReceipt(String transactionId, String issuer, String branchId, long blockHeight) {
-        TransactionReceipt receipt = createReceipt(transactionId, issuer, branchId, blockHeight);
+    private Receipt setUpReceipt(String transactionId, String issuer, String branchId, long blockHeight) {
+        Receipt receipt = createReceipt(transactionId, issuer, branchId, blockHeight);
         setUpReceipt(receipt);
         return receipt;
     }
@@ -878,6 +878,6 @@ public class YeedTest {
     }
 
     private void printTxLog() {
-        log.debug("txLog={}", adapter.getTxLog());
+        log.debug("txLog={}", adapter.getLog());
     }
 }

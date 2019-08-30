@@ -45,7 +45,7 @@ public class ContractManagerTest {
 
     private static ContractExecutor executor;
 
-    private static ContractVersion coinContract = ContractVersion.of("8c65bc05e107aab9ceaa872bbbb2d96d57811de4");
+    private static ContractVersion coinContract = ContractVersion.of("2761fa79174a830866b331762b0828345b3d336b");
     ContractVersion notExistedVersion = ContractVersion.of(Hex.encodeHexString("Wrong ContractVersion".getBytes()));
 
     @Before

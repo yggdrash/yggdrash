@@ -18,10 +18,18 @@ import java.util.Map;
 import java.util.Set;
 
 public class VotingProgress implements Serializable {
+
     public int totalVotingCnt;
     public int agreeCnt;
     public int disagreeCnt;
     public Map<String, Vote> votingHistory;
+    public VotingStatus votingStatus;
+
+    enum VotingStatus {
+        VOTABLE,
+        AGREE,
+        DISAGREE
+    }
 
     VotingProgress() {
 
@@ -33,6 +41,7 @@ public class VotingProgress implements Serializable {
         this.disagreeCnt = 0;
         this.votingHistory = new HashMap<>();
         validatorSet.forEach(validator -> this.votingHistory.put(validator, new Vote()));
+        this.votingStatus = VotingStatus.VOTABLE;
     }
 
     void vote(String issuer, boolean agree) {
@@ -42,11 +51,20 @@ public class VotingProgress implements Serializable {
             disagreeCnt++;
         }
         votingHistory.put(issuer, new Vote(agree));
+        votingStatus = isAgreed() ? VotingStatus.AGREE : VotingStatus.DISAGREE;
     }
 
-    boolean isVotingFinished() {
-        int cnt = (int) Math.ceil((double) (totalVotingCnt / 3) * 2);
+    boolean hashVoted(String issuer) {
+        return votingHistory.get(issuer).isVoted;
+    }
+
+    private boolean isAgreed() {
+        int cnt = (int) (((double) totalVotingCnt * 0.66) + 1.0);
         return agreeCnt >= cnt;
+    }
+
+    VotingStatus getVotingStatus() {
+        return votingStatus;
     }
 
     static class Vote implements Serializable {
@@ -63,4 +81,5 @@ public class VotingProgress implements Serializable {
             isAgree = agree;
         }
     }
+
 }

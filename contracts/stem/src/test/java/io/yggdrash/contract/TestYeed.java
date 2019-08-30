@@ -6,7 +6,7 @@ import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.contract.core.annotation.ContractChannelMethod;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
@@ -18,7 +18,7 @@ import java.util.Map;
 public class TestYeed  {
 
     Map<String, BigInteger> amount = new HashMap<>();
-    private TransactionReceipt txReceipt;
+    private Receipt txReceipt;
 
     public TestYeed() {
         amount.put("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94", new BigInteger("100000000000"));
@@ -27,7 +27,7 @@ public class TestYeed  {
         amount.put("5244d8163ea6fdd62aa08ae878b084faa0b013be", new BigInteger("100000000000000"));
     }
 
-    public void setTxReceipt(TransactionReceipt txReceipt) {
+    public void setTxReceipt(Receipt txReceipt) {
         this.txReceipt = txReceipt;
     }
 

@@ -160,13 +160,16 @@ public class BranchConfiguration {
                 .withSystemProperties(systemProperties) // Contract Executor. do not need contractManager.
                 .build();
 
-        return BlockChainBuilder.newBuilder()
+        BlockChain blockChain = BlockChainBuilder.newBuilder()
                 .setGenesis(genesis)
                 .setBranchStore(blockChainStore.getBranchStore())
                 .setBlockChainManager(blockChainManager)
                 .setContractManager(contractManager)
                 .setFactory(ValidatorService.factory())
                 .build();
+
+        blockChain.addListener(contractManager);
+        return blockChain;
     }
 
     @Bean

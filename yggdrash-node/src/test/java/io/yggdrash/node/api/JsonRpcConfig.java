@@ -39,7 +39,7 @@ public class JsonRpcConfig {
                 url = new URL(String.format("%s/%s",server.trim(),apiPath));
             } else {
                 // Server is just ip address
-                url = new URL(String.format("http://%s:8080/api/%s", server, apiPath));
+                url = new URL(String.format("http://%s:8073/api/%s", server, apiPath));
             }
 
 

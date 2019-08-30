@@ -16,13 +16,18 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.utils.JsonUtil;
+import io.yggdrash.contract.core.ContractEvent;
+import io.yggdrash.contract.core.ContractEventSet;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
+import io.yggdrash.contract.core.annotation.ContractEndBlock;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
-import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
+import io.yggdrash.contract.core.annotation.ContractReceipt;
+import io.yggdrash.contract.core.annotation.Genesis;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
+import io.yggdrash.contract.core.channel.ContractEventType;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.osgi.Downloader;
 import org.slf4j.Logger;
@@ -50,50 +55,61 @@ public class VersioningContract {
     @ContractBranchStateStore
     BranchStateStore branchStore;
 
-    @ContractTransactionReceipt
-    TransactionReceipt txReceipt;
+    @ContractReceipt
+    Receipt receipt;
 
     @ContractQuery
     public ContractProposal proposalStatus(JsonObject params) {
         return getProposal(params.get("txId").getAsString());
     }
 
+    @Genesis
     @InvokeTransaction
-    public TransactionReceipt propose(JsonObject params) {
+    public Receipt init(JsonObject params) {
+        log.info("Init VersioningContract");
+        return receipt;
+    }
+
+    @InvokeTransaction
+    public Receipt propose(JsonObject params) {
         // Verify that the issuer is a validator
         if (!isValidator()) {
             setFalseTxReceipt("Validator verification failed");
-            return txReceipt;
+            return receipt;
         }
 
         // Create a contract proposal with parameters.
-        String txId = txReceipt.getTxId();
-        long blockHeight = txReceipt.getBlockHeight();
+        String txId = receipt.getTxId();
+        String proposer = receipt.getIssuer();
+        long blockHeight = receipt.getBlockHeight();
         String contractVersion = params.get("contractVersion").getAsString();
         String sourceUrl = params.get("sourceUrl").getAsString();
         String buildVersion = params.get("buildVersion").getAsString();
         Set<String> validatorSet = new HashSet<>(branchStore.getValidators().getValidatorMap().keySet());
 
+        // blockHeight => targetBlockHeight
         ContractProposal proposal = new ContractProposal(
-                txId, contractVersion, sourceUrl, buildVersion, blockHeight, validatorSet);
+                txId, proposer, contractVersion, sourceUrl, buildVersion, blockHeight, validatorSet);
+
+        // The proposer automatically votes to agree
+        proposal.vote(proposer, true);
 
         JsonObject proposalObj = JsonUtil.parseJsonObject(proposal);
-
         // Store the proposal in stateStore
-        state.put(txId, proposalObj);
+        state.put(txId, JsonUtil.parseJsonObject(proposal));
 
         setSuccessTxReceipt("Contract proposal has been issued");
         log.info("Contract Proposal : txId = {}, proposal = {}", txId, proposalObj);
 
-        return txReceipt;
+        return receipt;
     }
 
     @InvokeTransaction
-    public TransactionReceipt vote(JsonObject params) {
+    public Receipt vote(JsonObject params) {
         // Verify that the issuer is a validator
         if (!isValidator()) {
             setFalseTxReceipt("Validator verification failed");
-            return txReceipt;
+            return receipt;
         }
 
         String txId = params.get("txId").getAsString();
@@ -101,40 +117,94 @@ public class VersioningContract {
         // Verify the proposal exists
         if (proposal == null) {
             setFalseTxReceipt("Contract proposal not found");
-            return txReceipt;
+            return receipt;
         }
 
-        long curBlockHeight = txReceipt.getBlockHeight();
+        long curBlockHeight = receipt.getBlockHeight();
         // Verify the proposal is expired
         if (proposal.isExpired(curBlockHeight)) {
             setFalseTxReceipt("Contract proposal has already expired");
-            return txReceipt;
+            return receipt;
         }
 
-        String issuer = txReceipt.getIssuer();
+        String issuer = receipt.getIssuer();
+        // Verify if the validator has already voted
+        if (proposal.hasAlreadyVoted(issuer)) {
+            setFalseTxReceipt("Validator has already voted");
+            return receipt;
+        }
+
         boolean agree = params.get("agree").getAsBoolean();
-
         proposal.vote(issuer, agree);
-        state.put(txId, JsonUtil.parseJsonObject(proposal));
 
+        state.put(txId, JsonUtil.parseJsonObject(proposal));
         setSuccessTxReceipt("Update proposal voting is in progress");
 
         String contractVersion = proposal.getContractVersion();
         // Verify the voting is finished
-        if (proposal.isVotingFinished()) {
+        if (proposal.isAgreed()) {
             try {
                 downloadContractFile(contractVersion);
                 setSuccessTxReceipt("Contract file has been downloaded");
 
                 moveTmpContract(contractVersion);
                 setSuccessTxReceipt("Update proposal voting was completed successfully");
+
+                //Voting is complete. The contract must be installed and executed at the specific block height.
+                setInstallAndStartEvent(proposal);
             } catch (IOException e) {
                 setFalseTxReceipt("Contract file download failed or cannot be located");
-                return txReceipt;
+                return receipt;
             }
         }
 
-        return txReceipt;
+        return receipt;
+    }
+
+    @ContractEndBlock
+    public Receipt endBlock() {
+        // Check if an event of the current block height exists in the StateStore.
+        String currentBlockHeight = String.valueOf(receipt.getBlockHeight());
+        if (state.contains(currentBlockHeight)) {
+            // Get the current block height event and put the event to receipt.
+            JsonObject eventSetObj = state.get(currentBlockHeight);
+            ContractEventSet eventSet = JsonUtil.generateJsonToClass(eventSetObj.toString(), ContractEventSet.class);
+            receipt.setEvent(eventSet);
+            setSuccessTxReceipt("Event has occurred");
+        }
+
+        setSuccessTxReceipt("EndBlock completed");
+        return receipt;
+    }
+
+    private void setInstallAndStartEvent(ContractProposal proposal) {
+        String contractVersion = proposal.getContractVersion();
+        // TargetBlockHeight must be less than or equal to ApplyBlockHeight (TargetBlockHeight <= ApplyBlockHeight)
+        long applyBlockHeight = proposal.getApplyBlockHeight();
+        long targetBlockHeight = proposal.getTargetBlockHeight() > applyBlockHeight
+                ? applyBlockHeight : proposal.getTargetBlockHeight();
+
+        // State -> {blockHeight : contractEventSet}
+        state.put(String.valueOf(targetBlockHeight),
+                createEvent(targetBlockHeight, ContractEventType.INSTALL, contractVersion));
+        state.put(String.valueOf(applyBlockHeight),
+                createEvent(applyBlockHeight, ContractEventType.START, contractVersion));
+    }
+
+    private JsonObject createEvent(long blockHeight, ContractEventType type, String contractVersion) {
+        JsonObject eventSetObj = state.get(String.valueOf(blockHeight));
+        ContractEvent event = new ContractEvent(type, contractVersion, receipt.getContractVersion());
+
+        ContractEventSet contractEventSet;
+        if (eventSetObj != null) {
+            contractEventSet = JsonUtil.generateJsonToClass(eventSetObj.toString(), ContractEventSet.class);
+            contractEventSet.addEvents(event);
+        } else {
+            contractEventSet = new ContractEventSet(event);
+        }
+
+        JsonObject obj = JsonUtil.parseJsonObject(contractEventSet);
+        return obj;
     }
 
     private void moveTmpContract(String contractVersion) throws IOException {
@@ -143,7 +213,7 @@ public class VersioningContract {
         Files.move(tmp, origin.resolve(tmp.getFileName()), StandardCopyOption.REPLACE_EXISTING);
     }
 
-    private File downloadContractFile(String contractVersion) throws IOException {
+    private File downloadContractFile(String contractVersion) {
         return Downloader.downloadContract(tmpContractPath(), ContractVersion.of(contractVersion));
     }
 
@@ -152,8 +222,8 @@ public class VersioningContract {
     }
 
     private String contractPath() {
-        Path path = Paths.get(System.getProperty("user.dir"));
-        return String.format("%s%s", path.getParent(), SUFFIX_CONTRACT);
+        Path path = Paths.get(System.getProperty("user.home"));
+        return String.format("%s%s", path, SUFFIX_CONTRACT);
     }
 
     private ContractProposal getProposal(String txId) {
@@ -164,17 +234,17 @@ public class VersioningContract {
 
     private boolean isValidator() {
         return branchStore.getValidators() != null && branchStore.getValidators().getValidatorMap().keySet().stream()
-                .anyMatch(key -> !key.isEmpty() && key.equals(txReceipt.getIssuer()));
+                .anyMatch(key -> !key.isEmpty() && key.equals(receipt.getIssuer()));
     }
 
     private void setFalseTxReceipt(String msg) {
-        this.txReceipt.setStatus(ExecuteStatus.FALSE);
-        this.txReceipt.addLog(msg);
+        this.receipt.setStatus(ExecuteStatus.FALSE);
+        this.receipt.addLog(msg);
     }
 
     private void setSuccessTxReceipt(String msg) {
-        this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
-        this.txReceipt.addLog(msg);
+        this.receipt.setStatus(ExecuteStatus.SUCCESS);
+        this.receipt.addLog(msg);
     }
 
 }

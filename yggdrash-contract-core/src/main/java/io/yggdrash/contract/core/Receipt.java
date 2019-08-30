@@ -17,43 +17,54 @@
 package io.yggdrash.contract.core;
 
 import java.util.List;
+import java.util.Set;
 
-public interface TransactionReceipt {
+public interface Receipt {
 
-    void addLog(String log);
-
-    ExecuteStatus getStatus();
-
-    void setStatus(ExecuteStatus status);
-
-    String getTxId();
-
-    Long getTxSize();
-
-    void setTxId(String txId);
-
-    String getBlockId();
-
-    void setBlockId(String blockId);
-
-    Long getBlockHeight();
-
-    void setBlockHeight(Long blockHeight);
-
-    String getBranchId();
+    void setIssuer(String issuer);
 
     void setBranchId(String branchId);
 
-    String getContractVersion();
+    void setBlockId(String blockId);
+
+    void setBlockHeight(Long blockHeight);
+
+    void setTxId(String txId);
 
     void setContractVersion(String contractId);
 
-    List<String> getTxLog();
+    void setMethod(String method);
 
-    boolean isSuccess();
+    void addLog(String log);
+
+    void setStatus(ExecuteStatus status);
+
+    void setEvent(ContractEventSet event);
 
     String getIssuer();
 
-    void setIssuer(String issuer);
+    String getBranchId();
+
+    String getBlockId();
+
+    Long getBlockSize();
+
+    Long getBlockHeight();
+
+    Long getTxSize();
+
+    String getTxId();
+
+    String getContractVersion();
+
+    String getMethod();
+
+    List<String> getLog();
+
+    boolean isSuccess();
+
+    ExecuteStatus getStatus();
+
+    Set<ContractEvent> getEvents();
 
 }

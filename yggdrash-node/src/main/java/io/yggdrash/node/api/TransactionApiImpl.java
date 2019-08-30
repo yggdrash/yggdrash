@@ -2,7 +2,7 @@ package io.yggdrash.node.api;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.common.crypto.HexUtil;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
@@ -129,7 +129,7 @@ public class TransactionApiImpl implements TransactionApi {
 
     @Override
     public TransactionReceiptDto getTransactionReceipt(String branchId, String txId) {
-        TransactionReceipt receipt = branchGroup.getTransactionReceipt(BranchId.of(branchId), txId);
+        Receipt receipt = branchGroup.getReceipt(BranchId.of(branchId), txId);
         return TransactionReceiptDto.createBy(receipt);
     }
 
