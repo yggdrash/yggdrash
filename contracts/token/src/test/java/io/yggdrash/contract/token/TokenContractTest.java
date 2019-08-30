@@ -1190,7 +1190,82 @@ public class TokenContractTest {
 
     @Test
     public void exchangeY2T() {
-        
+        createToken();
+
+        // NONEXISTENT TOKEN
+        String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
+        TransactionReceipt tx = new TransactionReceiptImpl("0x02", 300L, owner);
+        this.adapter.setTransactionReceipt(tx);
+
+        JsonObject params = new JsonObject();
+        params.addProperty("tokenId", "NONE_TOKEN");
+
+        tokenContract.exchangeY2T(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange YEED to token of nonexistent token should be failed", tx.isSuccess());
+
+        // NOT_RUNNING
+        tx = new TransactionReceiptImpl("0x03", 300L, owner);
+        this.adapter.setTransactionReceipt(tx);
+
+        params.addProperty("tokenId", "TEST_TOKEN");
+
+        tokenContract.exchangeY2T(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange YEED to token of not running token should be failed", tx.isSuccess());
+
+        // move phase to run
+        tx = new TransactionReceiptImpl("0x04", 300L, owner);
+        this.adapter.setTransactionReceipt(tx);
+        tokenContract.movePhaseRun(params);
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Move phase to run is failed", tx.isSuccess());
+
+        // NEGATIVE AMOUNT
+        String account1 = "1111111111111111111111111111111111111111";
+
+        tx = new TransactionReceiptImpl("0x06", 300L, account1);
+        this.adapter.setTransactionReceipt(tx);
+
+        params.addProperty("amount", BigInteger.valueOf(-1).multiply(BigInteger.TEN.pow(18)));
+
+        tokenContract.exchangeY2T(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange YEED to token of negative amount should be failed", tx.isSuccess());
+
+        // INSUFFICIENT BALANCE (current YEED amount = 1234)
+        tx = new TransactionReceiptImpl("0x07", 300L, account1);
+        this.adapter.setTransactionReceipt(tx);
+
+        params.addProperty("amount", BigInteger.valueOf(10000).multiply(BigInteger.TEN.pow(18)));
+
+        tokenContract.exchangeY2T(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange YEED to token over YEED balance should be failed", tx.isSuccess());
+
+        // NORMAL
+        tx = new TransactionReceiptImpl("0x09", 300L, account1);
+        this.adapter.setTransactionReceipt(tx);
+
+        params.addProperty("amount", BigInteger.valueOf(1000).multiply(BigInteger.TEN.pow(18)));
+
+        tokenContract.exchangeY2T(params);
+
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Exchange YEED to token is failed", tx.isSuccess());
+
+        // CHECK TOKEN BALANCE (1000)
+        params.addProperty("address", account1);
+        BigInteger tokenBalance = tokenContract.balanceOf(params);
+        Assert.assertEquals("Token balance should be 1000", 0, tokenBalance.compareTo(BigInteger.valueOf(1000).multiply(BigInteger.TEN.pow(18))));
+
+        // CHECK YEED STAKE BALANCE (1000000 + 1000)
+        BigInteger yeedBalance = tokenContract.getYeedBalanceOf(params);
+        Assert.assertEquals("Yeed stake balance should be 600000", 0, yeedBalance.compareTo(BigInteger.valueOf(1001000).multiply(BigInteger.TEN.pow(18))));
     }
 
 
