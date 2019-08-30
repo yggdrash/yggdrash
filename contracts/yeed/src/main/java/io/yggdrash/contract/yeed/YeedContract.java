@@ -54,6 +54,7 @@ import org.osgi.framework.ServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Hashtable;
@@ -698,7 +699,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 setSuccessTxReceipt("Yeed to Eth Proposal completed successfully");
             } else {
                 transferFee(this.txReceipt.getIssuer(), fee);
-                log.error("[Yeed -> Eth] Error Code", checkPropose);
+                log.error("[Yeed -> Eth] Error Code {}", checkPropose);
                 List<String> errors = ProposeErrorCode.errorLogs(checkPropose);
                 setFalseTxReceipt(errors);
             }
@@ -737,11 +738,14 @@ public class YeedContract implements BundleActivator, ServiceListener {
         private void processProposeTransaction(ProposeInterChain propose, ProcessTransaction pt) {
             boolean isProposeSender = propose.proposeSender(pt.getSenderAddress());
 
-            BigInteger receiveValue = pt.getAsset();
+            BigDecimal receiveValue = new BigDecimal(pt.getAsset());
+            BigDecimal stakeYeedDecimal = new BigDecimal(propose.getStakeYeed());
             // Calculate ratio
-            BigInteger ratio = propose.getReceiveAsset().divide(propose.getStakeYeed());
+            BigDecimal ratio = stakeYeedDecimal.divide(new BigDecimal(propose.getReceiveAsset()));
+
+            //BigInteger ratio = propose.getReceiveAsset().divide(propose.getStakeYeed());
             log.debug("Ratio : {}", ratio);
-            BigInteger transferYeed = ratio.multiply(receiveValue);
+            BigInteger transferYeed = ratio.multiply(receiveValue).toBigInteger();
             log.debug("transferYeed : {}", transferYeed);
             BigInteger stakeYeed = getBalance(propose.getProposeId());
             stakeYeed = stakeYeed.subtract(propose.getFee());
@@ -772,7 +776,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                     // 1. Proposal issuer and process issuer are same
                     // 2. Receive Asset Value is more than propose receiveAsset or equal
                     // 3. Proposal set Sender Address
-                    if (receiveValue.compareTo(propose.getReceiveAsset()) >= 0) {
+                    if (pt.getAsset().compareTo(propose.getReceiveAsset()) >= 0) {
                         BigInteger proposeFee = propose.getFee();
                         BigInteger returnFee = proposeFee.divide(BigInteger.valueOf(2L));
                         proposeProcessDone(propose, ProposeStatus.DONE, returnFee);
