@@ -99,8 +99,29 @@ public class TokenContractTest {
 
     @Test
     public void createToken() {
+        String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
+
+        // INSUFFICIENT YEED BALANCE TO STAKE
+        TransactionReceipt tx = new TransactionReceiptImpl("0x00", 300L, owner);
+        this.adapter.setTransactionReceipt(tx);
+
+        JsonObject createToken = new JsonObject();
+        createToken.addProperty("tokenId", "TEST_TOKEN");
+        createToken.addProperty("tokenName", "TTOKEN");
+        createToken.addProperty("tokenInitYeedStakeAmount", BigInteger.TEN.pow(50));
+        createToken.addProperty("tokenInitMintAmount", BigInteger.TEN.pow(30));
+        createToken.addProperty("tokenMintable", true);
+        createToken.addProperty("tokenBurnable", true);
+        createToken.addProperty("tokenExchangeable", true);
+        createToken.addProperty("tokenExType", "TOKEN_EX_TYPE_FIXED");
+        createToken.addProperty("tokenExRateT2Y", new BigDecimal("1.0"));
+
+        tokenContract.createToken(createToken);
+        tx.getTxLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Token creation with YEED stake over balance should be failed", tx.isSuccess());
+
         // NORMAL
-        createToken(null, null, null, null, null, null, null, null, null, null, null);
+        createToken("0x01", null, null, null, BigInteger.TEN.pow(24), null, null, null, null, null, null);
     }
 
     @Test
@@ -197,10 +218,11 @@ public class TokenContractTest {
 
     @Test
     public void allowance() {
+        final String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
+        final String spender = "0000000000000000000000000000000000000000";
+        final String account2 = "2222222222222222222222222222222222222222";
+
         TransactionReceipt tx = _testInit();
-        String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
-        String spender = "0000000000000000000000000000000000000000";
-        String account2 = "2222222222222222222222222222222222222222";
 
         // NONEXISTENT TOKEN
         JsonObject params = new JsonObject();
@@ -960,7 +982,7 @@ public class TokenContractTest {
     }
 
     @Test
-    public void mintNotBurnable() {
+    public void burnNotBurnable() {
         Boolean burnable = false;
         createToken(null, null, null, null, null, null, null, burnable, null, null, null);
 
