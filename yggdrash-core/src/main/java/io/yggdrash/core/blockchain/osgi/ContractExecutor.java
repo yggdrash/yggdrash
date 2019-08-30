@@ -9,11 +9,10 @@ import io.yggdrash.contract.core.ReceiptAdapter;
 import io.yggdrash.contract.core.ReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import io.yggdrash.contract.core.annotation.ContractChannelField;
-import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractReceipt;
+import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.channel.ContractMethodType;
 import io.yggdrash.core.blockchain.Block;
-import io.yggdrash.core.blockchain.Log;
 import io.yggdrash.core.blockchain.LogIndexer;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
@@ -21,7 +20,6 @@ import io.yggdrash.core.exception.errorcode.SystemError;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.ContractStore;
-import io.yggdrash.core.store.LogStore;
 import io.yggdrash.core.store.ReceiptStore;
 import io.yggdrash.core.store.StoreAdapter;
 import org.apache.commons.codec.binary.Base64;
@@ -42,7 +40,6 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ContractExecutor {
-
     private static final Logger log = LoggerFactory.getLogger(ContractExecutor.class);
 
     private final ContractStore contractStore;
@@ -56,32 +53,19 @@ public class ContractExecutor {
     private final Condition isBlockExecuting = locker.newCondition();
     private boolean isTx = false;
 
-    ContractExecutor(ContractStore contractStore, LogStore logStore) {
+    ContractExecutor(ContractStore contractStore, LogIndexer logIndexer) {
         this.contractStore = contractStore;
-        this.logIndexer = new LogIndexer(logStore, contractStore.getReceiptStore());
+        this.logIndexer = logIndexer;
         this.contractCache = new ContractCacheImpl();
         this.trAdapter = new ReceiptAdapter();
         this.coupler = new ContractChannelCoupler();
-    }
-
-    Log getLog(long index) {
-        return logIndexer.getLog(index);
-    }
-
-    List<Log> getLogs(long start, long offset) {
-        return logIndexer.getLogs(start, offset);
-    }
-
-    long getCurLogIndex() {
-        return logIndexer.curIndex();
     }
 
     void injectNodeContract(Object service) throws IllegalAccessException {
         inject(service, namespace(service.getClass().getName()));
     }
 
-    void injectBundleContract(Bundle bundle, Object service, boolean isSystemContract) throws IllegalAccessException {
-
+    void injectBundleContract(Bundle bundle, Object service) throws IllegalAccessException {
         inject(service, namespace(bundle.getSymbolicName()));
     }
 
@@ -198,13 +182,11 @@ public class ContractExecutor {
                 exceptionHandler(e, receipt);
             }
 
-            if (result != null) {
-                blockRuntimeResult.setBlockResult(result);
-            }
-
             blockRuntimeResult.addReceipt(receipt);
-            if (!receipt.isSuccess()) {
-                log.warn("{} : {}", receipt.getTxId(), receipt.isSuccess());
+            if (!receipt.getStatus().equals(ExecuteStatus.ERROR)) {
+                blockRuntimeResult.setBlockResult(result);
+            } else {
+                log.warn("Error TxId={}, TxLog={}", receipt.getTxId(), receipt.getLog());
             }
         }
 
@@ -241,6 +223,24 @@ public class ContractExecutor {
         return result;
     }
 
+    private Set<Map.Entry<String, JsonObject>>  invokeTx(Map<String, Object> serviceMap, Transaction tx, Receipt receipt) throws ExecutorException {
+        JsonObject txBody = tx.getBody().getBody();
+
+        String contractVersion;
+        if (txBody.get("contractVersion") == null) {
+            contractVersion = Hex.toHexString(tx.getHeader().getType());
+        } else {
+            contractVersion = txBody.get("contractVersion").getAsString();
+        }
+
+        String methodName = txBody.get("method").getAsString();
+        JsonObject params = txBody.getAsJsonObject("params");
+
+        Object service = getService(serviceMap, contractVersion);
+        Method method = getMethod(service, contractVersion, ContractMethodType.INVOKE, methodName);
+        return invokeMethod(receipt, service, method, params);
+    }
+
     private Method getMethod(Object service, String contractVersion, ContractMethodType methodType, String methodName) throws ExecutorException {
         Method method = contractCache.getContractMethodMap(contractVersion, methodType, service).get(methodName);
 
@@ -273,30 +273,13 @@ public class ContractExecutor {
         try {
             invokeMethod(service, method, params);
         } catch (InvocationTargetException e) {
+            log.error("Invoke method error in tx id : {} caused by {}", receipt.getTxId(), e.getCause());
             trAdapter.addLog(e.getCause().getMessage());
         } catch (Exception e) {
             log.error("Invoke failed. {}", e.getMessage());
         }
 
         return contractStore.getTmpStateStore().changeValues();
-    }
-
-    private Set<Map.Entry<String, JsonObject>>  invokeTx(Map<String, Object> serviceMap, Transaction tx, Receipt receipt) throws ExecutorException {
-        JsonObject txBody = tx.getBody().getBody();
-
-        String contractVersion;
-        if (txBody.get("contractVersion") == null) {
-            contractVersion = Hex.toHexString(tx.getHeader().getType());
-        } else {
-            contractVersion = txBody.get("contractVersion").getAsString();
-        }
-
-        String methodName = txBody.get("method").getAsString();
-        JsonObject params = txBody.getAsJsonObject("params");
-
-        Object service = getService(serviceMap, contractVersion);
-        Method method = getMethod(service, contractVersion, ContractMethodType.INVOKE, methodName);
-        return invokeMethod(receipt, service, method, params);
     }
 
     void commitBlockResult(BlockRuntimeResult result) {

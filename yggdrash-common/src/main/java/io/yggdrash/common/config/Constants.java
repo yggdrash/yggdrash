@@ -4,6 +4,7 @@ import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.SerializationUtil;
 
 import java.io.File;
+import java.math.BigInteger;
 
 public final class Constants {
 
@@ -13,7 +14,7 @@ public final class Constants {
 
     //yggdrash.conf
     public static final String NODE_NAME = "yggdrash";
-    public static final String NODE_VERSION = "0.7.1";
+    public static final String NODE_VERSION = "0.8.0";
 
     public static final int BRANCH_LENGTH = 20;
     public static final int BRANCH_HEX_LENGTH = BRANCH_LENGTH * 2;
@@ -92,6 +93,8 @@ public final class Constants {
     public static final long TIMEOUT_TRANSACTION = 3;
     public static final long TIMEOUT_STATUS = 5;
 
+    // Base currency
+    public static final BigInteger BASE_CURRENCY = BigInteger.TEN.pow(18);
     public final class Limit {
         private Limit() {
         }

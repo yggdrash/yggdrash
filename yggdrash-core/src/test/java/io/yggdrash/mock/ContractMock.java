@@ -33,7 +33,7 @@ public class ContractMock {
 
     JsonObject sampleContract = new JsonObject();
     JsonObject governanceSampleContract = new JsonObject();
-    String contractVersion = "ff6bf185a12dad8fb181e39e101b4d3f715f32ed";
+    String contractVersion = "a88ae404e837cd1d6e8b9a5a91f188da835ccb56";
     JsonObject contractInit = new JsonObject();
     String contractDescription = "MOCK";
     String contractName = "MOCK";

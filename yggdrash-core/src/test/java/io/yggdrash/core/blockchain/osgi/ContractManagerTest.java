@@ -45,7 +45,7 @@ public class ContractManagerTest {
 
     private static ContractExecutor executor;
 
-    private static ContractVersion coinContract = ContractVersion.of("ff6bf185a12dad8fb181e39e101b4d3f715f32ed");
+    private static ContractVersion coinContract = ContractVersion.of("a88ae404e837cd1d6e8b9a5a91f188da835ccb56");
     ContractVersion notExistedVersion = ContractVersion.of(Hex.encodeHexString("Wrong ContractVersion".getBytes()));
 
     @Before
@@ -93,10 +93,10 @@ public class ContractManagerTest {
         Assert.assertTrue("Failed to verify contract file", verified);
 
         try {
-            Bundle coinBundle = manager.install(contractVersion, true);
-            manager.start(coinBundle);
+            Bundle coinBundle = manager.install(contractVersion);
+            manager.start(contractVersion);
             manager.registerServiceMap(contractVersion, coinBundle);
-            manager.inject(contractVersion);
+            manager.inject(coinBundle);
 
         } catch (IOException | BundleException | IllegalAccessException e) {
             log.error(e.getMessage());
@@ -125,11 +125,10 @@ public class ContractManagerTest {
 
         FrameworkConfig bootFrameworkConfig = new BootFrameworkConfig(config, branchId);
         FrameworkLauncher bootFrameworkLauncher = new BootFrameworkLauncher(bootFrameworkConfig);
-        BundleService bundleService = new BundleServiceImpl();
+        BundleService bundleService = new BundleServiceImpl(bootFrameworkLauncher.getBundleContext());
 
         ContractManager manager = ContractManagerBuilder.newInstance()
                 .withGenesis(genesis)
-                .withBootFramework(bootFrameworkLauncher)
                 .withBundleManager(bundleService)
                 .withDefaultConfig(config)
                 .withContractStore(contractStore)

@@ -33,6 +33,8 @@ import io.yggdrash.core.blockchain.osgi.Downloader;
 import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkConfig;
 import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkLauncher;
 import io.yggdrash.core.blockchain.osgi.framework.BundleServiceImpl;
+import io.yggdrash.core.blockchain.osgi.framework.FrameworkConfig;
+import io.yggdrash.core.blockchain.osgi.framework.FrameworkLauncher;
 import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
@@ -150,10 +152,13 @@ public class BranchConfiguration {
 
         BlockChainManager blockChainManager = new BlockChainManagerImpl(blockChainStore);
 
+        FrameworkConfig frameworkConfig = new BootFrameworkConfig(config, branchId);
+        FrameworkLauncher frameworkLauncher = new BootFrameworkLauncher(frameworkConfig);
+        BundleServiceImpl bundleService = new BundleServiceImpl(frameworkLauncher.getBundleContext());
+
         ContractManager contractManager = ContractManagerBuilder.newInstance()
                 .withGenesis(genesis)
-                .withBootFramework(new BootFrameworkLauncher(new BootFrameworkConfig(config, branchId)))
-                .withBundleManager(new BundleServiceImpl())
+                .withBundleManager(bundleService)
                 .withDefaultConfig(config)
                 .withContractStore(contractStore)
                 .withLogStore(blockChainStore.getLogStore()) // is this logstore for what?

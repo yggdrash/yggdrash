@@ -38,18 +38,18 @@ public class Downloader {
         contractFilePath = defaultConfig.getContractPath();
     }
 
-    private static String contractFilePath(ContractVersion contractVersion) {
-        return contractFilePath + File.separator + contractVersion + ".jar";
+    private static String filePathBuilder(String path, ContractVersion contractVersion) {
+        return path + File.separator + contractVersion + ".jar";
     }
 
     static File downloadContract(ContractVersion version) throws IOException {
-        return downloadContract(contractFilePath(version), version);
+        return downloadContract(contractFilePath, version);
     }
 
     public static File downloadContract(String path, ContractVersion version) {
         mkdir(path);
 
-        String filePath = path + "/" + version + ".jar";
+        String filePath = filePathBuilder(path, version);
         int bufferSize = 1024;
 
         try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(filePath))) {
@@ -73,7 +73,7 @@ public class Downloader {
             log.error("Download contract file failed, {}", e.getMessage());
             new File(filePath).delete();
         }
-        return new File(path);
+        return new File(filePath);
     }
 
     private static void mkdir(String path) {

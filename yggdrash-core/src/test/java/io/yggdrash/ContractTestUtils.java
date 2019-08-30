@@ -58,6 +58,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static io.yggdrash.common.config.Constants.BASE_CURRENCY;
+
 public class ContractTestUtils {
 
     public static Map<ContractManager, ContractStore> createContractManager(GenesisBlock genesis) {
@@ -71,13 +73,12 @@ public class ContractTestUtils {
         ContractStore contractStore = bcStore.getContractStore();
         FrameworkConfig bootFrameworkConfig = new BootFrameworkConfig(config, genesis.getBranchId());
         FrameworkLauncher bootFrameworkLauncher = new BootFrameworkLauncher(bootFrameworkConfig);
-        BundleService bundleService = new BundleServiceImpl();
+        BundleService bundleService = new BundleServiceImpl(bootFrameworkLauncher.getBundleContext());
 
         SystemProperties systemProperties = BlockChainTestUtils.createDefaultSystemProperties();
 
         ContractManager manager = ContractManagerBuilder.newInstance()
                 .withGenesis(genesis)
-                .withBootFramework(bootFrameworkLauncher)
                 .withBundleManager(bundleService)
                 .withDefaultConfig(config)
                 .withContractStore(contractStore)
@@ -162,6 +163,7 @@ public class ContractTestUtils {
         JsonObject params = new JsonObject();
         params.addProperty("to", to);
         params.addProperty("amount", amount);
+        params.addProperty("fee", BASE_CURRENCY.divide(BigInteger.valueOf(50L)));
         TestConstants.yggdrash();
         return txBodyJson(TestConstants.YEED_CONTRACT, "transfer", params, true);
     }
@@ -170,6 +172,7 @@ public class ContractTestUtils {
         JsonObject params = new JsonObject();
         params.addProperty("to", to);
         params.addProperty("amount", amount);
+        params.addProperty("fee", BASE_CURRENCY.divide(BigInteger.valueOf(50L)));
         TestConstants.yggdrash();
         return txBodyJson(contractVersion, "transfer", params, true);
     }
@@ -178,6 +181,7 @@ public class ContractTestUtils {
         JsonObject params = new JsonObject();
         params.addProperty("to", to);
         params.addProperty("amount", amount);
+        params.addProperty("fee", BASE_CURRENCY.divide(BigInteger.valueOf(50L)));
         return txBodyJson(TestConstants.YEED_CONTRACT, "create", params, true);
     }
 

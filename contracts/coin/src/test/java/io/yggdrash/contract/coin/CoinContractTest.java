@@ -33,7 +33,7 @@ public class CoinContractTest {
     private static final String ADDRESS_JSON_1 = String.format(ADDRESS_FORMAT, ADDRESS_1);
     private static final String ADDRESS_JSON_2 = String.format(ADDRESS_FORMAT, ADDRESS_2);
     private static final String INVALID_PARAMS = "Error Code:34001, Msg:Params not allowed";
-    private static final String INSUFFICIENT_FUNDS = "Error Code:34002, Msg:Insufficient funds";
+    private static final String INSUFFICIENT_FUNDS = "Insufficient funds";
     private Field txReceiptField;
 
     @Before
@@ -109,7 +109,7 @@ public class CoinContractTest {
             txReceiptField.set(coinContract, result);
             result = coinContract.transfer(createParams(invalidParamStr));
         } catch (IllegalAccessException e) {
-            log.warn("Set receipt failed : {}", e.getMessage()); // Setting txReceipt to coinContract failed
+            log.warn("Set receipt failed : {}", e.getMessage()); // Setting receipt to coinContract failed
         } catch (ContractException e) {
             log.debug("ContractException : {}", e.getMessage());
             result.addLog(e.getMessage());
@@ -174,7 +174,7 @@ public class CoinContractTest {
             txReceiptField.set(coinContract, result);
             result = coinContract.approve(createParams(invalidParamStr));
         } catch (IllegalAccessException e) {
-            log.warn("Set receipt failed : {}", e.getMessage()); // Setting txReceipt to coinContract failed
+            log.warn("Set receipt failed : {}", e.getMessage()); // Setting receipt to coinContract failed
         } catch (ContractException e) {
             log.debug("ContractException : {}", e.getMessage());
             result.addLog(e.getMessage());
@@ -228,7 +228,7 @@ public class CoinContractTest {
             txReceiptField.set(coinContract, result);
             result = coinContract.transferFrom(createParams(invalidParamStr));
         } catch (IllegalAccessException e) {
-            log.warn("Set receipt failed : {}", e.getMessage()); // Setting txReceipt to coinContract failed
+            log.warn("Set receipt failed : {}", e.getMessage()); // Setting receipt to coinContract failed
         } catch (ContractException e) {
             log.debug("ContractException : {}", e.getMessage());
             result.addLog(e.getMessage());
@@ -293,7 +293,7 @@ public class CoinContractTest {
             txReceiptField.set(coinContract, result);
             result = coinContract.approve(createParams(params));
         } catch (IllegalAccessException e) {
-            log.warn("Set receipt failed : {}", e.getMessage()); // Setting txReceipt to coinContract failed
+            log.warn("Set receipt failed : {}", e.getMessage()); // Setting receipt to coinContract failed
         } catch (ContractException e) {
             log.debug("ContractException : {}", e.getMessage());
             result.addLog(e.getMessage());
