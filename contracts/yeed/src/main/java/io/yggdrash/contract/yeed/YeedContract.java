@@ -710,7 +710,9 @@ public class YeedContract implements BundleActivator, ServiceListener {
             EthTokenTransaction tokenTransaction = new EthTokenTransaction(etheSendEncode);
 
             String senderAddress = HexUtil.toHexString(tokenTransaction.getSendAddress());
+            // TODO Token Swap Need to Method
             // input data param[0] == method, param[1] == ReceiveAddress, param[2] == asset
+            // Check Method - Token a9059cbb
             String receiveAddress = HexUtil.toHexString(tokenTransaction.getParam()[1]);
             BigInteger sendAsset = new BigInteger(tokenTransaction.getParam()[2]);
             String targetAddress = HexUtil.toHexString(tokenTransaction.getReceiverAddress());

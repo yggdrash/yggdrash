@@ -1114,8 +1114,8 @@ public class InterChainProcessTest {
 
     @Test
     public void multiAccountPropose() {
-        BigInteger stakeYeed = BigInteger.TEN.pow(28); // 10억 YEED
-        BigInteger receiveAsset = BigInteger.TEN.pow(22); // 10만 ETH ->
+        BigInteger stakeYeed = BigInteger.TEN.pow(26); // 1억 YEED
+        BigInteger receiveAsset = BigInteger.TEN.pow(22); // 1만 ETH ->
         // Ratio = receiveAsset/stakeYeed
 
         BigInteger fee = BigInteger.TEN.pow(17); // 0.1 YEED
@@ -1130,7 +1130,7 @@ public class InterChainProcessTest {
             // Issuer Send
             ECKey senderKey = new ECKey();
 
-            BigInteger sendEth = fee.multiply(BigInteger.valueOf(random.nextInt(10000))); // 0.1 * 1000;
+            BigInteger sendEth = fee.multiply(BigInteger.valueOf(random.nextInt(1000))); // 0.1 * 1000;
             if (BigInteger.ZERO.compareTo(sendEth) == 0) {
                 continue;
             }
@@ -1179,11 +1179,29 @@ public class InterChainProcessTest {
             log.debug("Remain YEED : {}", stakeYeed);
         }
 
-        log.debug(totalEth.toString());
+        log.debug(totalEth.divide(BASE_CURRENCY).toString());
         log.debug("Total Count : {}", totalTx);
 
+    }
 
+
+    @Test
+    public void tokenSwapInterchainTest() {
+        BigInteger stakeYeed = BigInteger.TEN.pow(26); // 1억 YEED
+        BigInteger receiveAsset = BigInteger.TEN.pow(22); // 1만 ETH ->
+        // Ratio = receiveAsset/stakeYeed
+
+        BigInteger fee = BigInteger.TEN.pow(17); // 0.1 YEED
+
+        // Token Address
+        String tokenAddress = "0xca2796f9f61dc7b238aab043971e49c6164df375";
+
+
+//        JsonObject issuerParam = createProposal(
+//
+//        )
 
     }
+
 
 }
