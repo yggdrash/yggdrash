@@ -1,11 +1,5 @@
 package io.yggdrash.contract.token;
 
-import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.BranchContract;
@@ -28,6 +22,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class TokenContractTest {
 
@@ -71,7 +71,6 @@ public class TokenContractTest {
         cache = new ContractCacheImpl();
         coupler.setContract(contractMap, cache);
 
-        //for (Field f : ContractUtils.contractFields(stemContract, ContractChannelField.class)) {
         for (Field f : ContractUtils.contractChannelField(tokenContract)) {
             f.setAccessible(true);
             f.set(tokenContract, coupler);
@@ -1306,6 +1305,34 @@ public class TokenContractTest {
     @Test
     public void exchangeT2T() {
         // TODO : @kevin : 2019-08-30
+
+        //     create token
+
+        // NONEXISTENT TOKEN
+
+        // NOT RUNNING
+
+        //     move phase to run
+
+        //     create target token
+
+        // NOT OPEN TO TARGET TOKEN
+
+        //     open to target token
+
+        // TARGET TOKEN NOT RUNNING
+
+        //     target token move phase to run
+
+        // ZERO AMOUNT
+
+        // INSUFFICIENT BALANCE
+
+        // NORMAL
+
+        // TOKEN BALANCE
+
+        // TARGET TOKEN BALANCE
     }
 
 
@@ -1343,9 +1370,9 @@ public class TokenContractTest {
         createToken.addProperty("tokenName", tokenName);
         createToken.addProperty("tokenInitYeedStakeAmount", initStake);
         createToken.addProperty("tokenInitMintAmount", initMint);
-        createToken.addProperty("tokenMintable", mintable.booleanValue());
-        createToken.addProperty("tokenBurnable", burnable.booleanValue());
-        createToken.addProperty("tokenExchangeable", exchangeable.booleanValue());
+        createToken.addProperty("tokenMintable", mintable);
+        createToken.addProperty("tokenBurnable", burnable);
+        createToken.addProperty("tokenExchangeable", exchangeable);
         createToken.addProperty("tokenExType", exType);
         createToken.addProperty("tokenExRateT2Y", exRateT2Y);
 
