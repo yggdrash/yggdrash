@@ -46,8 +46,8 @@ public class ValidatorService {
             DefaultConfig defaultConfig, Block genesisBlock) throws IOException, InvalidCipherTextException {
         this.defaultConfig = defaultConfig;
         setLogLevel();
-        this.host = defaultConfig.getString("yggdrash.validator.host");
-        this.port = defaultConfig.getInt("yggdrash.validator.port");
+        this.host = defaultConfig.getString(Constants.VALIDATOR_GRPC_HOST_CONF);
+        this.port = defaultConfig.getInt(Constants.VALIDATOR_GRPC_PORT_CONF);
         this.wallet = new Wallet(defaultConfig.getString(Constants.YGGDRASH_KEY_PATH),
                 defaultConfig.getString(Constants.YGGDRASH_KEY_PASSWORD));
         this.consensus = new Consensus(genesisBlock);
@@ -88,7 +88,7 @@ public class ValidatorService {
     }
 
     private void setLogLevel() {
-        String logLevel = this.defaultConfig.getString("yggdrash.validator.log.level");
+        String logLevel = this.defaultConfig.getString(Constants.VALIDATOR_LOG_LEVEL_CONF);
         ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger("io.yggdrash.validator"))
                 .setLevel(Level.toLevel(logLevel, Level.INFO));
     }

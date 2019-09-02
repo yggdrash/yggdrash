@@ -1,6 +1,7 @@
 package io.yggdrash.validator.config;
 
 import com.typesafe.config.ConfigFactory;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.utils.FileUtil;
@@ -39,7 +40,7 @@ public class ValidatorConfiguration {
                 }
                 File validatorConfFile = new File(validatorDir, "validator.conf");
                 DefaultConfig validatorConfig = new DefaultConfig(ConfigFactory.parseFile(validatorConfFile));
-                log.debug(validatorConfig.getString("yggdrash.validator.host"));
+                log.debug(validatorConfig.getString(Constants.VALIDATOR_GRPC_HOST_CONF));
 
                 File genesisFile = new File(validatorDir, "genesis.json");
                 String genesisString = FileUtil.readFileToString(genesisFile, FileUtil.DEFAULT_CHARSET);

@@ -93,8 +93,8 @@ public class ValidatorConfiguration {
             Config validatorConfig = ConfigFactory.parseFile(validatorConfFile);
             Config fallbackConfig = validatorConfig.withFallback(defaultConfig.getConfig()).resolve();
             DefaultConfig mergedConfig = new DefaultConfig(fallbackConfig, defaultConfig.isProductionMode());
-            log.debug("{}:{}, key={}", mergedConfig.getString("yggdrash.validator.host"),
-                    mergedConfig.getString("yggdrash.validator.port"),
+            log.debug("{}:{}, key={}", mergedConfig.getString(Constants.VALIDATOR_GRPC_HOST_CONF),
+                    mergedConfig.getString(Constants.VALIDATOR_GRPC_PORT_CONF),
                     mergedConfig.getString(Constants.YGGDRASH_KEY_PATH));
             try {
                 BranchId branchId = genesis.getBranch().getBranchId();
