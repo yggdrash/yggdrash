@@ -165,14 +165,6 @@ public class InterChainProcessTest {
         return null;
     }
 
-    @Test
-    public void logTest() {
-        List<String> logs = new ArrayList<>();
-        logs.add("Propose b4963e78d893e147c77bb124e94aeaa96236e2cc9ad76a22ceec780f5bf51b0e check YEED_TO_ETHER network 1 transaction 0559efaeea4ffd637dac0b1cf941175ced794f7e816d0e4ced28b6e650dd5b9f confirm ID bfdc46db681f6a8121d7aab26c971bfafd3ccc49d5614b81f6f9328934fd0d6c");
-
-        log.debug(proposeConfirmIdFromLog(logs));
-    }
-
     private String proposeConfirmIdFromLog(List<String> logs) {
         for (String receiptLog : logs) {
             if (receiptLog.contains("confirm ID")) {
@@ -312,15 +304,7 @@ public class InterChainProcessTest {
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
         printTxLog();
 
-
-        Pattern p = Pattern.compile(proposeIssueIdPatten);
-        Matcher matcher = p.matcher(receipt.getTxLog().get(1));
-
-        boolean isMatched = matcher.find();
-        assertTrue(isMatched);
-
-        String proposeIssuedReceiptLog = matcher.group();
-        String proposeId = proposeIssuedReceiptLog.replaceAll("Propose ", "").replaceAll(" ISSUED", "");
+        String proposeId = proposeIssueIdFromLog(receipt.getTxLog());
 
         BigInteger balanceOfProposeId = getBalance(proposeId);
         BigInteger issuerBalanceAfterProposalIssued = getBalance(issuer);
@@ -364,10 +348,11 @@ public class InterChainProcessTest {
     public void closeIssueFail2() {
         issuePropose();
 
+        String proposeId = proposeIssueIdFromLog(this.adapter.getTxLog());
+
         String transactionId = "0x01";
         String issuer = "c3cf7a283a4415ce3c41f5374934612389334780";
         JsonObject param = new JsonObject();
-        String proposeId = "ea79c0652a5c88db8a0f53d37a2944a56ff2eaf4185370191c98313843b35056";
         param.addProperty("proposeId", proposeId);
 
         setUpReceipt(transactionId, issuer, BRANCH_ID, 100L);
@@ -670,17 +655,7 @@ public class InterChainProcessTest {
         assertEquals(0, issuerOriginBalance.subtract(issuerBalanceAfterProposalIssued).compareTo(stakeYeed.add(fee)));
 
         // Get propose ID
-        String receiptForProposalIssued = receipt.getTxLog().get(1);
-        log.debug("Log 1 : {} ", receiptForProposalIssued);
-        String proposeIssueIdPatten = "Propose [a-f0-9]{64} ISSUED";
-        Pattern p = Pattern.compile(proposeIssueIdPatten);
-        Matcher matcher = p.matcher(receiptForProposalIssued);
-
-        boolean isMatched = matcher.find();
-        assertTrue(isMatched);
-
-        String proposeId = matcher.group().replaceAll("Propose ", "").replaceAll(" ISSUED", "");
-        log.debug("ProposeId : {}", proposeId);
+        String proposeId = proposeIssueIdFromLog(receipt.getTxLog());
 
         // Type-2 Send transaction in ethereum, and get raw transaction
 
@@ -706,6 +681,7 @@ public class InterChainProcessTest {
 
         yeedContract.processPropose(processJson);
 
+        String confirmId = proposeConfirmIdFromLog(receipt.getTxLog());
         assertEquals("", ExecuteStatus.SUCCESS, receipt.getStatus());
         printTxLog();
 
@@ -719,8 +695,7 @@ public class InterChainProcessTest {
 
         // Create params obj for transaction confirmation
         JsonObject params = new JsonObject();
-        //params.addProperty("proposeId", "18d48bc062ecab96a6d5b24791b5b41fdb69a12ef76d56f9f842871f92716b7a");
-        params.addProperty("txConfirmId", "af22edcccb4d6e4568b701294479c99a04afbd5ab25578adbe58549e36e4abfa");
+        params.addProperty("txConfirmId", confirmId);
         params.addProperty("txId", "a077dd42d4421dca5cb8a7a11aca5b27adaf40be2428f9dc8e42a56abdabeb66");
         params.addProperty("status", TxConfirmStatus.DONE.toValue());
         params.addProperty("blockHeight", 1000001L);
@@ -734,7 +709,7 @@ public class InterChainProcessTest {
 
         // Check txConfirm status
         JsonObject param = new JsonObject();
-        param.addProperty("txConfirmId", "af22edcccb4d6e4568b701294479c99a04afbd5ab25578adbe58549e36e4abfa");
+        param.addProperty("txConfirmId", confirmId);
         JsonObject queryTxConfirmResult = yeedContract.queryTransactionConfirm(param);
         log.debug(queryTxConfirmResult.toString());
         log.debug("Proposal stake : {} YEED", getBalance(proposeId));
@@ -1183,25 +1158,5 @@ public class InterChainProcessTest {
         log.debug("Total Count : {}", totalTx);
 
     }
-
-
-    @Test
-    public void tokenSwapInterchainTest() {
-        BigInteger stakeYeed = BigInteger.TEN.pow(26); // 1억 YEED
-        BigInteger receiveAsset = BigInteger.TEN.pow(22); // 1만 ETH ->
-        // Ratio = receiveAsset/stakeYeed
-
-        BigInteger fee = BigInteger.TEN.pow(17); // 0.1 YEED
-
-        // Token Address
-        String tokenAddress = "0xca2796f9f61dc7b238aab043971e49c6164df375";
-
-
-//        JsonObject issuerParam = createProposal(
-//
-//        )
-
-    }
-
 
 }
