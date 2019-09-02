@@ -88,7 +88,8 @@ public class EthereumTransaction {
      * @param data data
      * @param chainId chainId - mainnet 1 , testNet 3
      */
-    public EthereumTransaction(int nonce, BigInteger gasPrice, long gasLimit, String receiveAddress, BigInteger value, byte[] data, int chainId) {
+    public EthereumTransaction(int nonce, BigInteger gasPrice, long gasLimit, String receiveAddress,
+                               BigInteger value, byte[] data, int chainId) {
 
         this.nonce = BigInteger.valueOf(nonce).toByteArray();
         this.gasPrice = gasPrice.toByteArray();
@@ -106,7 +107,8 @@ public class EthereumTransaction {
 
     }
 
-    public EthereumTransaction(byte[] nonce, byte[] gasPrice, byte[] gasLimit, byte[] receiveAddress, byte[] value, byte[] data,
+    public EthereumTransaction(byte[] nonce, byte[] gasPrice, byte[] gasLimit, byte[] receiveAddress,
+                               byte[] value, byte[] data,
                        Integer chainId) {
         this.nonce = nonce;
         this.gasPrice = gasPrice;
@@ -135,33 +137,47 @@ public class EthereumTransaction {
             return Integer.MAX_VALUE; // chainId is limited to 31 bits, longer are not valid for now
         } else {
             long v = bv.longValue();
-            if (v == LOWER_REAL_V || v == (LOWER_REAL_V + 1)) return null;
+            if (v == LOWER_REAL_V || v == (LOWER_REAL_V + 1)) {
+                return null;
+            }
             return (int) ((v - CHAIN_ID_INC) / 2);
         }
     }
 
+    @SuppressWarnings("Duplicates")
     private byte getRealV(BigInteger bv) {
-        if (bv.bitLength() > 31) return 0; // chainId is limited to 31 bits, longer are not valid for now
+        if (bv.bitLength() > 31) {
+            return 0; // chainId is limited to 31 bits, longer are not valid for now
+        }
         long v = bv.longValue();
-        if (v == LOWER_REAL_V || v == (LOWER_REAL_V + 1)) return (byte) v;
+        if (v == LOWER_REAL_V || v == (LOWER_REAL_V + 1)) {
+            return (byte) v;
+        }
         byte realV = LOWER_REAL_V;
         int inc = 0;
-        if ((int) v % 2 == 0) inc = 1;
+        if ((int) v % 2 == 0) {
+            inc = 1;
+        }
         return (byte) (realV + inc);
     }
 
 
     public synchronized void rlpParse() {
-        if (parsed) return;
+        if (parsed) {
+            return;
+        }
         try {
             RLPList decodedTxList = RLP.decode2(rlpEncoded);
             RLPList transaction = (RLPList) decodedTxList.get(0);
 
             // Basic verification
-            if (transaction.size() > 9 ) throw new RuntimeException("Too many RLP elements");
+            if (transaction.size() > 9) {
+                throw new RuntimeException("Too many RLP elements");
+            }
             for (RLPElement rlpElement : transaction) {
-                if (!(rlpElement instanceof RLPItem))
+                if (!(rlpElement instanceof RLPItem)) {
                     throw new RuntimeException("Transaction RLP elements shouldn't be lists");
+                }
             }
 
             this.nonce = transaction.get(0).getRLPData();
@@ -172,8 +188,8 @@ public class EthereumTransaction {
             this.data = transaction.get(5).getRLPData();
             // only parse signature in case tx is signed
             if (transaction.get(6).getRLPData() != null) {
-                byte[] vData =  transaction.get(6).getRLPData();
-                BigInteger v = ByteUtil.bytesToBigInteger(vData);
+                byte[] vdata =  transaction.get(6).getRLPData();
+                BigInteger v = ByteUtil.bytesToBigInteger(vdata);
                 byte[] r = transaction.get(7).getRLPData();
                 byte[] s = transaction.get(8).getRLPData();
                 this.chainId = extractChainIdFromRawSignature(v, r, s);
@@ -191,22 +207,32 @@ public class EthereumTransaction {
     }
 
     private void validate() {
-        if (getNonce().length > HASH_LENGTH) throw new RuntimeException("Nonce is not valid");
-        if (receiveAddress != null && receiveAddress.length != 0 && receiveAddress.length != ADDRESS_LENGTH)
+        if (getNonce().length > HASH_LENGTH) {
+            throw new RuntimeException("Nonce is not valid");
+        }
+        if (receiveAddress != null && receiveAddress.length != 0 && receiveAddress.length != ADDRESS_LENGTH) {
             throw new RuntimeException("Receive address is not valid");
-        if (gasLimit.length > HASH_LENGTH)
+        }
+
+        if (gasLimit.length > HASH_LENGTH) {
             throw new RuntimeException("Gas Limit is not valid");
-        if (gasPrice != null && gasPrice.length > HASH_LENGTH)
+        }
+        if (gasPrice != null && gasPrice.length > HASH_LENGTH) {
             throw new RuntimeException("Gas Price is not valid");
-        if (value != null  && value.length > HASH_LENGTH)
+        }
+        if (value != null  && value.length > HASH_LENGTH) {
             throw new RuntimeException("Value is not valid");
+        }
         if (getSignature() != null) {
-            if (BigIntegers.asUnsignedByteArray(signature.r).length > HASH_LENGTH)
+            if (BigIntegers.asUnsignedByteArray(signature.r).length > HASH_LENGTH) {
                 throw new RuntimeException("Signature R is not valid");
-            if (BigIntegers.asUnsignedByteArray(signature.s).length > HASH_LENGTH)
+            }
+            if (BigIntegers.asUnsignedByteArray(signature.s).length > HASH_LENGTH) {
                 throw new RuntimeException("Signature S is not valid");
-            if (getSender() != null && getSender().length != ADDRESS_LENGTH)
+            }
+            if (getSender() != null && getSender().length != ADDRESS_LENGTH) {
                 throw new RuntimeException("Sender is not valid");
+            }
         }
     }
 
@@ -215,7 +241,9 @@ public class EthereumTransaction {
     }
 
     public byte[] getHash() {
-        if (!isEmpty(hash)) return hash;
+        if (!isEmpty(hash)) {
+            return hash;
+        }
         rlpParse();
         getEncoded();
         return hash;
@@ -223,7 +251,9 @@ public class EthereumTransaction {
 
     public byte[] getRawHash() {
         rlpParse();
-        if (rawHash != null) return rawHash;
+        if (rawHash != null) {
+            return rawHash;
+        }
         byte[] plainMsg = this.getEncodedRaw();
         return rawHash = HashUtil.sha3(plainMsg);
     }
@@ -286,19 +316,27 @@ public class EthereumTransaction {
     }
 
     public long nonZeroDataBytes() {
-        if (data == null) return 0;
+        if (data == null) {
+            return 0;
+        }
         int counter = 0;
         for (final byte aData : data) {
-            if (aData != 0) ++counter;
+            if (aData != 0) {
+                ++counter;
+            }
         }
         return counter;
     }
 
     public long zeroDataBytes() {
-        if (data == null) return 0;
+        if (data == null) {
+            return 0;
+        }
         int counter = 0;
         for (final byte aData : data) {
-            if (aData == 0) ++counter;
+            if (aData == 0) {
+                ++counter;
+            }
         }
         return counter;
     }
@@ -389,8 +427,10 @@ public class EthereumTransaction {
                 + ", value=" + HexUtil.toHexString(value)
                 + ", data=" + dataS
                 + ", signatureV=" + (signature == null ? "" : signature.v)
-                + ", signatureR=" + (signature == null ? "" : HexUtil.toHexString(BigIntegers.asUnsignedByteArray(signature.r)))
-                + ", signatureS=" + (signature == null ? "" : HexUtil.toHexString(BigIntegers.asUnsignedByteArray(signature.s)))
+                + ", signatureR=" + (signature == null ? "" :
+                    HexUtil.toHexString(BigIntegers.asUnsignedByteArray(signature.r)))
+                + ", signatureS=" + (signature == null ? "" :
+                    HexUtil.toHexString(BigIntegers.asUnsignedByteArray(signature.s)))
                 + "]";
     }
 
@@ -418,13 +458,11 @@ public class EthereumTransaction {
 
         // Since EIP-155 use chainId for v
         if (chainId == null) {
-            rlpRaw = RLP.encodeList(nonce, gasPrice, gasLimit, receiveAddress,
-                    value, data);
+            rlpRaw = RLP.encodeList(nonce, gasPrice, gasLimit, receiveAddress, value, data);
         } else {
-            byte[] v, r, s;
-            v = RLP.encodeInt(chainId);
-            r = RLP.encodeElement(ByteUtil.EMPTY_BYTE_ARRAY);
-            s = RLP.encodeElement(ByteUtil.EMPTY_BYTE_ARRAY);
+            byte[] v = RLP.encodeInt(chainId);
+            byte[] r = RLP.encodeElement(ByteUtil.EMPTY_BYTE_ARRAY);
+            byte[] s = RLP.encodeElement(ByteUtil.EMPTY_BYTE_ARRAY);
             rlpRaw = RLP.encodeList(nonce, gasPrice, gasLimit, receiveAddress,
                     value, data, v, r, s);
         }
@@ -433,7 +471,9 @@ public class EthereumTransaction {
 
     public synchronized byte[] getEncoded() {
 
-        if (rlpEncoded != null) return rlpEncoded;
+        if (rlpEncoded != null) {
+            return rlpEncoded;
+        }
 
         // parse null as 0 for nonce
         byte[] nonce = null;
@@ -448,7 +488,9 @@ public class EthereumTransaction {
         byte[] value = RLP.encodeElement(this.value);
         byte[] data = RLP.encodeElement(this.data);
 
-        byte[] v, r, s;
+        byte[] v;
+        byte[] r;
+        byte[] s;
 
         if (signature != null) {
             int encodeV;
@@ -492,7 +534,9 @@ public class EthereumTransaction {
     @Override
     public boolean equals(Object obj) {
 
-        if (!(obj instanceof EthereumTransaction)) return false;
+        if (!(obj instanceof EthereumTransaction)) {
+            return false;
+        }
         EthereumTransaction tx = (EthereumTransaction) obj;
 
         return tx.hashCode() == this.hashCode();
