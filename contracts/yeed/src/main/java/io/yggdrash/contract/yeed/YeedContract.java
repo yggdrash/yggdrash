@@ -55,6 +55,7 @@ import org.osgi.framework.ServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Hashtable;
@@ -561,7 +562,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
             // TokenAddress is YEED TO TOKEN
             String tokenAddress = JsonUtil.parseString(params, "tokenAddress", "");
-            String receiveAddress = params.get("receiverAddress").getAsString();
+            String receiveAddress = params.get("receiverAddress").getAsString().toLowerCase();
             BigInteger receiveAsset = params.get("receiveAsset").getAsBigInteger();
             Integer receiveChainId = params.get("receiveChainId").getAsInt();
             long networkBlockHeight = params.get("networkBlockHeight").getAsLong();
@@ -570,7 +571,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
             String senderAddress = null;
             String inputData = null;
             if (ProposeType.YEED_TO_ETHER.equals(proposeType)) {
-                senderAddress = params.get("senderAddress").getAsString();
+                senderAddress = params.get("senderAddress").getAsString().toLowerCase();
                 if (!params.get("inputData").isJsonNull()) {
                     inputData = params.get("inputData").getAsString();
                 }
@@ -665,7 +666,6 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 transferFee(this.receipt.getIssuer(), fee);
                 return;
             }
-
             switch (propose.getProposeType()) {
                 case YEED_TO_ETHER:
                     processYeedToEth(propose, rawTransaction, fee);
@@ -711,7 +711,9 @@ public class YeedContract implements BundleActivator, ServiceListener {
             EthTokenTransaction tokenTransaction = new EthTokenTransaction(etheSendEncode);
 
             String senderAddress = HexUtil.toHexString(tokenTransaction.getSendAddress());
+            // TODO Token Swap Need to Method
             // input data param[0] == method, param[1] == ReceiveAddress, param[2] == asset
+            // Check Method - Token a9059cbb
             String receiveAddress = HexUtil.toHexString(tokenTransaction.getParam()[1]);
             BigInteger sendAsset = new BigInteger(tokenTransaction.getParam()[2]);
             String targetAddress = HexUtil.toHexString(tokenTransaction.getReceiverAddress());
@@ -739,10 +741,15 @@ public class YeedContract implements BundleActivator, ServiceListener {
         private void processProposeTransaction(ProposeInterChain propose, ProcessTransaction pt) {
             boolean isProposeSender = propose.proposeSender(pt.getSenderAddress());
 
-            BigInteger receiveValue = pt.getAsset();
+            BigDecimal receiveValue = new BigDecimal(pt.getAsset());
+            BigDecimal stakeYeedDecimal = new BigDecimal(propose.getStakeYeed());
             // Calculate ratio
-            BigInteger ratio = propose.getReceiveAsset().divide(propose.getStakeYeed());
-            BigInteger transferYeed = ratio.multiply(receiveValue);
+            BigDecimal ratio = stakeYeedDecimal.divide(new BigDecimal(propose.getReceiveAsset()));
+
+            //BigInteger ratio = propose.getReceiveAsset().divide(propose.getStakeYeed());
+            log.debug("Ratio : {}", ratio);
+            BigInteger transferYeed = ratio.multiply(receiveValue).toBigInteger();
+            log.debug("transferYeed : {}", transferYeed);
             BigInteger stakeYeed = getBalance(propose.getProposeId());
             stakeYeed = stakeYeed.subtract(propose.getFee());
 
@@ -751,6 +758,14 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 transferYeed = stakeYeed;
             }
 
+            // Transaction ID , propose ID, SendAddress, transfer YEED
+            TxConfirm confirm = new TxConfirm(
+                    propose.getProposeId(), pt.getTransactionHash(), pt.getSenderAddress(), transferYeed);
+            // confirm duplicate
+            log.debug("Confirm Id : {}", confirm.getTxConfirmId());
+            if (!processConfirmTx(propose, confirm)) {
+                throw new RuntimeException("Propose Confirm Duplicate");
+            }
             // Check the transaction issuer is same as the proposal issuer.
             boolean isProposerIssuer = propose.getIssuer().equals(this.receipt.getIssuer());
             if (isProposerIssuer && isProposeSender) {
@@ -764,7 +779,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                     // 1. Proposal issuer and process issuer are same
                     // 2. Receive Asset Value is more than propose receiveAsset or equal
                     // 3. Proposal set Sender Address
-                    if (receiveValue.compareTo(propose.getReceiveAsset()) >= 0) {
+                    if (pt.getAsset().compareTo(propose.getReceiveAsset()) >= 0) {
                         BigInteger proposeFee = propose.getFee();
                         BigInteger returnFee = proposeFee.divide(BigInteger.valueOf(2L));
                         proposeProcessDone(propose, ProposeStatus.DONE, returnFee);
@@ -774,18 +789,9 @@ public class YeedContract implements BundleActivator, ServiceListener {
                     }
                 }
             } else {
-                // Save Transaction confirm
-                // Transaction ID , propose ID, SendAddress, transfer YEED
-                TxConfirm confirm = new TxConfirm(
-                        propose.getProposeId(), pt.getTransactionHash(), pt.getSenderAddress(), transferYeed);
-
-                // Check confirmed txId exists
-                boolean isConfirmTxIdExists = processConfirmTx(propose, confirm);
-                if (isConfirmTxIdExists) {
-                    setProposeStatus(propose.getProposeId(), ProposeStatus.PROCESSING);
-                    this.receipt.addLog(
-                            String.format("Propose %s %s", propose.getProposeId(), ProposeStatus.PROCESSING));
-                }
+                setProposeStatus(propose.getProposeId(), ProposeStatus.PROCESSING);
+                this.receipt.addLog(
+                        String.format("Propose %s %s", propose.getProposeId(), ProposeStatus.PROCESSING));
             }
         }
 
@@ -897,7 +903,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                                 transferYeed = stakeYeed;
                             }
                             log.debug("stake YEED {}", stakeYeed);
-                            log.debug("TransferYeed YEED {}", txConfirm.getTransferYeed());
+                            log.debug("TransferYeed YEED {}", transferYeed);
                             log.debug("PI Fee {}", fee);
                             // Send transaction confirm
                             boolean transfer = transfer(pi.getProposeId(), txConfirm.getSenderAddress(),
@@ -905,16 +911,15 @@ public class YeedContract implements BundleActivator, ServiceListener {
                             if (transfer) {
                                 this.receipt.addLog(String.format("%s is DONE",txConfirm.getTxConfirmId()));
                                 // check propose
-                                if (fee.compareTo(BigInteger.ZERO) > 0) { // propose is done
-                                    setProposeStatus(pi.getProposeId(), ProposeStatus.DONE);
-                                }
                                 this.receipt.setStatus(ExecuteStatus.SUCCESS);
                                 // Save Tx Confirm
                                 txConfirm.setStatus(TxConfirmStatus.DONE);
                                 // Save TxConfirm
                                 setTxConfirm(txConfirm);
+
                                 // propose is done
-                                if (stakeYeed.compareTo(transferYeed) == 0) {
+                                stakeYeed = stakeYeed.subtract(transferYeed);
+                                if (stakeYeed.compareTo(BigInteger.ZERO) == 0) {
                                     proposeProcessDone(pi, ProposeStatus.DONE, BigInteger.ZERO);
                                 }
                             } else {
