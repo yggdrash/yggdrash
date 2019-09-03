@@ -13,7 +13,7 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.core.consensus.ConsensusBlock;
 
 import java.util.Collection;
@@ -49,7 +49,7 @@ public interface BlockChainManager<T> {
 
     List<Transaction> getUnconfirmedTxsWithLimit(long limit);
 
-    TransactionReceipt getTransactionReceipt(String txId);
+    Receipt getReceipt(String txId);
 
     Sha3Hash getLastHash();
 

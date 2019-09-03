@@ -19,20 +19,20 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.contract.core.TransactionReceiptImpl;
+import io.yggdrash.contract.core.Receipt;
+import io.yggdrash.contract.core.ReceiptImpl;
 import io.yggdrash.core.blockchain.Transaction;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TransactionReceiptTest {
+public class ReceiptTest {
 
-    private TransactionReceipt txReceipt;
+    private Receipt txReceipt;
 
     @Before
     public void setUp() {
-        txReceipt = new TransactionReceiptImpl();
+        txReceipt = new ReceiptImpl();
     }
 
     @Test
@@ -40,7 +40,7 @@ public class TransactionReceiptTest {
         JsonObject testLog = new JsonObject();
         testLog.addProperty("key", "value");
         txReceipt.addLog(testLog.toString());
-        Assert.assertEquals("{\"key\":\"value\"}", txReceipt.getTxLog().get(0));
+        Assert.assertEquals("{\"key\":\"value\"}", txReceipt.getLog().get(0));
     }
 
     @Test

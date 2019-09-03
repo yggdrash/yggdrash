@@ -27,9 +27,9 @@ import io.yggdrash.common.utils.ContractUtils;
 import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.contract.core.TransactionReceiptAdapter;
-import io.yggdrash.contract.core.TransactionReceiptImpl;
+import io.yggdrash.contract.core.Receipt;
+import io.yggdrash.contract.core.ReceiptAdapter;
+import io.yggdrash.contract.core.ReceiptImpl;
 import io.yggdrash.core.blockchain.osgi.ContractCache;
 import io.yggdrash.core.blockchain.osgi.ContractCacheImpl;
 import io.yggdrash.core.blockchain.osgi.ContractChannelCoupler;
@@ -60,7 +60,7 @@ public class StemContractTest {
     private static final File branchFile
             = new File("../../yggdrash-core/src/main/resources/branch-yggdrash-sample.json");
 
-    private TransactionReceiptAdapter adapter;
+    private ReceiptAdapter adapter;
     TestYeed testYeed;
 
     JsonObject branchSample;
@@ -75,10 +75,10 @@ public class StemContractTest {
     public void setUp() throws IllegalAccessException, IOException {
         // Setup StemContract
         stateStore = new StateStore(new HashMapDbSource());
-        adapter = new TransactionReceiptAdapter();
+        adapter = new ReceiptAdapter();
         testYeed = new TestYeed();
 
-        stemContract.txReceipt = adapter;
+        stemContract.receipt = adapter;
         testYeed.setTxReceipt(adapter);
 
         stemContract.state = stateStore;
@@ -124,7 +124,7 @@ public class StemContractTest {
     @Test
     public void verifyBalanceFailed() {
         String noBalanceAddress = "b0aee21c81bf6057efa9a321916f0f1a12f5c547";
-        TransactionReceipt receipt = createReceipt(noBalanceAddress);
+        Receipt receipt = createReceipt(noBalanceAddress);
         setUpReceipt(receipt);
 
         assertEquals("0", queryBalanceOf(receipt.getIssuer()).toString());
@@ -133,14 +133,14 @@ public class StemContractTest {
 
         assertFalse(receipt.isSuccess());
         assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
-        assertEquals(1, receipt.getTxLog().size());
-        assertTrue(receipt.getTxLog().contains("Insufficient funds"));
+        assertEquals(1, receipt.getLog().size());
+        assertTrue(receipt.getLog().contains("Insufficient funds"));
     }
 
     @Test
     public void createStemBranch() {
         // Set Receipt
-        TransactionReceipt receipt = createReceipt();
+        Receipt receipt = createReceipt();
         setUpReceipt(receipt);
 
         // Check balance of issuer and stemContract
@@ -150,7 +150,7 @@ public class StemContractTest {
         stemContract.create(getParamForCreateBranch());
 
         assertTrue("Branch Create Success", receipt.isSuccess());
-        receipt.getTxLog().stream().forEach(l -> log.debug(l));
+        receipt.getLog().stream().forEach(l -> log.debug(l));
 
         String branchKey = String.format("%s%s", PrefixKeyEnum.STEM_BRANCH, branchId);
         assertTrue("Branch Stored", stateStore.contains(branchKey));
@@ -172,7 +172,7 @@ public class StemContractTest {
     public void otherBranchCreate() {
         createStemBranch();
 
-        TransactionReceipt receipt = createReceipt();
+        Receipt receipt = createReceipt();
         setUpReceipt(receipt);
 
         // Check balance of issuer and stemContract
@@ -252,7 +252,7 @@ public class StemContractTest {
         // All meta information should not be deleted by a transaction
         createStemBranch();
         // Set new transaction receipt
-        TransactionReceipt receipt = createReceipt();
+        Receipt receipt = createReceipt();
         receipt.setIssuer("101167aaf090581b91c08480f6e559acdd9a3ddd");
         setUpReceipt(receipt);
 
@@ -281,7 +281,7 @@ public class StemContractTest {
 
     @Test
     public void updateNotExistBranch() {
-        TransactionReceipt receipt = createReceipt();
+        Receipt receipt = createReceipt();
         setUpReceipt(receipt);
 
         JsonObject branchUpdate = new JsonObject();
@@ -330,7 +330,7 @@ public class StemContractTest {
 
         assertEquals("1000000", getFeeState().toString());
 
-        TransactionReceipt receipt = createReceipt();
+        Receipt receipt = createReceipt();
         setUpReceipt(receipt);
 
         JsonObject param = new JsonObject();
@@ -346,7 +346,7 @@ public class StemContractTest {
     public void depositFromTheAccountWhoApproveToTheIssuer() {
         createStemBranch();
 
-        TransactionReceipt receipt = createReceipt();
+        Receipt receipt = createReceipt();
         setUpReceipt(receipt);
 
         String owner = receipt.getIssuer();
@@ -379,7 +379,7 @@ public class StemContractTest {
         assertEquals("99999998999950", queryBalanceOf(owner).toString());
 
         // Now the spender is the issuer
-        TransactionReceipt spenderReceipt = createReceipt(spender);
+        Receipt spenderReceipt = createReceipt(spender);
         setUpReceipt(spenderReceipt);
 
         // Deposit the amount of yeed within approved by the issuer
@@ -402,7 +402,7 @@ public class StemContractTest {
 
         assertEquals("1000000", getFeeState().toString());
 
-        TransactionReceipt receipt = createReceipt();
+        Receipt receipt = createReceipt();
         setUpReceipt(receipt);
 
         JsonObject param = new JsonObject();
@@ -424,13 +424,13 @@ public class StemContractTest {
         return param;
     }
 
-    private TransactionReceipt createReceipt() {
+    private Receipt createReceipt() {
         String defaultIssuer = "101167aaf090581b91c08480f6e559acdd9a3ddd";
         return createReceipt(defaultIssuer);
     }
 
-    private TransactionReceipt createReceipt(String issuer) {
-        TransactionReceipt receipt = new TransactionReceiptImpl();
+    private Receipt createReceipt(String issuer) {
+        Receipt receipt = new ReceiptImpl();
         receipt.setIssuer(issuer);
         receipt.setBranchId(branchId);
         receipt.setBlockHeight(100L);
@@ -438,8 +438,8 @@ public class StemContractTest {
         return receipt;
     }
 
-    private void setUpReceipt(TransactionReceipt receipt) {
-        adapter.setTransactionReceipt(receipt);
+    private void setUpReceipt(Receipt receipt) {
+        adapter.setReceipt(receipt);
     }
 
     private String createContractAccount(String contractName) {

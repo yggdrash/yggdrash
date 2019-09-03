@@ -1,10 +1,10 @@
 package io.yggdrash.contract;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
-import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
+import io.yggdrash.contract.core.annotation.ContractReceipt;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import org.osgi.framework.BundleActivator;
@@ -36,8 +36,8 @@ public class NoneContract implements BundleActivator {
         ReadWriterStore<String, JsonObject> state;
 
 
-        @ContractTransactionReceipt
-        TransactionReceipt txReceipt;
+        @ContractReceipt
+        Receipt txReceipt;
 
         @InvokeTransaction
         public boolean doNothing(JsonObject param) {

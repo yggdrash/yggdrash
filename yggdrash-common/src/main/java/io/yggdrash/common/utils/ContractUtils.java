@@ -22,7 +22,7 @@ import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import io.yggdrash.contract.core.annotation.ContractChannelField;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
-import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
+import io.yggdrash.contract.core.annotation.ContractReceipt;
 import io.yggdrash.contract.core.annotation.ParamValidation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +50,7 @@ public class ContractUtils {
     }
 
     public static List<Field> txReceiptFields(Object contract) {
-        return ContractUtils.contractFields(contract, ContractTransactionReceipt.class);
+        return ContractUtils.contractFields(contract, ContractReceipt.class);
     }
 
     public static List<Field> stateStoreFields(Object contract) {

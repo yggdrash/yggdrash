@@ -74,6 +74,7 @@ public class BranchTest {
         JsonObject branch = new JsonParser().parse(genesisString).getAsJsonObject();
         Branch yggdrashBranch = Branch.of(branch);
         Assert.assertEquals("YGGDRASH", yggdrashBranch.getName());
+        log.info("YGGDRASH BRANCH ID : {} ", yggdrashBranch.getBranchId().toString());
     }
 
     @Test

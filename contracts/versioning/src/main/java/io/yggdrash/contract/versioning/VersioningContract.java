@@ -4,10 +4,10 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
-import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
+import io.yggdrash.contract.core.annotation.ContractReceipt;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import org.apache.commons.codec.binary.Base64;
@@ -51,11 +51,11 @@ public class VersioningContract implements BundleActivator {
         @ContractStateStore
         ReadWriterStore<String, JsonObject> state;
 
-        @ContractTransactionReceipt
-        TransactionReceipt txReceipt;
+        @ContractReceipt
+        Receipt txReceipt;
 
         @InvokeTransaction
-        public TransactionReceipt updateProposer(JsonObject params) {
+        public Receipt updateProposer(JsonObject params) {
             // TODO 컨트랙트 조회
             VersioningContractStateValue stateValue;
             try {
@@ -87,7 +87,7 @@ public class VersioningContract implements BundleActivator {
         }
 
         @InvokeTransaction
-        public TransactionReceipt vote(JsonObject params) {
+        public Receipt vote(JsonObject params) {
             txReceipt.setStatus(ExecuteStatus.FALSE);
             VersioningContractStateValue stateValue;
             try {

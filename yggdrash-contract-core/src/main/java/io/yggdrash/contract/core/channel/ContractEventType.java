@@ -10,10 +10,11 @@
  * limitations under the License
  */
 
-package io.yggdrash.core.blockchain.osgi;
+package io.yggdrash.contract.core.channel;
 
-import org.osgi.framework.launch.Framework;
-
-public interface ContractFramework extends Framework {
-
+public enum ContractEventType {
+    INSTALL,
+    UNINSTALL,
+    START,
+    STOP
 }

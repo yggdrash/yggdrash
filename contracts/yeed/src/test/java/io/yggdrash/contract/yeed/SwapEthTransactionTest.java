@@ -16,9 +16,14 @@
 
 package io.yggdrash.contract.yeed;
 
+import com.google.common.primitives.Longs;
+import com.google.common.primitives.UnsignedInteger;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.crypto.ECKey;
+import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.rlp.RLP;
+import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.yeed.ehtereum.EthTransaction;
@@ -31,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.math.BigInteger;
 
 public class SwapEthTransactionTest {
     private static final Logger log = LoggerFactory.getLogger(SwapEthTransactionTest.class);
@@ -279,24 +285,56 @@ public class SwapEthTransactionTest {
         log.debug(obj.toString());
 
         byte[] nonce = RLP.encodeElement(HexUtil.hexStringToBytes(obj.get("nonce").getAsString()));
+        log.debug(new BigInteger(HexUtil.hexStringToBytes(obj.get("nonce").getAsString())).toString());
         byte[] gasPrice = RLP.encodeElement(HexUtil.hexStringToBytes(obj.get("gasPrice").getAsString()));
+        log.debug(new BigInteger(HexUtil.hexStringToBytes(obj.get("gasPrice").getAsString())).toString());
         byte[] gasLimit = RLP.encodeElement(HexUtil.hexStringToBytes(obj.get("gas").getAsString()));
+        log.debug("{}", new BigInteger(1, HexUtil.hexStringToBytes(obj.get("gas").getAsString())));
         byte[] receiveAddress = RLP.encodeElement(HexUtil.hexStringToBytes(obj.get("to").getAsString()));
         byte[] value = RLP.encodeElement(HexUtil.hexStringToBytes(obj.get("value").getAsString()));
+        log.debug(new BigInteger(HexUtil.hexStringToBytes(obj.get("value").getAsString())).toString());
         byte[] data = RLP.encodeElement(HexUtil.hexStringToBytes(obj.get("input").getAsString()));
         byte[] v = RLP.encodeElement(HexUtil.hexStringToBytes(obj.get("v").getAsString()));
         byte[] r = RLP.encodeElement(HexUtil.hexStringToBytes(obj.get("r").getAsString()));
         byte[] s = RLP.encodeElement(HexUtil.hexStringToBytes(obj.get("s").getAsString()));
 
+
         byte[] rawTransaction = RLP.encodeList(nonce, gasPrice, gasLimit, receiveAddress,
                 value, data, v, r, s);
+
+        byte[] sha3hash = HashUtil.sha3(rawTransaction);
+        log.debug("sha3 Hash {}", HexUtil.toHexString(sha3hash));
+
 
         String ethHexString = "f86f830414ac850df847580082afc894c3cf7a283a4415ce3c41f5374934612389"
                 + "334780880de0b6b3a76400008026a0c9938e35c6281a2003531ef19c0368fb0ec680d1bc073ee2881"
                 + "3602616ce172ca03885e6218dbd7a09fc250ce4eb982114cc25c0974f4adfbd08c4e834f9c74dc3";
         byte[] ethHex = HexUtil.hexStringToBytes(ethHexString);
 
+
+        EthereumTransaction tx = new EthereumTransaction(
+                267436,
+                BigInteger.valueOf(60000000000L),
+                45000,
+                "c3cf7a283a4415ce3c41f5374934612389334780",
+                BigInteger.TEN.pow(18), null, 1
+                );
+
+        byte[] vByte = HexUtil.hexStringToBytes("0x1c");
+        byte[] rByte = HexUtil.hexStringToBytes(obj.get("r").getAsString());
+        byte[] sByte = HexUtil.hexStringToBytes(obj.get("s").getAsString());
+        byte[] signature = ByteUtil.merge(vByte,rByte,sByte);
+        Assert.assertEquals("length ", 65, signature.length);
+        tx.setSignature(new ECKey.ECDSASignature(signature));
+        Assert.assertEquals("", ethHexString, HexUtil.toHexString(tx.getEncoded()));
+
+
+        log.debug("Nonce {}", HexUtil.toHexString(tx.getNonce()));
+        log.debug("GasPrice {}", HexUtil.toHexString(tx.getGasPrice()));
+        log.debug("GasLimit {}",HexUtil.toHexString(tx.getGasLimit()));
+
         Assert.assertArrayEquals("Json rpc Api to rawTransaction", ethHex, rawTransaction);
+        Assert.assertArrayEquals("Json rpc Api to rawTransaction", ethHex, tx.getEncoded());
 
 
 

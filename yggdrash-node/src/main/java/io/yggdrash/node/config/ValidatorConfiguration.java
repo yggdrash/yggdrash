@@ -46,16 +46,25 @@ public class ValidatorConfiguration {
         Map<BranchId, List<ValidatorService>> validatorServiceMap = new HashMap<>();
         File validatorPath = new File(defaultConfig.getValidatorPath());
 
-        for (File branchPath : Objects.requireNonNull(validatorPath.listFiles())) {
-            Optional<GenesisBlock> genesisBlock = getGenesisBlock(branchPath, branchLoader);
-            if (!genesisBlock.isPresent()) {
-                log.warn("Not found branch for [{}]", branchPath);
-                continue;
+        try {
+            for (File branchPath : validatorPath.listFiles()) {
+                if (branchPath == null) {
+                    continue;
+                }
+                Optional<GenesisBlock> genesisBlock = getGenesisBlock(branchPath, branchLoader);
+                if (!genesisBlock.isPresent()) {
+                    log.warn("Not found branch for [{}]", branchPath);
+                    continue;
+                }
+                GenesisBlock genesis = genesisBlock.get();
+                List<ValidatorService> validatorServiceList =
+                        loadValidatorService(branchPath, genesis, genesis.getConsensus(), defaultConfig);
+                validatorServiceMap.put(genesis.getBranchId(), validatorServiceList);
             }
-            GenesisBlock genesis = genesisBlock.get();
-            List<ValidatorService> validatorServiceList =
-                    loadValidatorService(branchPath, genesis, genesis.getConsensus(), defaultConfig);
-            validatorServiceMap.put(genesis.getBranchId(), validatorServiceList);
+        } catch (Exception e) {
+            log.error("Validator configuration is not valid. {}", defaultConfig.getValidatorPath());
+            log.debug(e.getMessage());
+            System.exit(-1);
         }
 
         return validatorServiceMap;
@@ -84,8 +93,8 @@ public class ValidatorConfiguration {
             Config validatorConfig = ConfigFactory.parseFile(validatorConfFile);
             Config fallbackConfig = validatorConfig.withFallback(defaultConfig.getConfig()).resolve();
             DefaultConfig mergedConfig = new DefaultConfig(fallbackConfig, defaultConfig.isProductionMode());
-            log.debug("{}:{}, key={}", mergedConfig.getString("yggdrash.validator.host"),
-                    mergedConfig.getString("yggdrash.validator.port"),
+            log.debug("{}:{}, key={}", mergedConfig.getString(Constants.VALIDATOR_GRPC_HOST_CONF),
+                    mergedConfig.getString(Constants.VALIDATOR_GRPC_PORT_CONF),
                     mergedConfig.getString(Constants.YGGDRASH_KEY_PATH));
             try {
                 BranchId branchId = genesis.getBranch().getBranchId();

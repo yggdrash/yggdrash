@@ -17,7 +17,7 @@
 package io.yggdrash.common.contract.standard;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 
 import java.math.BigInteger;
 
@@ -32,9 +32,10 @@ public interface CoinStandard {
 
 
     // Transaction
-    TransactionReceipt transfer(JsonObject params);
+    Receipt transfer(JsonObject params);
 
-    TransactionReceipt approve(JsonObject params);
+    Receipt approve(JsonObject params);
 
-    TransactionReceipt transferFrom(JsonObject params);
+    Receipt transferFrom(JsonObject params);
+
 }

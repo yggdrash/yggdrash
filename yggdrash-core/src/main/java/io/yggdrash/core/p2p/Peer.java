@@ -64,17 +64,7 @@ public class Peer {
     }
 
     public static Peer valueOf(String nodeId, String host, int port) {
-        return valueOf(nodeId, host, port, false);
-    }
-
-    public static Peer valueOf(String nodeId, String host, int port, boolean isSeed) {
-        if (isSeed && ("localhost".equals(host) || "127.0.0.1".equals(host))) {
-            return valueOf(String.format(PEER_URI_FORMAT, YGGDRASH_NODE_SCHEMA,
-                    "00", host + ":" + port));
-        } else {
-            return valueOf(String.format(PEER_URI_FORMAT, YGGDRASH_NODE_SCHEMA,
-                    nodeId, host + ":" + port));
-        }
+        return valueOf(String.format(PEER_URI_FORMAT, YGGDRASH_NODE_SCHEMA, nodeId, host + ":" + port));
     }
 
     public PeerId getPeerId() {
