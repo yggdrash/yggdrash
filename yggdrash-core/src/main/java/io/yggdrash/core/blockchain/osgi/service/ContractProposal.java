@@ -21,6 +21,8 @@ public class ContractProposal implements Serializable, Comparable<ContractPropos
     private static final Long DAY = 8640L; // 1 day
 
     public String txId;
+    public String proposer;
+
     public String contractVersion;
     public String sourceUrl;
     public String buildVersion;
@@ -34,9 +36,10 @@ public class ContractProposal implements Serializable, Comparable<ContractPropos
 
     }
 
-    ContractProposal(String txId, String contractVersion, String sourceUrl,
+    ContractProposal(String txId, String proposer, String contractVersion, String sourceUrl,
                      String buildVersion, long blockHeight, Set<String> validatorSet) {
         this.txId = txId;
+        this.proposer = proposer;
         this.contractVersion = contractVersion;
         this.sourceUrl = sourceUrl;
         this.buildVersion = buildVersion;
@@ -49,12 +52,16 @@ public class ContractProposal implements Serializable, Comparable<ContractPropos
         return blockHeight > targetBlockHeight;
     }
 
+    boolean hasAlreadyVoted(String validator) {
+        return votingProgress.hashVoted(validator);
+    }
+
     void vote(String issuer, boolean agree) {
         votingProgress.vote(issuer, agree);
     }
 
-    boolean isVotingFinished() {
-        return votingProgress.isVotingFinished();
+    boolean isAgreed() {
+        return votingProgress.getVotingStatus() == VotingProgress.VotingStatus.AGREE;
     }
 
     String getTxId() {
@@ -89,4 +96,5 @@ public class ContractProposal implements Serializable, Comparable<ContractPropos
     public int compareTo(ContractProposal proposal) {
         return contractVersion.compareTo(proposal.contractVersion);
     }
+
 }

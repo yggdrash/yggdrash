@@ -17,7 +17,7 @@
 package io.yggdrash.core.runtime.result;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.core.blockchain.Transaction;
 
 import java.util.HashMap;
@@ -27,17 +27,17 @@ import java.util.Set;
 public class TransactionRuntimeResult {
     private final Transaction tx;
     private final Map<String, JsonObject> changeValues = new HashMap<>();
-    private TransactionReceipt receipt;
+    private Receipt receipt;
 
     public TransactionRuntimeResult(Transaction tx) {
         this.tx = tx;
     }
 
-    public void setTransactionReceipt(TransactionReceipt receipt) {
+    public void setReceipt(Receipt receipt) {
         this.receipt = receipt;
     }
 
-    public TransactionReceipt getReceipt() {
+    public Receipt getReceipt() {
         return this.receipt;
     }
 

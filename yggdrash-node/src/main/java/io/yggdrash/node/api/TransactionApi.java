@@ -137,7 +137,7 @@ public interface TransactionApi {
     List<String> getPendingTransactionList(@JsonRpcParam(value = BRANCH_ID) String branchId);
 
     /**
-     * Returns the TransactionReceipt of transaction hash
+     * Returns the Receipt of transaction hash
      *
      * @param txId  hash of transaction
      */

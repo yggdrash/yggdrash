@@ -21,7 +21,7 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.DuplicatedException;
 import org.junit.Assert;
@@ -60,6 +60,13 @@ public class BranchGroupTest {
     public void addExistedBranch() {
         BlockChain exist = BlockChainTestUtils.createBlockChain(false);
         branchGroup.addBranch(exist);
+    }
+
+    @Test
+    public void addVersioningTransaction() {
+        Transaction tx = BlockChainTestUtils.createContractProposeTx("8c65bc05e107aab9ceaa872bbbb2d96d57811de4");
+        Map<String, List<String>> errLogs = branchGroup.addTransaction(tx);
+        Assert.assertEquals(0, errLogs.size());
     }
 
     @Test
@@ -146,8 +153,8 @@ public class BranchGroupTest {
         assertThat(branchGroup.getBlockByIndex(newBlock.getBranchId(), 2).getHash())
                 .isEqualTo(newBlock.getHash());
 
-        TransactionReceipt receipt = branchGroup.getBranch(tx.getBranchId()).getBlockChainManager()
-                .getTransactionReceipt(tx.getHash().toString());
+        Receipt receipt = branchGroup.getBranch(tx.getBranchId()).getBlockChainManager()
+                .getReceipt(tx.getHash().toString());
         if (getBalance(tx.getAddress().toString()).equals(BigInteger.ZERO)) {
             assertThat(receipt.getStatus()).isEqualTo(ExecuteStatus.ERROR);
             Assert.assertEquals(1, errLogs.size()); // no balance !

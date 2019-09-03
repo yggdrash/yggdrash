@@ -168,12 +168,15 @@ public class ContractDemoClientUtils {
                     .setBranchId(yggdrash)
                     .setTxBody(txBody)
                     .build();
-
-            TransactionDto txDto = TransactionDto.createBy(tx);
-            TransactionResponseDto res = rpc.proxyOf(TARGET_SERVER, TransactionApi.class).sendTransaction(txDto);
-            lastTxId = res.txHash;
+            lastTxId = sendTx(tx);
         }
         return lastTxId;
+    }
+
+    static String sendTx(Transaction tx) {
+        TransactionDto txDto = TransactionDto.createBy(tx);
+        TransactionResponseDto res = rpc.proxyOf(TARGET_SERVER, TransactionApi.class).sendTransaction(txDto);
+        return res.txHash;
     }
 
     private static int getSendTimes() {
