@@ -103,8 +103,6 @@ public class EthTransaction {
             byte[] r = ethTx.get(7).getRLPData();
             byte[] s = ethTx.get(8).getRLPData();
             chainId = extractChainIdFromRawSignature(v, r, s);
-            log.debug("ChainId : {} ", chainId);
-            log.debug("int {}, long {}", v.intValue(), v.longValue());
             rawData = getEncodedRaw();
             if (chainId == null) { // NOT MAINNET
                 // TODO check chainId(network ID)

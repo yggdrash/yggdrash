@@ -68,7 +68,7 @@ task contractsPackage(type: Jar) {
                 'Bundle-Description': 'Yggdrash YEED Contract',
                 'Bundle-Vendor': 'YGGDRASH',
                 'Bundle-SymbolicName': 'io.yggdrash.contract.yeed.YeedContract',
-                'Bundle-Version': '0.1.0',
+                'Bundle-Version': '0.8.0',
                 'Bundle-Activator': 'io.yggdrash.contract.yeed.YeedContract',
                 'Import-Package': "${importPackage}"
         )
