@@ -1,6 +1,7 @@
 package io.yggdrash.core.blockchain.osgi;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.TestConstants;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.BranchContract;
@@ -10,13 +11,15 @@ import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.utils.JsonUtil;
+import io.yggdrash.contract.core.ContractEvent;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.contract.core.TransactionReceiptAdapter;
-import io.yggdrash.contract.core.TransactionReceiptImpl;
+import io.yggdrash.contract.core.Receipt;
+import io.yggdrash.contract.core.ReceiptAdapter;
+import io.yggdrash.contract.core.ReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
-import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
+import io.yggdrash.contract.core.annotation.ContractReceipt;
+import io.yggdrash.contract.core.channel.ContractEventType;
 import io.yggdrash.core.blockchain.osgi.service.ContractProposal;
 import io.yggdrash.core.blockchain.osgi.service.VersioningContract;
 import io.yggdrash.core.store.StoreAdapter;
@@ -36,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -50,7 +54,7 @@ public class VersioningContractTest {
     private VersioningContract service;
 
     private StateStore stateStore;
-    private TransactionReceiptAdapter adapter;
+    private ReceiptAdapter adapter;
 
     private static final String updateContract = "8c65bc05e107aab9ceaa872bbbb2d96d57811de4";
     private static final String issuer1 = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";
@@ -59,6 +63,7 @@ public class VersioningContractTest {
     private static final String user = "2f78f54ee5e1209d0417c1edad168f62b933b631";
 
     private static final String txId = "34eec4dcb662e54492e3b69adb1d2dce5d7451ca6d22221c38ce5bc6f8871b51";
+    private static final long curBlockHeight = 100;
 
     @Before
     public void setUp() throws IllegalAccessException {
@@ -66,7 +71,7 @@ public class VersioningContractTest {
         service = new VersioningContract();
 
         stateStore = new StateStore(new HashMapDbSource());
-        adapter = new TransactionReceiptAdapter();
+        adapter = new ReceiptAdapter();
 
         TestBranchStateStore branchStateStore = new TestBranchStateStore(); //TODO Mock
         Map<String, Validator> validatorMap = branchStateStore.getValidators().getValidatorMap();
@@ -84,7 +89,7 @@ public class VersioningContractTest {
                     StoreAdapter adapterStore = new StoreAdapter(stateStore, "versioning");
                     field.set(service, adapterStore); //default => tmpStateStore
                 }
-                if (annotation.annotationType().equals(ContractTransactionReceipt.class)) {
+                if (annotation.annotationType().equals(ContractReceipt.class)) {
                     field.set(service, adapter);
                 }
 
@@ -95,8 +100,35 @@ public class VersioningContractTest {
         }
     }
 
+    private static long DEFAULT_PERIOD = 60480L;
+
     @Test
-    public void voteProposalTest() {
+    public void endBlockTest() {
+        contractPropose();
+
+        // issuer1 is proposer
+        vote(issuer3, false);
+        vote(issuer2, true); // agreeCnt -> 2/3
+        //vote(issuer1, true);
+
+        // EndBlock receipt
+        Receipt receipt = new ReceiptImpl();
+        receipt.setBlockHeight(curBlockHeight + DEFAULT_PERIOD); // EndBlock Height
+        adapter.setReceipt(receipt);
+
+        service.endBlock();
+
+        assertEquals(ExecuteStatus.SUCCESS, adapter.getStatus());
+        assertFalse(adapter.getEvents().isEmpty());
+        assertEquals(1, adapter.getEvents().size());
+        ContractEvent event = adapter.getEvents().stream().findFirst().get();
+        log.info("EndBlock Status : {},  Event : {}", adapter.getStatus(), JsonUtil.parseJsonObject(event));
+        assertEquals(ContractEventType.INSTALL, event.getType());
+        assertEquals(updateContract, event.getItem());
+    }
+
+    @Test
+    public void voteSuccessTest() {
         // Propose contract
         contractPropose();
 
@@ -104,23 +136,23 @@ public class VersioningContractTest {
         ContractProposal status = proposalStatus();
         log.debug("Proposal Status : {}", JsonUtil.convertObjToString(status));
 
+        // issuer1 is proposer
         vote(issuer3, false);
-        vote(issuer2, true);
 
-        assertTrue(adapter.getTxLog().contains("Update proposal voting is in progress"));
+        assertTrue(adapter.getLog().contains("Update proposal voting is in progress"));
 
-        vote(issuer1, true); // agreeCnt -> 2/3
+        vote(issuer2, true); // agreeCnt -> 2/3
 
-        assertTrue(adapter.getTxLog().contains("Contract file has been downloaded"));
-        assertTrue(adapter.getTxLog().contains("Update proposal voting was completed successfully"));
+        assertTrue(adapter.getLog().contains("Contract file has been downloaded"));
+        assertTrue(adapter.getLog().contains("Update proposal voting was completed successfully"));
     }
 
     @Test
     public void voteFailedTest() {
         contractPropose();
 
-        TransactionReceipt receipt = createTxReceipt(user);
-        adapter.setTransactionReceipt(receipt);
+        Receipt receipt = createTxReceipt(user);
+        adapter.setReceipt(receipt);
 
         JsonObject param = new JsonObject();
         param.addProperty("txId", txId);
@@ -131,24 +163,34 @@ public class VersioningContractTest {
         printTxLog();
 
         assertEquals(ExecuteStatus.FALSE, adapter.getStatus());
-        assertTrue(adapter.getTxLog().contains("Validator verification failed"));
+        assertTrue(adapter.getLog().contains("Validator verification failed"));
 
         receipt.setIssuer(issuer1);
         receipt.setTxId("0xbcd28b03f23d78f5c5bfebff78fee9f660b39bb5feac125e5f2d9224150ab0d3");
+        adapter.setReceipt(receipt);
+
+        service.vote(param);
+        printTxLog();
+
+        assertEquals(ExecuteStatus.FALSE, adapter.getStatus());
+        assertTrue(adapter.getLog().contains("Validator has already voted"));
+
+        receipt.setIssuer(issuer2);
+        receipt.setTxId("0xbcd28b03f23d78f5c5bfebff78fee9f660b39bb5feac125e5f2d9224150ab0d3");
         receipt.setBlockHeight(70000L);
-        adapter.setTransactionReceipt(receipt);
+        adapter.setReceipt(receipt);
 
         // Proposal expiration validation failed
         service.vote(param);
         printTxLog();
 
         assertEquals(ExecuteStatus.FALSE, adapter.getStatus());
-        assertTrue(adapter.getTxLog().contains("Contract proposal has already expired"));
+        assertTrue(adapter.getLog().contains("Contract proposal has already expired"));
 
         receipt.setIssuer(issuer2);
         receipt.setTxId("0xc574156e631044749c4eba404579f634cd0b10d0da5d4c6cc476879416ec8752");
         receipt.setBlockHeight(101L);
-        adapter.setTransactionReceipt(receipt);
+        adapter.setReceipt(receipt);
         param.addProperty("txId", "0xbcd28b03f23d78f5c5bfebff78fee9f660b39bb5feac125e5f2d9224150ab0d3 ");
 
         // Proposal not found
@@ -156,25 +198,24 @@ public class VersioningContractTest {
         printTxLog();
 
         assertEquals(ExecuteStatus.FALSE, adapter.getStatus());
-        assertTrue(adapter.getTxLog().contains("Contract proposal not found"));
+        assertTrue(adapter.getLog().contains("Contract proposal not found"));
     }
 
     public void contractPropose() {
         // The contract file is already uploaded to S3
 
-        TransactionReceipt receipt = createTxReceipt(issuer1);
-        adapter.setTransactionReceipt(receipt);
+        Receipt receipt = createTxReceipt(issuer1);
+        adapter.setReceipt(receipt);
 
         JsonObject param = new JsonObject();
         param.addProperty("contractVersion", updateContract);
         param.addProperty("sourceUrl", "https://github.com/yggdrash/yggdrash");
         param.addProperty("buildVersion", "1.8.0_172");
-        param.addProperty("votingPeriod", 200L);
 
         service.propose(param);
 
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
-        assertTrue(receipt.getTxLog().contains("Contract proposal has been issued"));
+        assertTrue(receipt.getLog().contains("Contract proposal has been issued"));
     }
 
     public ContractProposal proposalStatus() {
@@ -184,11 +225,12 @@ public class VersioningContractTest {
         return service.proposalStatus(param);
     }
 
-    private TransactionReceipt createTxReceipt(String issuer) {
-        TransactionReceipt receipt = new TransactionReceiptImpl();
+    private Receipt createTxReceipt(String issuer) {
+        Receipt receipt = new ReceiptImpl();
         receipt.setIssuer(issuer);
-        receipt.setBlockHeight(100L);
+        receipt.setBlockHeight(curBlockHeight);
         receipt.setTxId(txId);
+        receipt.setContractVersion(TestConstants.VERSIONING_CONTRACT.toString());
 
         return receipt;
     }
@@ -198,13 +240,13 @@ public class VersioningContractTest {
         log.debug("TxId : {}", adapter.getTxId());
         log.debug("BlockHeight : {}", adapter.getBlockHeight());
         log.debug("Status : {}", adapter.getStatus());
-        log.debug("TxLog : {}", adapter.getTxLog());
+        log.debug("TxLog : {}", adapter.getLog());
         log.debug("=========================================================================");
     }
 
-    private TransactionReceipt vote(String issuer, boolean agree) {
-        TransactionReceipt receipt = createTxReceipt(issuer);
-        adapter.setTransactionReceipt(receipt);
+    private Receipt vote(String issuer, boolean agree) {
+        Receipt receipt = createTxReceipt(issuer);
+        adapter.setReceipt(receipt);
 
         JsonObject param = new JsonObject();
         param.addProperty("txId", txId);

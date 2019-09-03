@@ -227,7 +227,7 @@ public class NodeContractDemoClient {
 
         int index = getMethodIndex(methodList);
         String selectedMethod = MethodNameParser.parse(methodList.get(index));
-        if (methodList.get(index).contains("TransactionReceipt")) {
+        if (methodList.get(index).contains("Receipt")) {
             Transaction tx = createTx(branchId, selectedMethod);
             System.out.println("tx => " + tx);
             sendTransaction(tx);

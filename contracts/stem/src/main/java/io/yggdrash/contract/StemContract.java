@@ -14,12 +14,13 @@ import io.yggdrash.common.utils.BranchUtil;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import io.yggdrash.contract.core.annotation.ContractChannelField;
+import io.yggdrash.contract.core.annotation.ContractEndBlock;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
-import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
+import io.yggdrash.contract.core.annotation.ContractReceipt;
 import io.yggdrash.contract.core.annotation.Genesis;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.channel.ContractChannel;
@@ -81,8 +82,8 @@ public class StemContract implements BundleActivator, ServiceListener {
         ReadWriterStore<String, JsonObject> state;
 
 
-        @ContractTransactionReceipt
-        TransactionReceipt txReceipt;
+        @ContractReceipt
+        Receipt receipt;
 
         @ContractChannelField
         public ContractChannel channel;
@@ -90,13 +91,13 @@ public class StemContract implements BundleActivator, ServiceListener {
 
         @Genesis
         @InvokeTransaction // TODO remove InvokeTransaction
-        public TransactionReceipt init(JsonObject params) {
+        public Receipt init(JsonObject params) {
             log.info("[StemContract | genesis] SUCCESS!");
 
             // TODO save yeed contract version
             // TODO set yeed contract version interface
 
-            return txReceipt;
+            return receipt;
         }
 
         /**
@@ -109,7 +110,7 @@ public class StemContract implements BundleActivator, ServiceListener {
             BigInteger serviceFee = params.get("serviceFee").getAsBigInteger();
 
             // Verify if the issuer can pay the serviceFee
-            if (!isBalanceEnough(txReceipt.getIssuer(), serviceFee)) {
+            if (!isBalanceEnough(receipt.getIssuer(), serviceFee)) {
                 setErrorTxReceipt("Insufficient funds");
                 return;
             }
@@ -146,8 +147,8 @@ public class StemContract implements BundleActivator, ServiceListener {
             }
 
             if (governanceContract == null) {
-                this.txReceipt.setStatus(ExecuteStatus.FALSE);
-                this.txReceipt.addLog("Branch has no governanceContract");
+                this.receipt.setStatus(ExecuteStatus.FALSE);
+                this.receipt.addLog("Branch has no governanceContract");
                 return;
             }
 
@@ -175,12 +176,12 @@ public class StemContract implements BundleActivator, ServiceListener {
                 return;
             }
 
-            log.debug("The validatorSet contains issuer : {}", validatorSet.contains(txReceipt.getIssuer()));
-            log.debug("the branchStateStore contains issuer : {}", branchStateStore.isValidator(txReceipt.getIssuer()));
+            log.debug("The validatorSet contains issuer : {}", validatorSet.contains(receipt.getIssuer()));
+            log.debug("the branchStateStore contains issuer : {}", branchStateStore.isValidator(receipt.getIssuer()));
 
             // Check issuer is validator or yggdrash validator
-            if (!(validatorSet.contains(txReceipt.getIssuer())
-                    || branchStateStore.isValidator(txReceipt.getIssuer()))) {
+            if (!(validatorSet.contains(receipt.getIssuer())
+                    || branchStateStore.isValidator(receipt.getIssuer()))) {
                 // Check issuer is not yggdrash validator
                 setFalseTxReceipt("Issuer is not branch validator");
                 return;
@@ -226,7 +227,7 @@ public class StemContract implements BundleActivator, ServiceListener {
             BigInteger serviceFee = params.get("serviceFee").getAsBigInteger();
 
             // Verify if the issuer can pay the serviceFee
-            if (!isBalanceEnough(txReceipt.getIssuer(), serviceFee)) {
+            if (!isBalanceEnough(receipt.getIssuer(), serviceFee)) {
                 setErrorTxReceipt("Insufficient funds");
                 return;
             }
@@ -273,7 +274,7 @@ public class StemContract implements BundleActivator, ServiceListener {
         public void deposit(JsonObject param) { // Deposit yeed to branch
             // TODO check serviceFee governance
 
-            String issuer = txReceipt.getIssuer();
+            String issuer = receipt.getIssuer();
             String from = param.has("from") ? param.get("from").getAsString() : issuer;
             BigInteger amount = param.get("amount").getAsBigInteger();
 
@@ -286,7 +287,7 @@ public class StemContract implements BundleActivator, ServiceListener {
                 return;
             }
 
-            incrFeeState(txReceipt.getBranchId(), amount);
+            incrFeeState(receipt.getBranchId(), amount);
             setSuccessTxReceipt(String.format("%s deposit completed successfully", from));
         }
 
@@ -294,7 +295,7 @@ public class StemContract implements BundleActivator, ServiceListener {
         public void withdraw(JsonObject params) { // Withdraw the serviceFee(yeed) for the branchId by validators
             // TODO check serviceFee governance
 
-            String branchId = txReceipt.getBranchId();
+            String branchId = receipt.getBranchId();
 
             // Verify that the transaction issuer is a validator
             if (!checkBranchValidators(branchId)) {
@@ -302,7 +303,7 @@ public class StemContract implements BundleActivator, ServiceListener {
                 return;
             }
 
-            String to = txReceipt.getIssuer();
+            String to = receipt.getIssuer();
             BigInteger amount = params.get("amount").getAsBigInteger();
 
             // Check availability of withdrawals
@@ -341,7 +342,7 @@ public class StemContract implements BundleActivator, ServiceListener {
             JsonArray validatorArray = validators.get("validators").getAsJsonArray();
             Set<String> validatorSet = JsonUtil.convertJsonArrayToSet(validatorArray);
             // Verify that issuer is a branch validator
-            if (!validatorSet.contains(txReceipt.getIssuer())) {
+            if (!validatorSet.contains(receipt.getIssuer())) {
                 setFalseTxReceipt("Issuer is not a validator");
                 return;
             }
@@ -446,6 +447,12 @@ public class StemContract implements BundleActivator, ServiceListener {
 
             // TODO transfer serviceFee
             // TODO save feeState
+        }
+
+        @ContractEndBlock
+        public Receipt endBlock() {
+            //TODO endBlock policy
+            return receipt;
         }
 
         /**
@@ -569,7 +576,7 @@ public class StemContract implements BundleActivator, ServiceListener {
         }
 
         private boolean transferFee(BigInteger serviceFee) {
-            return callTransferChannel(createDepositParam(this.txReceipt.getIssuer(), serviceFee));
+            return callTransferChannel(createDepositParam(this.receipt.getIssuer(), serviceFee));
         }
 
         private boolean isWithdrawalAvailable(BigInteger amount) {
@@ -675,7 +682,7 @@ public class StemContract implements BundleActivator, ServiceListener {
             // Check branch validator
             JsonObject validators = getValidators(branchId);
             // Check issuer
-            if (validators == null || !validators.toString().contains(txReceipt.getIssuer())) {
+            if (validators == null || !validators.toString().contains(receipt.getIssuer())) {
                 return false;
             }
             return true;
@@ -688,18 +695,18 @@ public class StemContract implements BundleActivator, ServiceListener {
         }
 
         private void setErrorTxReceipt(String msg) {
-            this.txReceipt.setStatus(ExecuteStatus.ERROR);
-            this.txReceipt.addLog(msg);
+            this.receipt.setStatus(ExecuteStatus.ERROR);
+            this.receipt.addLog(msg);
         }
 
         private void setFalseTxReceipt(String msg) {
-            this.txReceipt.setStatus(ExecuteStatus.FALSE);
-            this.txReceipt.addLog(msg);
+            this.receipt.setStatus(ExecuteStatus.FALSE);
+            this.receipt.addLog(msg);
         }
 
         private void setSuccessTxReceipt(String msg) {
-            this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
-            this.txReceipt.addLog(msg);
+            this.receipt.setStatus(ExecuteStatus.SUCCESS);
+            this.receipt.addLog(msg);
         }
 
     }

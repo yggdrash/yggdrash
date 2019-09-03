@@ -105,8 +105,6 @@ public class TxConfirm {
         try {
             baos.write(proposeId.getBytes());
             baos.write(txId.getBytes());
-            baos.write(senderAddress.getBytes());
-            baos.write(transferYeed.toByteArray());
 
             transactionConfirmData = baos.toByteArray();
             baos.close();

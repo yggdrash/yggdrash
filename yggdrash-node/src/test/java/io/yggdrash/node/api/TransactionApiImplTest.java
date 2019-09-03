@@ -17,15 +17,23 @@
 package io.yggdrash.node.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.VerifierUtils;
+import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.blockchain.TransactionImpl;
+import io.yggdrash.core.blockchain.osgi.ContractConstants;
+import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionResponseDto;
+import org.apache.commons.codec.binary.Hex;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,6 +57,8 @@ public class TransactionApiImplTest {
     private final int blockNumber = 3;
     private final int txIndexPosition = 2;
     private final String yggdrashBranch = TestConstants.yggdrash().toString();
+    private final BranchGroup branchGroup = BlockChainTestUtils.createBranchGroup();
+    private final TransactionApiImpl txApi = new TransactionApiImpl(branchGroup);
 
     @Before
     public void setUp() {
@@ -299,5 +309,22 @@ public class TransactionApiImplTest {
         } catch (Exception exception) {
             log.debug("\n\ngetRawTransactionHeaderTest :: exception => " + exception);
         }
+    }
+
+    @Test
+    public void versioningProposeTxTest() throws Exception {
+        BranchId branchId = BranchId.of(yggdrashBranch);
+        Wallet wallet = ContractTestUtils.createTestWallet("77283a04b3410fe21ba5ed04c7bd3ba89e70b78c.json");
+        JsonObject txBody = ContractTestUtils.contractProposeTxBodyJson(ContractConstants.VERSIONING_CONTRACT.toString());
+
+        Transaction tx = new TransactionBuilder()
+                .setType(Hex.decodeHex(ContractConstants.VERSIONING_TRANSACTION))
+                .setTxBody(txBody)
+                .setWallet(wallet)
+                .setBranchId(branchId)
+                .build();
+
+        TransactionResponseDto responseDto = txApi.sendTransaction(TransactionDto.createBy(tx));
+        assertTrue(responseDto.status);
     }
 }

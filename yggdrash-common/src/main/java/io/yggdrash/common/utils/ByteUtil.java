@@ -29,7 +29,7 @@ import java.util.Map;
 public class ByteUtil {
 
     public static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
-    private static final byte[] ZERO_BYTE_ARRAY = new byte[] {0};
+    public static final byte[] ZERO_BYTE_ARRAY = new byte[] {0};
 
     private static final Map<Character, Byte> hexMap = new HashMap<>();
 

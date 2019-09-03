@@ -16,13 +16,13 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.errorcode.BusinessError;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BranchStore;
 import io.yggdrash.core.store.ConsensusBlockStore;
-import io.yggdrash.core.store.TransactionReceiptStore;
+import io.yggdrash.core.store.ReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +41,7 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     private final BranchStore branchStore;
     private final ConsensusBlockStore<T> blockStore;
     private final TransactionStore transactionStore;
-    private final TransactionReceiptStore transactionReceiptStore;
+    private final ReceiptStore receiptStore;
     private final BlockChainStore blockChainStore;
     private final ReentrantLock lock = new ReentrantLock();
 
@@ -51,7 +51,7 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
         this.branchStore = blockChainStore.getBranchStore();
         this.blockStore = blockChainStore.getConsensusBlockStore();
         this.transactionStore = blockChainStore.getTransactionStore();
-        this.transactionReceiptStore = blockChainStore.getTransactionReceiptStore();
+        this.receiptStore = blockChainStore.getReceiptStore();
         this.blockChainStore = blockChainStore;
     }
 
@@ -167,8 +167,8 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
             lock.lock();
             // A block may contain txs not received by txApi and those txs also have to be stored in the storage
             for (Transaction tx : nextBlock.getBody().getTransactionList()) {
-                if (transactionReceiptStore.contains(tx.getHash().toString())
-                        && transactionReceiptStore.get(tx.getHash().toString()).getStatus() != ExecuteStatus.ERROR) {
+                if (receiptStore.contains(tx.getHash().toString())
+                        && receiptStore.get(tx.getHash().toString()).getStatus() != ExecuteStatus.ERROR) {
                     addTransaction(tx);
                 }
             }
@@ -264,8 +264,8 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     }
 
     @Override
-    public TransactionReceipt getTransactionReceipt(String txId) {
-        return transactionReceiptStore.get(txId);
+    public Receipt getReceipt(String key) {
+        return receiptStore.get(key);
     }
 
     @Override
@@ -317,6 +317,6 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     public void close() {
         this.blockStore.close();
         this.transactionStore.close();
-        this.transactionReceiptStore.close();
+        this.receiptStore.close();
     }
 }

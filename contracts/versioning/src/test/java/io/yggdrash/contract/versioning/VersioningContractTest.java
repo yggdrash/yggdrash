@@ -6,8 +6,8 @@ import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.utils.ContractUtils;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.contract.core.TransactionReceiptImpl;
+import io.yggdrash.contract.core.Receipt;
+import io.yggdrash.contract.core.ReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.Before;
@@ -50,7 +50,7 @@ public class VersioningContractTest {
     @Test
     public void updateTest() throws Exception {
         String issuer = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";
-        TransactionReceipt preReceipt = new TransactionReceiptImpl();
+        Receipt preReceipt = new ReceiptImpl();
         preReceipt.setBlockHeight(10L);
         preReceipt.setIssuer(issuer);
         preReceipt.setTxId("a2b0f5fce600eb6c595b28d6253bed92be0568eda2b0f5fce600eb6c595b28d6253bed92be0568ed");
@@ -66,7 +66,7 @@ public class VersioningContractTest {
     @Test
     public void votingSuccessTest() throws Exception {
         String issuer = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";
-        TransactionReceipt preReceipt = new TransactionReceiptImpl();
+        Receipt preReceipt = new ReceiptImpl();
         preReceipt.setBlockHeight(10L);
         preReceipt.setIssuer(issuer);
         preReceipt.setTxId("a2b0f5fce600eb6c595b28d6253bed92be0568eda2b0f5fce600eb6c595b28d6253bed92be0568ed");
@@ -92,7 +92,7 @@ public class VersioningContractTest {
     @Test
     public void votingFailTest() throws Exception {
         String issuer = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";
-        TransactionReceipt preReceipt = new TransactionReceiptImpl();
+        Receipt preReceipt = new ReceiptImpl();
         preReceipt.setBlockHeight(10L);
         preReceipt.setIssuer(issuer);
         preReceipt.setTxId("a2b0f5fce600eb6c595b28d6253bed92be0568eda2b0f5fce600eb6c595b28d6253bed92be0568ed");
@@ -112,13 +112,13 @@ public class VersioningContractTest {
 
         String issuer3 = "d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95";
         preReceipt.setIssuer(issuer3);
-        TransactionReceipt receipt = service.vote(createVoteParams(false));
+        Receipt receipt = service.vote(createVoteParams(false));
     }
 
     @Test
-    public void notValidatorvotingTest() throws Exception {
+    public void notValidatorVotingTest() throws Exception {
         String issuer = "0dc4393d2a5721e885f3abc5aab0ac4ed2b1cd95";
-        TransactionReceipt preReceipt = new TransactionReceiptImpl();
+        Receipt preReceipt = new ReceiptImpl();
         preReceipt.setBlockHeight(10L);
         preReceipt.setIssuer(issuer);
         preReceipt.setTxId("a2b0f5fce600eb6c595b28d6253bed92be0568eda2b0f5fce600eb6c595b28d6253bed92be0568ed");
@@ -129,7 +129,7 @@ public class VersioningContractTest {
         String result = String.format("%s/%s", s2, "contract");
         JsonObject params = createUpdateParams(result);
         service.updateProposer(params);
-        TransactionReceipt receipt = service.vote(createVoteParams(true));
+        Receipt receipt = service.vote(createVoteParams(true));
         assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
     }
 

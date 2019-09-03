@@ -13,7 +13,7 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.core.store.LogStore;
-import io.yggdrash.core.store.TransactionReceiptStore;
+import io.yggdrash.core.store.ReceiptStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,9 +28,9 @@ public class LogIndexer {
     private static final String keySeparator = "/";
 
     private final LogStore logStore; //<logIndex : txId + indexOfReceipt>
-    private final TransactionReceiptStore receiptStore; //<txHash : txReceipt>
+    private final ReceiptStore receiptStore; //<txHash : txReceipt>
 
-    public LogIndexer(LogStore logStore, TransactionReceiptStore receiptStore) {
+    public LogIndexer(LogStore logStore, ReceiptStore receiptStore) {
         this.logStore = logStore;
         this.receiptStore = receiptStore;
     }
@@ -53,7 +53,7 @@ public class LogIndexer {
         int separator = val.indexOf(keySeparator);
         String txId = val.substring(0, separator);
         int indexOfReceipt = Integer.parseInt(val.substring(separator + 1));
-        String log = receiptStore.get(txId).getTxLog().get(indexOfReceipt);
+        String log = receiptStore.get(txId).getLog().get(indexOfReceipt);
 
         return Log.createBy(logIndex, txId, log);
     }
@@ -65,7 +65,7 @@ public class LogIndexer {
     }
 
     public long curIndex() {
-        return logStore.size() - 1;
+        return logStore.size() != 0 ? logStore.size() - 1 : 0;
     }
 
     public boolean contains(long logIndex) {
