@@ -14,9 +14,9 @@ import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.contract.core.TransactionReceiptAdapter;
-import io.yggdrash.contract.core.TransactionReceiptImpl;
+import io.yggdrash.contract.core.Receipt;
+import io.yggdrash.contract.core.ReceiptAdapter;
+import io.yggdrash.contract.core.ReceiptImpl;
 import io.yggdrash.contract.yeed.ehtereum.EthTransaction;
 import io.yggdrash.contract.yeed.intertransfer.TxConfirmStatus;
 import io.yggdrash.contract.yeed.propose.ProposeStatus;
@@ -29,7 +29,6 @@ import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.regex.Matcher;
@@ -47,7 +46,7 @@ public class InterChainProcessTest {
     private static final String OTHER_ADDRESS = "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e";
     private static final String BRANCH_ID = "0x00";
     private static final String VALIDATOR = "81b7e08f65bdf5648606c89998a9cc8164397647";
-    private TransactionReceiptAdapter adapter;
+    private ReceiptAdapter adapter;
 
     private static BigInteger BASE_CURRENCY = BigInteger.TEN.pow(18);
     // 0.01 YEED
@@ -69,12 +68,12 @@ public class InterChainProcessTest {
     @Before
     public void setUp() {
 
-        adapter = new TransactionReceiptAdapter();
-        yeedContract.txReceipt = adapter;
+        adapter = new ReceiptAdapter();
+        yeedContract.receipt = adapter;
         yeedContract.store = new StateStore(new HashMapDbSource());
         yeedContract.branchStateStore = new InterChainBranchStateStore();
 
-        TransactionReceipt result = new TransactionReceiptImpl();
+        Receipt result = new ReceiptImpl();
         setUpReceipt(result);
 
         yeedContract.init(genesisParams);
@@ -187,22 +186,22 @@ public class InterChainProcessTest {
     }
 
     private void printTxLog() {
-        log.debug("txLog={}", adapter.getTxLog());
+        log.debug("txLog={}", adapter.getLog());
     }
 
-    private TransactionReceipt createReceipt(String transactionId, String issuer, String branchId, long blockHeight) {
-        TransactionReceipt receipt = new TransactionReceiptImpl(transactionId, 200L, issuer);
+    private Receipt createReceipt(String transactionId, String issuer, String branchId, long blockHeight) {
+        Receipt receipt = new ReceiptImpl(transactionId, 200L, issuer);
         receipt.setBranchId(branchId);
         receipt.setBlockHeight(blockHeight);
         return receipt;
     }
 
-    private void setUpReceipt(TransactionReceipt receipt) {
-        adapter.setTransactionReceipt(receipt);
+    private void setUpReceipt(Receipt receipt) {
+        adapter.setReceipt(receipt);
     }
 
-    private TransactionReceipt setUpReceipt(String transactionId, String issuer, String branchId, long blockHeight) {
-        TransactionReceipt receipt = createReceipt(transactionId, issuer, branchId, blockHeight);
+    private Receipt setUpReceipt(String transactionId, String issuer, String branchId, long blockHeight) {
+        Receipt receipt = createReceipt(transactionId, issuer, branchId, blockHeight);
         setUpReceipt(receipt);
         return receipt;
     }
@@ -262,13 +261,13 @@ public class InterChainProcessTest {
         log.debug("invalide proposal {}", proposal.toString());
 
 
-        TransactionReceipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1); // 1 == current blockHeight
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1); // 1 == current blockHeight
 
         yeedContract.issuePropose(proposal);
 
         assertEquals("SUCCESS", ExecuteStatus.SUCCESS, receipt.getStatus());
 
-        receipt.getTxLog().stream().forEach(l -> log.debug(l));
+        receipt.getLog().stream().forEach(l -> log.debug(l));
     }
 
 
@@ -297,14 +296,14 @@ public class InterChainProcessTest {
 
         final BigInteger issuerOriginBalance = getBalance(issuer);
 
-        TransactionReceipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1); // 1 == current blockHeight
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1); // 1 == current blockHeight
 
         yeedContract.issuePropose(proposal);
 
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
         printTxLog();
 
-        String proposeId = proposeIssueIdFromLog(receipt.getTxLog());
+        String proposeId = proposeIssueIdFromLog(receipt.getLog());
 
         BigInteger balanceOfProposeId = getBalance(proposeId);
         BigInteger issuerBalanceAfterProposalIssued = getBalance(issuer);
@@ -348,7 +347,7 @@ public class InterChainProcessTest {
     public void closeIssueFail2() {
         issuePropose();
 
-        String proposeId = proposeIssueIdFromLog(this.adapter.getTxLog());
+        String proposeId = proposeIssueIdFromLog(this.adapter.getLog());
 
         String transactionId = "0x01";
         String issuer = "c3cf7a283a4415ce3c41f5374934612389334780";
@@ -392,7 +391,7 @@ public class InterChainProcessTest {
         param.addProperty("proposeId", proposeId);
 
         // Success case
-        TransactionReceipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1000000L);
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1000000L);
 
         BigInteger originProposalBalance = yeedContract.getBalance(proposeId);
 
@@ -430,7 +429,7 @@ public class InterChainProcessTest {
         BigInteger issuerOriginBalance = getBalance(issuer);
         log.debug("IssuerOriginBalance : {} ", issuerOriginBalance);
 
-        TransactionReceipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);  // 1 == current blockHeight
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);  // 1 == current blockHeight
 
         yeedContract.issuePropose(proposal);
 
@@ -443,7 +442,7 @@ public class InterChainProcessTest {
         assertEquals(0, issuerOriginBalance.subtract(issuerBalanceAfterProposalIssued).compareTo(stakeYeed.add(fee)));
         assertSame(ExecuteStatus.SUCCESS, receipt.getStatus());
 
-        String proposeId = proposeIssueIdFromLog(receipt.getTxLog());
+        String proposeId = proposeIssueIdFromLog(receipt.getLog());
         log.debug("ProposeId : {}", proposeId);
 
         // Process the proposal from now on
@@ -523,13 +522,13 @@ public class InterChainProcessTest {
         BigInteger issuerOriginBalance = getBalance(issuer);
         log.debug("issuerOriginBalance  : {} ", issuerOriginBalance);
 
-        TransactionReceipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);
 
         yeedContract.issuePropose(proposal);
 
         assertSame(ExecuteStatus.SUCCESS, receipt.getStatus());
 
-        String proposalIssuedLog = receipt.getTxLog().get(1);
+        String proposalIssuedLog = receipt.getLog().get(1);
         log.debug("Log 1 : {} ", proposalIssuedLog);
         String proposeIssueIdPatten = "Propose [a-f0-9]{64} ISSUED";
         Pattern p = Pattern.compile(proposeIssueIdPatten);
@@ -567,7 +566,7 @@ public class InterChainProcessTest {
 
         assertEquals("Proposal processing failed", ExecuteStatus.FALSE, receipt.getStatus());
 
-        receipt.getTxLog().forEach(log::debug);
+        receipt.getLog().forEach(log::debug);
     }
 
     @Test
@@ -593,7 +592,7 @@ public class InterChainProcessTest {
 
         String transactionId = "0x02";
 
-        TransactionReceipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);
 
         yeedContract.issuePropose(proposal);
         assertSame(ExecuteStatus.FALSE, receipt.getStatus());
@@ -643,7 +642,7 @@ public class InterChainProcessTest {
         BigInteger issuerOriginBalance = getBalance(issuer);
         log.debug("issuerOriginBalance : {} ", issuerOriginBalance);
 
-        TransactionReceipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);
 
         yeedContract.issuePropose(proposal);
 
@@ -655,7 +654,7 @@ public class InterChainProcessTest {
         assertEquals(0, issuerOriginBalance.subtract(issuerBalanceAfterProposalIssued).compareTo(stakeYeed.add(fee)));
 
         // Get propose ID
-        String proposeId = proposeIssueIdFromLog(receipt.getTxLog());
+        String proposeId = proposeIssueIdFromLog(receipt.getLog());
 
         // Type-2 Send transaction in ethereum, and get raw transaction
 
@@ -681,7 +680,7 @@ public class InterChainProcessTest {
 
         yeedContract.processPropose(processJson);
 
-        String confirmId = proposeConfirmIdFromLog(receipt.getTxLog());
+        String confirmId = proposeConfirmIdFromLog(receipt.getLog());
         assertEquals("", ExecuteStatus.SUCCESS, receipt.getStatus());
         printTxLog();
 
@@ -690,7 +689,7 @@ public class InterChainProcessTest {
         // network : 1
         // validator : 81b7e08f65bdf5648606c89998a9cc8164397647
 
-        // Create a transactionReceipt which the issuer is a validator
+        // Create a Receipt which the issuer is a validator
         receipt = setUpReceipt(transactionId, VALIDATOR, BRANCH_ID, 100);
 
         // Create params obj for transaction confirmation
@@ -786,14 +785,14 @@ public class InterChainProcessTest {
         // Check Balance Issuer
         BigInteger issuerBalance = getBalance(issuer);
 
-        TransactionReceipt issueReceipt = setUpReceipt("0x00", issuer, BRANCH_ID, 1); // 1 == current blockHeight
+        Receipt issueReceipt = setUpReceipt("0x00", issuer, BRANCH_ID, 1); // 1 == current blockHeight
 
         yeedContract.issuePropose(propose);
 
         Assert.assertEquals("ISSUE SUCCESS", ExecuteStatus.SUCCESS, issueReceipt.getStatus());
 
         // Get Propose ID
-        String proposeId = proposeIssueIdFromLog(issueReceipt.getTxLog());
+        String proposeId = proposeIssueIdFromLog(issueReceipt.getLog());
         Assert.assertNotNull(proposeId);
 
         BigInteger issueAfterBalance = getBalance(ISSUER);
@@ -833,7 +832,7 @@ public class InterChainProcessTest {
                 issuerBalance.subtract(stakeYeed).subtract(fee)
                 .compareTo(issueAfterBalance) == 0);
 
-        TransactionReceipt sendReceipt = setUpReceipt("0x00", ISSUER, BRANCH_ID, 100);
+        Receipt sendReceipt = setUpReceipt("0x00", ISSUER, BRANCH_ID, 100);
         // Send YEED to senderAddress for Test
         yeedContract.transfer(ISSUER, senderAddress, BigInteger.TEN.pow(18), BigInteger.TEN.pow(17));
 
@@ -855,7 +854,7 @@ public class InterChainProcessTest {
 
         byte[] rawTransaction = ethereumTx.getEncoded();
         String rawTxString = HexUtil.toHexString(rawTransaction);
-        TransactionReceipt proposeReceipt =
+        Receipt proposeReceipt =
                 setUpReceipt("0x00", senderAddress, BRANCH_ID, 100);
 
         JsonObject processJson = new JsonObject();
@@ -869,11 +868,11 @@ public class InterChainProcessTest {
         Assert.assertEquals("Propose processing", ExecuteStatus.SUCCESS, proposeReceipt.getStatus());
 
         // Confirm By Validator
-        String confirmId = proposeConfirmIdFromLog(proposeReceipt.getTxLog());
+        String confirmId = proposeConfirmIdFromLog(proposeReceipt.getLog());
         Assert.assertNotNull(confirmId);
         BigInteger senderBeforeBalance = getBalance(senderAddress);
 
-        TransactionReceipt confirmReceipt = setUpReceipt("0x00", VALIDATOR, BRANCH_ID, 101);
+        Receipt confirmReceipt = setUpReceipt("0x00", VALIDATOR, BRANCH_ID, 101);
 
         // Create params obj for transaction confirmation
         JsonObject params = new JsonObject();
@@ -922,7 +921,7 @@ public class InterChainProcessTest {
 
         byte[] rawTransaction = ethereumTx.getEncoded();
         String rawTxString = HexUtil.toHexString(rawTransaction);
-        TransactionReceipt proposeReceipt =
+        Receipt proposeReceipt =
                 setUpReceipt("0x00", senderAddress, BRANCH_ID, 100);
 
         JsonObject processJson = new JsonObject();
@@ -978,7 +977,7 @@ public class InterChainProcessTest {
         String rawTxString = HexUtil.toHexString(rawTransaction);
         rawTxString = rawTxString.replaceAll("06f05b59d3b20000", "06f05b59d3b30000");
 
-        TransactionReceipt proposeReceipt =
+        Receipt proposeReceipt =
                 setUpReceipt("0x00", senderAddress, BRANCH_ID, 100);
 
         JsonObject processJson = new JsonObject();
@@ -1030,7 +1029,7 @@ public class InterChainProcessTest {
 
         BigInteger proposeStakeYeed = getBalance(proposeId);
         log.debug("Propose Stake YEED : {}", proposeStakeYeed);
-        TransactionReceipt proposeReceipt =
+        Receipt proposeReceipt =
                 setUpReceipt("0x0001", senderAddress, BRANCH_ID, 100);
 
         JsonObject processJson = new JsonObject();
@@ -1045,7 +1044,7 @@ public class InterChainProcessTest {
         Assert.assertTrue("", proposeStakeYeed.compareTo(getBalance(proposeId)) == 0);
         log.debug("Propose Stake YEED : {}", proposeStakeYeed);
 
-        String confirm1Id = proposeConfirmIdFromLog(proposeReceipt.getTxLog());
+        String confirm1Id = proposeConfirmIdFromLog(proposeReceipt.getLog());
         Assert.assertNotNull("", confirm1Id);
 
         // replace ethereum Tx2
@@ -1055,10 +1054,10 @@ public class InterChainProcessTest {
         yeedContract.processPropose(processJson);
 
         Assert.assertTrue("Process Done", proposeReceipt.isSuccess());
-        String confirm2Id = proposeConfirmIdFromLog(proposeReceipt.getTxLog());
+        String confirm2Id = proposeConfirmIdFromLog(proposeReceipt.getLog());
         Assert.assertNotNull("", confirm2Id);
 
-        TransactionReceipt confirmTr = setUpReceipt("0x00", VALIDATOR, BRANCH_ID, 100);
+        Receipt confirmTr = setUpReceipt("0x00", VALIDATOR, BRANCH_ID, 100);
 
         JsonObject confirmParams = new JsonObject();
         //params.addProperty("proposeId", "18d48bc062ecab96a6d5b24791b5b41fdb69a12ef76d56f9f842871f92716b7a");
@@ -1124,7 +1123,7 @@ public class InterChainProcessTest {
             ethTx.sign(senderKey);
 
             String rawTx = HexUtil.toHexString(ethTx.getEncoded());
-            TransactionReceipt proposeReceipt =
+            Receipt proposeReceipt =
                     setUpReceipt("0x0001", ISSUER, BRANCH_ID, 100);
 
             JsonObject processJson = new JsonObject();
@@ -1134,9 +1133,9 @@ public class InterChainProcessTest {
 
             yeedContract.processPropose(processJson);
 
-            String confirmId = proposeConfirmIdFromLog(proposeReceipt.getTxLog());
+            String confirmId = proposeConfirmIdFromLog(proposeReceipt.getLog());
 
-            TransactionReceipt confirmTr = setUpReceipt("0x00", VALIDATOR, BRANCH_ID, 100);
+            Receipt confirmTr = setUpReceipt("0x00", VALIDATOR, BRANCH_ID, 100);
 
             JsonObject confirmParams = new JsonObject();
             //params.addProperty("proposeId", "18d48bc062ecab96a6d5b24791b5b41fdb69a12ef76d56f9f842871f92716b7a");

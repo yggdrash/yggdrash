@@ -4,6 +4,8 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.contract.core.ContractEvent;
+import io.yggdrash.contract.core.channel.ContractEventType;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Log;
 import io.yggdrash.core.blockchain.LogIndexer;
@@ -31,7 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ContractManager {
+public class ContractManager implements ContractEventListener {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
 
     private final BranchId bootBranchId;
@@ -62,7 +64,7 @@ public class ContractManager {
 
         this.systemProperties = systemProperties;
 
-        this.logIndexer = new LogIndexer(logStore, contractStore.getTransactionReceiptStore());
+        this.logIndexer = new LogIndexer(logStore, contractStore.getReceiptStore());
         this.contractExecutor = new ContractExecutor(contractStore, logIndexer);
 
         this.bundleService = bundleService;
@@ -74,6 +76,61 @@ public class ContractManager {
         initBootBundles();
         initNodeContract();
 
+    }
+
+    @Override
+    public void endBlock(ContractEvent event) {
+        // TODO Consider if not versioningContract
+        if (event.getContractVersion().equals(ContractConstants.VERSIONING_CONTRACT.toString())) {
+            versioningContractEventHandler(event);
+        }
+    }
+
+    private void versioningContractEventHandler(ContractEvent event) {
+        ContractEventType eventType = event.getType();
+        ContractVersion contractVersion = ContractVersion.of((String) event.getItem());
+        try {
+            switch (eventType) {
+                case INSTALL:
+                    install(contractVersion);
+                    break;
+                case UNINSTALL:
+                    uninstall(contractVersion);
+                    break;
+                case START:
+                    Bundle newBundle = getBundle(contractVersion);
+                    if (newBundle != null) {
+                        addNewBranchContract(newBundle, contractVersion);
+                        start(contractVersion);
+                    } else {
+                        throw new BundleException("Start bundle failed. The bundle has not installed properly. ");
+                    }
+                    break;
+                case STOP:
+                    stop(contractVersion);
+                    break;
+            }
+        } catch (BundleException | IOException e) {
+            log.error("VersioningContract event failed. {} ", e.getMessage());
+        }
+    }
+
+    private void addNewBranchContract(Bundle newBundle, ContractVersion contractVersion) {
+        for (BranchContract branchContract : contractStore.getBranchStore().getBranchContacts()) {
+            ContractVersion originContractVersion = ContractVersion.of(branchContract.getContractVersion().toString());
+            String originSymbolicName = getBundle(originContractVersion).getSymbolicName();
+            if (originSymbolicName.equals(newBundle.getSymbolicName())) {
+                JsonObject newBranchContractJson = branchContract.getJson().deepCopy();
+                newBranchContractJson.addProperty("contractVersion", contractVersion.toString());
+
+                BranchContract newBranchContract = BranchContract.of(newBranchContractJson);
+
+                List<BranchContract> branchContacts = contractStore.getBranchStore().getBranchContacts();
+                branchContacts.add(newBranchContract);
+                contractStore.getBranchStore().setBranchContracts(branchContacts);
+                //TODO Stop origin contract bundle
+            }
+        }
     }
 
     private void initBootBundles() {
@@ -136,7 +193,7 @@ public class ContractManager {
 
     private void initNodeContract() {
         VersioningContract service = new VersioningContract();
-        serviceMap.put(ContractConstants.VERSIONING_TRANSACTION, service);
+        serviceMap.put(ContractConstants.VERSIONING_CONTRACT.toString(), service);
 
         try {
             contractExecutor.injectNodeContract(service);
@@ -186,6 +243,10 @@ public class ContractManager {
         }
     }
 
+    public void stop(ContractVersion contractVersion) throws BundleException {
+        bundleService.stop(contractVersion);
+    }
+
     public void start(ContractVersion contractVersion) throws BundleException {
         bundleService.start(contractVersion);
     }
@@ -223,6 +284,10 @@ public class ContractManager {
     // Execute action
     public Object query(String contractVersion, String methodName, JsonObject params) {
         return contractExecutor.query(serviceMap, contractVersion, methodName, params);
+    }
+
+    public BlockRuntimeResult endBlock(ConsensusBlock addedBlock) {
+        return contractExecutor.endBlock(serviceMap, addedBlock);
     }
 
     public BlockRuntimeResult executeTxs(ConsensusBlock nextBlock) {

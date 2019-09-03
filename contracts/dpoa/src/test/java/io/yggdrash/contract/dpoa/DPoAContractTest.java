@@ -32,8 +32,8 @@ import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.utils.ContractUtils;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.contract.core.TransactionReceiptImpl;
+import io.yggdrash.contract.core.Receipt;
+import io.yggdrash.contract.core.ReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import org.junit.Before;
@@ -168,14 +168,14 @@ public class DPoAContractTest {
     @Test
     public void proposeValidator() throws IllegalAccessException {
         log.debug("validator 추가 프로세스 start");
-        TransactionReceipt preReceipt = new TransactionReceiptImpl();
+        Receipt preReceipt = new ReceiptImpl();
         preReceipt.setIssuer(ISSUER);
         txReceiptField.set(dPoAService, preReceipt);
 
         TxValidatorPropose tx = new TxValidatorPropose(PROPOSED_VALIDATOR);
         log.debug("proposeValidator {} , {} ", ISSUER, PROPOSED_VALIDATOR);
 
-        TransactionReceipt receipt = dPoAService.proposeValidator(
+        Receipt receipt = dPoAService.proposeValidator(
                 JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
 
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
@@ -200,11 +200,11 @@ public class DPoAContractTest {
      */
     @Test
     public void proposeValidatorFailTxValidation() throws IllegalAccessException {
-        TransactionReceipt preReceipt = new TransactionReceiptImpl();
+        Receipt preReceipt = new ReceiptImpl();
         preReceipt.setIssuer(ISSUER);
         txReceiptField.set(dPoAService, preReceipt);
 
-        TransactionReceipt receipt = dPoAService.proposeValidator(JsonUtil.parseJsonObject("{}"));
+        Receipt receipt = dPoAService.proposeValidator(JsonUtil.parseJsonObject("{}"));
         assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
     }
 
@@ -214,13 +214,13 @@ public class DPoAContractTest {
     @Test
     public void proposeValidatorFailTxValidationNotExists() throws IllegalAccessException {
         String issuer = "a809913b5a5193b477c51b4ba4aa0e1268ed6d13";
-        TransactionReceipt preReceipt = new TransactionReceiptImpl();
+        Receipt preReceipt = new ReceiptImpl();
         preReceipt.setIssuer(issuer);
         txReceiptField.set(dPoAService, preReceipt);
 
         TxValidatorPropose tx = new TxValidatorPropose(PROPOSED_VALIDATOR);
 
-        TransactionReceipt receipt = dPoAService.proposeValidator(
+        Receipt receipt = dPoAService.proposeValidator(
                 JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
     }
@@ -230,13 +230,13 @@ public class DPoAContractTest {
      */
     @Test
     public void proposeValidatorFailTxValidationAlreadyExists() throws IllegalAccessException {
-        TransactionReceipt preReceipt = new TransactionReceiptImpl();
+        Receipt preReceipt = new ReceiptImpl();
         preReceipt.setIssuer(ISSUER);
         txReceiptField.set(dPoAService, preReceipt);
 
         TxValidatorPropose tx = new TxValidatorPropose(PROPOSED_VALIDATOR);
 
-        TransactionReceipt receipt = dPoAService.proposeValidator(
+        Receipt receipt = dPoAService.proposeValidator(
                 JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
@@ -250,13 +250,13 @@ public class DPoAContractTest {
      */
     @Test
     public void proposeValidatorFailTxValidationNotYetCompleteVoting() throws IllegalAccessException {
-        TransactionReceipt preReceipt = new TransactionReceiptImpl();
+        Receipt preReceipt = new ReceiptImpl();
         preReceipt.setIssuer(ISSUER);
         txReceiptField.set(dPoAService, preReceipt);
 
         TxValidatorPropose tx = new TxValidatorPropose(PROPOSED_VALIDATOR);
 
-        TransactionReceipt receipt = dPoAService.proposeValidator(
+        Receipt receipt = dPoAService.proposeValidator(
                 JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
@@ -268,19 +268,19 @@ public class DPoAContractTest {
 
     @Test
     public void voteValidator() throws IllegalAccessException {
-        TransactionReceipt preReceipt = new TransactionReceiptImpl();
+        Receipt preReceipt = new ReceiptImpl();
         preReceipt.setIssuer(ISSUER);
         txReceiptField.set(dPoAService, preReceipt);
 
         //Propose validator
         TxValidatorPropose tx = new TxValidatorPropose(PROPOSED_VALIDATOR);
-        TransactionReceipt receipt = dPoAService.proposeValidator(
+        Receipt receipt = dPoAService.proposeValidator(
                 JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
         //Vote
         TxValidatorVote txValidatorVote = new TxValidatorVote(PROPOSED_VALIDATOR, true);
-        TransactionReceipt votingReceipt = dPoAService.voteValidator(
+        Receipt votingReceipt = dPoAService.voteValidator(
                 JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.SUCCESS, votingReceipt.getStatus());
 
@@ -306,11 +306,11 @@ public class DPoAContractTest {
     @Test
     public void voteValidatorFailTxValidation() throws IllegalAccessException {
         //Vote
-        TransactionReceipt preReceipt = new TransactionReceiptImpl();
+        Receipt preReceipt = new ReceiptImpl();
         preReceipt.setIssuer(ISSUER);
         txReceiptField.set(dPoAService, preReceipt);
 
-        TransactionReceipt receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject("{}"));
+        Receipt receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject("{}"));
         assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
     }
 
@@ -320,12 +320,12 @@ public class DPoAContractTest {
     @Test
     public void voteValidatorNotExistsProposedValidator() throws IllegalAccessException {
         //Vote
-        TransactionReceipt preReceipt = new TransactionReceiptImpl();
+        Receipt preReceipt = new ReceiptImpl();
         preReceipt.setIssuer(ISSUER);
         txReceiptField.set(dPoAService, preReceipt);
 
         TxValidatorVote txValidatorVote = new TxValidatorVote("51e5ae98cd821fa044d1eb49f03fb81a7acf3617", false);
-        TransactionReceipt receipt = dPoAService.voteValidator(
+        Receipt receipt = dPoAService.voteValidator(
                 JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
@@ -345,19 +345,19 @@ public class DPoAContractTest {
     @Test
     public void voteValidatorNotAvailableVotingValidator() throws IllegalAccessException {
         //Vote
-        TransactionReceipt preReceipt = new TransactionReceiptImpl();
+        Receipt preReceipt = new ReceiptImpl();
         preReceipt.setIssuer(ISSUER);
         txReceiptField.set(dPoAService, preReceipt);
 
         //Propose validator
         TxValidatorPropose tx = new TxValidatorPropose(PROPOSED_VALIDATOR);
-        TransactionReceipt receipt = dPoAService.proposeValidator(
+        Receipt receipt = dPoAService.proposeValidator(
                 JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
         //Vote
         String issuer = "33d2f8d22755e65fb0d92883f02413495ec3d9df";
-        preReceipt = new TransactionReceiptImpl();
+        preReceipt = new ReceiptImpl();
         preReceipt.setIssuer(issuer);
         txReceiptField.set(dPoAService, preReceipt);
 
@@ -379,17 +379,17 @@ public class DPoAContractTest {
         assertEquals(ISSUER, validators.get(2).getAddr());
 
         //Propose validator
-        TransactionReceipt preReceipt = new TransactionReceiptImpl();
+        Receipt preReceipt = new ReceiptImpl();
         preReceipt.setIssuer(VALIDATOR_1);
         txReceiptField.set(dPoAService, preReceipt);
 
         TxValidatorPropose tx = new TxValidatorPropose(PROPOSED_VALIDATOR);
-        TransactionReceipt receipt = dPoAService.proposeValidator(JsonUtil.parseJsonObject(
+        Receipt receipt = dPoAService.proposeValidator(JsonUtil.parseJsonObject(
                 JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
         //Vote (agree 1/3)
-        preReceipt = new TransactionReceiptImpl();
+        preReceipt = new ReceiptImpl();
         preReceipt.setIssuer(VALIDATOR_1);
         txReceiptField.set(dPoAService, preReceipt);
 
@@ -404,7 +404,7 @@ public class DPoAContractTest {
         assertEquals(ISSUER, validators.get(2).getAddr());
 
         //Vote (agree 2/3)
-        preReceipt = new TransactionReceiptImpl();
+        preReceipt = new ReceiptImpl();
         preReceipt.setIssuer(VALIDATOR_2);
         txReceiptField.set(dPoAService, preReceipt);
 
@@ -452,17 +452,17 @@ public class DPoAContractTest {
     @Test
     public void commitDisagreeValidator() throws IllegalAccessException {
         //Propose validator
-        TransactionReceipt preReceipt = new TransactionReceiptImpl();
+        Receipt preReceipt = new ReceiptImpl();
         preReceipt.setIssuer(VALIDATOR_1);
         txReceiptField.set(dPoAService, preReceipt);
 
         TxValidatorPropose tx = new TxValidatorPropose(PROPOSED_VALIDATOR);
-        TransactionReceipt receipt = dPoAService.proposeValidator(
+        Receipt receipt = dPoAService.proposeValidator(
                 JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
         //Vote (disagree 1/3)
-        preReceipt = new TransactionReceiptImpl();
+        preReceipt = new ReceiptImpl();
         preReceipt.setIssuer(VALIDATOR_1);
         txReceiptField.set(dPoAService, preReceipt);
 
@@ -480,7 +480,7 @@ public class DPoAContractTest {
         assertEquals(1, proposeValidatorSet.getValidatorMap().size());
 
         //Vote (agree 2/3)
-        preReceipt = new TransactionReceiptImpl();
+        preReceipt = new ReceiptImpl();
         preReceipt.setIssuer(VALIDATOR_2);
         txReceiptField.set(dPoAService, preReceipt);
 
@@ -498,7 +498,7 @@ public class DPoAContractTest {
         assertEquals(1, proposeValidatorSet.getValidatorMap().size());
 
         //Vote (disagree 2/3, agree 1/3)
-        preReceipt = new TransactionReceiptImpl();
+        preReceipt = new ReceiptImpl();
         preReceipt.setIssuer(ISSUER);
         txReceiptField.set(dPoAService, preReceipt);
 

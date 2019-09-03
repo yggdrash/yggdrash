@@ -46,7 +46,7 @@ public class Downloader {
         return downloadContract(contractFilePath, version);
     }
 
-    public static File downloadContract(String path, ContractVersion version) throws IOException {
+    public static File downloadContract(String path, ContractVersion version) {
         mkdir(path);
 
         String filePath = filePathBuilder(path, version);
@@ -69,6 +69,9 @@ public class Downloader {
 
             log.info("Download Contract Successfully. ContractVersion : {}\t of bytes : {}", version, byteWritten);
             log.info("-------Download Contract End--------");
+        } catch (IOException e) {
+            log.error("Download contract file failed, {}", e.getMessage());
+            new File(filePath).delete();
         }
         return new File(filePath);
     }
