@@ -87,7 +87,7 @@ task deleteOutputContract(type: Delete) {
     delete copyPath
 }
 
-task copyContractToResrouce(type: Copy) {
+task copyContractToResource(type: Copy) {
     dependsOn deleteOutputContract
     dependsOn contractsPackage
 
@@ -111,7 +111,7 @@ task copyContractToResrouce(type: Copy) {
     }
 }
 task copyContractToProject(type: Copy) {
-    dependsOn copyContractToResrouce
+    dependsOn copyContractToResource
 
     from file("${buildContract}")
     into file("${projectContractPath}")

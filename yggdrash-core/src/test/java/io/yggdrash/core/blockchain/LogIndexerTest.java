@@ -15,10 +15,10 @@ package io.yggdrash.core.blockchain;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
-import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.contract.core.TransactionReceiptImpl;
+import io.yggdrash.contract.core.Receipt;
+import io.yggdrash.contract.core.ReceiptImpl;
 import io.yggdrash.core.store.LogStore;
-import io.yggdrash.core.store.TransactionReceiptStore;
+import io.yggdrash.core.store.ReceiptStore;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -35,14 +35,14 @@ public class LogIndexerTest {
     private static final String logFormat = "[%d] Transfer 100 from 0xa to 0xb";
     private static final String keyFormat = "%s/%d";
     private LogStore logStore;
-    private TransactionReceiptStore receiptStore;
+    private ReceiptStore receiptStore;
     private LogIndexer logIndexer;
     private List<Sha3Hash> txHashes;
 
     @Before
     public void setUp() throws Exception {
         logStore = new LogStore(new HashMapDbSource());
-        receiptStore = new TransactionReceiptStore(new HashMapDbSource());
+        receiptStore = new ReceiptStore(new HashMapDbSource());
         logIndexer = new LogIndexer(logStore, receiptStore);
         txHashes = new ArrayList<>();
 
@@ -81,7 +81,7 @@ public class LogIndexerTest {
             logIndexer.put(tx.getHash().toString(), size);
 
             assertTrue(receiptStore.contains(tx.getHash().toString()));
-            assertEquals(size, receiptStore.get(tx.getHash().toString()).getTxLog().size());
+            assertEquals(size, receiptStore.get(tx.getHash().toString()).getLog().size());
         }
         assertEquals(100, logStore.size());
         assertEquals(100, logStore.getIndex());
@@ -93,8 +93,8 @@ public class LogIndexerTest {
                 .collect(Collectors.toList());
     }
 
-    private TransactionReceipt generateReceipt(Transaction tx, int size) {
-        TransactionReceipt receipt = new TransactionReceiptImpl(
+    private Receipt generateReceipt(Transaction tx, int size) {
+        Receipt receipt = new ReceiptImpl(
                 tx.getHash().toString(), tx.getLength(), tx.getAddress().toString());
 
         IntStream.range(0, size)

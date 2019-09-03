@@ -55,7 +55,7 @@ public class P2PConfiguration {
     @Bean
     Peer owner(Wallet wallet) {
         return Peer.valueOf(wallet.getHexAddress(), nodeProperties.getGrpc().getHost(),
-                nodeProperties.getGrpc().getPort(), nodeProperties.isSeed());
+                nodeProperties.getGrpc().getPort());
     }
 
     @Bean

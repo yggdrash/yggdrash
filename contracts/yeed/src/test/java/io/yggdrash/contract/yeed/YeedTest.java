@@ -16,6 +16,7 @@
 
 package io.yggdrash.contract.yeed;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.BranchContract;
@@ -27,14 +28,15 @@ import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.contract.core.TransactionReceiptAdapter;
-import io.yggdrash.contract.core.TransactionReceiptImpl;
+import io.yggdrash.contract.core.Receipt;
+import io.yggdrash.contract.core.ReceiptAdapter;
+import io.yggdrash.contract.core.ReceiptImpl;
 import io.yggdrash.contract.yeed.ehtereum.EthTransaction;
 import io.yggdrash.contract.yeed.intertransfer.TxConfirmStatus;
 import io.yggdrash.contract.yeed.propose.ProposeStatus;
 import io.yggdrash.contract.yeed.propose.ProposeType;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,6 +46,8 @@ import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,40 +63,40 @@ public class YeedTest {
     private static final String ADDRESS_1 = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94"; // validator
     private static final String ADDRESS_2 = "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e"; // validator
     private static final String BRANCH_ID = "0x00";
-    private TransactionReceiptAdapter adapter;
+    private ReceiptAdapter adapter;
+
+    private static BigInteger BASE_CURRENCY = BigInteger.TEN.pow(18);
+    // 0.01 YEED
+    private static BigInteger DEFAULT_FEE = BASE_CURRENCY.divide(BigInteger.valueOf(100L));
+
+    private JsonObject genesisParams = JsonUtil.parseJsonObject("{\"alloc\": "
+            + "{\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\":{\"balance\": \"1000000000\"},"
+            + "\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\":{\"balance\": \"1000000000\"},"
+            + "\"5e032243d507c743b061ef021e2ec7fcc6d3ab89\":{\"balance\": \"10\"},"
+            + "\"cee3d4755e47055b530deeba062c5bd0c17eb00f\":{\"balance\": \"998000000000\"},"
+            + "\"c3cf7a283a4415ce3c41f5374934612389334780\":{\"balance\": \"10000000000000000000000\"},"
+            + "\"4d01e237570022440aa126ca0b63065d7f5fd589\":{\"balance\": \"10000000000000000000000\"}"
+            + "}}");
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
     @Before
-    public void setUp() throws IllegalAccessException {
-        StateStore coinContractStateStore = new StateStore(new HashMapDbSource());
+    public void setUp() {
         BranchStateStore branchStateStore = branchStateStoreMock();
         branchStateStore.getValidators().getValidatorMap()
                 .put("81b7e08f65bdf5648606c89998a9cc8164397647",
                         new Validator("81b7e08f65bdf5648606c89998a9cc8164397647"));
 
-        adapter = new TransactionReceiptAdapter();
-        yeedContract.txReceipt = adapter;
-        yeedContract.store = coinContractStateStore;
+        adapter = new ReceiptAdapter();
+        yeedContract.receipt = adapter;
+        yeedContract.store = new StateStore(new HashMapDbSource());
         yeedContract.branchStateStore = branchStateStore;
 
-        genesis();
-    }
-
-    private void genesis() {
-        String genesisStr = "{\"alloc\": "
-                + "{\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\":{\"balance\": \"1000000000\"},"
-                + "\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\":{\"balance\": \"1000000000\"},"
-                + "\"cee3d4755e47055b530deeba062c5bd0c17eb00f\":{\"balance\": \"998000000000\"},"
-                + "\"c3cf7a283a4415ce3c41f5374934612389334780\":{\"balance\": \"10000000000000000000000\"},"
-                + "\"4d01e237570022440aa126ca0b63065d7f5fd589\":{\"balance\": \"10000000000000000000000\"}"
-                + "}}";
-
-        TransactionReceipt result = new TransactionReceiptImpl();
+        Receipt result = new ReceiptImpl();
         setUpReceipt(result);
 
-        yeedContract.init(createParams(genesisStr));
+        yeedContract.init(genesisParams);
         assertTrue(result.isSuccess());
     }
 
@@ -103,9 +107,19 @@ public class YeedTest {
 
     @Test
     public void totalSupply() {
+        JsonObject alloc = genesisParams.getAsJsonObject("alloc");
+        BigInteger totalSupply = BigInteger.ZERO;
+        for (Map.Entry<String, JsonElement> entry : alloc.entrySet()) {
+            BigInteger balance = entry.getValue().getAsJsonObject()
+                    .get("balance").getAsBigInteger()
+                    .multiply(BASE_CURRENCY)
+                    ;
+            // apply BASE_CURRENCY
+            totalSupply = totalSupply.add(balance);
+        }
         BigInteger res = yeedContract.totalSupply();
 
-        assertEquals(new BigInteger("20000000001000000000000"), res);
+        assertEquals(totalSupply, res);
     }
 
     @Test
@@ -113,7 +127,7 @@ public class YeedTest {
         BigInteger res = getBalance(ADDRESS_1);
         BigInteger res2 = getBalance(ADDRESS_1.toUpperCase());
 
-        assertEquals(BigInteger.valueOf(1000000000), res);
+        assertEquals(BASE_CURRENCY.multiply(BigInteger.valueOf(1000000000)), res);
         assertEquals(res2, res);
     }
 
@@ -128,33 +142,45 @@ public class YeedTest {
 
     @Test
     public void transfer() {
+
+        BigInteger sendAmount = BASE_CURRENCY; // 1 YEED
+        final BigInteger sendAddress = getBalance(ADDRESS_1);
+        final BigInteger receiveAmount = getBalance(ADDRESS_2);
+        BigInteger feeAmount = DEFAULT_FEE;
+
         JsonObject paramObj = new JsonObject();
-        paramObj.addProperty("to", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");
-        paramObj.addProperty("amount", 10);
-        paramObj.addProperty("fee", 1);
+        paramObj.addProperty("to", ADDRESS_2);
+        paramObj.addProperty("amount", sendAmount);
+        paramObj.addProperty("fee", feeAmount);
 
-        log.debug("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94:{}", getBalance(ADDRESS_1));
-        log.debug("1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e:{}", getBalance(ADDRESS_2));
+        log.debug("{}:{}", ADDRESS_1, sendAddress);
+        log.debug("{}:{}", ADDRESS_2, receiveAmount);
 
-        TransactionReceipt receipt = setUpReceipt(ADDRESS_1);
+        // SETUP
+        Receipt receipt = setUpReceipt(ADDRESS_1);
 
         receipt = yeedContract.transfer(paramObj);
 
         assertTrue(receipt.isSuccess());
-        assertEquals(BigInteger.valueOf(999999989), getBalance(ADDRESS_1));
-        assertEquals(BigInteger.valueOf(1000000010), getBalance(ADDRESS_2));
+
+        BigInteger senderRemainAmount = sendAddress.subtract(feeAmount).subtract(sendAmount);
+        BigInteger receverRemainAmount = receiveAmount.add(sendAmount);
+
+        assertEquals(senderRemainAmount, getBalance(ADDRESS_1));
+        assertEquals(receverRemainAmount, getBalance(ADDRESS_2));
 
         // To much amount
-        addAmount(paramObj, BigInteger.valueOf(1000000010));
+        addAmount(paramObj, BigInteger.valueOf(1).add(senderRemainAmount));
         receipt = yeedContract.transfer(paramObj);
 
         assertFalse(receipt.isSuccess());
 
         // Same amount
-        addAmount(paramObj, BigInteger.valueOf(999999988));
+        addAmount(paramObj, senderRemainAmount.subtract(feeAmount));
         receipt = yeedContract.transfer(paramObj);
 
         assertTrue(receipt.isSuccess());
+        assertTrue(getBalance(ADDRESS_1).compareTo(BigInteger.ZERO) == 0);
     }
 
     @Test
@@ -164,7 +190,7 @@ public class YeedTest {
         paramObj.addProperty("amount", -1000000);
         paramObj.addProperty("fee", -1000);
 
-        TransactionReceipt receipt = setUpReceipt(ADDRESS_1);
+        Receipt receipt = setUpReceipt(ADDRESS_1);
 
         receipt = yeedContract.transfer(paramObj);
 
@@ -177,20 +203,39 @@ public class YeedTest {
         String spender = ADDRESS_2;
         String to = "cee3d4755e47055b530deeba062c5bd0c17eb00f";
 
-        approveByOwner(owner, spender, "1000");
+        BigInteger approveBalance = BASE_CURRENCY.multiply(BigInteger.valueOf(1000L));
+        final BigInteger transferFromBalance = BASE_CURRENCY.multiply(BigInteger.valueOf(700L));
+        final BigInteger toBalance = getBalance(to);
+        // APPROVE
+        approveByOwner(owner, spender, approveBalance.toString());
+
+        // CHECK allowence
+        JsonObject param = new JsonObject();
+        param.addProperty("owner", owner);
+        param.addProperty("spender", spender);
+        BigInteger allowanceBalance = yeedContract.allowance(param);
+
+        Assert.assertTrue("allowanceBalance : ",
+                allowanceBalance.compareTo(approveBalance) == 0);
+
 
         JsonObject transferFromObject = new JsonObject();
         transferFromObject.addProperty("from", owner);
         transferFromObject.addProperty("to", to);
-        transferFromObject.addProperty("amount", "700");
+        // 700 YEED
+        transferFromObject.addProperty("amount", transferFromBalance);
+        // Fee is 0.01 YEED
+        transferFromObject.addProperty("fee", DEFAULT_FEE);
 
-        TransactionReceipt receipt = setUpReceipt(spender);
+        Receipt receipt = setUpReceipt(spender);
 
-        receipt = yeedContract.transferFrom(transferFromObject);
+        // Transfer From owner to receiver by spender
+        yeedContract.transferFrom(transferFromObject);
 
         assertTrue(receipt.isSuccess());
-        assertEquals(BigInteger.valueOf(300), getAllowance(owner, spender));
-        assertEquals(BigInteger.valueOf(998000000700L), getBalance(to));
+        assertEquals(approveBalance.subtract(transferFromBalance).subtract(DEFAULT_FEE),
+                getAllowance(owner, spender));
+        assertEquals(toBalance.add(transferFromBalance), getBalance(to));
 
         String logFormat = "{} : {}";
         log.debug(logFormat, to, getBalance(to));
@@ -199,16 +244,19 @@ public class YeedTest {
         log.debug("getAllowance : {}", getAllowance(owner, spender));
         printTxLog();
 
-        TransactionReceipt receipt2 = setUpReceipt("1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");
+        Receipt receipt2 = setUpReceipt("1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");
 
         yeedContract.transferFrom(transferFromObject);
 
         // Insufficient funds
         assertFalse(receipt2.isSuccess());
 
-        addAmount(transferFromObject, getAllowance(owner, spender));
+        allowanceBalance = getAllowance(owner, spender);
+        // subtract feeBalance
+        allowanceBalance = allowanceBalance.subtract(DEFAULT_FEE);
+        addAmount(transferFromObject, allowanceBalance);
         // Transfer all amount of allowance
-        receipt2 = yeedContract.transferFrom(transferFromObject);
+        yeedContract.transferFrom(transferFromObject);
 
         assertTrue(receipt2.isSuccess());
         assertEquals(BigInteger.ZERO, getAllowance(owner, spender));
@@ -218,25 +266,19 @@ public class YeedTest {
         JsonObject paramObj = new JsonObject();
         paramObj.addProperty("spender", spender);
         paramObj.addProperty("amount", amount);
+        paramObj.addProperty("fee", DEFAULT_FEE);
 
-        TransactionReceipt receipt = setUpReceipt(owner);
+        final BigInteger spenderBalance = getBalance(spender);
+        final BigInteger ownerBalance = getBalance(owner);
+        Receipt receipt = setUpReceipt(owner);
 
         yeedContract.approve(paramObj);
 
+        adapter.getLog().stream().forEach(l -> log.debug(l));
+
         assertTrue(receipt.isSuccess());
-        assertEquals(BigInteger.valueOf(1000000000), getBalance(spender));
-        assertEquals(BigInteger.valueOf(1000000000), getBalance(owner));
-        assertTransferFrom(owner, spender);
-    }
-
-    private void assertTransferFrom(String owner, String spender) {
-        JsonObject param = new JsonObject();
-        param.addProperty("owner", owner);
-        param.addProperty("spender", spender);
-
-        assertEquals(BigInteger.valueOf(1000), yeedContract.allowance(param));
-        assertEquals(BigInteger.valueOf(1000000000), getBalance(owner));
-        assertEquals(BigInteger.valueOf(1000000000), getBalance(spender));
+        assertEquals(spenderBalance, getBalance(spender));
+        assertTrue(ownerBalance.compareTo(getBalance(owner)) > 0);
     }
 
     @Test
@@ -255,14 +297,13 @@ public class YeedTest {
         String issuer = "c3cf7a283a4415ce3c41f5374934612389334780";
         long targetBlockHeight = 1000000L;
         BigInteger stakeYeed = new BigInteger("1000000000000000");
-        BigInteger fee = new BigInteger("1000000000");
 
         JsonObject proposal = createProposal(receiverAddress, receiveAsset, receiveChainId, networkBlockHeight,
-                proposeType, senderAddress, inputData, stakeYeed, targetBlockHeight, fee);
+                proposeType, senderAddress, inputData, stakeYeed, targetBlockHeight, DEFAULT_FEE);
 
         final BigInteger issuerOriginBalance = getBalance(issuer);
 
-        TransactionReceipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1); // 1 == current blockHeight
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1); // 1 == current blockHeight
 
         yeedContract.issuePropose(proposal);
 
@@ -271,7 +312,7 @@ public class YeedTest {
 
         String proposeIssueIdPatten = "Propose [a-f0-9]{64} ISSUED";
         Pattern p = Pattern.compile(proposeIssueIdPatten);
-        Matcher matcher = p.matcher(receipt.getTxLog().get(1));
+        Matcher matcher = p.matcher(receipt.getLog().get(1));
 
         boolean isMatched = matcher.find();
         assertTrue(isMatched);
@@ -286,8 +327,9 @@ public class YeedTest {
         log.debug("Issuer Origin YEED {}", issuerOriginBalance.toString());
         log.debug("Issuer After Proposal Issued YEED {}", issuerBalanceAfterProposalIssued.toString());
 
-        assertEquals(0, balanceOfProposeId.compareTo(stakeYeed.add(fee)));
-        assertEquals(0, issuerOriginBalance.subtract(stakeYeed.add(fee)).compareTo(issuerBalanceAfterProposalIssued));
+        assertEquals(0, balanceOfProposeId.compareTo(stakeYeed.add(DEFAULT_FEE)));
+        assertEquals(0, issuerOriginBalance.subtract(stakeYeed.add(DEFAULT_FEE))
+                .compareTo(issuerBalanceAfterProposalIssued));
 
         // Query proposal by its id
         JsonObject queryProposeParam = new JsonObject();
@@ -363,7 +405,7 @@ public class YeedTest {
         param.addProperty("proposeId", proposeId);
 
         // Success case
-        TransactionReceipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1000000L);
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1000000L);
 
         BigInteger originProposalBalance = yeedContract.getBalance(proposeId);
 
@@ -401,7 +443,7 @@ public class YeedTest {
         BigInteger issuerOriginBalance = getBalance(issuer);
         log.debug("IssuerOriginBalance : {} ", issuerOriginBalance);
 
-        TransactionReceipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);  // 1 == current blockHeight
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);  // 1 == current blockHeight
 
         yeedContract.issuePropose(proposal);
 
@@ -416,14 +458,16 @@ public class YeedTest {
 
         String proposeIssueIdPatten = "Propose [a-f0-9]{64} ISSUED";
         Pattern p = Pattern.compile(proposeIssueIdPatten);
-        String firstLog = receipt.getTxLog().get(1);
+        String firstLog = receipt.getLog().get(1);
         Matcher matcher = p.matcher(firstLog);
         log.debug("Log 1 : {} ", firstLog);
 
         boolean isMatched = matcher.find();
         assertTrue(isMatched);
 
-        String proposeId = matcher.group().replaceAll("Propose ", "").replaceAll(" ISSUED", "");
+        String proposeId = matcher.group()
+                .replaceAll("Propose ", "")
+                .replaceAll(" ISSUED", "");
         log.debug("ProposeId : {}", proposeId);
 
         // Process the proposal from now on
@@ -439,13 +483,16 @@ public class YeedTest {
         log.debug("Receiver : {}", HexUtil.toHexString(ethTransaction.getReceiverAddress()));
         log.debug("{} WEI", ethTransaction.getValue());
 
+        BigInteger networkFee = BASE_CURRENCY.divide(BigInteger.valueOf(100L));
+
         JsonObject processJson = new JsonObject();
         processJson.addProperty("proposeId", proposeId);
         processJson.addProperty("rawTransaction", ethRawTransaction);
-        processJson.addProperty("fee", BigInteger.ZERO);
+        processJson.addProperty("fee", networkFee);
 
         receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 10); // 1 == current blockHeight
 
+        // Propose Processing
         yeedContract.processPropose(processJson);
 
         BigInteger issuerBalanceAfterProposalDone = getBalance(issuer);
@@ -456,9 +503,19 @@ public class YeedTest {
         // The issuer has done processing and has received 1/2 fee back
 
         assertEquals("Transaction is Success", ExecuteStatus.SUCCESS, receipt.getStatus());
-        assertEquals(0, issuerBalanceAfterProposalDone.subtract(issuerBalanceAfterProposalIssued)
-                .compareTo(fee.divide(BigInteger.valueOf(2L))));
-        assertTrue(issuerBalanceAfterProposalDone.compareTo(issuerBalanceAfterProposalIssued) > 0);
+
+        // Issuer used network fee so subtract networkFee
+        issuerBalanceAfterProposalIssued = issuerBalanceAfterProposalIssued.subtract(networkFee);
+
+        BigInteger remainIssuerBalance =
+                issuerBalanceAfterProposalDone.subtract(issuerBalanceAfterProposalIssued)
+                ;
+
+        assertEquals("Half propose stake fund will remain issuer",0,
+                remainIssuerBalance.compareTo(fee.divide(BigInteger.valueOf(2L))));
+
+        assertTrue("Propose Done,Issuer will more fund remain proposal issued",
+                issuerBalanceAfterProposalDone.compareTo(issuerBalanceAfterProposalIssued) > 0);
 
         receipt = setUpReceipt("0x03", issuer, BRANCH_ID, 50);  // 1 == current blockHeight
 
@@ -479,25 +536,24 @@ public class YeedTest {
 
         String senderAddress = "dcf94a3153398b9e78a3202ffb7d0c606348f616";
 
-        String inputData = null;
         BigInteger stakeYeed = new BigInteger("1000000000000000000");
         long targetBlockHeight = 1000000L;
         BigInteger fee = new BigInteger("10000000000000000");
         String issuer = "c3cf7a283a4415ce3c41f5374934612389334780";
 
         JsonObject proposal = createProposal(receiverAddress, receiveAsset, receiveChainId, networkBlockHeight,
-                proposeType, senderAddress, inputData, stakeYeed, targetBlockHeight, fee);
+                proposeType, senderAddress, null, stakeYeed, targetBlockHeight, fee);
 
         BigInteger issuerOriginBalance = getBalance(issuer);
         log.debug("issuerOriginBalance  : {} ", issuerOriginBalance);
 
-        TransactionReceipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);
 
         yeedContract.issuePropose(proposal);
 
         assertSame(ExecuteStatus.SUCCESS, receipt.getStatus());
 
-        String proposalIssuedLog = receipt.getTxLog().get(1);
+        String proposalIssuedLog = receipt.getLog().get(1);
         log.debug("Log 1 : {} ", proposalIssuedLog);
         String proposeIssueIdPatten = "Propose [a-f0-9]{64} ISSUED";
         Pattern p = Pattern.compile(proposeIssueIdPatten);
@@ -506,7 +562,9 @@ public class YeedTest {
         boolean isMatched = matcher.find();
         assertTrue(isMatched);
 
-        String proposeId = matcher.group().replaceAll("Propose ", "").replaceAll(" ISSUED", "");
+        String proposeId = matcher.group()
+                .replaceAll("Propose ", "")
+                .replaceAll(" ISSUED", "");
         log.debug("ProposeId={}", proposeId);
         log.debug("Proposal={}", proposal.toString());
 
@@ -525,7 +583,7 @@ public class YeedTest {
         JsonObject processJson = new JsonObject();
         processJson.addProperty("proposeId", proposeId);
         processJson.addProperty("rawTransaction", ethHexString);
-        processJson.addProperty("fee", BigInteger.ZERO);
+        processJson.addProperty("fee", DEFAULT_FEE);
 
         receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 10);
 
@@ -533,7 +591,7 @@ public class YeedTest {
 
         assertEquals("Proposal processing failed", ExecuteStatus.FALSE, receipt.getStatus());
 
-        receipt.getTxLog().forEach(log::debug);
+        receipt.getLog().forEach(log::debug);
     }
 
     @Test
@@ -546,21 +604,20 @@ public class YeedTest {
 
         String senderAddress = "dcf94a3153398b9e78a3202ffb7d0c606348f616";
 
-        String inputData = null;
         BigInteger stakeYeed = new BigInteger("-1000000000000000000");
         long targetBlockHeight = 1000000L;
         BigInteger fee = new BigInteger("10000000000000000");
         String issuer = "c3cf7a283a4415ce3c41f5374934612389334780";
 
         JsonObject proposal = createProposal(receiverAddress, receiveAsset, receiveChainId, networkBlockHeight,
-                proposeType, senderAddress, inputData, stakeYeed, targetBlockHeight, fee);
+                proposeType, senderAddress, null, stakeYeed, targetBlockHeight, fee);
 
         BigInteger issuerOriginBalance = getBalance(issuer);
         log.debug("issuerOriginBalance : {} ", issuerOriginBalance);
 
         String transactionId = "0x02";
 
-        TransactionReceipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);
 
         yeedContract.issuePropose(proposal);
         assertSame(ExecuteStatus.FALSE, receipt.getStatus());
@@ -568,12 +625,12 @@ public class YeedTest {
 
         // Change stakeYeed and fee value of the proposal
         stakeYeed = new BigInteger("1000000000000000000");
-        fee = new BigInteger("-10000000000000000");
         proposal.addProperty("stakeYeed", stakeYeed);
-        proposal.addProperty("fee", fee);
+        proposal.addProperty("fee", new BigInteger("-10000000000000000"));
 
         yeedContract.issuePropose(proposal);
-        assertSame(ExecuteStatus.FALSE, receipt.getStatus());
+
+        assertSame(ExecuteStatus.ERROR, receipt.getStatus());
         printTxLog();
 
         stakeYeed = new BigInteger("1000000000000000000");
@@ -599,19 +656,18 @@ public class YeedTest {
 
         String senderAddress = "5e032243d507c743b061ef021e2ec7fcc6d3ab89";
 
-        String inputData = null;
         BigInteger stakeYeed = new BigInteger("1000000000000000000");
         long targetBlockHeight = 1000000L;
         BigInteger fee = new BigInteger("10000000000000000");
         String issuer = "c3cf7a283a4415ce3c41f5374934612389334780";
 
         JsonObject proposal = createProposal(receiverAddress, receiveAsset, receiveChainId, networkBlockHeight,
-                proposeType, senderAddress, inputData, stakeYeed, targetBlockHeight, fee);
+                proposeType, senderAddress, null, stakeYeed, targetBlockHeight, fee);
 
         BigInteger issuerOriginBalance = getBalance(issuer);
         log.debug("issuerOriginBalance : {} ", issuerOriginBalance);
 
-        TransactionReceipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1);
 
         yeedContract.issuePropose(proposal);
 
@@ -623,7 +679,7 @@ public class YeedTest {
         assertEquals(0, issuerOriginBalance.subtract(issuerBalanceAfterProposalIssued).compareTo(stakeYeed.add(fee)));
 
         // Get propose ID
-        String receiptForProposalIssued = receipt.getTxLog().get(1);
+        String receiptForProposalIssued = receipt.getLog().get(1);
         log.debug("Log 1 : {} ", receiptForProposalIssued);
         String proposeIssueIdPatten = "Propose [a-f0-9]{64} ISSUED";
         Pattern p = Pattern.compile(proposeIssueIdPatten);
@@ -653,11 +709,13 @@ public class YeedTest {
         JsonObject processJson = new JsonObject();
         processJson.addProperty("proposeId", proposeId);
         processJson.addProperty("rawTransaction", ethRawTransaction);
-        processJson.addProperty("fee", BigInteger.ZERO);
+        processJson.addProperty("fee", DEFAULT_FEE);
 
-        setUpReceipt(transactionId, senderAddress, BRANCH_ID, 10);
+        receipt = setUpReceipt(transactionId, senderAddress, BRANCH_ID, 10);
 
         yeedContract.processPropose(processJson);
+
+        assertEquals("", ExecuteStatus.SUCCESS, receipt.getStatus());
         printTxLog();
 
         // Validator transaction confirm (check exist and block height, index)
@@ -681,6 +739,8 @@ public class YeedTest {
         params.addProperty("index", 1);
 
         yeedContract.transactionConfirm(params);
+
+
         printTxLog();
 
         // Check txConfirm status
@@ -695,7 +755,7 @@ public class YeedTest {
 
         // 1010000000000000000
         //   10000000000000000
-        assertEquals(0, getBalance(proposeId).compareTo(BigInteger.ZERO));
+        assertEquals("PROPOSE IS DONE",0, getBalance(proposeId).compareTo(BigInteger.ZERO));
 
         // Check proposal status
         JsonObject proposeQueryParam = new JsonObject();
@@ -711,32 +771,33 @@ public class YeedTest {
 
         setUpReceipt("0x00", issuer, BRANCH_ID, 1);
 
-        JsonObject param = new JsonObject();
-        BigInteger totalSupply = yeedContract.totalSupply();
+        final JsonObject emptyParam = new JsonObject();
+        final BigInteger totalSupply = yeedContract.totalSupply();
 
         JsonObject testTransfer = new JsonObject();
         testTransfer.addProperty("to","81b7e08f65bdf5648606c89998a9cc8164397647");
         testTransfer.addProperty("amount", BigInteger.valueOf(100L));
+        testTransfer.addProperty("fee", DEFAULT_FEE);
 
         yeedContract.transfer(testTransfer);
-        assertSame(ExecuteStatus.ERROR, yeedContract.txReceipt.getStatus()); // Insufficient funds
+        assertSame(ExecuteStatus.ERROR, yeedContract.receipt.getStatus()); // Insufficient funds
 
-        yeedContract.faucet(param);
-        assertSame(ExecuteStatus.SUCCESS, yeedContract.txReceipt.getStatus());
+        yeedContract.faucet(emptyParam);
+        assertSame(ExecuteStatus.SUCCESS, yeedContract.receipt.getStatus());
         assertTrue(yeedContract.totalSupply().compareTo(totalSupply) != 0);
 
         // Call faucet one more
-        yeedContract.faucet(param);
-        assertSame(ExecuteStatus.ERROR, yeedContract.txReceipt.getStatus()); // Already received or has balance
+        yeedContract.faucet(emptyParam);
+        assertSame(ExecuteStatus.ERROR, yeedContract.receipt.getStatus()); // Already received or has balance
 
         yeedContract.transfer(testTransfer);
-        assertSame(ExecuteStatus.SUCCESS, yeedContract.txReceipt.getStatus());
+        assertSame(ExecuteStatus.SUCCESS, yeedContract.receipt.getStatus());
     }
 
     @Test
     public void sendSameAccount() {
         String issuer = "4d01e237570022440aa126ca0b63065d7f5fd589";
-        BigInteger balance = yeedContract.getBalance(issuer);
+        final BigInteger balance = yeedContract.getBalance(issuer);
         setUpReceipt("0x00", issuer, BRANCH_ID, 1);
 
         JsonObject testTransfer = new JsonObject();
@@ -749,11 +810,57 @@ public class YeedTest {
         assertTrue(balance.compareTo(after) == 0);
     }
 
+    @Test
+    public void transferChannelTest() {
+        String from = ADDRESS_1;
+        final BigInteger serviceFee = DEFAULT_FEE;
+        final BigInteger amount = BASE_CURRENCY.multiply(BigInteger.valueOf(1000L));
+        String testContractName = "TEST";
+
+        setUpReceipt("0x00", from, BRANCH_ID, 1);
+        JsonObject transferChannelTx = new JsonObject();
+        transferChannelTx.addProperty("from", from);
+        transferChannelTx.addProperty("to",testContractName);
+        transferChannelTx.addProperty("amount", amount);
+        transferChannelTx.addProperty("serviceFee", serviceFee);
+
+        BigInteger originBalance = getBalance(from);
+
+        // Deposit Test
+        boolean result = yeedContract.transferChannel(transferChannelTx);
+        BigInteger depositBalance = getBalance(from);
+        assertTrue("Result is True", result);
+        assertEquals("", originBalance.subtract(amount).subtract(serviceFee), depositBalance);
+
+        JsonObject param = new JsonObject();
+        param.addProperty("contractName", testContractName);
+        BigInteger contractBalance = yeedContract.getContractBalanceOf(param);
+
+        assertEquals("Contract Stake Balance", amount, contractBalance);
+
+        // Withdraw Test
+        BigInteger withdrawAmount = amount.subtract(serviceFee);
+        transferChannelTx.addProperty("from", testContractName);
+        transferChannelTx.addProperty("to", from);
+        transferChannelTx.addProperty("amount", withdrawAmount);
+        log.debug(transferChannelTx.toString());
+        result = yeedContract.transferChannel(transferChannelTx);
+
+        assertTrue("Result is True", result);
+        BigInteger withdrawBalance = getBalance(from);
+        assertEquals("", depositBalance.add(withdrawAmount), withdrawBalance);
+
+        // Contract Balance is zero
+        contractBalance = yeedContract.getContractBalanceOf(param);
+        assertEquals("Contract Balance is zero", 0, contractBalance.compareTo(BigInteger.ZERO));
+    }
+
 
 
     private BranchStateStore branchStateStoreMock() {
         return new BranchStateStore() {
             ValidatorSet set = new ValidatorSet();
+            List<BranchContract> contracts;
 
             @Override
             public Long getLastExecuteBlockIndex() {
@@ -787,17 +894,17 @@ public class YeedTest {
 
             @Override
             public List<BranchContract> getBranchContacts() {
-                return null;
+                return contracts;
             }
 
             @Override
             public String getContractVersion(String contractName) {
-                return null;
+                return "0x00";
             }
 
             @Override
             public String getContractName(String contractVersion) {
-                return null;
+                return "TEST";
             }
 
             public void setValidators(ValidatorSet validatorSet) {
@@ -807,38 +914,32 @@ public class YeedTest {
         };
     }
 
-    private JsonObject createParams(String paramStr) {
-        return JsonUtil.parseJsonObject(paramStr);
-    }
-
-    private TransactionReceipt createReceipt(String issuer) {
-        TransactionReceipt receipt = new TransactionReceiptImpl();
-        receipt.setIssuer(issuer);
+    private Receipt createReceipt(String issuer) {
+        Receipt receipt = new ReceiptImpl("0x00", 200L, issuer);
         receipt.setBranchId(BRANCH_ID);
+
         return receipt;
     }
 
-    private TransactionReceipt createReceipt(String transactionId, String issuer, String branchId, long blockHeight) {
-        TransactionReceipt receipt = new TransactionReceiptImpl();
-        receipt.setTxId(transactionId);
-        receipt.setIssuer(issuer);
+    private Receipt createReceipt(String transactionId, String issuer, String branchId, long blockHeight) {
+        Receipt receipt = new ReceiptImpl(transactionId, 200L, issuer);
         receipt.setBranchId(branchId);
         receipt.setBlockHeight(blockHeight);
         return receipt;
     }
 
-    private void setUpReceipt(TransactionReceipt receipt) {
-        adapter.setTransactionReceipt(receipt);
+    private void setUpReceipt(Receipt receipt) {
+        adapter.setReceipt(receipt);
     }
 
-    private TransactionReceipt setUpReceipt(String issuer) {
-        TransactionReceipt receipt = createReceipt(issuer);
+    private Receipt setUpReceipt(String issuer) {
+        Receipt receipt = createReceipt(issuer);
         setUpReceipt(receipt);
         return receipt;
     }
 
-    private TransactionReceipt setUpReceipt(String transactionId, String issuer, String branchId, long blockHeight) {
-        TransactionReceipt receipt = createReceipt(transactionId, issuer, branchId, blockHeight);
+    private Receipt setUpReceipt(String transactionId, String issuer, String branchId, long blockHeight) {
+        Receipt receipt = createReceipt(transactionId, issuer, branchId, blockHeight);
         setUpReceipt(receipt);
         return receipt;
     }
@@ -878,6 +979,6 @@ public class YeedTest {
     }
 
     private void printTxLog() {
-        log.debug("txLog={}", adapter.getTxLog());
+        log.debug("txLog={}", adapter.getLog());
     }
 }

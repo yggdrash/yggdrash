@@ -12,7 +12,7 @@
 
 package io.yggdrash.gateway.controller;
 
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
@@ -39,8 +39,9 @@ public class TransactionReceiptController {
     @GetMapping("/{id}")
     public ResponseEntity get(@PathVariable(name = BRANCH_ID) String branchId,
                               @PathVariable String id) {
-        TransactionReceipt txReceipt = branchGroup.getTransactionReceipt(BranchId.of(branchId), id);
+        Receipt receipt = branchGroup.getReceipt(BranchId.of(branchId), id);
 
-        return ResponseEntity.ok(TransactionReceiptDto.createBy(txReceipt));
+        return ResponseEntity.ok(TransactionReceiptDto.createBy(receipt));
     }
+
 }

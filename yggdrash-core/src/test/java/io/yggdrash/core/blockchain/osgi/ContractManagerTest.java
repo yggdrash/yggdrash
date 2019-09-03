@@ -37,7 +37,12 @@ public class ContractManagerTest {
     private static BlockChainStore bcStore;
     private static ContractStore contractStore;
 
-    private static ContractVersion coinContract = ContractVersion.of("8c65bc05e107aab9ceaa872bbbb2d96d57811de4");
+    private static GenesisBlock coinGenesis;
+    private static BranchId coinBranchId;
+
+    private static ContractExecutor executor;
+
+    private static ContractVersion coinContract = ContractVersion.of("a88ae404e837cd1d6e8b9a5a91f188da835ccb56");
     ContractVersion notExistedVersion = ContractVersion.of(Hex.encodeHexString("Wrong ContractVersion".getBytes()));
 
     @Before
@@ -101,6 +106,15 @@ public class ContractManagerTest {
             log.info("Bundle Id : {}\tBundle Symbol : {}\tBundle location : {}",
                     bundle.getBundleId(), bundle.getSymbolicName(), bundle.getLocation());
         }
+    }
+
+    @Test
+    public void isExistContractTest() {
+        boolean notExist = Downloader.verifyUrl(ContractVersion.of("wrongVersion".getBytes()));
+        boolean exist = Downloader.verifyUrl(coinContract);
+
+        Assert.assertFalse(notExist);
+        Assert.assertTrue(exist);
     }
 
 }
