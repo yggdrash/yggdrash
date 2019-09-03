@@ -150,8 +150,9 @@ public class ContractManager implements ContractEventListener {
 
     private void initNodeContract() {
         VersioningContract service = new VersioningContract();
-        serviceMap.put(ContractConstants.VERSIONING_TRANSACTION, service);
+        serviceMap.put(ContractConstants.VERSIONING_CONTRACT.toString(), service);
         contractExecutor.injectNodeContract(service);
+
     }
 
     public void loadBundle(ContractVersion contractVersion) {

@@ -26,7 +26,6 @@ import org.apache.commons.codec.binary.Base64;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -41,6 +40,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class ContractExecutor {
     private static final Logger log = LoggerFactory.getLogger(ContractExecutor.class);
+
+    private static final String CONTACT_VERSION = "contractVersion";
 
     private final ContractStore contractStore;
 
@@ -230,12 +231,7 @@ public class ContractExecutor {
     private Set<Map.Entry<String, JsonObject>>  invokeTx(Map<String, Object> serviceMap, Transaction tx, Receipt receipt) throws ExecutorException {
         JsonObject txBody = tx.getBody().getBody();
 
-        String contractVersion;
-        if (txBody.get("contractVersion") == null) {
-            contractVersion = Hex.toHexString(tx.getHeader().getType());
-        } else {
-            contractVersion = txBody.get("contractVersion").getAsString();
-        }
+        String contractVersion = txBody.get(CONTACT_VERSION).getAsString();
 
         String methodName = txBody.get("method").getAsString();
         JsonObject params = txBody.getAsJsonObject("params");
@@ -333,11 +329,11 @@ public class ContractExecutor {
         long txSize = tx.getBody().getLength();
         String issuer = tx.getAddress().toString();
 
-        if (tx.getBody().getBody().get("contractVersion") == null) {
+        if (tx.getBody().getBody().get(CONTACT_VERSION) == null) {
             return new ReceiptImpl(txId, txSize, issuer);
         }
         return new ReceiptImpl(txId, txSize, issuer,
-                tx.getBody().getBody().get("contractVersion").getAsString());
+                tx.getBody().getBody().get(CONTACT_VERSION).getAsString());
     }
 
     private void exceptionHandler(ExecutorException e, Receipt receipt) {
