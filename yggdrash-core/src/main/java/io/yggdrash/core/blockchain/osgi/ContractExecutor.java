@@ -26,7 +26,6 @@ import org.apache.commons.codec.binary.Base64;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -41,6 +40,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class ContractExecutor {
     private static final Logger log = LoggerFactory.getLogger(ContractExecutor.class);
+
+    private static final String CONTACT_VERSION = "contractVersion";
 
     private final ContractStore contractStore;
 
@@ -61,40 +62,44 @@ public class ContractExecutor {
         this.coupler = new ContractChannelCoupler();
     }
 
-    void injectNodeContract(Object service) throws IllegalAccessException {
+    void injectNodeContract(Object service) {
         inject(service, namespace(service.getClass().getName()));
     }
 
-    void injectBundleContract(Bundle bundle, Object service) throws IllegalAccessException {
+    void injectBundleContract(Bundle bundle, Object service) {
         inject(service, namespace(bundle.getSymbolicName()));
     }
 
-    private void inject(Object service, String namespace) throws IllegalAccessException {
+    private void inject(Object service, String namespace) {
         Field[] fields = service.getClass().getDeclaredFields();
 
         for (Field field : fields) {
             field.setAccessible(true);
 
             for (Annotation annotation : field.getDeclaredAnnotations()) {
-                if (annotation.annotationType().equals(ContractStateStore.class)) {
-                    log.trace("service name : {} \t namespace : {}", service.getClass().getName(), namespace);
-                    StoreAdapter adapterStore = new StoreAdapter(contractStore.getTmpStateStore(), namespace);
-                    field.set(service, adapterStore); //default => tmpStateStore
-                }
+                try {
+                    if (annotation.annotationType().equals(ContractStateStore.class)) {
+                        log.trace("service name : {} \t namespace : {}", service.getClass().getName(), namespace);
+                        StoreAdapter adapterStore = new StoreAdapter(contractStore.getTmpStateStore(), namespace);
+                        field.set(service, adapterStore); //default => tmpStateStore
+                    }
 
-                if (annotation.annotationType().equals(ContractBranchStateStore.class)) {
-                    field.set(service, contractStore.getBranchStore());
-                }
+                    if (annotation.annotationType().equals(ContractBranchStateStore.class)) {
+                        field.set(service, contractStore.getBranchStore());
+                    }
 
-                if (annotation.annotationType().equals(ContractReceipt.class)) {
-                    field.set(service, trAdapter);
-                }
+                    if (annotation.annotationType().equals(ContractReceipt.class)) {
+                        field.set(service, trAdapter);
+                    }
 
-                if (annotation.annotationType().equals(ContractChannelField.class)) {
-                    field.set(service, coupler);
-                }
+                    if (annotation.annotationType().equals(ContractChannelField.class)) {
+                        field.set(service, coupler);
+                    }
+                    // todo : Implements event store policy. 190814 - lucas
 
-                // todo : Implements event store policy. 190814 - lucas
+                } catch (IllegalAccessException e) {
+                    log.warn(e.getMessage());
+                }
             }
         }
     }
@@ -203,8 +208,8 @@ public class ContractExecutor {
             Receipt receipt = createReceipt(addedBlock, i);
             Object service = serviceMap.get(contractVersion);
             List<Method> values = new ArrayList<>(contractCache
-                            .getContractMethodMap(contractVersion, ContractMethodType.END_BLOCK, service)
-                            .values());
+                    .getContractMethodMap(contractVersion, ContractMethodType.END_BLOCK, service)
+                    .values());
             if (!values.isEmpty()) {
                 // Each contract has only one endBlock method
                 Method method = values.get(0);
@@ -223,15 +228,10 @@ public class ContractExecutor {
         return result;
     }
 
-    private Set<Map.Entry<String, JsonObject>>  invokeTx(Map<String, Object> serviceMap, Transaction tx, Receipt receipt) throws ExecutorException {
+    private Set<Map.Entry<String, JsonObject>> invokeTx(Map<String, Object> serviceMap, Transaction tx, Receipt receipt) throws ExecutorException {
         JsonObject txBody = tx.getBody().getBody();
 
-        String contractVersion;
-        if (txBody.get("contractVersion") == null) {
-            contractVersion = Hex.toHexString(tx.getHeader().getType());
-        } else {
-            contractVersion = txBody.get("contractVersion").getAsString();
-        }
+        String contractVersion = txBody.get(CONTACT_VERSION).getAsString();
 
         String methodName = txBody.get("method").getAsString();
         JsonObject params = txBody.getAsJsonObject("params");
@@ -267,7 +267,7 @@ public class ContractExecutor {
         return method.getParameterCount() == 0 ? method.invoke(service) : method.invoke(service, params);
     }
 
-    private Set<Map.Entry<String, JsonObject>>  invokeMethod(Receipt receipt, Object service, Method method, JsonObject params) { //=> getRuntimeResult
+    private Set<Map.Entry<String, JsonObject>> invokeMethod(Receipt receipt, Object service, Method method, JsonObject params) { //=> getRuntimeResult
         trAdapter.setReceipt(receipt);
 
         try {
@@ -329,11 +329,11 @@ public class ContractExecutor {
         long txSize = tx.getBody().getLength();
         String issuer = tx.getAddress().toString();
 
-        if (tx.getBody().getBody().get("contractVersion") == null) {
+        if (tx.getBody().getBody().get(CONTACT_VERSION) == null) {
             return new ReceiptImpl(txId, txSize, issuer);
         }
         return new ReceiptImpl(txId, txSize, issuer,
-                tx.getBody().getBody().get("contractVersion").getAsString());
+                tx.getBody().getBody().get(CONTACT_VERSION).getAsString());
     }
 
     private void exceptionHandler(ExecutorException e, Receipt receipt) {

@@ -49,7 +49,6 @@ public class ContractManagerBuilderTest {
 
         BranchId branchId = genesis.getBranchId();
 
-
         BlockChainStore bcStore = BlockChainStoreBuilder.newBuilder(branchId)
                 .withDataBasePath(config.getDatabasePath())
                 .withProductionMode(config.isProductionMode())
@@ -77,7 +76,6 @@ public class ContractManagerBuilderTest {
                 .build();
 
         assert manager != null;
-        assert manager.getContractExecutor() != null;
 
         for (ContractStatus cs : manager.searchContracts()) {
             log.debug("Description {}", cs.getDescription());

@@ -23,6 +23,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -74,6 +76,26 @@ public class Downloader {
             new File(filePath).delete();
         }
         return new File(filePath);
+    }
+
+    public static boolean verifyUrl(ContractVersion contractVersion) {
+        try {
+            URL url = new URL(contractRepoUrl + contractVersion + ".jar");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            connection.setRequestMethod("HEAD");
+            connection.connect();
+
+            int responseCode = connection.getResponseCode();
+
+            return responseCode == 200;
+
+        } catch (MalformedURLException e) {
+            log.info(e.getMessage());
+        } catch (IOException e) {
+            log.info(e.getMessage());
+        }
+        return false;
     }
 
     private static void mkdir(String path) {

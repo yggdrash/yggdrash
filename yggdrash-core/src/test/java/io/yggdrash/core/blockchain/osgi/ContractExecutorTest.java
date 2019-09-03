@@ -96,7 +96,6 @@ public class ContractExecutorTest {
         Map<ContractManager, ContractStore> map = ContractTestUtils.createContractManager(genesis);
         this.manager = map.keySet().stream().findFirst().get();
         this.namespace = ContractTestUtils.setNamespace(manager, contractVersion);
-        this.executor = manager.getContractExecutor();
         this.contractStore = map.values().stream().findFirst().get();
 
         initGenesis(); //alloc process (executeTxs)
@@ -374,8 +373,6 @@ public class ContractExecutorTest {
                 .withLogStore(bcStore.getLogStore()) // is this logstore for what?
                 .withSystemProperties(systemProperties)
                 .build();
-
-        this.executor = manager.getContractExecutor();
 
         setNamespace();
 
