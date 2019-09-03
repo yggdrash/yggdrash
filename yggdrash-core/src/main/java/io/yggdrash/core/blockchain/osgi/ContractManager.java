@@ -116,6 +116,8 @@ public class ContractManager implements ContractEventListener {
     }
 
     private void addNewBranchContract(Bundle newBundle, ContractVersion contractVersion) {
+        // @lucase. 190903
+        // todo : Add logic what include newer contract not in branch store.
         for (BranchContract branchContract : contractStore.getBranchStore().getBranchContacts()) {
             ContractVersion originContractVersion = ContractVersion.of(branchContract.getContractVersion().toString());
             String originSymbolicName = getBundle(originContractVersion).getSymbolicName();

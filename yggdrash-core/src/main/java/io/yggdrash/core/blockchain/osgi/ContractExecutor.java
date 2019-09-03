@@ -88,9 +88,9 @@ public class ContractExecutor {
                         field.set(service, contractStore.getBranchStore());
                     }
 
-                if (annotation.annotationType().equals(ContractReceipt.class)) {
-                    field.set(service, trAdapter);
-                }
+                    if (annotation.annotationType().equals(ContractReceipt.class)) {
+                        field.set(service, trAdapter);
+                    }
 
                     if (annotation.annotationType().equals(ContractChannelField.class)) {
                         field.set(service, coupler);
@@ -208,8 +208,8 @@ public class ContractExecutor {
             Receipt receipt = createReceipt(addedBlock, i);
             Object service = serviceMap.get(contractVersion);
             List<Method> values = new ArrayList<>(contractCache
-                            .getContractMethodMap(contractVersion, ContractMethodType.END_BLOCK, service)
-                            .values());
+                    .getContractMethodMap(contractVersion, ContractMethodType.END_BLOCK, service)
+                    .values());
             if (!values.isEmpty()) {
                 // Each contract has only one endBlock method
                 Method method = values.get(0);
@@ -228,7 +228,7 @@ public class ContractExecutor {
         return result;
     }
 
-    private Set<Map.Entry<String, JsonObject>>  invokeTx(Map<String, Object> serviceMap, Transaction tx, Receipt receipt) throws ExecutorException {
+    private Set<Map.Entry<String, JsonObject>> invokeTx(Map<String, Object> serviceMap, Transaction tx, Receipt receipt) throws ExecutorException {
         JsonObject txBody = tx.getBody().getBody();
 
         String contractVersion = txBody.get(CONTACT_VERSION).getAsString();
@@ -267,7 +267,7 @@ public class ContractExecutor {
         return method.getParameterCount() == 0 ? method.invoke(service) : method.invoke(service, params);
     }
 
-    private Set<Map.Entry<String, JsonObject>>  invokeMethod(Receipt receipt, Object service, Method method, JsonObject params) { //=> getRuntimeResult
+    private Set<Map.Entry<String, JsonObject>> invokeMethod(Receipt receipt, Object service, Method method, JsonObject params) { //=> getRuntimeResult
         trAdapter.setReceipt(receipt);
 
         try {
