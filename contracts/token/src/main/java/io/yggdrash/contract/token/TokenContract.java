@@ -932,7 +932,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            String targetTokenId = params.get(TOKEN_EX_T2T_TARGET_TOKEN_ID).getAsString();
+            String targetTokenId = params.get(TOKEN_EX_T2T_TARGET_TOKEN_ID).getAsString().toLowerCase();
             BigDecimal exT2TRate = loadExT2TRate(token, targetTokenId);
             if (exT2TRate == null) {
                 setErrorTxReceipt("Token exchange is not opened to target token!");
@@ -940,7 +940,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
             }
 
             JsonObject targetToken = loadTokenObject(targetTokenId);
-            if (isTokenRunning(targetToken)) {
+            if (isTokenRunning(targetToken) == false) {
                 setErrorTxReceipt("Target token is not running!");
                 return txReceipt;
             }
@@ -962,7 +962,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
             // target token amount
             BigDecimal tokenAmountDecimal = new BigDecimal(tokenAmount);
             BigInteger targetTokenAmount =
-                    tokenAmountDecimal.multiply(tokenAmountDecimal)
+                    tokenAmountDecimal.multiply(exT2TRate)
                     .setScale(0, RoundingMode.HALF_EVEN).toBigInteger();
 
             // do exchange

@@ -998,135 +998,6 @@ public class TokenContractTest {
     }
 
     @Test
-    public void exchangeT2TOpen() {
-        Receipt tx = _testInit();
-
-        // NONEXISTENT TOKEN
-        JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
-        params.addProperty("tokenExT2TTargetTokenId", "TARGET_TOKEN");
-
-        tokenContract.exchangeT2TOpen(params);
-
-        tx.getLog().stream().forEach(l -> log.debug(l));
-        Assert.assertFalse("Exchange open from nonexistent token should be failed", tx.isSuccess());
-
-        // NOT OWNER
-        tx = new ReceiptImpl("0x04", 300L, "1111111111111111111111111111111111111111");
-        this.adapter.setReceipt(tx);
-
-        params.addProperty("tokenId", "TEST_TOKEN");
-
-        tokenContract.exchangeT2TOpen(params);
-
-        tx.getLog().stream().forEach(l -> log.debug(l));
-        Assert.assertFalse("Exchange open by non-owner account should be failed", tx.isSuccess());
-
-        // NONEXISTENT TARGET TOKEN
-        tx = new ReceiptImpl("0x05", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
-        this.adapter.setReceipt(tx);
-
-        tokenContract.exchangeT2TOpen(params);
-
-        tx.getLog().stream().forEach(l -> log.debug(l));
-        Assert.assertFalse("Exchange open to nonexistent target token should be failed", tx.isSuccess());
-
-        // create target token
-        createToken("0x06", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e",
-                "TARGET_TOKEN", "targetToken",
-                null, null, null, null, null, null, null);
-
-        // NORMAL
-        tx = new ReceiptImpl("0x07", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
-        this.adapter.setReceipt(tx);
-
-        params.addProperty("tokenExT2TRate", new BigDecimal("1.0"));
-
-        tokenContract.exchangeT2TOpen(params);
-
-        tx.getLog().stream().forEach(l -> log.debug(l));
-        Assert.assertTrue("Exchange open to target token is failed", tx.isSuccess());
-
-        // ALREADY OPEN
-        tx = new ReceiptImpl("0x08", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
-        this.adapter.setReceipt(tx);
-
-        tokenContract.exchangeT2TOpen(params);
-
-        tx.getLog().stream().forEach(l -> log.debug(l));
-        Assert.assertFalse("Exchange open to already open target token should be failed", tx.isSuccess());
-    }
-
-    @Test
-    public void exchangeT2TClose() {
-        Receipt tx = _testInit();
-
-        // NONEXISTENT TOKEN
-        JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
-        params.addProperty("tokenExT2TTargetTokenId", "TARGET_TOKEN");
-
-        tokenContract.exchangeT2TClose(params);
-
-        tx.getLog().stream().forEach(l -> log.debug(l));
-        Assert.assertFalse("Exchange close from nonexistent token should be failed", tx.isSuccess());
-
-        // NOT OWNER
-        tx = new ReceiptImpl("0x04", 300L, "1111111111111111111111111111111111111111");
-        this.adapter.setReceipt(tx);
-
-        params.addProperty("tokenId", "TEST_TOKEN");
-
-        tokenContract.exchangeT2TClose(params);
-
-        tx.getLog().stream().forEach(l -> log.debug(l));
-        Assert.assertFalse("Exchange close by non-owner account should be failed", tx.isSuccess());
-
-        // NONEXISTENT TARGET TOKEN
-        tx = new ReceiptImpl("0x05", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
-        this.adapter.setReceipt(tx);
-
-        tokenContract.exchangeT2TClose(params);
-
-        tx.getLog().stream().forEach(l -> log.debug(l));
-        Assert.assertFalse("Exchange close to nonexistent target token should be failed", tx.isSuccess());
-
-        // create target token
-        createToken("0x06", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e",
-                "TARGET_TOKEN", "targetToken",
-                null, null, null, null, null, null, null);
-
-        // ALREADY CLOSED
-        tx = new ReceiptImpl("0x07", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
-        this.adapter.setReceipt(tx);
-
-        tokenContract.exchangeT2TClose(params);
-
-        tx.getLog().stream().forEach(l -> log.debug(l));
-        Assert.assertFalse("Exchange close to already closed target token should be failed", tx.isSuccess());
-
-        // open
-        tx = new ReceiptImpl("0x08", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
-        this.adapter.setReceipt(tx);
-
-        params.addProperty("tokenExT2TRate", new BigDecimal("1.0"));
-
-        tokenContract.exchangeT2TOpen(params);
-
-        tx.getLog().stream().forEach(l -> log.debug(l));
-        Assert.assertTrue("Exchange open to target token is failed", tx.isSuccess());
-
-        // NORMAL
-        tx = new ReceiptImpl("0x09", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
-        this.adapter.setReceipt(tx);
-
-        tokenContract.exchangeT2TClose(params);
-
-        tx.getLog().stream().forEach(l -> log.debug(l));
-        Assert.assertTrue("Exchange close to target token is failed", tx.isSuccess());
-    }
-
-    @Test
     public void exchangeT2Y() {
         createToken();
 
@@ -1307,36 +1178,278 @@ public class TokenContractTest {
     }
 
     @Test
-    public void exchangeT2T() {
-        // TODO : @kevin : 2019-08-30
-
-        //     create token
+    public void exchangeT2TOpen() {
+        Receipt tx = _testInit();
 
         // NONEXISTENT TOKEN
+        JsonObject params = new JsonObject();
+        params.addProperty("tokenId", "NONE_TOKEN");
+        params.addProperty("tokenExT2TTargetTokenId", "TARGET_TOKEN");
 
-        // NOT RUNNING
+        tokenContract.exchangeT2TOpen(params);
 
-        //     move phase to run
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange open from nonexistent token should be failed", tx.isSuccess());
 
-        //     create target token
+        // NOT OWNER
+        tx = new ReceiptImpl("0x04", 300L, "1111111111111111111111111111111111111111");
+        this.adapter.setReceipt(tx);
 
-        // NOT OPEN TO TARGET TOKEN
+        params.addProperty("tokenId", "TEST_TOKEN");
 
-        //     open to target token
+        tokenContract.exchangeT2TOpen(params);
 
-        // TARGET TOKEN NOT RUNNING
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange open by non-owner account should be failed", tx.isSuccess());
 
-        //     target token move phase to run
+        // NONEXISTENT TARGET TOKEN
+        tx = new ReceiptImpl("0x05", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        this.adapter.setReceipt(tx);
 
-        // ZERO AMOUNT
+        tokenContract.exchangeT2TOpen(params);
 
-        // INSUFFICIENT BALANCE
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange open to nonexistent target token should be failed", tx.isSuccess());
+
+        // create target token
+        createToken("0x06", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e",
+                "TARGET_TOKEN", "targetToken",
+                null, null, null, null, null, null, null);
 
         // NORMAL
+        tx = new ReceiptImpl("0x07", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        this.adapter.setReceipt(tx);
+
+        params.addProperty("tokenExT2TRate", new BigDecimal("1.0"));
+
+        tokenContract.exchangeT2TOpen(params);
+
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Exchange open to target token is failed", tx.isSuccess());
+
+        // ALREADY OPEN
+        tx = new ReceiptImpl("0x08", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        this.adapter.setReceipt(tx);
+
+        tokenContract.exchangeT2TOpen(params);
+
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange open to already open target token should be failed", tx.isSuccess());
+    }
+
+    @Test
+    public void exchangeT2TClose() {
+        Receipt tx = _testInit();
+
+        // NONEXISTENT TOKEN
+        JsonObject params = new JsonObject();
+        params.addProperty("tokenId", "NONE_TOKEN");
+        params.addProperty("tokenExT2TTargetTokenId", "TARGET_TOKEN");
+
+        tokenContract.exchangeT2TClose(params);
+
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange close from nonexistent token should be failed", tx.isSuccess());
+
+        // NOT OWNER
+        tx = new ReceiptImpl("0x04", 300L, "1111111111111111111111111111111111111111");
+        this.adapter.setReceipt(tx);
+
+        params.addProperty("tokenId", "TEST_TOKEN");
+
+        tokenContract.exchangeT2TClose(params);
+
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange close by non-owner account should be failed", tx.isSuccess());
+
+        // NONEXISTENT TARGET TOKEN
+        tx = new ReceiptImpl("0x05", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        this.adapter.setReceipt(tx);
+
+        tokenContract.exchangeT2TClose(params);
+
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange close to nonexistent target token should be failed", tx.isSuccess());
+
+        // create target token
+        createToken("0x06", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e",
+                "TARGET_TOKEN", "targetToken",
+                null, null, null, null, null, null, null);
+
+        // ALREADY CLOSED
+        tx = new ReceiptImpl("0x07", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        this.adapter.setReceipt(tx);
+
+        tokenContract.exchangeT2TClose(params);
+
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange close to already closed target token should be failed", tx.isSuccess());
+
+        // open
+        tx = new ReceiptImpl("0x08", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        this.adapter.setReceipt(tx);
+
+        params.addProperty("tokenExT2TRate", new BigDecimal("1.0"));
+
+        tokenContract.exchangeT2TOpen(params);
+
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Exchange open to target token is failed", tx.isSuccess());
+
+        // NORMAL
+        tx = new ReceiptImpl("0x09", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        this.adapter.setReceipt(tx);
+
+        tokenContract.exchangeT2TClose(params);
+
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Exchange close to target token is failed", tx.isSuccess());
+    }
+
+    @Test
+    public void exchangeT2T() {
+        String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
+        String targetOwner = "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e";
+        String account1 = "1111111111111111111111111111111111111111";
+
+        // NONEXISTENT TOKEN
+        Receipt rct = new ReceiptImpl("0x02", 300L, account1);
+        this.adapter.setReceipt(rct);
+
+        JsonObject params = new JsonObject();
+        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty("tokenExT2TTargetTokenId", "TARGET_TOKEN");
+
+        tokenContract.exchangeT2T(params);
+
+        rct.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange from nonexistent token should be failed", rct.isSuccess());
+
+        //     create token
+        createToken();
+
+        // NOT RUNNING
+        rct = new ReceiptImpl("0x04", 300L, account1);
+        this.adapter.setReceipt(rct);
+
+        tokenContract.exchangeT2T(params);
+
+        rct.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange of not running token should be failed", rct.isSuccess());
+
+        //     move phase to run
+        rct = new ReceiptImpl("0x05", 300L, owner);
+        this.adapter.setReceipt(rct);
+
+        tokenContract.movePhaseRun(params);
+
+        rct.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Phase move from INIT to RUN is failed", rct.isSuccess());
+
+        //     transfer 10000 to account1
+        rct = new ReceiptImpl("0x03", 300L, owner);
+        this.adapter.setReceipt(rct);
+
+        params.addProperty("to", account1);
+        params.addProperty("amount", getBigInt18(10000));
+
+        tokenContract.transfer(params);
+
+        rct.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Transfer is failed", rct.isSuccess());
+
+        //     create target token
+        createToken("0x06", targetOwner,
+                "TARGET_TOKEN", "targetToken",
+                null, null, null, null, null, null, null);
+
+        // NOT OPEN TO TARGET TOKEN
+        rct = new ReceiptImpl("0x07", 300L, account1);
+        this.adapter.setReceipt(rct);
+
+        tokenContract.exchangeT2T(params);
+
+        rct.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange to not open target token should be failed", rct.isSuccess());
+
+        //     open to target token
+        rct = new ReceiptImpl("0x08", 300L, owner);
+        this.adapter.setReceipt(rct);
+
+        params.addProperty("tokenExT2TRate", new BigDecimal("1.0"));
+
+        tokenContract.exchangeT2TOpen(params);
+
+        rct.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Exchange open to target token is failed", rct.isSuccess());
+
+        // TARGET TOKEN NOT RUNNING
+        rct = new ReceiptImpl("0x09", 300L, account1);
+        this.adapter.setReceipt(rct);
+
+        JsonObject targetParams = new JsonObject();
+        targetParams.addProperty("tokenId", "TARGET_TOKEN");
+
+        tokenContract.exchangeT2T(targetParams);
+
+        rct.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange to not running target token should be failed", rct.isSuccess());
+
+        //     target token move phase to run
+        rct = new ReceiptImpl("0x10", 300L, targetOwner);
+        this.adapter.setReceipt(rct);
+
+        tokenContract.movePhaseRun(targetParams);
+
+        rct.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Phase of target token move from INIT to RUN is failed", rct.isSuccess());
+
+        // ZERO AMOUNT
+        rct = new ReceiptImpl("0x11", 300L, account1);
+        this.adapter.setReceipt(rct);
+
+        params.addProperty("amount", BigInteger.ZERO);
+
+        tokenContract.exchangeT2T(params);
+
+        rct.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange amount should be greater than ZERO", rct.isSuccess());
+
+        // INSUFFICIENT BALANCE
+        rct = new ReceiptImpl("0x11", 300L, account1);
+        this.adapter.setReceipt(rct);
+
+        params.addProperty("amount", getBigInt18(20000));
+
+        tokenContract.exchangeT2T(params);
+
+        rct.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Exchange amount should be less than balance", rct.isSuccess());
+
+        // NORMAL
+        rct = new ReceiptImpl("0x12", 300L, account1);
+        this.adapter.setReceipt(rct);
+
+        params.addProperty("amount", getBigInt18(1000));
+
+        tokenContract.exchangeT2T(params);
+
+        rct.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Exchange failed", rct.isSuccess());
 
         // TOKEN BALANCE
+        params = new JsonObject();
+        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty("address", account1);
+
+        BigInteger tokenBalance = tokenContract.balanceOf(params);
+        Assert.assertEquals("Token balance should match", 0, tokenBalance.compareTo(getBigInt18(9000)));
 
         // TARGET TOKEN BALANCE
+        params.addProperty("tokenId", "TARGET_TOKEN");
+
+        BigInteger targetTokenBalance = tokenContract.balanceOf(params);
+        Assert.assertEquals("Target token balance should match", 0, targetTokenBalance.compareTo(getBigInt18(1000)));
     }
 
 
