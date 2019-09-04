@@ -59,6 +59,13 @@
       },
       "name": "DPoA",
       "description": "This contract is for a validator."
+    },
+    {
+      "contractVersion": "d4f82617919325b5b2fd87966f5f58d1347fd44a",
+      "isSystem": true,
+      "init": {},
+      "name": "TOKEN",
+      "description": "Yggdrash Token Service"
     }
   ],
   "timestamp": "000001674dc56231",
