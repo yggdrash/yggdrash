@@ -84,6 +84,9 @@ public class BlockChainSyncManagerTest {
     @Test
     public void syncTransaction() {
         syncManager.syncTransaction(handler, blockChain);
-        assertThat(blockChainManager.countOfTxs()).isEqualTo(3);
+        // Genesis Block's Init Tx size is Contract List size
+        int genesisBlockTxSize = blockChain.getBranchContracts().size();
+        // TODO change
+        assertThat(blockChainManager.countOfTxs()).isEqualTo(genesisBlockTxSize);
     }
 }

@@ -71,9 +71,12 @@ public class BranchGroupTest {
 
     @Test
     public void addTransaction() {
+
+        int contractSize = branchGroup.getBranch(tx.getBranchId()).getBranchContracts().size();
+
         // should be existed tx on genesis block
-        assertThat(branchGroup.getRecentTxs(tx.getBranchId()).size()).isEqualTo(3);
-        assertThat(branchGroup.countOfTxs(tx.getBranchId())).isEqualTo(3);
+        assertThat(branchGroup.getRecentTxs(tx.getBranchId()).size()).isEqualTo(contractSize);
+        assertThat(branchGroup.countOfTxs(tx.getBranchId())).isEqualTo(contractSize);
 
         Map<String, List<String>> errLogs = branchGroup.addTransaction(tx);
         if (getBalance(tx.getAddress().toString()).equals(BigInteger.ZERO)) {
