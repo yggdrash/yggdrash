@@ -1,8 +1,5 @@
-package io.yggdrash.contract;
+package io.yggdrash.contract.token;
 
-import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.Map;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.common.crypto.HashUtil;
@@ -13,17 +10,24 @@ import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.contract.core.annotation.ContractChannelMethod;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
 
-public class TestYeed  {
+public class TestYeed {
+    private static final Logger log = LoggerFactory.getLogger(TestYeed.class);
 
     Map<String, BigInteger> amount = new HashMap<>();
     private Receipt txReceipt;
 
     public TestYeed() {
-        amount.put("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94", new BigInteger("100000000000"));
-        amount.put("1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e", new BigInteger("100000000000"));
-        amount.put("101167aaf090581b91c08480f6e559acdd9a3ddd", new BigInteger("100000000000000"));
-        amount.put("5244d8163ea6fdd62aa08ae878b084faa0b013be", new BigInteger("100000000000000"));
+        amount.put("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94", BigInteger.TEN.pow(40));
+        amount.put("1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e", BigInteger.TEN.pow(40));
+        amount.put("101167aaf090581b91c08480f6e559acdd9a3ddd", BigInteger.TEN.pow(40));
+        amount.put("5244d8163ea6fdd62aa08ae878b084faa0b013be", BigInteger.TEN.pow(40));
+        amount.put("1111111111111111111111111111111111111111", BigInteger.valueOf(1234).multiply(BigInteger.TEN.pow(18)));
     }
 
     public void setTxReceipt(Receipt txReceipt) {
@@ -171,6 +175,7 @@ public class TestYeed  {
 
     @ContractChannelMethod
     public boolean transferFromChannel(JsonObject params) {
+        log.info("transferFromChannel");
         String contractName = "STEM";
         String contractAccount = String.format("%s%s", PrefixKeyEnum.CONTRACT_ACCOUNT, contractName);
         String from = params.get("from").getAsString();
@@ -240,12 +245,14 @@ public class TestYeed  {
 
     @ContractChannelMethod
     public boolean transferChannel(JsonObject params) { // call other contract to transfer
-        String contractName = "STEM"; // contract Name base
+
+        String contractName = "TOKEN"; // contract Name base
         BigInteger amount = params.get("amount").getAsBigInteger();
         String fromAccount = params.get("from").getAsString();
         String toAccount = params.get("to").getAsString();
         String contractAccount = String.format("%s%s", PrefixKeyEnum.CONTRACT_ACCOUNT, contractName);
 
+        // TODO FIX
         if (toAccount.equalsIgnoreCase(contractName)) { // deposit
             // check from is issuer
             if (fromAccount.equalsIgnoreCase(this.txReceipt.getIssuer())) {
