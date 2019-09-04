@@ -1,26 +1,26 @@
 package io.yggdrash.contract.token;
 
-import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.Map;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.contract.core.annotation.ContractChannelMethod;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TestYeed {
     private static final Logger log = LoggerFactory.getLogger(TestYeed.class);
 
     Map<String, BigInteger> amount = new HashMap<>();
-    private TransactionReceipt txReceipt;
+    private Receipt txReceipt;
 
     public TestYeed() {
         amount.put("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94", BigInteger.TEN.pow(40));
@@ -30,7 +30,7 @@ public class TestYeed {
         amount.put("1111111111111111111111111111111111111111", BigInteger.valueOf(1234).multiply(BigInteger.TEN.pow(18)));
     }
 
-    public void setTxReceipt(TransactionReceipt txReceipt) {
+    public void setTxReceipt(Receipt txReceipt) {
         this.txReceipt = txReceipt;
     }
 
