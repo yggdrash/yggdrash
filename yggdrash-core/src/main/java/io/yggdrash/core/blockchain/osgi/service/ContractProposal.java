@@ -23,7 +23,7 @@ public class ContractProposal implements Serializable, Comparable<ContractPropos
     public String txId;
     public String proposer;
 
-    public String contractVersion;
+    public String proposalVersion;
     public String sourceUrl;
     public String buildVersion;
 
@@ -36,11 +36,11 @@ public class ContractProposal implements Serializable, Comparable<ContractPropos
 
     }
 
-    ContractProposal(String txId, String proposer, String contractVersion, String sourceUrl,
+    ContractProposal(String txId, String proposer, String proposalVersion, String sourceUrl,
                      String buildVersion, long blockHeight, Set<String> validatorSet) {
         this.txId = txId;
         this.proposer = proposer;
-        this.contractVersion = contractVersion;
+        this.proposalVersion = proposalVersion;
         this.sourceUrl = sourceUrl;
         this.buildVersion = buildVersion;
         this.targetBlockHeight = blockHeight + DEFAULT_PERIOD;
@@ -50,6 +50,10 @@ public class ContractProposal implements Serializable, Comparable<ContractPropos
 
     boolean isExpired(long blockHeight) {
         return blockHeight > targetBlockHeight;
+    }
+
+    boolean isExpired() {
+        return votingProgress.votingStatus.equals(VotingProgress.VotingStatus.EXPIRED);
     }
 
     boolean hasAlreadyVoted(String validator) {
@@ -68,8 +72,8 @@ public class ContractProposal implements Serializable, Comparable<ContractPropos
         return txId;
     }
 
-    String getContractVersion() {
-        return contractVersion;
+    public String getProposalVersion() {
+        return proposalVersion;
     }
 
     public String getSourceUrl() {
@@ -94,7 +98,7 @@ public class ContractProposal implements Serializable, Comparable<ContractPropos
 
     @Override
     public int compareTo(ContractProposal proposal) {
-        return contractVersion.compareTo(proposal.contractVersion);
+        return proposalVersion.compareTo(proposal.proposalVersion);
     }
 
 }

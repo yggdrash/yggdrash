@@ -13,6 +13,7 @@ import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.framework.BundleService;
+import io.yggdrash.core.blockchain.osgi.service.ContractProposal;
 import io.yggdrash.core.blockchain.osgi.service.VersioningContract;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
@@ -82,32 +83,54 @@ public class ContractManager implements ContractEventListener {
     public void endBlock(ContractEvent event) {
         // TODO Consider if not versioningContract
         if (event.getContractVersion().equals(ContractConstants.VERSIONING_CONTRACT.toString())) {
-            versioningContractEventHandler(event);
+//            versioningContractEventHandler(event);
         }
     }
 
-    private void versioningContractEventHandler(ContractEvent event) {
+    @Override
+    public void endBlock(BlockRuntimeResult result, ContractEvent event) {
+        versioningContractEventHandler(result, event);
+//        if (!(event.getItem() instanceof HashMap)) {
+//            endBlock(event);
+//        } else {
+//            commitBlockResult(result);
+//        }
+    }
+
+
+
+
+    private void versioningContractEventHandler(BlockRuntimeResult result, ContractEvent event) {
         ContractEventType eventType = event.getType();
-        ContractVersion contractVersion = ContractVersion.of((String) event.getItem());
+
+        ContractProposal proposal = (ContractProposal) event.getItem();
+
+        ContractVersion proposalVersion = ContractVersion.of(proposal.getProposalVersion());
         try {
             switch (eventType) {
                 case INSTALL:
-                    install(contractVersion);
+                    install(proposalVersion);
                     break;
                 case UNINSTALL:
-                    uninstall(contractVersion);
+                    uninstall(proposalVersion);
                     break;
                 case START:
-                    Bundle newBundle = getBundle(contractVersion);
+                    Bundle newBundle = getBundle(proposalVersion);
                     if (newBundle != null) {
-                        addNewBranchContract(newBundle, contractVersion);
-                        start(contractVersion);
+                        addNewBranchContract(newBundle, proposalVersion);
+                        start(proposalVersion);
                     } else {
                         throw new BundleException("Start bundle failed. The bundle has not installed properly. ");
                     }
                     break;
                 case STOP:
-                    stop(contractVersion);
+                    stop(proposalVersion);
+                    break;
+                case EXPIRED:
+                    commitBlockResult(result);
+                    break;
+                default:
+                    log.info("Not defined event type in version contract");
                     break;
             }
         } catch (BundleException | IOException e) {

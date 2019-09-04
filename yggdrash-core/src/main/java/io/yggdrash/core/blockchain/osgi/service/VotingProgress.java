@@ -28,7 +28,8 @@ public class VotingProgress implements Serializable {
     enum VotingStatus {
         VOTABLE,
         AGREE,
-        DISAGREE
+        DISAGREE,
+        EXPIRED
     }
 
     VotingProgress() {
@@ -65,6 +66,10 @@ public class VotingProgress implements Serializable {
 
     VotingStatus getVotingStatus() {
         return votingStatus;
+    }
+
+    public void setVotingStatus(VotingStatus votingStatus) {
+        this.votingStatus = votingStatus;
     }
 
     static class Vote implements Serializable {

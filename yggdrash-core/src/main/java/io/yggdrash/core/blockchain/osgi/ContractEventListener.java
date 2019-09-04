@@ -13,9 +13,12 @@
 package io.yggdrash.core.blockchain.osgi;
 
 import io.yggdrash.contract.core.ContractEvent;
+import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 
 public interface ContractEventListener {
 
     void endBlock(ContractEvent event);
+
+    void endBlock(BlockRuntimeResult result, ContractEvent event);
 
 }

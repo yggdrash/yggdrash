@@ -207,12 +207,12 @@ public class ContractExecutor {
         for (String contractVersion : serviceMap.keySet()) {
             Receipt receipt = createReceipt(addedBlock, i);
             Object service = serviceMap.get(contractVersion);
-            List<Method> values = new ArrayList<>(contractCache
+            List<Method> methods = new ArrayList<>(contractCache
                     .getContractMethodMap(contractVersion, ContractMethodType.END_BLOCK, service)
                     .values());
-            if (!values.isEmpty()) {
+            if (!methods.isEmpty()) {
                 // Each contract has only one endBlock method
-                Method method = values.get(0);
+                Method method = methods.get(0);
                 receipt.setContractVersion(contractVersion);
                 changedValues = invokeMethod(receipt, service, method, new JsonObject());
 
@@ -224,6 +224,7 @@ public class ContractExecutor {
                 i++;
             }
         }
+
         contractStore.getTmpStateStore().close(); // clear(revert) tmpStateStore
         return result;
     }
@@ -286,16 +287,14 @@ public class ContractExecutor {
         locker.lock();
         ReceiptStore receiptStore = contractStore.getReceiptStore();
 
-        String versioningContractVersion = "0000000000000001";
         for (Receipt receipt : result.getReceipts()) {
-            if (receipt.getContractVersion().equals(versioningContractVersion)) { //VersioningContract
-                // Store receipt and logs
+            /* todo : Implements better way how to distinguish receipt between blocks and transaction. @lucase, 190904 */
+            if (receipt.getTxId() == null) {
+                // case 1. store block receipt
                 receiptStore.put(receipt.getBlockId(), receipt); // endBlock
                 logIndexer.put(receipt.getBlockId(), receipt.getLog().size());
-
-                // TODO event 발생은 blockChainImpl 에서 !! -> blockChainImpl
             } else {
-                // Store receipt and logs
+                // case 2. store tx receipt
                 receiptStore.put(receipt.getTxId(), receipt);
                 logIndexer.put(receipt.getTxId(), receipt.getLog().size());
             }
@@ -306,7 +305,6 @@ public class ContractExecutor {
                 StateStore stateStore = contractStore.getStateStore();
                 changes.forEach(stateStore::put);
             }
-
         }
         isTx = true;
         isBlockExecuting.signal();

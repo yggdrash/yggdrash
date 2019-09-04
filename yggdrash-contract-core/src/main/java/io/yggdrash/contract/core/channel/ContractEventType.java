@@ -16,5 +16,6 @@ public enum ContractEventType {
     INSTALL,
     UNINSTALL,
     START,
-    STOP
+    STOP,
+    EXPIRED
 }

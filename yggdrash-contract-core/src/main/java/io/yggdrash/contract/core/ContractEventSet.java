@@ -12,10 +12,14 @@
 
 package io.yggdrash.contract.core;
 
+import io.yggdrash.contract.core.channel.ContractEventType;
+
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ContractEventSet implements Serializable {
 
@@ -34,6 +38,16 @@ public class ContractEventSet implements Serializable {
 
     public void addEvents(ContractEvent event) {
         events.add(event);
+    }
+
+    public void removeExpireEvent() {
+        List<ContractEvent> expireEvents = events.stream()
+                .filter(event -> event.getType().equals(ContractEventType.EXPIRED))
+                .collect(Collectors.toList());
+
+        if (!expireEvents.isEmpty()) {
+            events.removeAll(expireEvents);
+        }
     }
 
     public Set<ContractEvent> getEvents() {
