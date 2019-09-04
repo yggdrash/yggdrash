@@ -30,6 +30,28 @@ import java.util.List;
 import java.util.Map;
 
 public class TokenContractTest {
+    private static final String TOKEN_ID = "tokenId";
+    private static final String TOKEN_NAME = "tokenName";
+    private static final String TOKEN_INIT_YEED_STAKE_AMOUNT = "tokenInitYeedStakeAmount";
+
+    private static final String TOKEN_INIT_MINT_AMOUNT = "tokenInitMintAmount";
+    private static final String TOKEN_MINTABLE = "tokenMintable";
+    private static final String TOKEN_BURNABLE = "tokenBurnable";
+
+    private static final String TOKEN_EX_T2Y_ENABLED = "tokenExT2YEnabled";
+    private static final String TOKEN_EX_T2Y_TYPE = "tokenExT2YType";
+    private static final String TOKEN_EX_T2Y_TYPE_FIXED = "TOKEN_EX_T2Y_TYPE_FIXED";
+    private static final String TOKEN_EX_T2Y_TYPE_LINKED = "TOKEN_EX_T2Y_TYPE_LINKED";
+    private static final String TOKEN_EX_T2Y_RATE = "tokenExT2YRate";
+
+    private static final String TOKEN_EX_T2T_RATE = "tokenExT2TRate";
+    private static final String TOKEN_EX_T2T_TARGET_TOKEN_ID = "tokenExT2TTargetTokenId";
+
+    private static final String ADDRESS = "address";
+    private static final String AMOUNT = "amount";
+
+    private static final String SPENDER = "spender";
+    private static final String OWNER = "owner";
 
     private static final Logger log = LoggerFactory.getLogger(TokenContractTest.class);
 
@@ -97,7 +119,7 @@ public class TokenContractTest {
     }
 
     @Test
-    public void createToken() {
+    public void _createToken() {
         String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
 
         // INSUFFICIENT YEED BALANCE TO STAKE
@@ -105,43 +127,43 @@ public class TokenContractTest {
         this.adapter.setReceipt(tx);
 
         JsonObject createToken = new JsonObject();
-        createToken.addProperty("tokenId", "TEST_TOKEN");
-        createToken.addProperty("tokenName", "TTOKEN");
-        createToken.addProperty("tokenInitYeedStakeAmount", BigInteger.TEN.pow(50));
-        createToken.addProperty("tokenInitMintAmount", BigInteger.TEN.pow(30));
-        createToken.addProperty("tokenMintable", true);
-        createToken.addProperty("tokenBurnable", true);
-        createToken.addProperty("tokenExT2YEnabled", true);
-        createToken.addProperty("tokenExT2YType", "TOKEN_EX_T2Y_TYPE_FIXED");
-        createToken.addProperty("tokenExT2YRate", new BigDecimal("1.0"));
+        createToken.addProperty(TOKEN_ID, "TEST_TOKEN");
+        createToken.addProperty(TOKEN_NAME, "TTOKEN");
+        createToken.addProperty(TOKEN_INIT_YEED_STAKE_AMOUNT, BigInteger.TEN.pow(50));
+        createToken.addProperty(TOKEN_INIT_MINT_AMOUNT, BigInteger.TEN.pow(30));
+        createToken.addProperty(TOKEN_MINTABLE, true);
+        createToken.addProperty(TOKEN_BURNABLE, true);
+        createToken.addProperty(TOKEN_EX_T2Y_ENABLED, true);
+        createToken.addProperty(TOKEN_EX_T2Y_TYPE, TOKEN_EX_T2Y_TYPE_FIXED);
+        createToken.addProperty(TOKEN_EX_T2Y_RATE, new BigDecimal("1.0"));
 
         tokenContract.createToken(createToken);
         tx.getLog().stream().forEach(l -> log.debug(l));
         Assert.assertFalse("Token creation with YEED stake over balance should be failed", tx.isSuccess());
 
         // NORMAL
-        createToken("0x01", null, null, null, BigInteger.TEN.pow(24), null, null, null, null, null, null);
+        _createToken("0x01", null, null, null, BigInteger.TEN.pow(24), null, null, null, null, null, null);
     }
 
     @Test
     public void createTokenDuplicated() {
         // NORMAL
-        createToken(null, null, null, null, null, null, null, null, null, null, null);
+        _createToken(null, null, null, null, null, null, null, null, null, null, null);
 
         // DUPLICATED
         Receipt tx = new ReceiptImpl("0x02", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
         this.adapter.setReceipt(tx);
 
         JsonObject createToken = new JsonObject();
-        createToken.addProperty("tokenId", "TEST_TOKEN");
-        createToken.addProperty("tokenName", "TTOKEN");
-        createToken.addProperty("tokenInitYeedStakeAmount", BigInteger.TEN.pow(24));
-        createToken.addProperty("tokenInitMintAmount", BigInteger.TEN.pow(30));
-        createToken.addProperty("tokenMintable", true);
-        createToken.addProperty("tokenBurnable", true);
-        createToken.addProperty("tokenExT2YEnabled", true);
-        createToken.addProperty("tokenExT2YType", "TOKEN_EX_T2Y_TYPE_FIXED");
-        createToken.addProperty("tokenExT2YRate", new BigDecimal("1.0"));
+        createToken.addProperty(TOKEN_ID, "TEST_TOKEN");
+        createToken.addProperty(TOKEN_NAME, "TTOKEN");
+        createToken.addProperty(TOKEN_INIT_YEED_STAKE_AMOUNT, BigInteger.TEN.pow(24));
+        createToken.addProperty(TOKEN_INIT_MINT_AMOUNT, BigInteger.TEN.pow(30));
+        createToken.addProperty(TOKEN_MINTABLE, true);
+        createToken.addProperty(TOKEN_BURNABLE, true);
+        createToken.addProperty(TOKEN_EX_T2Y_ENABLED, true);
+        createToken.addProperty(TOKEN_EX_T2Y_TYPE, TOKEN_EX_T2Y_TYPE_FIXED);
+        createToken.addProperty(TOKEN_EX_T2Y_RATE, new BigDecimal("1.0"));
 
         tokenContract.createToken(createToken);
         tx.getLog().stream().forEach(l -> log.debug(l));
@@ -154,7 +176,7 @@ public class TokenContractTest {
 
         // NONEXISTENT TOKEN
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
+        params.addProperty(TOKEN_ID, "NONE_TOKEN");
 
         BigInteger totalSupply = tokenContract.totalSupply(params);
 
@@ -162,12 +184,14 @@ public class TokenContractTest {
         Assert.assertEquals("The result must be null", null, totalSupply);
 
         // NORMAL
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
 
         totalSupply = tokenContract.totalSupply(params);
 
         tx.getLog().stream().forEach(l -> log.debug(l));
-        Assert.assertEquals("Total supply should match with initial mint", 0, totalSupply.compareTo(BigInteger.TEN.pow(30)));
+        Assert.assertEquals(
+                "Total supply should match with initial mint",
+                0, totalSupply.compareTo(BigInteger.TEN.pow(30)));
     }
 
     @Test
@@ -176,8 +200,8 @@ public class TokenContractTest {
 
         // NONEXISTENT TOKEN
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
-        params.addProperty("address", tx.getIssuer());
+        params.addProperty(TOKEN_ID, "NONE_TOKEN");
+        params.addProperty(ADDRESS, tx.getIssuer());
 
         BigInteger result = tokenContract.totalSupply(params);
 
@@ -185,12 +209,14 @@ public class TokenContractTest {
         Assert.assertEquals("The result must be null", null, result);
 
         // NORMAL
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
 
         result = tokenContract.totalSupply(params);
 
         tx.getLog().stream().forEach(l -> log.debug(l));
-        Assert.assertEquals("The balance should match with initial mint!!!", 0, result.compareTo(BigInteger.TEN.pow(30)));
+        Assert.assertEquals(
+                "The balance should match with initial mint!!!",
+                0, result.compareTo(BigInteger.TEN.pow(30)));
     }
 
     @Test
@@ -199,7 +225,7 @@ public class TokenContractTest {
 
         // NONEXISTENT TOKEN
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
+        params.addProperty(TOKEN_ID, "NONE_TOKEN");
 
         BigInteger result = tokenContract.getYeedBalanceOf(params);
 
@@ -207,12 +233,14 @@ public class TokenContractTest {
         Assert.assertEquals("The result must be null", null, result);
 
         // NORMAL
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
 
         result = tokenContract.getYeedBalanceOf(params);
 
         tx.getLog().stream().forEach(l -> log.debug(l));
-        Assert.assertEquals("The result should match with initial YEED stake", 0, result.compareTo(BigInteger.TEN.pow(24)));
+        Assert.assertEquals(
+                "The result should match with initial YEED stake",
+                0, result.compareTo(BigInteger.TEN.pow(24)));
     }
 
     @Test
@@ -225,29 +253,29 @@ public class TokenContractTest {
 
         // NONEXISTENT TOKEN
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
-        params.addProperty("owner", owner);
-        params.addProperty("spender", spender);
+        params.addProperty(TOKEN_ID, "NONE_TOKEN");
+        params.addProperty(OWNER, owner);
+        params.addProperty(SPENDER, spender);
 
         BigInteger result = tokenContract.allowance(params);
 
         Assert.assertEquals("Allowance at nonexistent token should returns null", null, result);
 
         // NOT APPROVED ACCOUNT
-        tx = new ReceiptImpl("0x03", 300L, owner);
-        this.adapter.setReceipt(tx);
-
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
 
         result = tokenContract.allowance(params);
 
-        Assert.assertEquals("Allowance of not approved account should be ZERO", 0, result.compareTo(BigInteger.ZERO));
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertEquals(
+                "Allowance of not approved account should be ZERO",
+                0, result.compareTo(BigInteger.ZERO));
 
         // approve
         tx = new ReceiptImpl("0x03", 300L, owner);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("amount", getBigInt18(100000));
+        params.addProperty(AMOUNT, getBigInt18(100000));
 
         tokenContract.approve(params);
 
@@ -260,7 +288,9 @@ public class TokenContractTest {
 
         result = tokenContract.allowance(params);
 
-        Assert.assertEquals("The result should match with approved value", 0, result.compareTo(getBigInt18(100000)));
+        Assert.assertEquals(
+                "The result should match with approved value",
+                0, result.compareTo(getBigInt18(100000)));
 
         // transferFrom
         tx = new ReceiptImpl("0x05", 300L, spender);
@@ -268,7 +298,7 @@ public class TokenContractTest {
 
         params.addProperty("from", owner);
         params.addProperty("to", account2);
-        params.addProperty("amount", getBigInt18(10000));
+        params.addProperty(AMOUNT, getBigInt18(10000));
 
         tokenContract.transferFrom(params);
 
@@ -281,7 +311,9 @@ public class TokenContractTest {
 
         result = tokenContract.allowance(params);
 
-        Assert.assertEquals("The result should match with approved value", 0, result.compareTo(getBigInt18(90000)));
+        Assert.assertEquals(
+                "The result should match with approved value",
+                0, result.compareTo(getBigInt18(90000)));
     }
 
     @Test
@@ -290,8 +322,8 @@ public class TokenContractTest {
 
         // NONEXISTENT TOKEN
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
-        params.addProperty("amount", getBigInt18(100));
+        params.addProperty(TOKEN_ID, "NONE_TOKEN");
+        params.addProperty(AMOUNT, getBigInt18(100));
 
         tokenContract.depositYeedStake(params);
 
@@ -303,8 +335,8 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x03", 300L, issuer);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("tokenId", "TEST_TOKEN");
-        params.addProperty("amount", getBigInt18(100));
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
+        params.addProperty(AMOUNT, getBigInt18(100));
 
         tokenContract.depositYeedStake(params);
 
@@ -316,7 +348,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x04", 300L, owner);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("amount", BigInteger.TEN.pow(50)); // balance == TEN.pow(40)
+        params.addProperty(AMOUNT, BigInteger.TEN.pow(50)); // balance == TEN.pow(40)
 
         tokenContract.depositYeedStake(params);
 
@@ -327,7 +359,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x05", 300L, owner);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("amount", getBigInt18(100));
+        params.addProperty(AMOUNT, getBigInt18(100));
 
         tokenContract.depositYeedStake(params);
 
@@ -337,7 +369,9 @@ public class TokenContractTest {
         // YEED BALANCE
         BigInteger result = tokenContract.getYeedBalanceOf(params);
 
-        Assert.assertEquals("The result should match with current YEED stake", 0, result.compareTo(getBigInt18(1000100)));
+        Assert.assertEquals(
+                "The result should match with current YEED stake",
+                0, result.compareTo(getBigInt18(1000100)));
     }
 
     @Test
@@ -346,7 +380,7 @@ public class TokenContractTest {
 
         // NONEXISTENT TOKEN
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
+        params.addProperty(TOKEN_ID, "NONE_TOKEN");
 
         tokenContract.withdrawYeedStake(params);
 
@@ -357,7 +391,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x04", 300L, "1111111111111111111111111111111111111111");
         this.adapter.setReceipt(tx);
 
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
 
         tx.getLog().stream().forEach(l -> log.debug(l));
         Assert.assertFalse("Withdraw by who does not own token should be failed", tx.isSuccess());
@@ -366,7 +400,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x05", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
         this.adapter.setReceipt(tx);
 
-        params.addProperty("amount", BigInteger.TEN.pow(50)); // balance == TEN.pow(40)
+        params.addProperty(AMOUNT, BigInteger.TEN.pow(50)); // balance == TEN.pow(40)
 
         tokenContract.withdrawYeedStake(params);
 
@@ -377,7 +411,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x06", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
         this.adapter.setReceipt(tx);
 
-        params.addProperty("amount", getBigInt18(100));
+        params.addProperty(AMOUNT, getBigInt18(100));
 
         tokenContract.withdrawYeedStake(params);
 
@@ -387,19 +421,21 @@ public class TokenContractTest {
         // CHECK BALANCE
         BigInteger result = tokenContract.getYeedBalanceOf(params);
 
-        Assert.assertEquals("The result should match with current YEED stake", 0, result.compareTo(getBigInt18(999900)));
+        Assert.assertEquals(
+                "The result should match with current YEED stake",
+                0, result.compareTo(getBigInt18(999900)));
     }
 
     @Test
     public void movePhaseRun() {
-        createToken();
+        _createToken();
 
         // NONE_TOKEN
         Receipt tx = new ReceiptImpl("0x02", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
         this.adapter.setReceipt(tx);
 
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
+        params.addProperty(TOKEN_ID, "NONE_TOKEN");
 
         tokenContract.movePhaseRun(params);
 
@@ -407,7 +443,7 @@ public class TokenContractTest {
         Assert.assertFalse("Phase move of nonexistent token should be failed", tx.isSuccess());
 
         // NOT_OWNER
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
 
         tx = new ReceiptImpl("0x03", 300L, "1111111111111111111111111111111111111111");
         this.adapter.setReceipt(tx);
@@ -455,14 +491,14 @@ public class TokenContractTest {
 
     @Test
     public void movePhasePause() {
-        createToken();
+        _createToken();
 
         // NONE_TOKEN
         Receipt tx = new ReceiptImpl("0x02", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
         this.adapter.setReceipt(tx);
 
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
+        params.addProperty(TOKEN_ID, "NONE_TOKEN");
 
         tokenContract.movePhasePause(params);
 
@@ -470,7 +506,7 @@ public class TokenContractTest {
         Assert.assertFalse("Phase move of nonexistent token should be failed", tx.isSuccess());
 
         // NOT_OWNER
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
 
         tx = new ReceiptImpl("0x03", 300L, "1111111111111111111111111111111111111111");
         this.adapter.setReceipt(tx);
@@ -509,14 +545,14 @@ public class TokenContractTest {
 
     @Test
     public void movePhaseStop() {
-        createToken();
+        _createToken();
 
         // NONE_TOKEN
         Receipt tx = new ReceiptImpl("0x02", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
         this.adapter.setReceipt(tx);
 
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
+        params.addProperty(TOKEN_ID, "NONE_TOKEN");
 
         tokenContract.movePhaseStop(params);
 
@@ -524,7 +560,7 @@ public class TokenContractTest {
         Assert.assertFalse("Phase move of nonexistent token should be failed", tx.isSuccess());
 
         // NOT_OWNER
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
 
         tx = new ReceiptImpl("0x03", 300L, "1111111111111111111111111111111111111111");
         this.adapter.setReceipt(tx);
@@ -580,7 +616,7 @@ public class TokenContractTest {
 
     @Test
     public void transfer() {
-        createToken();
+        _createToken();
 
         // NONE_TOKEN
         String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
@@ -590,7 +626,7 @@ public class TokenContractTest {
         this.adapter.setReceipt(tx);
 
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
+        params.addProperty(TOKEN_ID, "NONE_TOKEN");
 
         tokenContract.transfer(params);
 
@@ -601,7 +637,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x03", 300L, owner);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
 
         tokenContract.transfer(params);
 
@@ -618,7 +654,7 @@ public class TokenContractTest {
         this.adapter.setReceipt(tx);
 
         params.addProperty("to", account1);
-        params.addProperty("amount", BigInteger.valueOf(-1).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, BigInteger.valueOf(-1).multiply(BigInteger.TEN.pow(18)));
 
         tokenContract.transfer(params);
 
@@ -629,7 +665,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x06", 300L, owner);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("amount", BigInteger.valueOf(100).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, BigInteger.valueOf(100).multiply(BigInteger.TEN.pow(18)));
 
         tokenContract.transfer(params);
 
@@ -641,7 +677,7 @@ public class TokenContractTest {
         this.adapter.setReceipt(tx);
 
         params.addProperty("to", owner);
-        params.addProperty("amount", BigInteger.valueOf(101).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, BigInteger.valueOf(101).multiply(BigInteger.TEN.pow(18)));
 
         tokenContract.transfer(params);
 
@@ -654,14 +690,14 @@ public class TokenContractTest {
         String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
         String spender = "0000000000000000000000000000000000000000";
 
-        createToken();
+        _createToken();
 
         // NONEXISTENT TOKEN
         Receipt tx = new ReceiptImpl("0x02", 300L, owner);
         this.adapter.setReceipt(tx);
 
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
+        params.addProperty(TOKEN_ID, "NONE_TOKEN");
 
         tokenContract.approve(params);
 
@@ -672,7 +708,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x04", 300L, owner);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
 
         tokenContract.approve(params);
 
@@ -688,8 +724,8 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x06", 300L, owner);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("amount", BigInteger.TEN.pow(40));
-        params.addProperty("spender", "0000000000000000000000000000000000000000");
+        params.addProperty(AMOUNT, BigInteger.TEN.pow(40));
+        params.addProperty(SPENDER, "0000000000000000000000000000000000000000");
 
         tokenContract.approve(params);
 
@@ -700,7 +736,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x07", 300L, owner);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("amount", BigInteger.valueOf(100000).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, BigInteger.valueOf(100000).multiply(BigInteger.TEN.pow(18)));
 
         tokenContract.approve(params);
 
@@ -711,17 +747,19 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x08", 300L, owner);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("owner", owner);
-        params.addProperty("spender", spender);
+        params.addProperty(OWNER, owner);
+        params.addProperty(SPENDER, spender);
 
         BigInteger result = tokenContract.allowance(params);
 
-        Assert.assertEquals("The result should match with approved value", 0, result.compareTo(getBigInt18(100000)));
+        Assert.assertEquals(
+                "The result should match with approved value",
+                0, result.compareTo(getBigInt18(100000)));
     }
 
     @Test
     public void transferFrom() {
-        createToken();
+        _createToken();
 
         String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
         String account1 = "1111111111111111111111111111111111111111";
@@ -732,7 +770,7 @@ public class TokenContractTest {
         this.adapter.setReceipt(tx);
 
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
+        params.addProperty(TOKEN_ID, "NONE_TOKEN");
 
         tokenContract.transferFrom(params);
 
@@ -743,7 +781,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x03", 300L, account1);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
 
         tokenContract.transferFrom(params);
 
@@ -761,7 +799,7 @@ public class TokenContractTest {
 
         params.addProperty("from", owner);
         params.addProperty("to", account2);
-        params.addProperty("amount", BigInteger.valueOf(-1).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, getBigInt18(-1));
 
         tokenContract.transferFrom(params);
 
@@ -773,9 +811,9 @@ public class TokenContractTest {
         this.adapter.setReceipt(tx);
 
         JsonObject paramsApprove = new JsonObject();
-        paramsApprove.addProperty("tokenId", "TEST_TOKEN");
-        paramsApprove.addProperty("amount", BigInteger.valueOf(100).multiply(BigInteger.TEN.pow(18)));
-        paramsApprove.addProperty("spender", account1);
+        paramsApprove.addProperty(TOKEN_ID, "TEST_TOKEN");
+        paramsApprove.addProperty(AMOUNT, getBigInt18(100));
+        paramsApprove.addProperty(SPENDER, account1);
 
         tokenContract.approve(paramsApprove);
 
@@ -786,7 +824,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x07", 300L, account1);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("amount", BigInteger.valueOf(200).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, getBigInt18(200));
 
         tokenContract.transferFrom(params);
 
@@ -797,7 +835,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x08", 300L, account1);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("amount", BigInteger.valueOf(50).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, getBigInt18(50));
 
         tokenContract.transferFrom(params);
 
@@ -805,15 +843,15 @@ public class TokenContractTest {
         Assert.assertTrue("Transfer from approved is failed", tx.isSuccess());
 
         // ALLOWANCE 50
-        params.addProperty("owner", owner);
-        params.addProperty("spender", account1);
+        params.addProperty(OWNER, owner);
+        params.addProperty(SPENDER, account1);
         BigInteger result = tokenContract.allowance(params);
-        Assert.assertEquals("Allowance should be 50", 0, result.compareTo(BigInteger.valueOf(50).multiply(BigInteger.TEN.pow(18))));
+        Assert.assertEquals("Allowance should be 50", 0, result.compareTo(getBigInt18(50)));
     }
 
     @Test
     public void mint() {
-        createToken();
+        _createToken();
 
         String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
         String account1 = "1111111111111111111111111111111111111111";
@@ -823,7 +861,7 @@ public class TokenContractTest {
         this.adapter.setReceipt(tx);
 
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
+        params.addProperty(TOKEN_ID, "NONE_TOKEN");
 
         tokenContract.mint(params);
 
@@ -834,7 +872,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x03", 300L, account1);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
 
         tokenContract.mint(params);
 
@@ -845,7 +883,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x05", 300L, owner);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("amount", BigInteger.valueOf(-1).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, getBigInt18(-1));
 
         tokenContract.mint(params);
 
@@ -856,7 +894,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x06", 300L, owner);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("amount", BigInteger.valueOf(100).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, getBigInt18(100));
 
         tokenContract.mint(params);
 
@@ -864,7 +902,7 @@ public class TokenContractTest {
         Assert.assertTrue("Mint is failed", tx.isSuccess());
 
         // TOTAL SUPPLY
-        BigInteger expected = BigInteger.TEN.pow(30).add(BigInteger.valueOf(100).multiply(BigInteger.TEN.pow(18)));
+        BigInteger expected = BigInteger.TEN.pow(30).add(getBigInt18(100));
         BigInteger result = tokenContract.totalSupply(params);
         Assert.assertEquals("Total supply should be same as expected", expected, result);
 
@@ -889,14 +927,16 @@ public class TokenContractTest {
 
     @Test
     public void mintNotMintable() {
-        Boolean mintable = false;
-        createToken(null, null, null, null, null, null, mintable, null, null, null, null);
+        _createToken(
+                null, null, null, null,
+                null, null, false, null,
+                null, null, null);
 
         Receipt tx = new ReceiptImpl("0x02", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
         this.adapter.setReceipt(tx);
 
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
 
         tokenContract.mint(params);
 
@@ -906,7 +946,7 @@ public class TokenContractTest {
 
     @Test
     public void burn() {
-        createToken();
+        _createToken();
 
         String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
         String account1 = "1111111111111111111111111111111111111111";
@@ -916,7 +956,7 @@ public class TokenContractTest {
         this.adapter.setReceipt(tx);
 
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
+        params.addProperty(TOKEN_ID, "NONE_TOKEN");
 
         tokenContract.burn(params);
 
@@ -927,7 +967,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x03", 300L, account1);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
 
         tokenContract.burn(params);
 
@@ -938,7 +978,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x05", 300L, owner);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("amount", BigInteger.valueOf(-1).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, getBigInt18(-1));
 
         tokenContract.burn(params);
 
@@ -949,7 +989,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x06", 300L, owner);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("amount", BigInteger.valueOf(100).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, getBigInt18(100));
 
         tokenContract.burn(params);
 
@@ -957,7 +997,7 @@ public class TokenContractTest {
         Assert.assertTrue("Burn is failed", tx.isSuccess());
 
         // TOTAL SUPPLY
-        BigInteger expected = BigInteger.TEN.pow(30).subtract(BigInteger.valueOf(100).multiply(BigInteger.TEN.pow(18)));
+        BigInteger expected = BigInteger.TEN.pow(30).subtract(getBigInt18(100));
         BigInteger result = tokenContract.totalSupply(params);
         Assert.assertEquals("Total supply should be same as expected", expected, result);
 
@@ -982,14 +1022,16 @@ public class TokenContractTest {
 
     @Test
     public void burnNotBurnable() {
-        Boolean burnable = false;
-        createToken(null, null, null, null, null, null, null, burnable, null, null, null);
+        _createToken(
+                null, null, null, null,
+                null, null, null, false,
+                null, null, null);
 
         Receipt tx = new ReceiptImpl("0x02", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
         this.adapter.setReceipt(tx);
 
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
 
         tokenContract.burn(params);
 
@@ -998,8 +1040,8 @@ public class TokenContractTest {
     }
 
     @Test
-    public void exchangeT2Y() {
-        createToken();
+    public void exchangeT2YFixed() {
+        _createToken();
 
         // NONEXISTENT TOKEN
         String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
@@ -1007,7 +1049,7 @@ public class TokenContractTest {
         this.adapter.setReceipt(tx);
 
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
+        params.addProperty(TOKEN_ID, "NONE_TOKEN");
 
         tokenContract.exchangeT2Y(params);
 
@@ -1018,7 +1060,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x03", 300L, owner);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
 
         tokenContract.exchangeT2Y(params);
 
@@ -1038,7 +1080,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x05", 300L, owner);
         this.adapter.setReceipt(tx);
         params.addProperty("to", account1);
-        params.addProperty("amount", BigInteger.valueOf(2000000).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, getBigInt18(2000000));
         tokenContract.transfer(params);
         tx.getLog().stream().forEach(l -> log.debug(l));
         Assert.assertTrue("Transfer is failed", tx.isSuccess());
@@ -1047,7 +1089,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x06", 300L, account1);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("amount", BigInteger.valueOf(-1).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, getBigInt18(-1));
 
         tokenContract.exchangeT2Y(params);
 
@@ -1058,7 +1100,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x07", 300L, account1);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("amount", BigInteger.valueOf(2000001).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, getBigInt18(2000001));
 
         tokenContract.exchangeT2Y(params);
 
@@ -1069,7 +1111,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x08", 300L, account1);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("amount", BigInteger.valueOf(1000001).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, getBigInt18(1000001));
 
         tokenContract.exchangeT2Y(params);
 
@@ -1080,7 +1122,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x09", 300L, account1);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("amount", BigInteger.valueOf(400000).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, getBigInt18(400000));
 
         tokenContract.exchangeT2Y(params);
 
@@ -1088,18 +1130,80 @@ public class TokenContractTest {
         Assert.assertTrue("Exchange is failed", tx.isSuccess());
 
         // CHECK TOKEN BALANCE
-        params.addProperty("address", account1);
+        params.addProperty(ADDRESS, account1);
         BigInteger tokenBalance = tokenContract.balanceOf(params);
-        Assert.assertEquals("Token balance should be 600000", 0, tokenBalance.compareTo(BigInteger.valueOf(1600000).multiply(BigInteger.TEN.pow(18))));
+        Assert.assertEquals(
+                "Token balance should be 1600000",
+                0, tokenBalance.compareTo(getBigInt18(1600000)));
 
         // CHECK YEED STAKE BALANCE
         BigInteger yeedBalance = tokenContract.getYeedBalanceOf(params);
-        Assert.assertEquals("Yeed stake balance should be 600000", 0, yeedBalance.compareTo(BigInteger.valueOf(600000).multiply(BigInteger.TEN.pow(18))));
+        Assert.assertEquals(
+                "Yeed stake balance should be 600000",
+                0, yeedBalance.compareTo(getBigInt18(600000)));
+    }
+
+    @Test
+    public void exchangeT2YLinked() {
+        String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
+        String account1 = "1111111111111111111111111111111111111111";
+
+        // stake = 1,000,000
+        // mint = 10,000,000
+        // linked exRate will be 0.1
+        _createToken(
+                "0x01", null, null, null,
+                getBigInt18(1000000), getBigInt18(10000000), null, null,
+                null, TOKEN_EX_T2Y_TYPE_LINKED, null);
+
+        // move phase to run
+        Receipt tx = new ReceiptImpl("0x04", 300L, owner);
+        this.adapter.setReceipt(tx);
+
+        JsonObject params = new JsonObject();
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
+
+        tokenContract.movePhaseRun(params);
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Move phase to run is failed", tx.isSuccess());
+
+        // transfer token to account1
+        tx = new ReceiptImpl("0x05", 300L, owner);
+        this.adapter.setReceipt(tx);
+        params.addProperty("to", account1);
+        params.addProperty(AMOUNT, getBigInt18(1000000));
+        tokenContract.transfer(params);
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Transfer is failed", tx.isSuccess());
+
+        // NORMAL (400,000 tokens to 40,000 YEEDs)
+        tx = new ReceiptImpl("0x09", 300L, account1);
+        this.adapter.setReceipt(tx);
+
+        params.addProperty(AMOUNT, getBigInt18(400000));
+
+        tokenContract.exchangeT2Y(params);
+
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Exchange is failed", tx.isSuccess());
+
+        // CHECK TOKEN BALANCE
+        params.addProperty(ADDRESS, account1);
+        BigInteger tokenBalance = tokenContract.balanceOf(params);
+        Assert.assertEquals(
+                "Token balance should be 600000",
+                0, tokenBalance.compareTo(getBigInt18(600000)));
+
+        // CHECK YEED STAKE BALANCE (1,000,000 - 40,000 = 960,000)
+        BigInteger yeedBalance = tokenContract.getYeedBalanceOf(params);
+        Assert.assertEquals(
+                "Yeed stake balance should be 960000",
+                0, yeedBalance.compareTo(getBigInt18(960000)));
     }
 
     @Test
     public void exchangeY2T() {
-        createToken();
+        _createToken();
 
         // NONEXISTENT TOKEN
         String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
@@ -1107,7 +1211,7 @@ public class TokenContractTest {
         this.adapter.setReceipt(tx);
 
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
+        params.addProperty(TOKEN_ID, "NONE_TOKEN");
 
         tokenContract.exchangeY2T(params);
 
@@ -1118,7 +1222,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x03", 300L, owner);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
 
         tokenContract.exchangeY2T(params);
 
@@ -1138,7 +1242,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x06", 300L, account1);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("amount", BigInteger.valueOf(-1).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, getBigInt18(-1));
 
         tokenContract.exchangeY2T(params);
 
@@ -1149,7 +1253,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x07", 300L, account1);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("amount", BigInteger.valueOf(10000).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, getBigInt18(10000));
 
         tokenContract.exchangeY2T(params);
 
@@ -1160,7 +1264,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x09", 300L, account1);
         this.adapter.setReceipt(tx);
 
-        params.addProperty("amount", BigInteger.valueOf(1000).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, getBigInt18(1000));
 
         tokenContract.exchangeY2T(params);
 
@@ -1168,13 +1272,66 @@ public class TokenContractTest {
         Assert.assertTrue("Exchange YEED to token is failed", tx.isSuccess());
 
         // CHECK TOKEN BALANCE (1000)
-        params.addProperty("address", account1);
+        params.addProperty(ADDRESS, account1);
         BigInteger tokenBalance = tokenContract.balanceOf(params);
-        Assert.assertEquals("Token balance should be 1000", 0, tokenBalance.compareTo(BigInteger.valueOf(1000).multiply(BigInteger.TEN.pow(18))));
+        Assert.assertEquals(
+                "Token balance should be 1000",
+                0, tokenBalance.compareTo(getBigInt18(1000)));
 
         // CHECK YEED STAKE BALANCE (1000000 + 1000)
         BigInteger yeedBalance = tokenContract.getYeedBalanceOf(params);
-        Assert.assertEquals("Yeed stake balance should be 600000", 0, yeedBalance.compareTo(BigInteger.valueOf(1001000).multiply(BigInteger.TEN.pow(18))));
+        Assert.assertEquals(
+                "Yeed stake balance should be 1001000",
+                0, yeedBalance.compareTo(getBigInt18(1001000)));
+    }
+
+    @Test
+    public void exchangeY2TLinked() {
+        String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
+        String account1 = "1111111111111111111111111111111111111111";
+
+        // stake = 1,000,000
+        // mint = 10,000,000
+        // linked exRate will be 0.1
+        _createToken(
+                "0x01", null, null, null,
+                getBigInt18(1000000), getBigInt18(10000000), null, null,
+                null, TOKEN_EX_T2Y_TYPE_LINKED, null);
+
+        // move phase to run
+        Receipt tx = new ReceiptImpl("0x04", 300L, owner);
+        this.adapter.setReceipt(tx);
+
+        JsonObject params = new JsonObject();
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
+
+        tokenContract.movePhaseRun(params);
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Move phase to run is failed", tx.isSuccess());
+
+        // NORMAL (1000 YEEDs to 10,000 tokens)
+        tx = new ReceiptImpl("0x09", 300L, account1);
+        this.adapter.setReceipt(tx);
+
+        params.addProperty(AMOUNT, getBigInt18(1000));
+
+        tokenContract.exchangeY2T(params);
+
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Exchange is failed", tx.isSuccess());
+
+        // CHECK TOKEN BALANCE
+        params.addProperty(ADDRESS, account1);
+        BigInteger tokenBalance = tokenContract.balanceOf(params);
+        Assert.assertEquals(
+                "Token balance should be 10,000",
+                0, tokenBalance.compareTo(getBigInt18(10000)));
+
+        // CHECK YEED STAKE BALANCE (1,000,000 + 1,000 = 1,001,000)
+        BigInteger yeedBalance = tokenContract.getYeedBalanceOf(params);
+        Assert.assertEquals(
+                "Yeed stake balance should be 1,001,000",
+                0, yeedBalance.compareTo(getBigInt18(1001000)));
     }
 
     @Test
@@ -1183,8 +1340,8 @@ public class TokenContractTest {
 
         // NONEXISTENT TOKEN
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
-        params.addProperty("tokenExT2TTargetTokenId", "TARGET_TOKEN");
+        params.addProperty(TOKEN_ID, "NONE_TOKEN");
+        params.addProperty(TOKEN_EX_T2T_TARGET_TOKEN_ID, "TARGET_TOKEN");
 
         tokenContract.exchangeT2TOpen(params);
 
@@ -1195,7 +1352,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x04", 300L, "1111111111111111111111111111111111111111");
         this.adapter.setReceipt(tx);
 
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
 
         tokenContract.exchangeT2TOpen(params);
 
@@ -1212,15 +1369,16 @@ public class TokenContractTest {
         Assert.assertFalse("Exchange open to nonexistent target token should be failed", tx.isSuccess());
 
         // create target token
-        createToken("0x06", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e",
+        _createToken("0x06", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e",
                 "TARGET_TOKEN", "targetToken",
-                null, null, null, null, null, null, null);
+                null, null, null, null,
+                null, null, null);
 
         // NORMAL
         tx = new ReceiptImpl("0x07", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
         this.adapter.setReceipt(tx);
 
-        params.addProperty("tokenExT2TRate", new BigDecimal("1.0"));
+        params.addProperty(TOKEN_EX_T2T_RATE, new BigDecimal("1.0"));
 
         tokenContract.exchangeT2TOpen(params);
 
@@ -1243,8 +1401,8 @@ public class TokenContractTest {
 
         // NONEXISTENT TOKEN
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "NONE_TOKEN");
-        params.addProperty("tokenExT2TTargetTokenId", "TARGET_TOKEN");
+        params.addProperty(TOKEN_ID, "NONE_TOKEN");
+        params.addProperty(TOKEN_EX_T2T_TARGET_TOKEN_ID, "TARGET_TOKEN");
 
         tokenContract.exchangeT2TClose(params);
 
@@ -1255,7 +1413,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x04", 300L, "1111111111111111111111111111111111111111");
         this.adapter.setReceipt(tx);
 
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
 
         tokenContract.exchangeT2TClose(params);
 
@@ -1272,9 +1430,10 @@ public class TokenContractTest {
         Assert.assertFalse("Exchange close to nonexistent target token should be failed", tx.isSuccess());
 
         // create target token
-        createToken("0x06", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e",
+        _createToken("0x06", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e",
                 "TARGET_TOKEN", "targetToken",
-                null, null, null, null, null, null, null);
+                null, null, null, null,
+                null, null, null);
 
         // ALREADY CLOSED
         tx = new ReceiptImpl("0x07", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
@@ -1289,7 +1448,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x08", 300L, "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
         this.adapter.setReceipt(tx);
 
-        params.addProperty("tokenExT2TRate", new BigDecimal("1.0"));
+        params.addProperty(TOKEN_EX_T2T_RATE, new BigDecimal("1.0"));
 
         tokenContract.exchangeT2TOpen(params);
 
@@ -1317,8 +1476,8 @@ public class TokenContractTest {
         this.adapter.setReceipt(rct);
 
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "TEST_TOKEN");
-        params.addProperty("tokenExT2TTargetTokenId", "TARGET_TOKEN");
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
+        params.addProperty(TOKEN_EX_T2T_TARGET_TOKEN_ID, "TARGET_TOKEN");
 
         tokenContract.exchangeT2T(params);
 
@@ -1326,7 +1485,7 @@ public class TokenContractTest {
         Assert.assertFalse("Exchange from nonexistent token should be failed", rct.isSuccess());
 
         //     create token
-        createToken();
+        _createToken();
 
         // NOT RUNNING
         rct = new ReceiptImpl("0x04", 300L, account1);
@@ -1351,7 +1510,7 @@ public class TokenContractTest {
         this.adapter.setReceipt(rct);
 
         params.addProperty("to", account1);
-        params.addProperty("amount", getBigInt18(10000));
+        params.addProperty(AMOUNT, getBigInt18(10000));
 
         tokenContract.transfer(params);
 
@@ -1359,9 +1518,10 @@ public class TokenContractTest {
         Assert.assertTrue("Transfer is failed", rct.isSuccess());
 
         //     create target token
-        createToken("0x06", targetOwner,
+        _createToken("0x06", targetOwner,
                 "TARGET_TOKEN", "targetToken",
-                null, null, null, null, null, null, null);
+                null, null, null, null,
+                null, null, null);
 
         // NOT OPEN TO TARGET TOKEN
         rct = new ReceiptImpl("0x07", 300L, account1);
@@ -1376,7 +1536,7 @@ public class TokenContractTest {
         rct = new ReceiptImpl("0x08", 300L, owner);
         this.adapter.setReceipt(rct);
 
-        params.addProperty("tokenExT2TRate", new BigDecimal("1.0"));
+        params.addProperty(TOKEN_EX_T2T_RATE, new BigDecimal("1.0"));
 
         tokenContract.exchangeT2TOpen(params);
 
@@ -1387,10 +1547,7 @@ public class TokenContractTest {
         rct = new ReceiptImpl("0x09", 300L, account1);
         this.adapter.setReceipt(rct);
 
-        JsonObject targetParams = new JsonObject();
-        targetParams.addProperty("tokenId", "TARGET_TOKEN");
-
-        tokenContract.exchangeT2T(targetParams);
+        tokenContract.exchangeT2T(params);
 
         rct.getLog().stream().forEach(l -> log.debug(l));
         Assert.assertFalse("Exchange to not running target token should be failed", rct.isSuccess());
@@ -1398,6 +1555,9 @@ public class TokenContractTest {
         //     target token move phase to run
         rct = new ReceiptImpl("0x10", 300L, targetOwner);
         this.adapter.setReceipt(rct);
+
+        JsonObject targetParams = new JsonObject();
+        targetParams.addProperty(TOKEN_ID, "TARGET_TOKEN");
 
         tokenContract.movePhaseRun(targetParams);
 
@@ -1408,7 +1568,7 @@ public class TokenContractTest {
         rct = new ReceiptImpl("0x11", 300L, account1);
         this.adapter.setReceipt(rct);
 
-        params.addProperty("amount", BigInteger.ZERO);
+        params.addProperty(AMOUNT, BigInteger.ZERO);
 
         tokenContract.exchangeT2T(params);
 
@@ -1419,7 +1579,7 @@ public class TokenContractTest {
         rct = new ReceiptImpl("0x11", 300L, account1);
         this.adapter.setReceipt(rct);
 
-        params.addProperty("amount", getBigInt18(20000));
+        params.addProperty(AMOUNT, getBigInt18(20000));
 
         tokenContract.exchangeT2T(params);
 
@@ -1430,7 +1590,7 @@ public class TokenContractTest {
         rct = new ReceiptImpl("0x12", 300L, account1);
         this.adapter.setReceipt(rct);
 
-        params.addProperty("amount", getBigInt18(1000));
+        params.addProperty(AMOUNT, getBigInt18(1000));
 
         tokenContract.exchangeT2T(params);
 
@@ -1439,22 +1599,24 @@ public class TokenContractTest {
 
         // TOKEN BALANCE
         params = new JsonObject();
-        params.addProperty("tokenId", "TEST_TOKEN");
-        params.addProperty("address", account1);
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
+        params.addProperty(ADDRESS, account1);
 
         BigInteger tokenBalance = tokenContract.balanceOf(params);
-        Assert.assertEquals("Token balance should match", 0, tokenBalance.compareTo(getBigInt18(9000)));
+        Assert.assertEquals(
+                "Token balance should match",
+                0, tokenBalance.compareTo(getBigInt18(9000)));
 
         // TARGET TOKEN BALANCE
-        params.addProperty("tokenId", "TARGET_TOKEN");
+        params.addProperty(TOKEN_ID, "TARGET_TOKEN");
 
         BigInteger targetTokenBalance = tokenContract.balanceOf(params);
-        Assert.assertEquals("Target token balance should match", 0, targetTokenBalance.compareTo(getBigInt18(1000)));
+        Assert.assertEquals(
+                "Target token balance should match",
+                0, targetTokenBalance.compareTo(getBigInt18(1000)));
     }
 
-
-
-    private void createToken(
+    private void _createToken(
             String txId,
             String owner,
             String tokenId,
@@ -1467,32 +1629,55 @@ public class TokenContractTest {
             String exType,
             BigDecimal exRateT2Y) {
 
-        if (txId == null) txId = "0x01";
-        if (owner == null) owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
-        if (tokenId == null) tokenId = "TEST_TOKEN";
-        if (tokenName == null) tokenName = "TTOKEN";
-        if (initStake == null) initStake = BigInteger.TEN.pow(24); // 1백만
-        if (initMint == null) initMint = BigInteger.TEN.pow(30); // 1조 개 (1 * 10^12)
-        if (mintable == null) mintable = true;
-        if (burnable == null) burnable = true;
-        if (exchangeable == null) exchangeable = true;
-        if (exType == null) exType = "TOKEN_EX_T2Y_TYPE_FIXED";
-        if (exRateT2Y == null) exRateT2Y = new BigDecimal("1.0");
+        if (txId == null) {
+            txId = "0x01";
+        }
+        if (owner == null) {
+            owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
+        }
+        if (tokenId == null) {
+            tokenId = "TEST_TOKEN";
+        }
+
+        if (tokenName == null) {
+            tokenName = "TTOKEN";
+        }
+        if (initStake == null) {
+            initStake = BigInteger.TEN.pow(24); // 1,000,000 YEEDs
+        }
+        if (initMint == null) {
+            initMint = BigInteger.TEN.pow(30); // 1,000,000,000,000 tokens
+        }
+        if (mintable == null) {
+            mintable = true;
+        }
+        if (burnable == null) {
+            burnable = true;
+        }
+        if (exchangeable == null) {
+            exchangeable = true;
+        }
+        if (exType == null) {
+            exType = TOKEN_EX_T2Y_TYPE_FIXED;
+        }
+        if (exRateT2Y == null) {
+            exRateT2Y = new BigDecimal("1.0");
+        }
 
         Receipt tx = new ReceiptImpl(txId, 300L, owner);
         this.adapter.setReceipt(tx);
 
         JsonObject createToken = new JsonObject();
-        createToken.addProperty("tokenId", tokenId);
-        createToken.addProperty("tokenName", tokenName);
-        createToken.addProperty("tokenInitYeedStakeAmount", initStake);
-        createToken.addProperty("tokenInitMintAmount", initMint);
-        createToken.addProperty("tokenMintable", mintable);
-        createToken.addProperty("tokenBurnable", burnable);
+        createToken.addProperty(TOKEN_ID, tokenId);
+        createToken.addProperty(TOKEN_NAME, tokenName);
+        createToken.addProperty(TOKEN_INIT_YEED_STAKE_AMOUNT, initStake);
+        createToken.addProperty(TOKEN_INIT_MINT_AMOUNT, initMint);
+        createToken.addProperty(TOKEN_MINTABLE, mintable);
+        createToken.addProperty(TOKEN_BURNABLE, burnable);
 
-        createToken.addProperty("tokenExT2YEnabled", exchangeable);
-        createToken.addProperty("tokenExT2YType", exType);
-        createToken.addProperty("tokenExT2YRate", exRateT2Y);
+        createToken.addProperty(TOKEN_EX_T2Y_ENABLED, exchangeable);
+        createToken.addProperty(TOKEN_EX_T2Y_TYPE, exType);
+        createToken.addProperty(TOKEN_EX_T2Y_RATE, exRateT2Y);
 
         tokenContract.createToken(createToken);
         tx.getLog().stream().forEach(l -> log.debug(l));
@@ -1500,14 +1685,14 @@ public class TokenContractTest {
     }
 
     private Receipt _testInit() {
-        createToken();
+        _createToken();
 
         String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
         Receipt tx = new ReceiptImpl("0x02", 300L, owner);
         this.adapter.setReceipt(tx);
 
         JsonObject params = new JsonObject();
-        params.addProperty("tokenId", "TEST_TOKEN");
+        params.addProperty(TOKEN_ID, "TEST_TOKEN");
 
         tokenContract.movePhaseRun(params);
 
