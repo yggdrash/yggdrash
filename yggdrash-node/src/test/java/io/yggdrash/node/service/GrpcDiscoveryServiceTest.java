@@ -81,7 +81,7 @@ public class GrpcDiscoveryServiceTest {
                 .setBranch(ByteString.copyFrom(yggdrash.getBytes()))
                 .setBestBlock(0L)
                 .build();
-        when(discoveryConsumerMock.ping(yggdrash, from, to, "Ping", 0L))
+        when(discoveryConsumerMock.ping(yggdrash, from, to, "Ping", 0L, true))
                 .thenReturn(pongMessage);
 
         Proto.Ping ping = Proto.Ping.newBuilder().setPing("Ping")
