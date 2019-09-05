@@ -103,4 +103,7 @@ message Ping {
 message Pong {
     string pong = 1;
     string from = 2;
+    string to = 3;
+    bytes branch = 4;
+    int64 bestBlock = 5;
 }
