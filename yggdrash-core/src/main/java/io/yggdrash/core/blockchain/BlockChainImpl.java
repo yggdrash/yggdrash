@@ -160,7 +160,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             // Fire contract event
             getContractEventList(endBlockResult).stream()
                     .filter(event -> !contractEventListenerList.isEmpty())
-                    .forEach(event -> contractEventListenerList.forEach(l -> l.endBlock(event)));
+                    .forEach(event -> contractEventListenerList.forEach(l -> l.endBlock(endBlockResult, event)));
 
             if (!listenerList.isEmpty() && broadcast) {
                 listenerList.forEach(listener -> listener.chainedBlock(nextBlock));

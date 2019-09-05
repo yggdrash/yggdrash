@@ -52,16 +52,21 @@ public class VotingProgress implements Serializable {
             disagreeCnt++;
         }
         votingHistory.put(issuer, new Vote(agree));
-        votingStatus = isAgreed() ? VotingStatus.AGREE : VotingStatus.DISAGREE;
+//        votingStatus = isAgreed() ? VotingStatus.AGREE : VotingStatus.DISAGREE;
     }
 
     boolean hashVoted(String issuer) {
         return votingHistory.get(issuer).isVoted;
     }
 
-    private boolean isAgreed() {
+
+    boolean isAgreed() {
         int cnt = (int) (((double) totalVotingCnt * 0.66) + 1.0);
-        return agreeCnt >= cnt;
+        boolean bAgreed = agreeCnt >= cnt;
+        if (bAgreed) {
+            votingStatus = VotingStatus.AGREE;
+        }
+        return bAgreed;
     }
 
     VotingStatus getVotingStatus() {

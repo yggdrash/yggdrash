@@ -124,7 +124,7 @@ public class VersioningContract {
 
         long curBlockHeight = receipt.getBlockHeight();
         // Verify the proposal is expired
-        if (proposal.isExpired()) {
+        if (proposal.isExpired(curBlockHeight)) {
             setFalseTxReceipt("Contract proposal has already expired");
             return receipt;
         }
@@ -139,14 +139,12 @@ public class VersioningContract {
         boolean agree = params.get("agree").getAsBoolean();
         proposal.vote(issuer, agree);
 
-        state.put(txId, JsonUtil.parseJsonObject(proposal));
-        setSuccessTxReceipt("Update proposal voting is in progress");
-
         String proposalVersion = proposal.getProposalVersion();
 
         // Verify the voting is finished
         // todo : need previous status check for executing only once. @lucas. 190904
-        if (proposal.isAgreed()) {
+        if (proposal.votingProgress.getVotingStatus().equals(VotingProgress.VotingStatus.VOTABLE) &&
+                proposal.isAgreed()) {
             try {
                 downloadContractFile(proposalVersion);
                 setSuccessTxReceipt("Contract file has been downloaded");
@@ -162,6 +160,9 @@ public class VersioningContract {
                 return receipt;
             }
         }
+
+        state.put(txId, JsonUtil.parseJsonObject(proposal));
+        setSuccessTxReceipt("Update proposal voting is in progress");
 
         return receipt;
     }

@@ -90,21 +90,11 @@ public class ContractManager implements ContractEventListener {
     @Override
     public void endBlock(BlockRuntimeResult result, ContractEvent event) {
         versioningContractEventHandler(result, event);
-//        if (!(event.getItem() instanceof HashMap)) {
-//            endBlock(event);
-//        } else {
-//            commitBlockResult(result);
-//        }
     }
-
-
-
 
     private void versioningContractEventHandler(BlockRuntimeResult result, ContractEvent event) {
         ContractEventType eventType = event.getType();
-
         ContractProposal proposal = (ContractProposal) event.getItem();
-
         ContractVersion proposalVersion = ContractVersion.of(proposal.getProposalVersion());
         try {
             switch (eventType) {

@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -103,7 +104,7 @@ public class VersioningContractTest {
     private static long DEFAULT_PERIOD = 60480L;
 
     @Test
-    public void endBlockTest() {
+    public void endBlockTestInstallEvent() {
         contractPropose();
 
         // issuer1 is proposer
@@ -124,7 +125,34 @@ public class VersioningContractTest {
         ContractEvent event = adapter.getEvents().stream().findFirst().get();
         log.info("EndBlock Status : {},  Event : {}", adapter.getStatus(), JsonUtil.parseJsonObject(event));
         assertEquals(ContractEventType.INSTALL, event.getType());
-        assertEquals(updateContract, event.getItem());
+
+        assertEquals(updateContract, ((LinkedHashMap) event.getItem()).get("proposalVersion"));
+    }
+
+    @Test
+    public void endblockTestExpiredEvent() {
+        contractPropose();
+
+        // issuer1 is proposer
+//        vote(issuer3, false);
+//        vote(issuer2, true); // agreeCnt -> 2/3
+        //vote(issuer1, true);
+
+        // EndBlock receipt
+        Receipt receipt = new ReceiptImpl();
+        receipt.setBlockHeight(curBlockHeight + DEFAULT_PERIOD); // EndBlock Height
+        adapter.setReceipt(receipt);
+
+        service.endBlock();
+
+        assertEquals(ExecuteStatus.SUCCESS, adapter.getStatus());
+        assertFalse(adapter.getEvents().isEmpty());
+        assertEquals(1, adapter.getEvents().size());
+        ContractEvent event = adapter.getEvents().stream().findFirst().get();
+        log.info("EndBlock Status : {},  Event : {}", adapter.getStatus(), JsonUtil.parseJsonObject(event));
+        assertEquals(ContractEventType.EXPIRED, event.getType());
+
+        assertEquals(updateContract, ((LinkedHashMap) event.getItem()).get("proposalVersion"));
     }
 
     @Test
@@ -208,7 +236,7 @@ public class VersioningContractTest {
         adapter.setReceipt(receipt);
 
         JsonObject param = new JsonObject();
-        param.addProperty("contractVersion", updateContract);
+        param.addProperty("proposalVersion", updateContract);
         param.addProperty("sourceUrl", "https://github.com/yggdrash/yggdrash");
         param.addProperty("buildVersion", "1.8.0_172");
 
