@@ -30,5 +30,5 @@ public interface DiscoveryConsumer {
 
     String ping(BranchId branchId, Peer from, Peer to, String msg);
 
-    Proto.Pong ping(BranchId branchId, Peer from, Peer to, String msg, long blockIndex);
+    Proto.Pong ping(BranchId branchId, Peer from, Peer to, String msg, long blockIndex, boolean normalHost);
 }
