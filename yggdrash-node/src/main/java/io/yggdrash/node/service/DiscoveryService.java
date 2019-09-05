@@ -73,7 +73,8 @@ public class DiscoveryService extends DiscoveryServiceGrpc.DiscoveryServiceImplB
         String grpcHost = "127.0.0.1"; // TODO: change when considering test cases.
         if (grpcServerRunner != null) {
             grpcHost = grpcServerRunner.getServerCallCapture().get()
-                    .getAttributes().get(Grpc.TRANSPORT_ATTR_REMOTE_ADDR).toString().split(":")[0];
+                    .getAttributes().get(Grpc.TRANSPORT_ATTR_REMOTE_ADDR)
+                    .toString().split(":")[0].replaceAll("/", "");
         }
 
         if (!from.getHost().equals(grpcHost)) {
