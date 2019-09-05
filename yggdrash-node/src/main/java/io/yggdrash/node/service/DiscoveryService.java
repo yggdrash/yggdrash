@@ -77,14 +77,10 @@ public class DiscoveryService extends DiscoveryServiceGrpc.DiscoveryServiceImplB
                     .toString().split(":")[0].replaceAll("/", "");
         }
 
-        if (!from.getHost().equals(grpcHost)) {
-            return;
-        }
-
         from.setBestBlock(request.getBestBlock());
         to.setBestBlock(branchGroup != null ? branchGroup.getLastIndex(branchId) : 0L);
         Proto.Pong pong = discoveryConsumer.ping(
-                branchId, from, to, request.getPing(), to.getBestBlock());
+                branchId, from, to, request.getPing(), to.getBestBlock(), from.getHost().equals(grpcHost));
 
         responseObserver.onNext(pong);
         responseObserver.onCompleted();
