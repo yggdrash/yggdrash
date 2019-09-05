@@ -16,10 +16,12 @@
 
 package io.yggdrash.core.net;
 
+import com.google.protobuf.ByteString;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.p2p.KademliaOptions;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerTableGroup;
+import io.yggdrash.proto.Proto;
 
 import java.util.List;
 
@@ -57,5 +59,25 @@ public class DiscoveryServiceConsumer implements DiscoveryConsumer {
             return "Pong";
         }
         return "";
+    }
+
+    @Override
+    public Proto.Pong ping(BranchId branchId, Peer from, Peer to, String msg, long blockIndex) {
+        if ("Ping".equals(msg) && peerTableGroup.getOwner().toAddress().equals(to.toAddress())) {
+            peerTableGroup.addPeer(branchId, from);
+
+            if (listener != null) {
+                listener.catchUpRequest(branchId, from);
+            }
+
+            return Proto.Pong.newBuilder()
+                    .setPong("Pong")
+                    .setFrom(to.toString())
+                    .setTo(from.toString())
+                    .setBranch(ByteString.copyFrom(branchId.getBytes()))
+                    .setBestBlock(blockIndex)
+                    .build();
+        }
+        return null;
     }
 }

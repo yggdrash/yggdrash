@@ -47,7 +47,7 @@ public class GrpcDiscoveryServiceTest {
 
     @Before
     public void setUp() {
-        grpcServerRule.getServiceRegistry().addService(new DiscoveryService(discoveryConsumerMock));
+        grpcServerRule.getServiceRegistry().addService(new DiscoveryService(discoveryConsumerMock, null));
         yggdrash = TestConstants.yggdrash();
     }
 
@@ -74,7 +74,15 @@ public class GrpcDiscoveryServiceTest {
                 grpcServerRule.getChannel());
         Peer from = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
         Peer to = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        when(discoveryConsumerMock.ping(yggdrash, from, to,"Ping")).thenReturn("Pong");
+        Proto.Pong pongMessage = Proto.Pong.newBuilder()
+                .setPong("Pong")
+                .setFrom(to.toString())
+                .setTo(from.toString())
+                .setBranch(ByteString.copyFrom(yggdrash.getBytes()))
+                .setBestBlock(0L)
+                .build();
+        when(discoveryConsumerMock.ping(yggdrash, from, to, "Ping", 0L))
+                .thenReturn(pongMessage);
 
         Proto.Ping ping = Proto.Ping.newBuilder().setPing("Ping")
                 .setFrom(from.getYnodeUri())
