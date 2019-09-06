@@ -68,17 +68,13 @@ public class BlockChainDialer implements PeerDialer {
         try {
             long peerBlockIndex = peerHandler.pingPong(branchId, owner, "Ping");
             if (peerBlockIndex >= 0) {
-
-                // blockSync if blockIndex is more large
-
+                return true;
             }
         } catch (Exception e) {
             log.debug("healthCheck failed {} {}", to.toAddress(), e.getMessage());
-            removeHandler(peerHandler);
-            return false;
         }
-
-        return true;
+        removeHandler(peerHandler);
+        return false;
     }
 
     @Override
