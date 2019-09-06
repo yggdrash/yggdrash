@@ -110,7 +110,7 @@ public class AbstractNodeTesting {
 
     void addService(TestNode node, ServerBuilder builder) {
         node.discoveryConsumer.setListener(node.getSyncManger());
-        builder.addService(new DiscoveryService(node.discoveryConsumer));
+        builder.addService(new DiscoveryService(node.discoveryConsumer, null));
         if (node.transactionService != null) {
             builder.addService(node.transactionService);
             for (BlockChain blockChain : node.getBranchGroup().getAllBranch()) {
