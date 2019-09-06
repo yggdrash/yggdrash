@@ -71,13 +71,14 @@ public class BlockChainDialer implements PeerDialer {
 
                 // blockSync if blockIndex is more large
 
-                return true;
             }
         } catch (Exception e) {
-            log.debug("Cannot connect {}", to.toAddress());
+            log.debug("healthCheck failed {} {}", to.toAddress(), e.getMessage());
+            removeHandler(peerHandler);
+            return false;
         }
-        removeHandler(peerHandler);
-        return false;
+
+        return true;
     }
 
     @Override

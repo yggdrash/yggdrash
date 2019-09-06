@@ -63,22 +63,20 @@ public class DiscoveryServiceConsumer implements DiscoveryConsumer {
 
     @Override
     public Proto.Pong ping(BranchId branchId, Peer from, Peer to, String msg, long blockIndex, boolean normalHost) {
-        if ("Ping".equals(msg) && peerTableGroup.getOwner().toAddress().equals(to.toAddress())) {
-
-            if (normalHost) {
-                peerTableGroup.addPeer(branchId, from);
-//                if (listener != null) {
-//                    listener.catchUpRequest(branchId, from);
-//                }
-            }
-            return Proto.Pong.newBuilder()
-                    .setPong("Pong")
-                    .setFrom(to.toString())
-                    .setTo(from.toString())
-                    .setBranch(ByteString.copyFrom(branchId.getBytes()))
-                    .setBestBlock(blockIndex)
-                    .build();
+        if (!"Ping".equals(msg) || !peerTableGroup.getOwner().toAddress().equals(to.toAddress())) {
+            return null;
         }
-        return null;
+
+        if (normalHost) {
+            peerTableGroup.addPeer(branchId, from);
+        }
+
+        return Proto.Pong.newBuilder()
+                .setPong("Pong")
+                .setFrom(to.toString())
+                .setTo(from.toString())
+                .setBranch(ByteString.copyFrom(branchId.getBytes()))
+                .setBestBlock(blockIndex)
+                .build();
     }
 }
