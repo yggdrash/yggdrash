@@ -23,6 +23,7 @@ import io.yggdrash.core.store.BlockChainStore;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class BlockChainManagerMock<T> implements BlockChainManager<T> {
 
@@ -60,6 +61,11 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     @Override
     public void addTransaction(Transaction tx) {
         blockChainManager.addTransaction(tx);
+    }
+
+    @Override
+    public void flushUnconfirmedTxs(Set<Sha3Hash> keys) {
+        blockChainManager.flushUnconfirmedTxs(keys);
     }
 
     @Override

@@ -165,7 +165,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
         return unconfirmedTxs;
     }
 
-    private void flush(Set<Sha3Hash> keys) {
+    public void flush(Set<Sha3Hash> keys) {
         pendingPool.removeAll(keys);
         pendingKeys.removeAll(keys);
         log.debug("flushSize={} remainPendingSize={}", keys.size(), pendingKeys.size());
