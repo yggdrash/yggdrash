@@ -31,6 +31,9 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.Hashtable;
 
+/**
+ * The type Token contract.
+ */
 public class TokenContract implements BundleActivator, ServiceListener {
     private static final String TOKEN_CONTRACT_NAME = "TOKEN";
     private static final String TOKEN_PREFIX = "token-";
@@ -51,7 +54,6 @@ public class TokenContract implements BundleActivator, ServiceListener {
     private static final String TOKEN_EX_T2Y_RATE = "tokenExT2YRate";
 
     private static final String TOKEN_EX_T2T_RATE = "tokenExT2TRate";
-    private static final String TOKEN_EX_T2T_RATE_MAP = "tokenExT2TRateMap";
     private static final String TOKEN_EX_T2T_RATE_MAP_PREFIX = "ex-t2t-rate-map-";
     private static final String TOKEN_EX_T2T_TARGET_TOKEN_ID = "tokenExT2TTargetTokenId";
 
@@ -95,6 +97,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
 
 
     // TODO : @kevin : 2019-08-22 : should apply tx fee
+    // FIXME : @kevin : 2019-09-06 : should check if each parameter is empty
     public static class TokenService {
 
         @SuppressWarnings("WeakerAccess")
@@ -112,6 +115,9 @@ public class TokenContract implements BundleActivator, ServiceListener {
 
         /**
          * Genesis of CONTRACT not TOKEN
+         *
+         * @param params the params
+         * @return the receipt
          */
         @Genesis
         @InvokeTransaction
@@ -122,6 +128,11 @@ public class TokenContract implements BundleActivator, ServiceListener {
         }
 
         /**
+         * Total supply for a token
+         *
+         * @issuer anonymous
+         * @param params the params
+         *               @tokenId
          * @return Total amount of token in existence
          */
         @ContractQuery
@@ -137,6 +148,15 @@ public class TokenContract implements BundleActivator, ServiceListener {
             return getBalance(tokenId, TOTAL_SUPPLY);
         }
 
+        /**
+         * Balance of an account for a token
+         *
+         * @issuer anonymous
+         * @param params the params
+         *               @tokenId
+         *               @address account address
+         * @return Balance of an account for a token
+         */
         @ContractQuery
         public BigInteger balanceOf(JsonObject params) {
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
@@ -150,6 +170,14 @@ public class TokenContract implements BundleActivator, ServiceListener {
             return getBalance(tokenId, address);
         }
 
+        /**
+         * Yeed stake for a token
+         *
+         * @issuer anonymous
+         * @param params the params
+         *               @tokenId
+         * @return Yeed stake for a token
+         */
         @ContractQuery
         @ContractChannelMethod
         public BigInteger getYeedBalanceOf(JsonObject params) {
@@ -163,6 +191,17 @@ public class TokenContract implements BundleActivator, ServiceListener {
                     ? storeValue.get(BALANCE).getAsBigInteger() : null;
         }
 
+        /**
+         * Allowance of a spender by an owner for a token
+         *
+         * @issuer anonymous
+         * @param params the params
+         *               @tokenId
+         *               @owner
+         *               @spender
+         * @return Allowance of a spender by an owner for a token
+         */
+        // TODO : @kevin : 2019-09-08 : check if anonymous call to be allowed
         @ContractQuery
         public BigInteger allowance(JsonObject params) {
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
@@ -178,6 +217,22 @@ public class TokenContract implements BundleActivator, ServiceListener {
             return getBalance(tokenId, approveKey);
         }
 
+        /**
+         * Create a token
+         *
+         * @issuer anonymous, is to be the owner of the token
+         * @param params the params
+         *               @tokenId
+         *               @tokenName name of the token to create
+         *               @tokenInitYeedStakeAmount initial amount of yeed stake
+         *               @tokenInitMintAmount initial amount of mint
+         *               @tokenMintable whether the additional mint of the token is available
+         *               @tokenBurnable whether the burn of the token is available
+         *               @tokenExT2YEnabled whether the exchange between the token and YEED is available
+         *               @tokenExT2YType
+         *               @tokenExT2YRate
+         * @return the receipt
+         */
         @InvokeTransaction
         public Receipt createToken(JsonObject params) {
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
@@ -222,8 +277,8 @@ public class TokenContract implements BundleActivator, ServiceListener {
 
             token.addProperty(TOKEN_ID, tokenId);
             token.addProperty(TOKEN_NAME, params.get(TOKEN_NAME).getAsString());
-            token.addProperty(TOKEN_INIT_YEED_STAKE_AMOUNT, params.get(TOKEN_INIT_YEED_STAKE_AMOUNT).getAsBigInteger());
             token.addProperty(TOKEN_OWNER_ACCOUNT, txReceipt.getIssuer());
+            token.addProperty(TOKEN_INIT_YEED_STAKE_AMOUNT, params.get(TOKEN_INIT_YEED_STAKE_AMOUNT).getAsBigInteger());
             token.addProperty(TOKEN_INIT_MINT_AMOUNT, params.get(TOKEN_INIT_MINT_AMOUNT).getAsBigInteger());
             token.addProperty(TOKEN_MINTABLE, params.get(TOKEN_MINTABLE).getAsBoolean());
             token.addProperty(TOKEN_BURNABLE, params.get(TOKEN_BURNABLE).getAsBoolean());
@@ -241,6 +296,16 @@ public class TokenContract implements BundleActivator, ServiceListener {
         }
 
 
+        /**
+         * Deposit the additional YEED stake to a token.
+         * It is possible only by the owner of the token.
+         *
+         * @issuer the owner of the token
+         * @param params the params
+         *               @tokenId
+         *               @amount amount of additional YEED stake
+         * @return the receipt
+         */
         @InvokeTransaction
         public Receipt depositYeedStake(JsonObject params) {
             String issuer = txReceipt.getIssuer();
@@ -277,6 +342,15 @@ public class TokenContract implements BundleActivator, ServiceListener {
             return txReceipt;
         }
 
+        /**
+         * Withdrawal of YEED stake from a token
+         *
+         * @issuer the owner of the token
+         * @param params the params
+         *               @tokenId
+         *               @amount amount of YEED stake to withdraw
+         * @return the receipt
+         */
         @InvokeTransaction
         public Receipt withdrawYeedStake(JsonObject params) {
             String issuer = txReceipt.getIssuer();
@@ -313,6 +387,14 @@ public class TokenContract implements BundleActivator, ServiceListener {
             return txReceipt;
         }
 
+        /**
+         * Move the token phase to "run"
+         *
+         * @issuer the owner of the token
+         * @param params the params
+         *               @tokenId
+         * @return the receipt
+         */
         @InvokeTransaction
         public Receipt movePhaseRun(JsonObject params) {
             String issuer = txReceipt.getIssuer();
@@ -344,6 +426,14 @@ public class TokenContract implements BundleActivator, ServiceListener {
             return txReceipt;
         }
 
+        /**
+         * Move the token phase to "pause"
+         *
+         * @issuer the owner of the token
+         * @param params the params
+         *               @tokenId
+         * @return the receipt
+         */
         @InvokeTransaction
         public Receipt movePhasePause(JsonObject params) {
             String issuer = txReceipt.getIssuer();
@@ -375,6 +465,14 @@ public class TokenContract implements BundleActivator, ServiceListener {
             return txReceipt;
         }
 
+        /**
+         * Move the token phase to "stop"
+         *
+         * @issuer the owner of the token
+         * @param params the params
+         *               @tokenId
+         * @return the receipt
+         */
         @InvokeTransaction
         public Receipt movePhaseStop(JsonObject params) {
             String issuer = txReceipt.getIssuer();
@@ -406,8 +504,17 @@ public class TokenContract implements BundleActivator, ServiceListener {
             return txReceipt;
         }
 
+        /**
+         * Destroy the token
+         *
+         * @issuer the owner of the token
+         * @param params the params
+         *               @tokenId
+         * @return the receipt
+         */
         @InvokeTransaction
         public Receipt destroyToken(JsonObject params) {
+            String issuer = txReceipt.getIssuer();
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
             JsonObject token = loadTokenObject(tokenId);
 
@@ -417,15 +524,45 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            // issuer 가 토큰 오너인가
-            // 현재 상태가 stop 인가
+            if (issuer.equals(token.get(TOKEN_OWNER_ACCOUNT).getAsString()) == false) {
+                setErrorTxReceipt("Issuer must be token owner!");
+                return txReceipt;
+            }
+
+            String phase = loadTokenPhase(tokenId);
+            if (TOKEN_PHASE_STOP.equals(phase) == false) {
+                log.debug("[movePhaseStop] cur phase = ".concat(phase));
+                setErrorTxReceipt("If you want to destroy the token, current token phase must be STOP!");
+                return txReceipt;
+            }
 
             return null;
         }
 
+        /**
+         * Transfer token
+         *
+         * @issuer an account who wants to transfer to another account
+         * @param params the params
+         *               @tokenId
+         *               @to Target account to transfer
+         *               @amount Token amount to transfer
+         * @return the receipt
+         */
         @InvokeTransaction
         public Receipt transfer(JsonObject params) {
+            // TODO : CHECK PARAMS
+            String issuer = txReceipt.getIssuer();
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
+            String to = params.get("to").getAsString().toLowerCase();
+
+            JsonElement transferAmountElement = params.get(AMOUNT);
+            if (transferAmountElement == null) {
+                setErrorTxReceipt("Transfer amount is empty!");
+                return txReceipt;
+            }
+            BigInteger transferAmount = transferAmountElement.getAsBigInteger();
+
             JsonObject token = loadTokenObject(tokenId);
 
             if (token == null) {
@@ -439,9 +576,12 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            String from = txReceipt.getIssuer();
-            BigInteger fromBalance = getBalance(tokenId, from);
-            BigInteger transferAmount = params.get(AMOUNT).getAsBigInteger();
+            if (to.equals(issuer)) {
+                setErrorTxReceipt("Transfer 'to' account must be different from issuer!");
+                return txReceipt;
+            }
+
+            BigInteger fromBalance = getBalance(tokenId, issuer);
 
             if (transferAmount.compareTo(BigInteger.ZERO) <= 0) {
                 setErrorTxReceipt("Transfer amount must be greater than ZERO!");
@@ -453,22 +593,26 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            String to = params.get("to").getAsString().toLowerCase();
-
-            BigInteger newFromBalance = getBalance(tokenId, from).subtract(transferAmount);
+            BigInteger newFromBalance = getBalance(tokenId, issuer).subtract(transferAmount);
             BigInteger newToBalance = getBalance(tokenId, to).add(transferAmount);
-            putBalance(tokenId, from, newFromBalance);
+            putBalance(tokenId, issuer, newFromBalance);
             putBalance(tokenId, to, newToBalance);
 
             String msg = String.format(
                     "[Token Transferred] Token [%s] transfer %s from %s to %s.",
-                    tokenId, transferAmount, from, to
+                    tokenId, transferAmount, issuer, to
             );
             setSuccessTxReceipt(msg);
 
             return txReceipt;
         }
 
+        /**
+         * Approve receipt.
+         *
+         * @param params the params
+         * @return the receipt
+         */
         @InvokeTransaction
         public Receipt approve(JsonObject params) {
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
@@ -506,6 +650,12 @@ public class TokenContract implements BundleActivator, ServiceListener {
             return txReceipt;
         }
 
+        /**
+         * Transfer from receipt.
+         *
+         * @param params the params
+         * @return the receipt
+         */
         @InvokeTransaction
         public Receipt transferFrom(JsonObject params) {
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
@@ -554,6 +704,12 @@ public class TokenContract implements BundleActivator, ServiceListener {
             return txReceipt;
         }
 
+        /**
+         * Mint receipt.
+         *
+         * @param params the params
+         * @return the receipt
+         */
         @InvokeTransaction
         public Receipt mint(JsonObject params) {
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
@@ -605,6 +761,12 @@ public class TokenContract implements BundleActivator, ServiceListener {
             return txReceipt;
         }
 
+        /**
+         * Burn receipt.
+         *
+         * @param params the params
+         * @return the receipt
+         */
         @InvokeTransaction
         public Receipt burn(JsonObject params) {
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
@@ -661,6 +823,12 @@ public class TokenContract implements BundleActivator, ServiceListener {
             return txReceipt;
         }
 
+        /**
+         * Exchange t 2 y receipt.
+         *
+         * @param params the params
+         * @return the receipt
+         */
         @InvokeTransaction
         public Receipt exchangeT2Y(JsonObject params) {
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
@@ -747,6 +915,12 @@ public class TokenContract implements BundleActivator, ServiceListener {
             return txReceipt;
         }
 
+        /**
+         * Exchange y 2 t receipt.
+         *
+         * @param params the params
+         * @return the receipt
+         */
         @InvokeTransaction
         public Receipt exchangeY2T(JsonObject params) {
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
@@ -821,6 +995,12 @@ public class TokenContract implements BundleActivator, ServiceListener {
             return txReceipt;
         }
 
+        /**
+         * Exchange t 2 t open receipt.
+         *
+         * @param params the params
+         * @return the receipt
+         */
         @InvokeTransaction
         public Receipt exchangeT2TOpen(JsonObject params) {
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
@@ -869,6 +1049,12 @@ public class TokenContract implements BundleActivator, ServiceListener {
             return txReceipt;
         }
 
+        /**
+         * Exchange t 2 t close receipt.
+         *
+         * @param params the params
+         * @return the receipt
+         */
         @InvokeTransaction
         public Receipt exchangeT2TClose(JsonObject params) {
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
@@ -910,6 +1096,12 @@ public class TokenContract implements BundleActivator, ServiceListener {
             return txReceipt;
         }
 
+        /**
+         * Exchange t 2 t receipt.
+         *
+         * @param params the params
+         * @return the receipt
+         */
         @InvokeTransaction
         public Receipt exchangeT2T(JsonObject params) {
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
