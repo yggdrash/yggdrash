@@ -92,6 +92,11 @@ public class KademliaPeerNetwork implements PeerNetwork {
     }
 
     @Override
+    public BlockChainHandler getPeerHandler(BranchId branchId, Peer peer) {
+        return peerDialer.getPeerHandler(branchId, peer);
+    }
+
+    @Override
     public void receivedTransaction(Transaction tx) {
         try {
             txQueue.put(tx);
