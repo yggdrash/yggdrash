@@ -44,6 +44,7 @@ public class DiscoveryServiceConsumer implements DiscoveryConsumer {
     }
 
     @Override
+    @Deprecated
     public String ping(BranchId branchId, Peer from, Peer to, String msg) {
         //TODO Consider adding expiration time
         //TODO AddPeer only when doing the handshake.

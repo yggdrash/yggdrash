@@ -59,7 +59,6 @@ public class DiscoveryService extends DiscoveryServiceGrpc.DiscoveryServiceImplB
         responseObserver.onCompleted();
     }
 
-
     @Override
     public void ping(Proto.Ping request, StreamObserver<Proto.Pong> responseObserver) {
         BranchId branchId = BranchId.of(request.getBranch().toByteArray());
