@@ -39,7 +39,6 @@ public class TokenContract implements BundleActivator, ServiceListener {
     private static final String TOKEN_NAME = "tokenName";
     private static final String TOKEN_OWNER_ACCOUNT = "tokenOwnerAccount";
     private static final String TOKEN_INIT_YEED_STAKE_AMOUNT = "tokenInitYeedStakeAmount";
-    private static final String TOKEN_YEED_STAKE_AMOUNT = "tokenYeedStakeAmount";
 
     private static final String TOKEN_INIT_MINT_AMOUNT = "tokenInitMintAmount";
     private static final String TOKEN_MINTABLE = "tokenMintable";
@@ -53,22 +52,24 @@ public class TokenContract implements BundleActivator, ServiceListener {
 
     private static final String TOKEN_EX_T2T_RATE = "tokenExT2TRate";
     private static final String TOKEN_EX_T2T_RATE_MAP = "tokenExT2TRateMap";
+    private static final String TOKEN_EX_T2T_RATE_MAP_PREFIX = "ex-t2t-rate-map-";
     private static final String TOKEN_EX_T2T_TARGET_TOKEN_ID = "tokenExT2TTargetTokenId";
 
     private static final String TOKEN_PHASE = "tokenPhase";
+    private static final String TOKEN_PHASE_PREFIX = "phase-";
     private static final String TOKEN_PHASE_INIT = "init";
     private static final String TOKEN_PHASE_RUN = "run";
     private static final String TOKEN_PHASE_PAUSE = "pause";
     private static final String TOKEN_PHASE_STOP = "stop";
 
     private static final String TOTAL_SUPPLY = "TOTAL_SUPPLY";
+    private static final String YEED_STAKE = "YEED_STAKE";
     private static final String ADDRESS = "address";
     private static final String AMOUNT = "amount";
     private static final String BALANCE = "balance";
 
     private static final String SPENDER = "spender";
     private static final String OWNER = "owner";
-
 
     private static final Logger log = LoggerFactory.getLogger(TokenContract.class);
 
@@ -93,7 +94,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
     }
 
 
-    // TODO : @kevin : 2019-08-22 : should apply tx fee to all token transactions
+    // TODO : @kevin : 2019-08-22 : should apply tx fee
     public static class TokenService {
 
         @SuppressWarnings("WeakerAccess")
@@ -154,12 +155,12 @@ public class TokenContract implements BundleActivator, ServiceListener {
         public BigInteger getYeedBalanceOf(JsonObject params) {
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
 
-            JsonObject token = loadTokenObject(tokenId);
-            if (token == null) {
-                return null;
-            }
+            String targetAddress =
+                    PrefixKeyEnum.ACCOUNT.toValue().concat(getTokenAddress(tokenId, YEED_STAKE));
+            JsonObject storeValue = store.get(targetAddress);
 
-            return token.get(TOKEN_YEED_STAKE_AMOUNT).getAsBigInteger();
+            return storeValue != null && storeValue.has(BALANCE)
+                    ? storeValue.get(BALANCE).getAsBigInteger() : null;
         }
 
         @ContractQuery
@@ -203,7 +204,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
             }
 
             // create token success!
-            saveTokenObject(token);
+            store.put(TOKEN_PREFIX.concat(tokenId), token);
 
             String msg = String.format(
                     "Token [%s] creation completed successfully. Initial mint amount is %s.",
@@ -215,14 +216,13 @@ public class TokenContract implements BundleActivator, ServiceListener {
         }
 
         private JsonObject makeTokenObject(JsonObject params) {
+            String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
+
             JsonObject token = new JsonObject();
 
-            // TODO : @kevin : 2019-08-23 : 변경되는 값들을 별도로 저장하자
-
-            token.addProperty(TOKEN_ID, params.get(TOKEN_ID).getAsString().toLowerCase());
+            token.addProperty(TOKEN_ID, tokenId);
             token.addProperty(TOKEN_NAME, params.get(TOKEN_NAME).getAsString());
             token.addProperty(TOKEN_INIT_YEED_STAKE_AMOUNT, params.get(TOKEN_INIT_YEED_STAKE_AMOUNT).getAsBigInteger());
-            token.addProperty(TOKEN_YEED_STAKE_AMOUNT, params.get(TOKEN_INIT_YEED_STAKE_AMOUNT).getAsBigInteger());
             token.addProperty(TOKEN_OWNER_ACCOUNT, txReceipt.getIssuer());
             token.addProperty(TOKEN_INIT_MINT_AMOUNT, params.get(TOKEN_INIT_MINT_AMOUNT).getAsBigInteger());
             token.addProperty(TOKEN_MINTABLE, params.get(TOKEN_MINTABLE).getAsBoolean());
@@ -231,9 +231,11 @@ public class TokenContract implements BundleActivator, ServiceListener {
             token.addProperty(TOKEN_EX_T2Y_TYPE, params.get(TOKEN_EX_T2Y_TYPE).getAsString());
             token.addProperty(TOKEN_EX_T2Y_RATE, params.get(TOKEN_EX_T2Y_RATE).getAsBigDecimal());
 
-            token.add(TOKEN_EX_T2T_RATE_MAP, new JsonObject());
-
-            token.addProperty(TOKEN_PHASE, TOKEN_PHASE_INIT);
+            saveTokenPhase(tokenId, TOKEN_PHASE_INIT);
+            putBalance(
+                    tokenId,
+                    YEED_STAKE,
+                    params.get(TOKEN_INIT_YEED_STAKE_AMOUNT).getAsBigInteger());
 
             return token;
         }
@@ -263,9 +265,8 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            BigInteger curStakeOfToken = token.get(TOKEN_YEED_STAKE_AMOUNT).getAsBigInteger();
-            token.addProperty(TOKEN_YEED_STAKE_AMOUNT, curStakeOfToken.add(amount));
-            saveTokenObject(token);
+            BigInteger curStakeOfToken = getBalance(tokenId, YEED_STAKE);
+            putBalance(tokenId, YEED_STAKE, curStakeOfToken.add(amount));
 
             String msg = String.format(
                     "Token [%s] yeed stake deposit completed successfully. Amount is %s.",
@@ -300,9 +301,8 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            BigInteger curStakeOfToken = token.get(TOKEN_YEED_STAKE_AMOUNT).getAsBigInteger();
-            token.addProperty(TOKEN_YEED_STAKE_AMOUNT, curStakeOfToken.subtract(amount));
-            saveTokenObject(token);
+            BigInteger curStakeOfToken = getBalance(tokenId, YEED_STAKE);
+            putBalance(tokenId, YEED_STAKE, curStakeOfToken.subtract(amount));
 
             String msg = String.format(
                     "Token [%s] yeed stake withdrawal completed successfully. Amount is %s.",
@@ -330,16 +330,15 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            String phase = token.get(TOKEN_PHASE).getAsString();
+            String phase = loadTokenPhase(tokenId);
             if ((TOKEN_PHASE_INIT.equals(phase) || TOKEN_PHASE_PAUSE.equals(phase)) == false) {
                 log.debug("[movePhaseRun] cur phase = ".concat(phase));
                 setErrorTxReceipt("If you want to move token phase to RUN, current token phase must be INIT or PAUSE!");
                 return txReceipt;
             }
 
-            token.addProperty(TOKEN_PHASE, TOKEN_PHASE_RUN);
+            saveTokenPhase(tokenId, TOKEN_PHASE_RUN);
 
-            saveTokenObject(token);
             setSuccessTxReceipt("Token phase was moved to RUN!");
 
             return txReceipt;
@@ -362,15 +361,14 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            String phase = token.get(TOKEN_PHASE).getAsString();
+            String phase = loadTokenPhase(tokenId);
             if (TOKEN_PHASE_RUN.equals(phase) == false) {
                 log.debug("[movePhasePause] cur phase = ".concat(phase));
                 setErrorTxReceipt("If you want to move token phase to PAUSE, current token phase must be RUN!");
                 return txReceipt;
             }
 
-            token.addProperty(TOKEN_PHASE, TOKEN_PHASE_PAUSE);
-            saveTokenObject(token);
+            saveTokenPhase(tokenId, TOKEN_PHASE_PAUSE);
 
             setSuccessTxReceipt("Token phase was moved to PAUSE!");
 
@@ -394,15 +392,14 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            String phase = token.get(TOKEN_PHASE).getAsString();
+            String phase = loadTokenPhase(tokenId);
             if ((TOKEN_PHASE_RUN.equals(phase) || TOKEN_PHASE_PAUSE.equals(phase)) == false) {
                 log.debug("[movePhaseStop] cur phase = ".concat(phase));
                 setErrorTxReceipt("If you want to move token phase to STOP, current token phase must be RUN or PAUSE!");
                 return txReceipt;
             }
 
-            token.addProperty(TOKEN_PHASE, TOKEN_PHASE_STOP);
-            saveTokenObject(token);
+            saveTokenPhase(tokenId, TOKEN_PHASE_STOP);
 
             setSuccessTxReceipt("Token phase was moved to STOP!");
 
@@ -437,7 +434,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            if (isTokenRunning(token) == false) {
+            if (isTokenRunning(tokenId) == false) {
                 setErrorTxReceipt("Token is not running!");
                 return txReceipt;
             }
@@ -455,8 +452,6 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 setErrorTxReceipt("Insufficient balance to transfer!");
                 return txReceipt;
             }
-
-            // TODO : @kevin : 2019-08-20 : should pay YEED fee from stake
 
             String to = params.get("to").getAsString().toLowerCase();
 
@@ -485,7 +480,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            if (isTokenRunning(token) == false) {
+            if (isTokenRunning(tokenId) == false) {
                 setErrorTxReceipt("Token is not running!");
                 return txReceipt;
             }
@@ -522,7 +517,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            if (isTokenRunning(token) == false) {
+            if (isTokenRunning(tokenId) == false) {
                 setErrorTxReceipt("Token is not running!");
                 return txReceipt;
             }
@@ -581,7 +576,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            String phase = token.get(TOKEN_PHASE).getAsString();
+            String phase = loadTokenPhase(tokenId);
             if (TOKEN_PHASE_STOP.equals(phase)) {
                 log.debug("[mint] cur phase = ".concat(phase));
                 setErrorTxReceipt("Token phase is STOP!");
@@ -632,7 +627,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            String phase = token.get(TOKEN_PHASE).getAsString();
+            String phase = loadTokenPhase(tokenId);
             if (TOKEN_PHASE_STOP.equals(phase)) {
                 log.debug("[burn] cur phase = ".concat(phase));
                 setErrorTxReceipt("Token phase is STOP!");
@@ -678,7 +673,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            if (isTokenRunning(token) == false) {
+            if (isTokenRunning(tokenId) == false) {
                 setErrorTxReceipt("Token is not running!");
                 return txReceipt;
             }
@@ -705,41 +700,43 @@ public class TokenContract implements BundleActivator, ServiceListener {
 
             String exType = token.get(TOKEN_EX_T2Y_TYPE).getAsString();
             BigInteger yeedAmount = BigInteger.ZERO;
+            BigDecimal tokenAmountDecimal = new BigDecimal(tokenAmount);
+            BigDecimal exRate = BigDecimal.ONE;
             switch (exType) {
                 case TOKEN_EX_T2Y_TYPE_FIXED:
-                    BigDecimal exRate = token.get(TOKEN_EX_T2Y_RATE).getAsBigDecimal();
-                    BigDecimal tokenAmountDecimal = new BigDecimal(tokenAmount);
-                    yeedAmount = tokenAmountDecimal.divide(exRate).setScale(0, RoundingMode.HALF_EVEN).toBigInteger();
-
-                    BigInteger yeedStakeAmountOfToken = token.get(TOKEN_YEED_STAKE_AMOUNT).getAsBigInteger();
-                    if (yeedStakeAmountOfToken.compareTo(yeedAmount) < 0) {
-                        setErrorTxReceipt("Insufficient yeed stake amount of the token to withdraw!");
-                        return txReceipt;
-                    }
-
-                    boolean isWithdrawalSuccess = withdrawYeedStakeSub(issuer, yeedAmount);
-                    if (isWithdrawalSuccess == false) {
-                        setErrorTxReceipt("Insufficient yeed stake amount of the contract to withdraw!");
-                        return txReceipt;
-                    }
-
-                    BigInteger curYeedStakeOfToken = token.get(TOKEN_YEED_STAKE_AMOUNT).getAsBigInteger();
-                    token.addProperty(TOKEN_YEED_STAKE_AMOUNT, curYeedStakeOfToken.subtract(yeedAmount));
-                    saveTokenObject(token);
-
-                    BigInteger curTokenBalance = getBalance(tokenId, issuer);
-                    putBalance(tokenId, issuer, curTokenBalance.subtract(tokenAmount));
-
-                    BigInteger curTotalSupplyOfToken = getBalance(tokenId, TOTAL_SUPPLY);
-                    putBalance(tokenId, TOTAL_SUPPLY, curTotalSupplyOfToken.subtract(tokenAmount));
-
+                    exRate = token.get(TOKEN_EX_T2Y_RATE).getAsBigDecimal();
                     break;
                 case TOKEN_EX_T2Y_TYPE_LINKED:
-                    // TODO : @kevin : 2019-08-22 : should implement linked case
+                    BigDecimal decimalStake = new BigDecimal(getYeedBalanceOf(params));
+                    BigDecimal decimalTotalSupply = new BigDecimal(getBalance(tokenId, TOTAL_SUPPLY));
+                    exRate = decimalTotalSupply.divide(decimalStake);
                     break;
                 default :
                     break;
             }
+
+            yeedAmount = tokenAmountDecimal.divide(exRate).setScale(0, RoundingMode.HALF_EVEN).toBigInteger();
+
+            BigInteger yeedStakeAmountOfToken = getBalance(tokenId, YEED_STAKE);
+            if (yeedStakeAmountOfToken.compareTo(yeedAmount) < 0) {
+                setErrorTxReceipt("Insufficient yeed stake amount of the token to withdraw!");
+                return txReceipt;
+            }
+
+            boolean isWithdrawalSuccess = withdrawYeedStakeSub(issuer, yeedAmount);
+            if (isWithdrawalSuccess == false) {
+                setErrorTxReceipt("Insufficient yeed stake amount of the contract to withdraw!");
+                return txReceipt;
+            }
+
+            BigInteger curYeedStakeOfToken = getBalance(tokenId, YEED_STAKE);
+            putBalance(tokenId, YEED_STAKE, curYeedStakeOfToken.subtract(yeedAmount));
+
+            BigInteger curTokenBalance = getBalance(tokenId, issuer);
+            putBalance(tokenId, issuer, curTokenBalance.subtract(tokenAmount));
+
+            BigInteger curTotalSupplyOfToken = getBalance(tokenId, TOTAL_SUPPLY);
+            putBalance(tokenId, TOTAL_SUPPLY, curTotalSupplyOfToken.subtract(tokenAmount));
 
             String msg = String.format(
                     "Token [%s] was exchanged to YEED successfully. Token %s was exchanged to YEED %s.",
@@ -761,7 +758,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            if (isTokenRunning(token) == false) {
+            if (isTokenRunning(tokenId) == false) {
                 setErrorTxReceipt("Token is not running!");
                 return txReceipt;
             }
@@ -781,36 +778,39 @@ public class TokenContract implements BundleActivator, ServiceListener {
             }
 
             String exType = token.get(TOKEN_EX_T2Y_TYPE).getAsString();
-            BigInteger tokenAmount = BigInteger.ZERO;
+            BigDecimal exRate = BigDecimal.ONE;
+
             switch (exType) {
                 case TOKEN_EX_T2Y_TYPE_FIXED:
-                    boolean isDepositSuccess = depositYeedStakeSub(issuer, yeedAmount);
-                    if (isDepositSuccess == false) {
-                        setErrorTxReceipt("Insufficient yeed balance to deposit!");
-                        return txReceipt;
-                    }
-
-                    BigInteger curYeedStakeOfToken = token.get(TOKEN_YEED_STAKE_AMOUNT).getAsBigInteger();
-                    token.addProperty(TOKEN_YEED_STAKE_AMOUNT, curYeedStakeOfToken.add(yeedAmount));
-                    saveTokenObject(token);
-
-                    BigDecimal exRate = token.get(TOKEN_EX_T2Y_RATE).getAsBigDecimal();
-                    BigDecimal yeedAmountDecimal = new BigDecimal(yeedAmount);
-                    tokenAmount = yeedAmountDecimal.multiply(exRate).setScale(0, RoundingMode.HALF_EVEN).toBigInteger();
-
-                    BigInteger curTokenBalance = getBalance(tokenId, issuer);
-                    putBalance(tokenId, issuer, curTokenBalance.add(tokenAmount));
-
-                    BigInteger curTokenTotalSupply = getBalance(tokenId, TOTAL_SUPPLY);
-                    putBalance(tokenId, TOTAL_SUPPLY, curTokenTotalSupply.add(tokenAmount));
-
+                    exRate = token.get(TOKEN_EX_T2Y_RATE).getAsBigDecimal();
                     break;
                 case TOKEN_EX_T2Y_TYPE_LINKED:
-                    // TODO : @kevin : 2019-08-22 : should implement linked case
+                    BigDecimal decimalStake = new BigDecimal(getYeedBalanceOf(params));
+                    BigDecimal decimalTotalSupply = new BigDecimal(getBalance(tokenId, TOTAL_SUPPLY));
+                    exRate = decimalTotalSupply.divide(decimalStake);
                     break;
-                default :
+                default:
                     break;
             }
+
+            boolean isDepositSuccess = depositYeedStakeSub(issuer, yeedAmount);
+            if (isDepositSuccess == false) {
+                setErrorTxReceipt("Insufficient yeed balance to deposit!");
+                return txReceipt;
+            }
+
+            BigInteger curYeedStakeOfToken = getBalance(tokenId, YEED_STAKE);
+            putBalance(tokenId, YEED_STAKE, curYeedStakeOfToken.add(yeedAmount));
+
+            BigDecimal yeedAmountDecimal = new BigDecimal(yeedAmount);
+            BigInteger tokenAmount =
+                    yeedAmountDecimal.multiply(exRate).setScale(0, RoundingMode.HALF_EVEN).toBigInteger();
+
+            BigInteger curTokenBalance = getBalance(tokenId, issuer);
+            putBalance(tokenId, issuer, curTokenBalance.add(tokenAmount));
+
+            BigInteger curTokenTotalSupply = getBalance(tokenId, TOTAL_SUPPLY);
+            putBalance(tokenId, TOTAL_SUPPLY, curTokenTotalSupply.add(tokenAmount));
 
             String msg = String.format(
                     "Token [%s] was exchanged from YEED successfully. YEED %s was exchanged to token %s.",
@@ -846,7 +846,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            if (loadExT2TRate(token, targetTokenId) != null) {
+            if (loadExT2TRate(tokenId, targetTokenId) != null) {
                 setErrorTxReceipt("Exchange to target token is already open!");
                 return txReceipt;
             }
@@ -858,7 +858,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
             }
 
             BigDecimal exRateT2T = exRateT2TObj.getAsBigDecimal();
-            saveExT2TRate(token, targetTokenId, exRateT2T);
+            saveExT2TRate(tokenId, targetTokenId, exRateT2T);
 
             String msg = String.format(
                     "Token [%s] exchange open to target token %s completed successfully.",
@@ -894,17 +894,12 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            if (loadExT2TRate(token, targetTokenId) == null) {
+            if (loadExT2TRate(tokenId, targetTokenId) == null) {
                 setErrorTxReceipt("Target token is already closed!");
                 return txReceipt;
             }
 
-            JsonObject exRateT2TMap = token.get(TOKEN_EX_T2T_RATE_MAP).getAsJsonObject();
-            String t2tName = tokenId.concat("-").concat(targetTokenId);
-            exRateT2TMap.remove(t2tName);
-            token.add(TOKEN_EX_T2T_RATE_MAP, exRateT2TMap);
-
-            saveTokenObject(token);
+            saveExT2TRate(tokenId, targetTokenId, null);
 
             String msg = String.format(
                     "Token [%s] exchange close to target token %s completed successfully.",
@@ -927,20 +922,19 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            if (isTokenRunning(token) == false) {
+            if (isTokenRunning(tokenId) == false) {
                 setErrorTxReceipt("Token is not running!");
                 return txReceipt;
             }
 
-            String targetTokenId = params.get(TOKEN_EX_T2T_TARGET_TOKEN_ID).getAsString();
-            BigDecimal exT2TRate = loadExT2TRate(token, targetTokenId);
+            String targetTokenId = params.get(TOKEN_EX_T2T_TARGET_TOKEN_ID).getAsString().toLowerCase();
+            BigDecimal exT2TRate = loadExT2TRate(tokenId, targetTokenId);
             if (exT2TRate == null) {
                 setErrorTxReceipt("Token exchange is not opened to target token!");
                 return txReceipt;
             }
 
-            JsonObject targetToken = loadTokenObject(targetTokenId);
-            if (isTokenRunning(targetToken)) {
+            if (isTokenRunning(targetTokenId) == false) {
                 setErrorTxReceipt("Target token is not running!");
                 return txReceipt;
             }
@@ -959,10 +953,10 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            // target token amount
+            // targetTokenAmount = tokenAmount * exT2TRate
             BigDecimal tokenAmountDecimal = new BigDecimal(tokenAmount);
             BigInteger targetTokenAmount =
-                    tokenAmountDecimal.multiply(tokenAmountDecimal)
+                    tokenAmountDecimal.multiply(exT2TRate)
                     .setScale(0, RoundingMode.HALF_EVEN).toBigInteger();
 
             // do exchange
@@ -984,6 +978,21 @@ public class TokenContract implements BundleActivator, ServiceListener {
             setSuccessTxReceipt(msg);
 
             return txReceipt;
+        }
+
+
+        private void saveTokenPhase(String tokenId, String tokenPhase) {
+            String key = TOKEN_PHASE_PREFIX.concat(tokenId);
+            JsonObject storeValue = new JsonObject();
+            storeValue.addProperty(TOKEN_PHASE, tokenPhase);
+            store.put(key, storeValue);
+        }
+
+        private String loadTokenPhase(String tokenId) {
+            String key = TOKEN_PHASE_PREFIX.concat(tokenId);
+            JsonObject storeValue = store.get(key);
+            return storeValue != null && storeValue.has(TOKEN_PHASE)
+                    ? storeValue.get(TOKEN_PHASE).getAsString() : null;
         }
 
         private BigInteger getBalance(String tokenId, String address) {
@@ -1016,13 +1025,6 @@ public class TokenContract implements BundleActivator, ServiceListener {
         private void setSuccessTxReceipt(String msg) {
             this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
             this.txReceipt.addLog(msg);
-        }
-
-
-
-        private void saveTokenObject(JsonObject token) {
-            String tokenId = token.get(TOKEN_ID).getAsString();
-            store.put(TOKEN_PREFIX.concat(tokenId), token);
         }
 
         private JsonObject loadTokenObject(String tokenId) {
@@ -1064,13 +1066,39 @@ public class TokenContract implements BundleActivator, ServiceListener {
         }
 
 
-        private boolean isTokenRunning(JsonObject token) {
-            return TOKEN_PHASE_RUN.equals(token.get(TOKEN_PHASE).getAsString());
+        private boolean isTokenRunning(String tokenId) {
+            return TOKEN_PHASE_RUN.equals(loadTokenPhase(tokenId));
         }
 
-        private BigDecimal loadExT2TRate(JsonObject token, String targetTokenId) {
-            JsonObject exRateT2TMap = token.get(TOKEN_EX_T2T_RATE_MAP).getAsJsonObject();
-            String t2tName = token.get(TOKEN_ID).getAsString().concat("-").concat(targetTokenId);
+
+        private void saveExT2TRate(String tokenId, String targetTokenId, BigDecimal rate) {
+            String key = TOKEN_EX_T2T_RATE_MAP_PREFIX.concat(tokenId);
+            JsonObject exRateT2TMap = store.get(key);
+
+            if (exRateT2TMap == null) {
+                exRateT2TMap = new JsonObject();
+            }
+
+            String t2tName = tokenId.concat("-").concat(targetTokenId);
+
+            if (rate == null) {
+                exRateT2TMap.remove(t2tName);
+            } else {
+                exRateT2TMap.addProperty(t2tName, rate);
+            }
+
+            store.put(key, exRateT2TMap);
+        }
+
+        private BigDecimal loadExT2TRate(String tokenId, String targetTokenId) {
+            String key = TOKEN_EX_T2T_RATE_MAP_PREFIX.concat(tokenId);
+            JsonObject exRateT2TMap = store.get(key);
+
+            if (exRateT2TMap == null) {
+                return null;
+            }
+
+            String t2tName = tokenId.concat("-").concat(targetTokenId);
 
             JsonElement exRateT2TElement = exRateT2TMap.get(t2tName);
             if (exRateT2TElement == null) {
@@ -1078,16 +1106,6 @@ public class TokenContract implements BundleActivator, ServiceListener {
             }
 
             return exRateT2TElement.getAsBigDecimal();
-        }
-
-        private void saveExT2TRate(JsonObject token, String targetTokenId, BigDecimal exRateT2T) {
-            JsonObject exRateT2TMap = token.get(TOKEN_EX_T2T_RATE_MAP).getAsJsonObject();
-            String t2tName = token.get(TOKEN_ID).getAsString().concat("-").concat(targetTokenId);
-
-            exRateT2TMap.addProperty(t2tName, exRateT2T);
-            token.add(TOKEN_EX_T2T_RATE_MAP, exRateT2TMap);
-
-            saveTokenObject(token);
         }
     }
 }
