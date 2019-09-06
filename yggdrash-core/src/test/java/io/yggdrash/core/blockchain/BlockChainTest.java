@@ -21,6 +21,7 @@ import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.TestConstants.CiTest;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NotValidateException;
@@ -29,6 +30,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +47,73 @@ public class BlockChainTest extends CiTest {
     @After
     public void tearDown() {
         StoreTestUtils.clearDefaultConfigDb();
+    }
+
+    // This test is related to AddTransaction & AddBlock
+    @Test
+    public void onlySuccessTxRemainInPendingPool() {
+        BlockChain blockChain = BlockChainTestUtils.createBlockChain(false);
+        // Transactions received by the API are executed as the tmpStateStore and returned to success status.
+        // SuccessTx -> Transferred successfully
+        Map<String, List<String>> errorLogs = blockChain.addTransaction(createTx("400000000000000000000"));
+        assertEquals(0, errorLogs.size()); // No errorLogs returned
+        errorLogs = blockChain.addTransaction(createTx("400000000000000000000"));
+        assertEquals(0, errorLogs.size());
+        // ErrTx -> Insufficient funds
+        errorLogs = blockChain.addTransaction(createTx("400000000000000000000"));
+        assertEquals(0, errorLogs.size());
+        // Transactions in pendingPool execute on the current state, so the third error tx
+        // cannot be added to the pendingPool. Only success txs can be added.
+        assertEquals(2, blockChain.getBlockChainManager().getUnconfirmedTxs().size());
+
+        // Create a new block with unconfirmedTxs in pbftService.
+        Block newBlock = makeNewBlock(blockChain, blockChain.getBlockChainManager().getLastIndex() + 1,
+                blockChain.getBlockChainManager().getLastHash().getBytes());
+        // Only success txs can be added to the blockBody.
+        assertEquals(2, newBlock.getBody().getTransactionList().size());
+
+        // Transaction transfer through the API can also occur while the block is being created.
+        // SuccessTx -> Transferred successfully
+        errorLogs = blockChain.addTransaction(createTx("100000000000000000000"));
+        assertEquals(0, errorLogs.size());
+        // ErrTx -> Insufficient funds
+        errorLogs = blockChain.addTransaction(createTx("100000000000000000000"));
+        assertEquals(0, errorLogs.size());
+        errorLogs = blockChain.addTransaction(createTx("100000000000000000000"));
+        assertEquals(0, errorLogs.size());
+        // 3 success txs are remaining in pendingPool.
+        assertEquals(3, blockChain.getBlockChainManager().getUnconfirmedTxs().size());
+
+        // The transactions within that block are removed from the pendingPool when the created block is added.
+        errorLogs = blockChain.addBlock(new PbftBlockMock(newBlock));
+        // No errorLogs returned when adding block is succeeded.
+        assertEquals(0, errorLogs.size());
+        // Once the block is added to the blockChain, run txs of pendingPool again with the updated stateStore
+        // to remove any remaining error txs. Only success tx will remain in pendingPool.
+        assertEquals(1, blockChain.getBlockChainManager().getUnconfirmedTxs().size());
+    }
+
+    // Create a tx that decimal applied
+    private Transaction createTx(String amountStr) {
+        BigInteger amount = new BigInteger(amountStr).multiply(BigInteger.TEN.pow(18));
+        return BlockChainTestUtils.createTransferTx(TestConstants.TRANSFER_TO, amount);
+    }
+
+    // The same function of pbftService
+    private Block makeNewBlock(BlockChain blockChain, long index, byte[] prevBlockHash) {
+        List<Transaction> txList = new ArrayList<>(blockChain.getBlockChainManager().getUnconfirmedTxs());
+
+        BlockBody newBlockBody = new BlockBody(txList);
+
+        BlockHeader newBlockHeader = new BlockHeader(
+                blockChain.getBranchId().getBytes(),
+                Constants.EMPTY_BYTE8,
+                Constants.EMPTY_BYTE8,
+                prevBlockHash,
+                index,
+                TimeUtils.time(),
+                newBlockBody);
+        return new BlockImpl(newBlockHeader, TestConstants.wallet(), newBlockBody);
     }
 
     @Test

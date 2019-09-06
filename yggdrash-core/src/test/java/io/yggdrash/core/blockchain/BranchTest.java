@@ -90,7 +90,7 @@ public class BranchTest {
         Assert.assertEquals(yggdrashBranch.getName(), block.getBranch().getName());
         log.debug(JsonUtil.prettyFormat(block.getBlock().toJsonObject()));
 
-        // TODO Genesis Block has more by Transaction Type
-        Assert.assertEquals(3L, block.getBlock().getBody().getCount());
+        int genesisTxSize = yggdrashBranch.getBranchContracts().size();
+        Assert.assertEquals(genesisTxSize, block.getBlock().getBody().getCount());
     }
 }

@@ -4,8 +4,8 @@ import com.google.gson.JsonObject;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 
 public class StoreAdapter implements ReadWriterStore<String, JsonObject> {
-    private final ReadWriterStore<String, JsonObject> stateStore;
     private final String nameSpace;
+    private ReadWriterStore<String, JsonObject> stateStore;
 
     public StoreAdapter(ReadWriterStore<String, JsonObject> stateStore, String nameSpace) {
         this.stateStore = stateStore;
@@ -14,6 +14,10 @@ public class StoreAdapter implements ReadWriterStore<String, JsonObject> {
 
     private String getNameSpaceKey(String key) {
         return String.format("%s%s",nameSpace,key);
+    }
+
+    public void setStateStore(ReadWriterStore<String, JsonObject> stateStore) {
+        this.stateStore = stateStore;
     }
 
     @Override

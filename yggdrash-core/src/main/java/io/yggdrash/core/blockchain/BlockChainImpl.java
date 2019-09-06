@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -155,7 +156,11 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             // and then batch the transactions.
             blockChainManager.addBlock(nextBlock);
 
-            // TODO Check this work well (Test required)
+            // PendingStateStore is still running without reset.
+            contractManager.resetPendingStateStore();
+            Set<Sha3Hash> errTxKeys  = contractManager.executePendingTxs(blockChainManager.getUnconfirmedTxs());
+            blockChainManager.flushUnconfirmedTxs(errTxKeys);
+
             BlockRuntimeResult endBlockResult = contractManager.endBlock(nextBlock);
             // Fire contract event
             getContractEventList(endBlockResult).stream()
@@ -207,7 +212,11 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         if (verifyResult == BusinessError.VALID.toValue()) {
             TransactionRuntimeResult txResult = contractManager.executeTx(tx); //checkTx
             if (txResult.getReceipt().getStatus() != ExecuteStatus.ERROR) {
-                blockChainManager.addTransaction(tx);
+
+                // Execute tx before adding tx to pending pool. Err tx would not be added.
+                if (contractManager.executePendingTx(tx)) {
+                    blockChainManager.addTransaction(tx);
+                }
 
                 if (!listenerList.isEmpty() && broadcast) {
                     listenerList.forEach(listener -> listener.receivedTransaction(tx));

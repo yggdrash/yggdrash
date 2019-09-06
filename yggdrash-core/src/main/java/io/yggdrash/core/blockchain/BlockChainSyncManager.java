@@ -208,15 +208,16 @@ public class BlockChainSyncManager implements SyncManager {
             return;
         }
 
-        long bestBlock = from.getBestBlock();
-        long curBestBlock = blockChain.getBlockChainManager().getLastIndex();
-        log.trace("catchUpRequest(): bestBlock from peer=({}), curBestBlock of branch=({})", bestBlock, curBestBlock);
+        long peerBlockIndex = from.getBestBlock();
+        long myBlockIndex = blockChain.getBlockChainManager().getLastIndex();
+        log.trace("catchUpRequest(): bestBlock from peer=({}), curBestBlock of branch=({})",
+                peerBlockIndex, myBlockIndex);
 
-        if (curBestBlock >= bestBlock) {
+        if (myBlockIndex >= peerBlockIndex) {
             return;
         }
 
-        reqSyncBlockToHandlers(blockChain);
+        reqSyncBlockToPeer(blockChain, from);
     }
 
     private void addTransaction(BlockChain blockChain, List<Transaction> txList) {
@@ -246,4 +247,21 @@ public class BlockChainSyncManager implements SyncManager {
             nodeStatus.up();
         }
     }
+
+    private void reqSyncBlockToPeer(BlockChain blockChain, Peer peer) {
+        if (!nodeStatus.isUpStatus()) {
+            log.debug("NodeStatus is down.");
+            return;
+        }
+
+        nodeStatus.sync();
+        try {
+            syncBlock(peerNetwork.getPeerHandler(blockChain.getBranchId(), peer), blockChain);
+        } catch (Exception e) {
+            log.warn("[SyncManager] Request sync block ERR occurred: {}", e.getMessage());
+        } finally {
+            nodeStatus.up();
+        }
+    }
+
 }

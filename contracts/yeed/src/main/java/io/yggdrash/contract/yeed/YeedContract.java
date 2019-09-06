@@ -993,8 +993,22 @@ public class YeedContract implements BundleActivator, ServiceListener {
         }
 
         @ContractEndBlock
-        public Receipt endBlock() {
-            return receipt;
+        public void endBlock() {
+            // Network Fee Burn
+            BigInteger networkFee = getBalance(receipt.getBranchId());
+            if (networkFee.compareTo(BigInteger.ZERO) > 0) {
+                BigInteger totalSupply = totalSupply();
+
+                // subtract networkFee
+                totalSupply = totalSupply.subtract(networkFee);
+
+                // Set Total Supply
+                putBalance(TOTAL_SUPPLY, totalSupply);
+                this.receipt.addLog(String.format("Burn %s Yeed", networkFee));
+            }
+            // network Fee is Zero
+            putBalance(receipt.getBranchId(), BigInteger.ZERO);
+            receipt.setStatus(ExecuteStatus.SUCCESS);
         }
 
         private void setErrorTxReceipt(String msg) {
