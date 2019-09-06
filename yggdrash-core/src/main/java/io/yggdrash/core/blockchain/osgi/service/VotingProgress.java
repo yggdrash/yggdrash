@@ -62,10 +62,16 @@ public class VotingProgress implements Serializable {
 
     boolean isAgreed() {
         int cnt = (int) (((double) totalVotingCnt * 0.66) + 1.0);
+
         boolean bAgreed = agreeCnt >= cnt;
         if (bAgreed) {
             votingStatus = VotingStatus.AGREE;
         }
+
+        if (disagreeCnt > totalVotingCnt - cnt) {
+            votingStatus = VotingStatus.DISAGREE;
+        }
+
         return bAgreed;
     }
 

@@ -142,7 +142,6 @@ public class VersioningContract {
         String proposalVersion = proposal.getProposalVersion();
 
         // Verify the voting is finished
-        // todo : need previous status check for executing only once. @lucas. 190904
         if (proposal.votingProgress.getVotingStatus().equals(VotingProgress.VotingStatus.VOTABLE) &&
                 proposal.isAgreed()) {
             try {
@@ -159,6 +158,12 @@ public class VersioningContract {
                 setFalseTxReceipt("Contract file download failed or cannot be located");
                 return receipt;
             }
+        }
+
+        // if vote end whether this vote end with agreed or not, remove expire event.
+        if (proposal.votingProgress.getVotingStatus().equals(VotingProgress.VotingStatus.DISAGREE)
+                || proposal.votingProgress.getVotingStatus().equals(VotingProgress.VotingStatus.AGREE)) {
+            removeExpireEvent(proposal);
         }
 
         state.put(txId, JsonUtil.parseJsonObject(proposal));

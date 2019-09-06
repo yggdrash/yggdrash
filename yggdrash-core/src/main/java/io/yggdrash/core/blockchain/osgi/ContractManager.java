@@ -3,6 +3,7 @@ package io.yggdrash.core.blockchain.osgi;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.BranchContract;
+import io.yggdrash.common.contract.Contract;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.contract.core.ContractEvent;
 import io.yggdrash.contract.core.channel.ContractEventType;
@@ -31,6 +32,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -81,21 +83,23 @@ public class ContractManager implements ContractEventListener {
 
     @Override
     public void endBlock(ContractEvent event) {
-        // TODO Consider if not versioningContract
-        if (event.getContractVersion().equals(ContractConstants.VERSIONING_CONTRACT.toString())) {
-//            versioningContractEventHandler(event);
-        }
+        // todo : remove this
     }
 
     @Override
     public void endBlock(BlockRuntimeResult result, ContractEvent event) {
-        versioningContractEventHandler(result, event);
+        if (event.getContractVersion().equals(ContractConstants.VERSIONING_CONTRACT.toString())) {
+            versioningContractEventHandler(result, event);
+        } else {
+            // reflect state for general end block result
+            commitBlockResult(result);
+        }
     }
 
     private void versioningContractEventHandler(BlockRuntimeResult result, ContractEvent event) {
         ContractEventType eventType = event.getType();
-        ContractProposal proposal = (ContractProposal) event.getItem();
-        ContractVersion proposalVersion = ContractVersion.of(proposal.getProposalVersion());
+        ContractVersion proposalVersion = ContractVersion.of(((LinkedHashMap) event.getItem()).get("proposalVersion").toString());
+
         try {
             switch (eventType) {
                 case INSTALL:
@@ -131,21 +135,36 @@ public class ContractManager implements ContractEventListener {
     private void addNewBranchContract(Bundle newBundle, ContractVersion contractVersion) {
         // @lucase. 190903
         // todo : Add logic what include newer contract not in branch store.
-        for (BranchContract branchContract : contractStore.getBranchStore().getBranchContacts()) {
-            ContractVersion originContractVersion = ContractVersion.of(branchContract.getContractVersion().toString());
-            String originSymbolicName = getBundle(originContractVersion).getSymbolicName();
-            if (originSymbolicName.equals(newBundle.getSymbolicName())) {
-                JsonObject newBranchContractJson = branchContract.getJson().deepCopy();
-                newBranchContractJson.addProperty("contractVersion", contractVersion.toString());
+//        for (BranchContract branchContract : contractStore.getBranchStore().getBranchContacts()) {
+//            ContractVersion originContractVersion = ContractVersion.of(branchContract.getContractVersion().toString());
+//            String originSymbolicName = getBundle(originContractVersion).getSymbolicName();
+//            if (originSymbolicName.equals(newBundle.getSymbolicName())) {
+//                JsonObject newBranchContractJson = branchContract.getJson().deepCopy();
+//                newBranchContractJson.addProperty("contractVersion", contractVersion.toString());
+//
+//                BranchContract newBranchContract = BranchContract.of(newBranchContractJson);
+//
+//                List<BranchContract> branchContacts = contractStore.getBranchStore().getBranchContacts();
+//                branchContacts.add(newBranchContract);
+//                contractStore.getBranchStore().setBranchContracts(branchContacts);
+//                //TODO Stop origin contract bundle
+//            }
+//        }
+            // fix me!
+//        JsonObject branchContractJson = new JsonObject();
+//        branchContractJson.addProperty("init", "{}");
+//        branchContractJson.addProperty("name", "name");
+//        branchContractJson.addProperty("description", "description");
+//        branchContractJson.addProperty("property", "property");
+//        // Mark: Is this property need?
+//        branchContractJson.addProperty("isSystem", true);
+//        branchContractJson.addProperty("contractVersion", "");
+//        BranchContract newBranchContract = BranchContract.of(branchContractJson);
+//
+//        List<BranchContract> branchContracts = contractStore.getBranchStore().getBranchContacts();
+//        branchContracts.add(newBranchContract);
+//        contractStore.getBranchStore().setBranchContracts(branchContracts);
 
-                BranchContract newBranchContract = BranchContract.of(newBranchContractJson);
-
-                List<BranchContract> branchContacts = contractStore.getBranchStore().getBranchContacts();
-                branchContacts.add(newBranchContract);
-                contractStore.getBranchStore().setBranchContracts(branchContacts);
-                //TODO Stop origin contract bundle
-            }
-        }
     }
 
     private void initBootBundles() {
