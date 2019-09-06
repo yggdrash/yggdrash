@@ -338,13 +338,12 @@ public class ContractExecutor {
 
     private void exceptionHandler(ExecutorException e, Receipt receipt) {
         SystemError error = e.getCode();
+        receipt.setStatus(ExecuteStatus.ERROR);
         switch (error) {
             case CONTRACT_VERSION_NOT_FOUND:
-                receipt.setStatus(ExecuteStatus.ERROR);
                 receipt.addLog(SystemError.CONTRACT_VERSION_NOT_FOUND.toString());
                 break;
             case CONTRACT_METHOD_NOT_FOUND:
-                receipt.setStatus(ExecuteStatus.ERROR);
                 receipt.addLog(SystemError.CONTRACT_METHOD_NOT_FOUND.toString());
                 break;
             default:
