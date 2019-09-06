@@ -37,6 +37,8 @@ public class ProposeInterChain {
 
     String issuer;          // Transaction issuer
 
+    String method;
+
     public String getTransactionId() {
         return transactionId;
     }
@@ -93,6 +95,10 @@ public class ProposeInterChain {
         return issuer;
     }
 
+    public String getMethod() {
+        return method;
+    }
+
     public ProposeInterChain(JsonObject object) {
         this.transactionId = object.get("transactionId").getAsString();
         this.targetAddress = JsonUtil.parseString(object, "targetAddress", "");
@@ -107,6 +113,9 @@ public class ProposeInterChain {
         this.blockHeight = object.get("blockHeight").getAsLong();
         this.fee = object.get("fee").getAsBigInteger();
         this.issuer = object.get("issuer").getAsString();
+        // Token
+        this.method = object.has("method") ? object.get("method").getAsString() : "";
+
         generateProposeId();
     }
 
