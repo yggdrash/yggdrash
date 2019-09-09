@@ -42,6 +42,7 @@ public class BlockChainSyncManager implements SyncManager {
     public void fullSync() {
         nodeStatus.sync();
         try {
+            log.debug("nodeStatus -> SYNC");
             for (BlockChain blockChain : branchGroup.getAllBranch()) {
                 List<BlockChainHandler> peerHandlerList = peerNetwork.getHandlerList(blockChain.getBranchId());
 
@@ -51,6 +52,7 @@ public class BlockChainSyncManager implements SyncManager {
             }
         } finally {
             nodeStatus.up();
+            log.debug("nodeStatus -> UP");
         }
     }
 
@@ -232,12 +234,13 @@ public class BlockChainSyncManager implements SyncManager {
 
     private void reqSyncBlockToHandlers(BlockChain blockChain) {
         if (!nodeStatus.isUpStatus()) {
-            log.debug("NodeStatus is down.");
+            log.debug("NodeStatus is down. ({})", nodeStatus.toString());
             return;
         }
         BranchId branchId = blockChain.getBranchId();
         nodeStatus.sync();
         try {
+            log.debug("nodeStatus -> SYNC");
             for (BlockChainHandler peerHandler : peerNetwork.getHandlerList(branchId)) {
                 syncBlock(peerHandler, blockChain);
             }
@@ -245,22 +248,25 @@ public class BlockChainSyncManager implements SyncManager {
             log.warn("[SyncManager] Request sync block ERR occurred: {}", e.getMessage());
         } finally {
             nodeStatus.up();
+            log.debug("nodeStatus -> UP");
         }
     }
 
     private void reqSyncBlockToPeer(BlockChain blockChain, Peer peer) {
         if (!nodeStatus.isUpStatus()) {
-            log.debug("NodeStatus is down.");
+            log.debug("NodeStatus is down. ({})", nodeStatus.toString());
             return;
         }
 
         nodeStatus.sync();
         try {
+            log.debug("nodeStatus -> SYNC");
             syncBlock(peerNetwork.getPeerHandler(blockChain.getBranchId(), peer), blockChain);
         } catch (Exception e) {
             log.warn("[SyncManager] Request sync block ERR occurred: {}", e.getMessage());
         } finally {
             nodeStatus.up();
+            log.debug("nodeStatus -> UP");
         }
     }
 
