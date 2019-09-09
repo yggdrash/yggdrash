@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -39,6 +40,7 @@ import java.util.Map;
  * 블록체인에서 발생되는 정보들을 외부 저장소에 수집합니다.
  */
 @Component
+@DependsOn("branchLoader")
 @ConditionalOnProperty("elasticsearch.host")
 public class BlockChainCollector implements BranchEventListener {
     private static final Logger log = LoggerFactory.getLogger(BlockChainCollector.class);
@@ -50,6 +52,7 @@ public class BlockChainCollector implements BranchEventListener {
         for (BlockChain bc : branchGroup.getAllBranch()) {
             chainedBlock(bc.getGenesisBlock());
             bc.addListener(this);
+            log.debug("ElasticSearch listener added: {}", bc.getBranch().getBranchId());
         }
     }
 
@@ -66,6 +69,8 @@ public class BlockChainCollector implements BranchEventListener {
         }
 
         outputStore.put(block.getHash().toString(), block.getIndex(), transactionMap);
+        log.trace("ElasticSearch put: {} [{}] tx({})",
+                block.getHash().toString(), block.getIndex(), transactionMap.size());
     }
 
     @Override
