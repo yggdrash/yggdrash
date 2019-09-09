@@ -42,7 +42,6 @@ public class BlockChainSyncManager implements SyncManager {
     public void fullSync() {
         nodeStatus.sync();
         try {
-            log.debug("nodeStatus -> SYNC");
             for (BlockChain blockChain : branchGroup.getAllBranch()) {
                 List<BlockChainHandler> peerHandlerList = peerNetwork.getHandlerList(blockChain.getBranchId());
 
@@ -52,7 +51,6 @@ public class BlockChainSyncManager implements SyncManager {
             }
         } finally {
             nodeStatus.up();
-            log.debug("nodeStatus -> UP");
         }
     }
 
@@ -240,7 +238,6 @@ public class BlockChainSyncManager implements SyncManager {
         BranchId branchId = blockChain.getBranchId();
         nodeStatus.sync();
         try {
-            log.debug("nodeStatus -> SYNC");
             for (BlockChainHandler peerHandler : peerNetwork.getHandlerList(branchId)) {
                 syncBlock(peerHandler, blockChain);
             }
@@ -248,7 +245,6 @@ public class BlockChainSyncManager implements SyncManager {
             log.warn("[SyncManager] Request sync block ERR occurred: {}", e.getMessage());
         } finally {
             nodeStatus.up();
-            log.debug("nodeStatus -> UP");
         }
     }
 
@@ -260,13 +256,11 @@ public class BlockChainSyncManager implements SyncManager {
 
         nodeStatus.sync();
         try {
-            log.debug("nodeStatus -> SYNC");
             syncBlock(peerNetwork.getPeerHandler(blockChain.getBranchId(), peer), blockChain);
         } catch (Exception e) {
             log.warn("[SyncManager] Request sync block ERR occurred: {}", e.getMessage());
         } finally {
             nodeStatus.up();
-            log.debug("nodeStatus -> UP");
         }
     }
 
