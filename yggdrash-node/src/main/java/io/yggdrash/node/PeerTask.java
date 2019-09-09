@@ -20,9 +20,11 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.CatchUpSyncEventListener;
 import io.yggdrash.core.net.NodeStatus;
+import io.yggdrash.core.net.PeerNetwork;
 import io.yggdrash.core.p2p.KademliaOptions;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
+import io.yggdrash.core.p2p.PeerHandler;
 import io.yggdrash.core.p2p.PeerTable;
 import io.yggdrash.core.p2p.PeerTableGroup;
 import io.yggdrash.node.config.NodeProperties;
@@ -42,6 +44,7 @@ public class PeerTask {
     private NodeStatus nodeStatus;
     private NodeProperties nodeProperties;
     private CatchUpSyncEventListener listener;
+    private PeerNetwork peerNetwork;
 
     @Autowired
     private BranchGroup branchGroup;
@@ -71,6 +74,11 @@ public class PeerTask {
         this.listener = listener;
     }
 
+    @Autowired
+    public void setPeerNetwork(PeerNetwork peerNetwork) {
+        this.peerNetwork = peerNetwork;
+    }
+
     @Scheduled(cron = "0 */1 * * * * ") // TODO: change from value to configfile
     public void keepAliveToBsNode() {
         if (nodeProperties.isSeed()) {
@@ -89,21 +97,15 @@ public class PeerTask {
 
     @Scheduled(fixedRate = 2000) // TODO: change from value to configfile
     public void healthCheck() { // ==> Task of PeerDialer?
-        if (!nodeStatus.isUpStatus()) {
-            return;
-        }
         for (BranchId branchId : peerTableGroup.getAllBranchId()) {
-            PeerTable peerTable = peerTableGroup.getPeerTable(branchId);
-            List<Peer> closestPeerList =
-                    peerTable.getClosestPeers(peerTableGroup.getOwner(), KademliaOptions.BROADCAST_SIZE);
-
-            // request syncBlock
-            for (Peer peer : closestPeerList) {
-                long peerBlockIndex = peerDialer.healthCheck(branchId, peerTableGroup.getOwner(), peer);
-                // TODO: change checking logic when implemented testing codes about branchGroup mock
-                if (branchGroup != null && peerBlockIndex > branchGroup.getLastIndex(branchId)) {
-                    peer.setBestBlock(peerBlockIndex);
-                    listener.catchUpRequest(branchId, peer);
+            for (PeerHandler peerHandler : peerNetwork.getHandlerList(branchId)) {
+                long peerBlockIndex
+                        = peerDialer.healthCheck(branchId, peerTableGroup.getOwner(), peerHandler.getPeer());
+                if (peerBlockIndex >= 0) {
+                    peerHandler.getPeer().setBestBlock(peerBlockIndex);
+                    if (branchGroup != null && peerBlockIndex > branchGroup.getLastIndex(branchId)) {
+                        listener.catchUpRequest(branchId, peerHandler.getPeer());
+                    }
                 }
             }
         }

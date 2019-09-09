@@ -96,12 +96,12 @@ public class PeerHandlerProvider {
                     = blockingStub.withDeadlineAfter(TIMEOUT_BLOCKLIST, TimeUnit.SECONDS).getPbftBlockList(request);
 
             CompletableFuture<List<ConsensusBlock<PbftProto.PbftBlock>>> futureBlockList = new CompletableFuture<>();
-            List<ConsensusBlock<PbftProto.PbftBlock>> newEbftBlockList = new ArrayList<>();
+            List<ConsensusBlock<PbftProto.PbftBlock>> newBlockList = new ArrayList<>();
             for (PbftProto.PbftBlock block : protoPbftBlockList.getPbftBlockList()) {
-                newEbftBlockList.add(new PbftBlock(block));
+                newBlockList.add(new PbftBlock(block));
             }
 
-            futureBlockList.complete(newEbftBlockList);
+            futureBlockList.complete(newBlockList);
             return futureBlockList;
         }
 
