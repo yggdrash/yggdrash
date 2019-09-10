@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class BlockChainSyncManager implements SyncManager {
@@ -110,10 +109,7 @@ public class BlockChainSyncManager implements SyncManager {
                     txList.size(), peerHandler.getPeer().getYnodeUri());
             addTransaction(blockChain, txList);
 
-        } catch (InterruptedException ie) {
-            log.debug("[SyncManager] Sync Tx ERR occurred: {}", ie.getMessage());
-            Thread.currentThread().interrupt();
-        } catch (ExecutionException e) {
+        } catch (Exception e) {
             log.debug("[SyncManager] Sync Tx ERR occurred: {}", e.getMessage());
         }
     }
