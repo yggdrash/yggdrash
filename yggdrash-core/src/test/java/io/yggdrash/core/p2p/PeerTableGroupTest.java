@@ -4,6 +4,7 @@ import io.yggdrash.PeerTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BranchId;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -46,6 +47,7 @@ public class PeerTableGroupTest {
     }
 
     @Test
+    @Ignore
     public void copyLiveNode() {
         KademliaPeerTable peerTable = (KademliaPeerTable)peerTableGroup.getPeerTable(yggdrash);
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");
