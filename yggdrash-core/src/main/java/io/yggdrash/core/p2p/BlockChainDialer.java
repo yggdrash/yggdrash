@@ -72,7 +72,7 @@ public class BlockChainDialer implements PeerDialer {
         } catch (Exception e) {
             log.debug("healthCheck failed {} {}", to.toAddress(), e.getMessage());
         }
-        removeHandler(peerHandler);
+
         return -1L;
     }
 
