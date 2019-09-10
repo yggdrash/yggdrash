@@ -184,6 +184,7 @@ public class ProposeInterChain {
         JsonObject proposal = new JsonObject();
         proposal.addProperty("proposeId", proposeId);
         proposal.addProperty("transactionId", transactionId);
+        proposal.addProperty("targetAddress", targetAddress);
         proposal.addProperty("receiverAddress", receiverAddress);
         proposal.addProperty("receiveAsset", receiveAsset);
         proposal.addProperty("receiveChainId", receiveChainId);
@@ -195,6 +196,7 @@ public class ProposeInterChain {
         proposal.addProperty("blockHeight", blockHeight);
         proposal.addProperty("fee", fee);
         proposal.addProperty("issuer", issuer);
+        proposal.addProperty("method", method);
 
         return proposal;
     }
@@ -205,7 +207,7 @@ public class ProposeInterChain {
         // check Send Address
         if (!Strings.isNullOrEmpty(getSenderAddress())) {
             checkProcess |= ProposeErrorCode.addCode(
-                    getSenderAddress().equals(pt.getSenderAddress()),
+                    getSenderAddress().equalsIgnoreCase(pt.getSenderAddress()),
                     ProposeErrorCode.PROPOSE_SENDER_ADDRESS_INVALID);
         }
 
@@ -230,6 +232,12 @@ public class ProposeInterChain {
 
         if (pt.getAsset().compareTo(BigInteger.ZERO) == 0) {
             checkProcess |= ProposeErrorCode.PROPOSE_RECEIVE_TARGET_INVALID.toValue();
+        }
+
+        if (pt.getMethod() != null) {
+            if (!pt.getMethod().equalsIgnoreCase(getMethod())) {
+                checkProcess |= ProposeErrorCode.PROPOSE_RECEIVE_METHOD_INVALID.toValue();
+            }
         }
 
         return checkProcess;

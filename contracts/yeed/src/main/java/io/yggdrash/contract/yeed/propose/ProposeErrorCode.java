@@ -8,7 +8,8 @@ public enum ProposeErrorCode {
     PROPOSE_RECEIVER_ADDRESS_INVALID(1),    // 0001
     PROPOSE_SENDER_ADDRESS_INVALID(2),      // 0010
     PROPOSE_RECEIVE_CHAIN_ID_INVALID(4),    // 0100
-    PROPOSE_RECEIVE_TARGET_INVALID(8)       // 1000
+    PROPOSE_RECEIVE_TARGET_INVALID(8),       // 1000
+    PROPOSE_RECEIVE_METHOD_INVALID(16)
     ;
 
     private int code;
@@ -38,10 +39,13 @@ public enum ProposeErrorCode {
             errorString.add("Sender Address is Invalid");
         }
         if ((code & PROPOSE_RECEIVE_CHAIN_ID_INVALID.code) == PROPOSE_RECEIVE_CHAIN_ID_INVALID.code) {
-            errorString.add("Receive CHAIN ID is Invalid");
+            errorString.add("Receive CHAIN ID is invalid");
         }
         if ((code & PROPOSE_RECEIVE_TARGET_INVALID.code) == PROPOSE_RECEIVE_TARGET_INVALID.code) {
-            errorString.add("Receive Target is Invalid");
+            errorString.add("Receive Target is invalid");
+        }
+        if ((code & PROPOSE_RECEIVE_METHOD_INVALID.code) == PROPOSE_RECEIVE_METHOD_INVALID.code) {
+            errorString.add("Receive method is invalid");
         }
 
         return errorString;

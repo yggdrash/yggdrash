@@ -560,32 +560,17 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 return;
             }
 
-            // TokenAddress is YEED TO TOKEN
-            String tokenAddress = JsonUtil.parseString(params, "tokenAddress", "");
-            String receiveAddress = params.get("receiverAddress").getAsString().toLowerCase();
-            BigInteger receiveAsset = params.get("receiveAsset").getAsBigInteger();
-            Integer receiveChainId = params.get("receiveChainId").getAsInt();
-            long networkBlockHeight = params.get("networkBlockHeight").getAsLong();
-            long target = params.get("blockHeight").getAsLong();
-            ProposeType proposeType = ProposeType.fromValue(params.get("proposeType").getAsInt());
-            String senderAddress = null;
-            String inputData = null;
-            if (ProposeType.YEED_TO_ETHER.equals(proposeType)) {
-                senderAddress = params.get("senderAddress").getAsString().toLowerCase();
-                if (!params.get("inputData").isJsonNull()) {
-                    inputData = params.get("inputData").getAsString();
-                }
-            }
-
             // Issue Proposal
             String txId = this.receipt.getTxId();
-            ProposeInterChain propose = new ProposeInterChain(txId, tokenAddress, receiveAddress,
-                    receiveAsset, receiveChainId, networkBlockHeight, proposeType, senderAddress, inputData,
-                    stakeYeed, target, fee, issuer);
+            // Add Transaction Id
+            params.addProperty("transactionId", txId);
+            params.addProperty("issuer", this.receipt.getIssuer());
+
+            ProposeInterChain propose = new ProposeInterChain(params);
 
             String proposeIdKey = String.format("%s%s", PrefixKeyEnum.PROPOSE_INTER_CHAIN.toValue(),
                     propose.getProposeId());
-
+            log.debug("Propose Id Key : {} ", proposeIdKey);
             // The fee is transferred at the end (Issue closed or done)
             boolean isTransfer = transfer(issuer, propose.getProposeId(), stakeFee, BigInteger.ZERO);
 
@@ -693,13 +678,12 @@ public class YeedContract implements BundleActivator, ServiceListener {
             pt.setTransactionHash(HexUtil.toHexString(ethTransaction.getTxHash()));
 
             // Ethereum Transaction and Proposal verification
+            transferFee(this.receipt.getIssuer(), fee);
             int checkPropose = propose.verificationProposeProcess(pt);
             if (checkPropose == 0) {
                 processProposeTransaction(propose, pt);
-                transferFee(this.receipt.getIssuer(), fee);
                 setSuccessTxReceipt("Yeed to Eth Proposal completed successfully");
             } else {
-                transferFee(this.receipt.getIssuer(), fee);
                 log.error("[Yeed -> Eth] Error Code", checkPropose);
                 List<String> errors = ProposeErrorCode.errorLogs(checkPropose);
                 setFalseTxReceipt(errors);
@@ -714,8 +698,9 @@ public class YeedContract implements BundleActivator, ServiceListener {
             // TODO Token Swap Need to Method
             // input data param[0] == method, param[1] == ReceiveAddress, param[2] == asset
             // Check Method - Token a9059cbb
-            String receiveAddress = HexUtil.toHexString(tokenTransaction.getParam()[1]);
-            BigInteger sendAsset = new BigInteger(tokenTransaction.getParam()[2]);
+            String method = HexUtil.toHexString(tokenTransaction.getMethod());
+            String receiveAddress = HexUtil.toHexString(tokenTransaction.getParam()[0]);
+            BigInteger sendAsset = new BigInteger(tokenTransaction.getParam()[1]);
             String targetAddress = HexUtil.toHexString(tokenTransaction.getReceiverAddress());
 
             ProcessTransaction pt = new ProcessTransaction();
@@ -724,15 +709,18 @@ public class YeedContract implements BundleActivator, ServiceListener {
             pt.setChainId(tokenTransaction.getChainId());
             pt.setTargetAddress(targetAddress);
             pt.setAsset(sendAsset);
+            pt.setMethod(method);
+            pt.setTransactionHash(HexUtil.toHexString(tokenTransaction.getTxHash()));
+            // Transfer Fee
+            transferFee(this.receipt.getIssuer(), fee);
 
+            // Check Propose
             int checkPropose = propose.verificationProposeProcess(pt);
             if (checkPropose == 0) {
                 processProposeTransaction(propose, pt);
-                transferFee(this.receipt.getIssuer(), fee);
                 setSuccessTxReceipt("Yeed to EthToken Proposal completed successfully");
             } else {
-                transferFee(this.receipt.getIssuer(), fee);
-                log.error("[Yeed -> EthToken] Error Code", checkPropose);
+                log.error("[Yeed -> EthToken] Error Code {}", checkPropose);
                 List<String> errors = ProposeErrorCode.errorLogs(checkPropose);
                 setFalseTxReceipt(errors);
             }

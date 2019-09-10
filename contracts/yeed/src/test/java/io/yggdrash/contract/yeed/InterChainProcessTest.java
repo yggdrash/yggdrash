@@ -12,6 +12,7 @@ import io.yggdrash.common.rlp.RLP;
 import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
+import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.Receipt;
@@ -29,6 +30,7 @@ import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.regex.Matcher;
@@ -804,6 +806,54 @@ public class InterChainProcessTest {
         return proposeId;
     }
 
+    private String issueTokenPropose(String issuer, String senderAddress, BigInteger receiveAsset, BigInteger stakeYeed, BigInteger fee) {
+
+        // StakeYeed = 1YEED
+        // Ratio -> 1:1
+        int receiveNetwork = 1; // frontier = 1
+
+        JsonObject propose = createProposal(
+                ISSUER,
+                receiveAsset,
+                receiveNetwork,
+                100000,
+                ProposeType.YEED_TO_ETHER_TOKEN,
+                senderAddress,
+                null,
+                stakeYeed,
+                1000,
+                fee);
+
+        // Add Token propose
+        // Target Address is Ethereum YEED Token
+        propose.addProperty("targetAddress", "ca2796f9f61dc7b238aab043971e49c6164df375");
+
+        // method hash *
+        propose.addProperty("method", "a9059cbb");
+
+
+        // Check Balance Issuer
+        BigInteger issuerBalance = getBalance(issuer);
+
+        Receipt issueReceipt = setUpReceipt("0x00", issuer, BRANCH_ID, 1); // 1 == current blockHeight
+
+        yeedContract.issuePropose(propose);
+
+        Assert.assertEquals("ISSUE SUCCESS", ExecuteStatus.SUCCESS, issueReceipt.getStatus());
+
+        // Get Propose ID
+        String proposeId = proposeIssueIdFromLog(issueReceipt.getLog());
+        Assert.assertNotNull(proposeId);
+
+        BigInteger issueAfterBalance = getBalance(ISSUER);
+
+        Assert.assertTrue("Issuer Subtract Balance",
+                issuerBalance.subtract(stakeYeed).subtract(fee)
+                        .compareTo(issueAfterBalance) == 0);
+
+        return proposeId;
+    }
+
     @Test
     public void proposeFullTest() {
         // 정상의 경우
@@ -1158,4 +1208,85 @@ public class InterChainProcessTest {
 
     }
 
+    @Test
+    public void issueTokenInterchain() {
+        // TODO Token transfer to YEED
+        BigInteger stakeYeed = BigInteger.TEN.pow(26); // 1억 YEED
+        BigInteger receiveAsset = BigInteger.TEN.pow(26); // 1억 YEED TOKEN ->
+        // Ratio = receiveAsset/stakeYeed
+
+        BigInteger fee = BigInteger.TEN.pow(17); // 0.1 YEED
+
+        String proposeId = issueTokenPropose(ISSUER, "", receiveAsset, stakeYeed, fee);
+        log.debug("Propose ID : {} ", proposeId);
+
+        JsonObject queryProposeParam = new JsonObject();
+        queryProposeParam.addProperty("proposeId", proposeId);
+        JsonObject queryPropose = yeedContract.queryPropose(queryProposeParam);
+        log.debug(queryPropose.toString());
+
+        String tokenAddress = "ca2796f9f61dc7b238aab043971e49c6164df375";
+        String method = "a9059cbb";
+        String receiveAddress = ISSUER;
+        BigInteger asset = BASE_CURRENCY.multiply(BigInteger.valueOf(100));
+
+        byte[] inputData = tokenData(method, receiveAddress, asset);
+
+        EthereumTransaction tx = new EthereumTransaction(
+                0,
+                BigInteger.ZERO, // GasPrice
+                0, // GasLimit
+                tokenAddress, // in ethereum network receiver is issuer
+                BigInteger.ZERO,
+                inputData,
+                1 // frontier
+        );
+
+        ECKey ecKey = new ECKey();
+        tx.sign(ecKey);
+
+        String rawTx = HexUtil.toHexString(tx.getEncoded());
+        Receipt proposeReceipt =
+                setUpReceipt("0x0001", ISSUER, BRANCH_ID, 100);
+
+        JsonObject processJson = new JsonObject();
+        processJson.addProperty("proposeId", proposeId);
+        processJson.addProperty("rawTransaction", rawTx);
+        processJson.addProperty("fee", fee); // 0.1
+
+        yeedContract.processPropose(processJson);
+
+
+    }
+
+    private byte[] tokenData(String method, String receiveAddress, BigInteger asset) {
+        byte[] methodByteArray = HexUtil.hexStringToBytes(method);
+
+        Assert.assertEquals(4, methodByteArray.length);
+        byte[] receiveAddressByteArray = to32ByteArray(HexUtil.hexStringToBytes(receiveAddress));
+        byte[] assetByteArray = to32ByteArray(asset.toByteArray());
+        byte[] inputByte = ByteUtil.merge(methodByteArray, receiveAddressByteArray, assetByteArray);
+        Assert.assertEquals(68, inputByte.length);
+        return inputByte;
+    }
+
+    private byte[] to32ByteArray(byte[] array) {
+        if (array.length >= 32) {
+            return array;
+        }
+
+        byte[] returnByte = new byte[32];
+        System.arraycopy(array,0,returnByte, 32-array.length, array.length);
+
+        return returnByte;
+    }
+
+
+    @Test
+    public void test32ByteArray() {
+        byte[] test = "test".getBytes();
+        byte[] result = to32ByteArray(test);
+
+        Assert.assertEquals(32, result.length);
+    }
 }
