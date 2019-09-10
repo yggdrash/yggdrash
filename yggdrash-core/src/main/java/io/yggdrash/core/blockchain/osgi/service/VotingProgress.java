@@ -25,7 +25,7 @@ public class VotingProgress implements Serializable {
     public Map<String, Vote> votingHistory;
     public VotingStatus votingStatus;
 
-    enum VotingStatus {
+    public enum VotingStatus {
         VOTEABLE,
         AGREE,
         DISAGREE,

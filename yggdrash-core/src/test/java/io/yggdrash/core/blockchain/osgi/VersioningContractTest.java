@@ -22,7 +22,9 @@ import io.yggdrash.contract.core.annotation.ContractReceipt;
 import io.yggdrash.contract.core.channel.ContractEventType;
 import io.yggdrash.core.blockchain.osgi.service.ContractProposal;
 import io.yggdrash.core.blockchain.osgi.service.VersioningContract;
+import io.yggdrash.core.blockchain.osgi.service.VotingProgress;
 import io.yggdrash.core.store.StoreAdapter;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,6 +43,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -124,19 +127,13 @@ public class VersioningContractTest {
         assertEquals(1, adapter.getEvents().size());
         ContractEvent event = adapter.getEvents().stream().findFirst().get();
         log.info("EndBlock Status : {},  Event : {}", adapter.getStatus(), JsonUtil.parseJsonObject(event));
-        assertEquals(ContractEventType.INSTALL, event.getType());
+        assertEquals(ContractEventType.AGREE, event.getType());
 
-        assertEquals(updateContract, ((LinkedHashMap) event.getItem()).get("proposalVersion"));
     }
 
     @Test
     public void endblockTestExpiredEvent() {
         contractPropose();
-
-        // issuer1 is proposer
-//        vote(issuer3, false);
-//        vote(issuer2, true); // agreeCnt -> 2/3
-        //vote(issuer1, true);
 
         // EndBlock receipt
         Receipt receipt = new ReceiptImpl();
@@ -146,13 +143,8 @@ public class VersioningContractTest {
         service.endBlock();
 
         assertEquals(ExecuteStatus.SUCCESS, adapter.getStatus());
-        assertFalse(adapter.getEvents().isEmpty());
-        assertEquals(1, adapter.getEvents().size());
-        ContractEvent event = adapter.getEvents().stream().findFirst().get();
-        log.info("EndBlock Status : {},  Event : {}", adapter.getStatus(), JsonUtil.parseJsonObject(event));
-        assertEquals(ContractEventType.EXPIRED, event.getType());
+        assertEquals(VotingProgress.VotingStatus.EXPIRED, proposalStatus().getVotingProgress().votingStatus);
 
-        assertEquals(updateContract, ((LinkedHashMap) event.getItem()).get("proposalVersion"));
     }
 
     @Test
@@ -167,12 +159,13 @@ public class VersioningContractTest {
         // issuer1 is proposer
         vote(issuer3, false);
 
+        Assert.assertEquals(VotingProgress.VotingStatus.VOTEABLE, proposalStatus().getVotingProgress().votingStatus);
+
         assertTrue(adapter.getLog().contains("Update proposal voting is in progress"));
 
         vote(issuer2, true); // agreeCnt -> 2/3
 
-        assertTrue(adapter.getLog().contains("Contract file has been downloaded"));
-        assertTrue(adapter.getLog().contains("Update proposal voting was completed successfully"));
+        Assert.assertEquals(VotingProgress.VotingStatus.AGREE, proposalStatus().getVotingProgress().votingStatus);
     }
 
     @Test
