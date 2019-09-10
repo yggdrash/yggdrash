@@ -20,6 +20,7 @@ import com.google.protobuf.ByteString;
 import io.grpc.Context;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NotValidateException;
@@ -87,7 +88,7 @@ public class PeerHandlerProvider {
 
             CommonProto.Offset request = CommonProto.Offset.newBuilder()
                     .setIndex(offset)
-                    .setCount(DEFAULT_LIMIT)
+                    .setCount(Constants.BLOCK_SYNC_COUNT)
                     .setChain(ByteString.copyFrom(branchId.getBytes()))
                     .build();
 
@@ -135,7 +136,7 @@ public class PeerHandlerProvider {
 
             CommonProto.Offset request = CommonProto.Offset.newBuilder()
                     .setIndex(offset)
-                    .setCount(DEFAULT_LIMIT)
+                    .setCount(Constants.BLOCK_SYNC_COUNT)
                     .setChain(ByteString.copyFrom(branchId.getBytes()))
                     .build();
 

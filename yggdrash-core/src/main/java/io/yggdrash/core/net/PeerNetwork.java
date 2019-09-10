@@ -19,6 +19,7 @@ package io.yggdrash.core.net;
 import io.yggdrash.core.blockchain.BranchEventListener;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.p2p.BlockChainHandler;
+import io.yggdrash.core.p2p.Peer;
 
 import java.util.List;
 
@@ -28,4 +29,6 @@ public interface PeerNetwork extends BranchEventListener {
     void destroy();
 
     List<BlockChainHandler> getHandlerList(BranchId branchId);
+
+    BlockChainHandler getPeerHandler(BranchId branchId, Peer peer);
 }

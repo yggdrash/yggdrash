@@ -37,12 +37,18 @@ public class PeerNetworkMock implements PeerNetwork {
     public void destroy() {
     }
 
+    @Override
     public List<BlockChainHandler> getHandlerList(BranchId branchId) {
         List<BlockChainHandler> peerHandlerList = new ArrayList<>();
         for (int port = 32919; port < 32922; port++) {
             peerHandlerList.add(PeerHandlerMock.dummy(null, Peer.valueOf("ynode://75bff16c@127.0.0.1:" + port)));
         }
         return peerHandlerList;
+    }
+
+    @Override
+    public BlockChainHandler getPeerHandler(BranchId branchId, Peer peer) {
+        return PeerHandlerMock.dummy(null, Peer.valueOf("ynode://75bff16c@127.0.0.1:32930"));
     }
 
     @Override

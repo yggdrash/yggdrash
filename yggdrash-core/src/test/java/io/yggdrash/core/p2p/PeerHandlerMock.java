@@ -85,6 +85,16 @@ public class PeerHandlerMock implements BlockChainHandler {
     }
 
     @Override
+    public long pingPong(BranchId branchId, Peer owner, String message) {
+        if (pongResponse) {
+            pongResponse = false;
+            return 1;
+        }
+        pongResponse = true;
+        return -1;
+    }
+
+    @Override
     public Future<List<ConsensusBlock>> syncBlock(BranchId branchId, long offset) {
         log.debug("[PeerHandlerMock] SyncBlock branchId={}, offset={}", branchId, offset);
 

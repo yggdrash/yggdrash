@@ -16,7 +16,9 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.net.CatchUpSyncEventListener;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.p2p.KademliaOptions;
 import io.yggdrash.core.p2p.Peer;
@@ -39,6 +41,10 @@ public class PeerTask {
     private PeerDialer peerDialer;
     private NodeStatus nodeStatus;
     private NodeProperties nodeProperties;
+    private CatchUpSyncEventListener listener;
+
+    @Autowired
+    private BranchGroup branchGroup;
 
     @Autowired
     public void setNodeStatus(NodeStatus nodeStatus) {
@@ -60,7 +66,12 @@ public class PeerTask {
         this.peerDialer = peerDialer;
     }
 
-    @Scheduled(cron = "0 */1 * * * * ")
+    @Autowired
+    public void setListener(CatchUpSyncEventListener listener) {
+        this.listener = listener;
+    }
+
+    @Scheduled(cron = "0 */1 * * * * ") // TODO: change from value to configfile
     public void keepAliveToBsNode() {
         if (nodeProperties.isSeed()) {
             return;
@@ -76,7 +87,7 @@ public class PeerTask {
         log.debug("Keep-Alive to BS Node : {} -> {}", ownerUri, seedPeers);
     }
 
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 2000) // TODO: change from value to configfile
     public void healthCheck() { // ==> Task of PeerDialer?
         if (!nodeStatus.isUpStatus()) {
             return;
@@ -85,7 +96,16 @@ public class PeerTask {
             PeerTable peerTable = peerTableGroup.getPeerTable(branchId);
             List<Peer> closestPeerList =
                     peerTable.getClosestPeers(peerTableGroup.getOwner(), KademliaOptions.BROADCAST_SIZE);
-            closestPeerList.forEach(peer -> peerDialer.healthCheck(branchId, peerTableGroup.getOwner(), peer));
+
+            // request syncBlock
+            for (Peer peer : closestPeerList) {
+                long peerBlockIndex = peerDialer.healthCheck(branchId, peerTableGroup.getOwner(), peer);
+                // TODO: change checking logic when implemented testing codes about branchGroup mock
+                if (branchGroup != null && peerBlockIndex > branchGroup.getLastIndex(branchId)) {
+                    peer.setBestBlock(peerBlockIndex);
+                    listener.catchUpRequest(branchId, peer);
+                }
+            }
         }
     }
 
@@ -108,7 +128,7 @@ public class PeerTask {
                 return;
             }
             // Ping the selected node and wait for a pong (set last.id to ping msg)
-            if (peerDialer.healthCheck(branchId, peerTableGroup.getOwner(), last)) {
+            if (peerDialer.healthCheck(branchId, peerTableGroup.getOwner(), last) >= 0L) {
                 // The peer responded, move it to the front
                 peerTable.getBucketByPeer(last).bump(last);
             } else {
