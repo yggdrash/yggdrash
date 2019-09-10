@@ -22,10 +22,14 @@ import io.yggdrash.core.p2p.KademliaOptions;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerTableGroup;
 import io.yggdrash.proto.Proto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class DiscoveryServiceConsumer implements DiscoveryConsumer {
+    private static final Logger log = LoggerFactory.getLogger(DiscoveryServiceConsumer.class);
+
     private final PeerTableGroup peerTableGroup;
     private CatchUpSyncEventListener listener;
 
@@ -69,6 +73,7 @@ public class DiscoveryServiceConsumer implements DiscoveryConsumer {
         }
 
         if (normalHost) {
+            log.trace("Addpeer(): {} {}", branchId, from);
             peerTableGroup.addPeer(branchId, from);
         }
 
