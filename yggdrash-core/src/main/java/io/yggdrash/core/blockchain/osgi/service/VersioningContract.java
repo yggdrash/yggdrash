@@ -13,6 +13,7 @@
 package io.yggdrash.core.blockchain.osgi.service;
 
 import com.google.gson.JsonObject;
+import com.sun.jdi.event.EventSet;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.utils.JsonUtil;
@@ -29,6 +30,8 @@ import io.yggdrash.contract.core.annotation.Genesis;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.channel.ContractEventType;
 import io.yggdrash.contract.core.store.ReadWriterStore;
+import io.yggdrash.core.blockchain.osgi.ContractConstants;
+import io.yggdrash.core.blockchain.osgi.ContractStatus;
 import io.yggdrash.core.blockchain.osgi.Downloader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +51,8 @@ public class VersioningContract {
     private static final Logger log = LoggerFactory.getLogger(VersioningContract.class);
     private static final String SUFFIX_TEMP_CONTRACT = "/update-temp-contracts";
     private static final String SUFFIX_CONTRACT = "/.yggdrash/contract";
+
+    private static final String LOG_PREFIX = "[Versioning Contract]";
 
     @ContractStateStore
     ReadWriterStore<String, JsonObject> state;
@@ -97,8 +102,7 @@ public class VersioningContract {
         JsonObject proposalObj = JsonUtil.parseJsonObject(proposal);
         // Store the proposal in stateStore
         state.put(txId, JsonUtil.parseJsonObject(proposal));
-
-        setExpireEvent(proposal);
+        state.put(String.valueOf(proposal.getTargetBlockHeight()), JsonUtil.parseJsonObject(proposal));
 
         setSuccessTxReceipt("Contract proposal has been issued");
         log.info("Contract Proposal : txId = {}, proposal = {}", txId, proposalObj);
@@ -126,6 +130,7 @@ public class VersioningContract {
         // Verify the proposal is expired
         if (proposal.isExpired(curBlockHeight)) {
             setFalseTxReceipt("Contract proposal has already expired");
+            proposal.setVotingStatus(VotingProgress.VotingStatus.EXPIRED);
             return receipt;
         }
 
@@ -139,34 +144,9 @@ public class VersioningContract {
         boolean agree = params.get("agree").getAsBoolean();
         proposal.vote(issuer, agree);
 
-        String proposalVersion = proposal.getProposalVersion();
-
-        // Verify the voting is finished
-        if (proposal.votingProgress.getVotingStatus().equals(VotingProgress.VotingStatus.VOTABLE) &&
-                proposal.isAgreed()) {
-            try {
-                downloadContractFile(proposalVersion);
-                setSuccessTxReceipt("Contract file has been downloaded");
-
-                moveTmpContract(proposalVersion);
-                setSuccessTxReceipt("Update proposal voting was completed successfully");
-
-                removeExpireEvent(proposal);
-                //Voting is complete. The contract must be installed and executed at the specific block height.
-                setInstallAndStartEvent(proposal);
-            } catch (IOException e) {
-                setFalseTxReceipt("Contract file download failed or cannot be located");
-                return receipt;
-            }
-        }
-
-        // if vote end whether this vote end with agreed or not, remove expire event.
-        if (proposal.votingProgress.getVotingStatus().equals(VotingProgress.VotingStatus.DISAGREE)
-                || proposal.votingProgress.getVotingStatus().equals(VotingProgress.VotingStatus.AGREE)) {
-            removeExpireEvent(proposal);
-        }
-
         state.put(txId, JsonUtil.parseJsonObject(proposal));
+        state.put(String.valueOf(proposal.getTargetBlockHeight()), JsonUtil.parseJsonObject(proposal));
+
         setSuccessTxReceipt("Update proposal voting is in progress");
 
         return receipt;
@@ -177,71 +157,63 @@ public class VersioningContract {
         // Check if an event of the current block height exists in the StateStore.
         String currentBlockHeight = String.valueOf(receipt.getBlockHeight());
         if (state.contains(currentBlockHeight)) {
-            // Get the current block height event and put the event to receipt.
-            JsonObject eventSetObj = state.get(currentBlockHeight);
-            ContractEventSet eventSet = JsonUtil.generateJsonToClass(eventSetObj.toString(), ContractEventSet.class);
+            /**
+             * todo : add event set.
+             * 2. the vote ends with agree or disagree then add load bundle(download, install, start, inject) event
+             * 3. add receipt log!
+             */
 
-            eventSet.getEvents().forEach(event -> {
-                if (event.getType().equals(ContractEventType.EXPIRED)) {
-//                    ContractProposal proposal = JsonUtil.generateJsonToClass(event.getItem().toString(), ContractProposal.class);
-                    // todo: Improve this way the getting Contract Proposal. @lucas. 190904
-                    ContractProposal proposal = JsonUtil.generateJsonToClass(state.get(currentBlockHeight).getAsJsonArray("events").get(0).getAsJsonObject().get("item").toString(), ContractProposal.class);
-                    proposal.getVotingProgress().setVotingStatus(VotingProgress.VotingStatus.EXPIRED);
+            JsonObject proposalJson = state.get(currentBlockHeight);
+            ContractProposal proposal = JsonUtil.generateJsonToClass(proposalJson.toString(), ContractProposal.class);
+            VotingProgress.VotingStatus votingStatus = proposal.getVotingProgress().getVotingStatus();
+
+            ContractEventSet eventSet = new ContractEventSet();
+
+            switch (votingStatus) {
+                case VOTEABLE:
+                    log.debug("the vote not end. It will be expired. tx id : {}", proposal.getTxId());
+                    proposal.setVotingStatus(VotingProgress.VotingStatus.EXPIRED);
                     state.put(proposal.getTxId(), JsonUtil.parseJsonObject(proposal));
-                    log.info("Expired contract proposal tx hash : {}", proposal.getTxId());
-                }
-            });
+                    setSuccessTxReceipt(
+                            String.format("%s Expire proposal tx id : %s", LOG_PREFIX, proposal.getTxId()));
+                    break;
+                case AGREE:
+                    log.debug("The vote ends with agreed. It will be updated.");
+                    ContractEvent agreeEvent = new ContractEvent(ContractEventType.AGREE, proposal, ContractConstants.VERSIONING_CONTRACT.toString());
+                    eventSet.addEvents(agreeEvent);
+
+                    proposal.setVotingStatus(VotingProgress.VotingStatus.APPLYING);
+
+                    state.put(proposal.getTxId(), JsonUtil.parseJsonObject(proposal));
+                    state.put(String.valueOf(proposal.getApplyBlockHeight()), JsonUtil.parseJsonObject(proposal));
+
+                    setSuccessTxReceipt(
+                            String.format("%s The vote ends up with agreed. tx id : %s", LOG_PREFIX, proposal.getTxId())
+                    );
+                    break;
+                case DISAGREE:
+                    log.debug("The vote end with disagreed.");
+                    setSuccessTxReceipt(
+                            String.format("%s The vote ends up with disagreed. tx id : %s", LOG_PREFIX, proposal.getTxId())
+                    );
+                    break;
+                case APPLYING:
+                    log.debug("The proposal is applying.");
+                    ContractEvent applyEvent = new ContractEvent(ContractEventType.APPLY, proposal, ContractConstants.VERSIONING_CONTRACT.toString());
+                    eventSet.addEvents(applyEvent);
+                    setSuccessTxReceipt(
+                            String.format("%s The proposal is applying. tx id : %s", LOG_PREFIX, proposal.getTxId())
+                    );
+                    break;
+                case EXPIRED:
+                default:
+                    log.warn("The vote is in unknown status.");
+                    break;
+            }
 
             receipt.setEvent(eventSet);
-            setSuccessTxReceipt("Event has occurred");
         }
-
-        setSuccessTxReceipt("EndBlock completed");
         return receipt;
-    }
-
-    private void setExpireEvent(ContractProposal proposal) {
-        long applyBlockHeight = proposal.getApplyBlockHeight();
-        long targetBlockHeight = proposal.getTargetBlockHeight() > applyBlockHeight
-                ? applyBlockHeight : proposal.getTargetBlockHeight();
-
-        state.put(String.valueOf(targetBlockHeight), createEvent(targetBlockHeight, ContractEventType.EXPIRED, proposal));
-    }
-
-    // todo : Improve this method. @lucase. 190904
-    private void removeExpireEvent(ContractProposal proposal) {
-        JsonObject eventSetObj = state.get(String.valueOf(proposal.getTargetBlockHeight()));
-        ContractEventSet contractEventSet = JsonUtil.generateJsonToClass(eventSetObj.toString(), ContractEventSet.class);
-        contractEventSet.removeExpireEvent();
-        state.put(String.valueOf(proposal.getTargetBlockHeight()), JsonUtil.parseJsonObject(contractEventSet));
-    }
-
-    private void setInstallAndStartEvent(ContractProposal proposal) {
-        // TargetBlockHeight must be less than or equal to ApplyBlockHeight (TargetBlockHeight <= ApplyBlockHeight)
-        long applyBlockHeight = proposal.getApplyBlockHeight();
-        long targetBlockHeight = proposal.getTargetBlockHeight() > applyBlockHeight
-                ? applyBlockHeight : proposal.getTargetBlockHeight();
-
-        // State -> {blockHeight : contractEventSet}
-        state.put(String.valueOf(targetBlockHeight),
-                createEvent(targetBlockHeight, ContractEventType.INSTALL, proposal));
-        state.put(String.valueOf(applyBlockHeight),
-                createEvent(applyBlockHeight, ContractEventType.START, proposal));
-    }
-
-    private JsonObject createEvent(long blockHeight, ContractEventType type, ContractProposal item) {
-        JsonObject eventSetObj = state.get(String.valueOf(blockHeight));
-        ContractEvent event = new ContractEvent(type, item, receipt.getContractVersion());
-
-        ContractEventSet contractEventSet;
-        if (eventSetObj != null) {
-            contractEventSet = JsonUtil.generateJsonToClass(eventSetObj.toString(), ContractEventSet.class);
-            contractEventSet.addEvents(event);
-        } else {
-            contractEventSet = new ContractEventSet(event);
-        }
-
-        return JsonUtil.parseJsonObject(contractEventSet);
     }
 
     private void moveTmpContract(String contractVersion) throws IOException {

@@ -26,10 +26,11 @@ public class VotingProgress implements Serializable {
     public VotingStatus votingStatus;
 
     enum VotingStatus {
-        VOTABLE,
+        VOTEABLE,
         AGREE,
         DISAGREE,
-        EXPIRED
+        EXPIRED,
+        APPLYING
     }
 
     VotingProgress() {
@@ -42,7 +43,7 @@ public class VotingProgress implements Serializable {
         this.disagreeCnt = 0;
         this.votingHistory = new HashMap<>();
         validatorSet.forEach(validator -> this.votingHistory.put(validator, new Vote()));
-        this.votingStatus = VotingStatus.VOTABLE;
+        this.votingStatus = VotingStatus.VOTEABLE;
     }
 
     void vote(String issuer, boolean agree) {
@@ -52,7 +53,7 @@ public class VotingProgress implements Serializable {
             disagreeCnt++;
         }
         votingHistory.put(issuer, new Vote(agree));
-//        votingStatus = isAgreed() ? VotingStatus.AGREE : VotingStatus.DISAGREE;
+        isAgreed();
     }
 
     boolean hashVoted(String issuer) {
@@ -79,7 +80,7 @@ public class VotingProgress implements Serializable {
         return votingStatus;
     }
 
-    public void setVotingStatus(VotingStatus votingStatus) {
+    void setVotingStatus(VotingStatus votingStatus) {
         this.votingStatus = votingStatus;
     }
 

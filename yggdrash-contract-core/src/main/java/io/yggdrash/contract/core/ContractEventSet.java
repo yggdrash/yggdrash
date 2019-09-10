@@ -40,16 +40,6 @@ public class ContractEventSet implements Serializable {
         events.add(event);
     }
 
-    public void removeExpireEvent() {
-        List<ContractEvent> expireEvents = events.stream()
-                .filter(event -> event.getType().equals(ContractEventType.EXPIRED))
-                .collect(Collectors.toList());
-
-        if (!expireEvents.isEmpty()) {
-            events.removeAll(expireEvents);
-        }
-    }
-
     public Set<ContractEvent> getEvents() {
         return events;
     }

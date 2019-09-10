@@ -244,6 +244,7 @@ public class ContractExecutor {
     }
 
     BlockRuntimeResult endBlock(Map<String, Object> serviceMap, ConsensusBlock addedBlock) {
+        setStoreAdapter(tmpStateStore);
         BlockRuntimeResult result = new BlockRuntimeResult(addedBlock);
         int i = 0;
         Set<Map.Entry<String, JsonObject>> changedValues;
@@ -259,7 +260,7 @@ public class ContractExecutor {
                 receipt.setContractVersion(contractVersion);
                 changedValues = invokeMethod(receipt, service, method, new JsonObject());
 
-                if (!receipt.getStatus().equals(ExecuteStatus.ERROR) && changedValues != null) {
+                if (!receipt.getStatus().equals(ExecuteStatus.ERROR) && !changedValues.isEmpty()) {
                     result.setBlockResult(changedValues);
                 }
 
@@ -307,7 +308,7 @@ public class ContractExecutor {
         return service;
     }
 
-    private Object invokeMethod(Object service, Method method, JsonObject params) throws Exception {
+    private Object invokeMethod(Object service, Method method, JsonObject params) throws InvocationTargetException, IllegalAccessException {
         return method.getParameterCount() == 0 ? method.invoke(service) : method.invoke(service, params);
     }
 

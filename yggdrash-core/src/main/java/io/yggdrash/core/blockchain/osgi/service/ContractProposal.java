@@ -53,10 +53,6 @@ public class ContractProposal implements Serializable, Comparable<ContractPropos
                 | blockHeight > targetBlockHeight;
     }
 
-    boolean isExpired() {
-        return votingProgress.votingStatus.equals(VotingProgress.VotingStatus.EXPIRED);
-    }
-
     boolean hasAlreadyVoted(String validator) {
         return votingProgress.hashVoted(validator);
     }
@@ -66,8 +62,11 @@ public class ContractProposal implements Serializable, Comparable<ContractPropos
     }
 
     boolean isAgreed() {
-//        return votingProgress.getVotingStatus() == VotingProgress.VotingStatus.AGREE;
         return votingProgress.isAgreed();
+    }
+
+    void setVotingStatus(VotingProgress.VotingStatus status) {
+        this.votingProgress.setVotingStatus(status);
     }
 
     String getTxId() {

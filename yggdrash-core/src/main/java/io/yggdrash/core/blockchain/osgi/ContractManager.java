@@ -32,6 +32,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -100,30 +104,28 @@ public class ContractManager implements ContractEventListener {
 
     private void versioningContractEventHandler(BlockRuntimeResult result, ContractEvent event) {
         ContractEventType eventType = event.getType();
-        ContractVersion proposalVersion = ContractVersion.of(((LinkedHashMap) event.getItem()).get("proposalVersion").toString());
+        ContractProposal proposal = (ContractProposal) event.getItem();
+        ContractVersion proposalVersion = ContractVersion.of(proposal.getProposalVersion());
 
         try {
             switch (eventType) {
-                case INSTALL:
+                case AGREE:
+                    // download contract file to contract tmp folder
+                    Downloader.downloadContract(String.format("%s/%s", contractPath, "tmp"), proposalVersion);
+                    break;
+                case APPLY:
+                    // todo : pkg version check
+                    Path tmp = Paths.get(String.format("%s/%s/%s", contractPath, "tmp", proposalVersion + ".jar"));
+                    Path origin = Paths.get(contractPath);
+                    Files.move(tmp, origin.resolve(tmp.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+                    // install
                     install(proposalVersion);
-                    break;
-                case UNINSTALL:
-                    uninstall(proposalVersion);
-                    break;
-                case START:
-                    Bundle newBundle = getBundle(proposalVersion);
-                    if (newBundle != null) {
-                        addNewBranchContract(newBundle, proposalVersion);
-                        start(proposalVersion);
-                    } else {
-                        throw new BundleException("Start bundle failed. The bundle has not installed properly. ");
-                    }
-                    break;
-                case STOP:
-                    stop(proposalVersion);
-                    break;
-                case EXPIRED:
-                    commitBlockResult(result);
+
+                    // bundle start and inject and register(service map & branch store)
+                    bundleService.start(proposalVersion);
+                    injectBundle(bundleService.getBundle(proposalVersion));
+                    registerServiceMap(proposalVersion, bundleService.getBundle(proposalVersion));
+                    addNewBranchContract(bundleService.getBundle(proposalVersion), proposalVersion);
                     break;
                 default:
                     log.info("Not defined event type in version contract");
@@ -132,6 +134,7 @@ public class ContractManager implements ContractEventListener {
         } catch (BundleException | IOException e) {
             log.error("VersioningContract event failed. {} ", e.getMessage());
         }
+        commitBlockResult(result);
     }
 
     private void addNewBranchContract(Bundle newBundle, ContractVersion contractVersion) {
@@ -263,9 +266,9 @@ public class ContractManager implements ContractEventListener {
         return bundleService.getBundles();
     }
 
-    public Bundle install(ContractVersion contractVersion) throws IOException, BundleException {
+    private void install(ContractVersion contractVersion) throws IOException, BundleException {
         File contractFile = new File(contractFilePath(contractVersion));
-        return bundleService.install(contractVersion, contractFile);
+        bundleService.install(contractVersion, contractFile);
     }
 
     public void uninstall(ContractVersion contractVersion) {

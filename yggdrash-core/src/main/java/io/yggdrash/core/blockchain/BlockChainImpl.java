@@ -162,6 +162,8 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             blockChainManager.flushUnconfirmedTxs(errTxKeys);
 
             BlockRuntimeResult endBlockResult = contractManager.endBlock(nextBlock);
+            contractManager.commitBlockResult(endBlockResult);
+
             // Fire contract event
             getContractEventList(endBlockResult).stream()
                     .filter(event -> !contractEventListenerList.isEmpty())

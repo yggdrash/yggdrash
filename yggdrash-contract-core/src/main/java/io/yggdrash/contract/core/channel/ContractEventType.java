@@ -13,9 +13,8 @@
 package io.yggdrash.contract.core.channel;
 
 public enum ContractEventType {
-    INSTALL,
-    UNINSTALL,
-    START,
-    STOP,
-    EXPIRED
+    AGREE,
+    DISAGREE,
+    APPLY,
+    EXPIRE
 }
