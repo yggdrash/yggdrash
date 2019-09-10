@@ -146,7 +146,6 @@ public class KademliaPeerNetwork implements PeerNetwork {
                     log.warn("[KademliaPeerNetwork] broadcast {} -> {}, tx ERR: {}",
                             peerTableGroup.getOwner().getPort(),
                             peerHandler.getPeer().getPort(), e.getMessage());
-                    peerDialer.removeHandler(peerHandler);
                 }
             }
         }
@@ -173,7 +172,6 @@ public class KademliaPeerNetwork implements PeerNetwork {
                     peerHandler.broadcastBlock(block);
                 } catch (Exception e) {
                     log.debug("Cannot broadcst a block to {}", peerHandler.getPeer());
-                    peerDialer.removeHandler(peerHandler);
                 }
             }
         }
