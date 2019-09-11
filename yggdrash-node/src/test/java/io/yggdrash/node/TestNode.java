@@ -112,7 +112,6 @@ public class TestNode extends BootStrapNode {
         this.discoveryConsumer = new DiscoveryServiceConsumer(peerTableGroup);
 
         this.peerTask = new PeerTask();
-        peerTask.setNodeStatus(nodeStatus);
         peerTask.setPeerDialer(peerDialer);
         peerTask.setPeerTableGroup(peerTableGroup);
     }

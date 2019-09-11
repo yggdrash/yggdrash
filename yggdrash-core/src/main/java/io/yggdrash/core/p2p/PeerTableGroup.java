@@ -38,6 +38,8 @@ public interface PeerTableGroup extends PeerEventListener {
 
     void addPeer(BranchId branchId, Peer peer);
 
+    void dropPeer(BranchId branchId, Peer peer);
+
     boolean contains(BranchId branchId);
 
     Map<String, String> getActivePeerListWithStatus();
