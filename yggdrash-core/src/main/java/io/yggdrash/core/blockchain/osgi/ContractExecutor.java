@@ -237,6 +237,7 @@ public class ContractExecutor {
         } else {
             // CommitBlockResult will not run after executing pending txs, so isTx has to be set manually.
             isTx = true;
+            isBlockExecuting.signal();
         }
 
         locker.unlock();
