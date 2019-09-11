@@ -18,6 +18,7 @@ package io.yggdrash.core.runtime.result;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.contract.core.Receipt;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
 
 import java.util.ArrayList;
@@ -27,9 +28,15 @@ import java.util.Map;
 import java.util.Set;
 
 public class BlockRuntimeResult {
+    private final List<Transaction> txList = new ArrayList<>();
     private final Map<String, JsonObject> blockResult = new HashMap<>();
     private final List<Receipt> receipts = new ArrayList<>();
     private final ConsensusBlock block;
+
+    public BlockRuntimeResult(List<Transaction> txList) {
+        this.txList.addAll(txList);
+        this.block = null;
+    }
 
     public BlockRuntimeResult(ConsensusBlock block) {
         this.block = block;
@@ -45,6 +52,10 @@ public class BlockRuntimeResult {
 
     public List<Receipt> getReceipts() {
         return this.receipts;
+    }
+
+    public List<Transaction> getTxList() {
+        return this.txList;
     }
 
     public Map<String, JsonObject> getBlockResult() {

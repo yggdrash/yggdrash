@@ -28,6 +28,7 @@ import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
@@ -94,6 +95,23 @@ public class DiscoveryHandler<T> implements BlockChainHandler<T> {
                 .setBestBlock(owner.getBestBlock())
                 .build();
         return peerBlockingStub.ping(request).getPong();
+    }
+
+    @Override
+    public long pingPong(BranchId branchId, Peer owner, String message) {
+        Proto.Ping request = Proto.Ping.newBuilder().setPing(message)
+                .setFrom(owner.getYnodeUri())
+                .setTo(peer.getYnodeUri())
+                .setBranch(ByteString.copyFrom(branchId.getBytes()))
+                .setBestBlock(owner.getBestBlock())
+                .build();
+
+        Proto.Pong response = peerBlockingStub.ping(request);
+        if (Arrays.equals(branchId.getBytes(), request.getBranch().toByteArray())) {
+            return response.getBestBlock();
+        }
+
+        return -1;
     }
 
     @Override

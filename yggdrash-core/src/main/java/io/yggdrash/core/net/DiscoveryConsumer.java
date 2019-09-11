@@ -18,6 +18,7 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.proto.Proto;
 
 import java.util.List;
 
@@ -28,4 +29,6 @@ public interface DiscoveryConsumer {
     List<Peer> findPeers(BranchId branchId, Peer target);
 
     String ping(BranchId branchId, Peer from, Peer to, String msg);
+
+    Proto.Pong ping(BranchId branchId, Peer from, Peer to, String msg, long blockIndex, boolean normalHost);
 }

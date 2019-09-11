@@ -29,7 +29,7 @@ public interface PeerDialer {
 
     void addConsensus(BranchId branchId, String consensus);
 
-    boolean healthCheck(BranchId branchId, Peer owner, Peer to);
+    long healthCheck(BranchId branchId, Peer owner, Peer to);
 
     void removeHandler(BlockChainHandler peerHandler);
 

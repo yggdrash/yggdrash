@@ -67,16 +67,11 @@ public class BlockServiceConsumer<T> implements BlockConsumer<T> {
             long nextIndex = branchGroup.getLastIndex(branchId) + 1;
             long receivedIndex = block.getIndex();
 
-            if (receivedIndex < nextIndex) {
-                return;
-            } else if (receivedIndex == nextIndex) {
+            if (receivedIndex == nextIndex) {
                 branchGroup.addBlock(block, true);
             } else {
-                // Catchup Event!
-                if (listener != null) {
-                    log.info("CatchUp required. received={} expected={}", receivedIndex, nextIndex);
-                    listener.catchUpRequest(block);
-                }
+                log.debug("Received Block index is not Next Block Index. {} {}",
+                        block.getIndex(), nextIndex);
             }
         } catch (Exception e) {
             log.debug("BroadcastBlock ERR={}", e.getMessage());

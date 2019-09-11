@@ -1,6 +1,7 @@
 package io.yggdrash.core.blockchain.osgi;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.ContractVersion;
@@ -32,6 +33,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class ContractManager implements ContractEventListener {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
@@ -285,14 +287,25 @@ public class ContractManager implements ContractEventListener {
         return contractExecutor.executeTxs(serviceMap, nextBlock);
     }
 
+    public Set<Sha3Hash> executePendingTxs(List<Transaction> txs) {
+        return contractExecutor.executePendingTxs(serviceMap, txs);
+    }
+
     public TransactionRuntimeResult executeTx(Transaction tx) {
         return contractExecutor.executeTx(serviceMap, tx);
+    }
+
+    public boolean executePendingTx(Transaction tx) {
+        return contractExecutor.executePendingTx(serviceMap, tx);
     }
 
     public void commitBlockResult(BlockRuntimeResult result) {
         contractExecutor.commitBlockResult(result);
     }
 
+    public void resetPendingStateStore() {
+        contractStore.getPendingStateStore().close();
+    }
 
     // file actions.
     public boolean isContractFileExist(ContractVersion version) {

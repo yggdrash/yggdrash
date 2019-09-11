@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 public abstract class AbstractBlockChainHandler<T> extends DiscoveryHandler<T> {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractBlockChainHandler.class);
-    protected static final int DEFAULT_LIMIT = 10;
 
     private final TransactionServiceGrpc.TransactionServiceStub transactionAsyncStub;
     private final StreamObserver<CommonProto.Empty> emptyResponseStreamObserver;

@@ -283,6 +283,7 @@ public class YeedTest {
 
     @Test
     public void faucetTest() {
+        // TODO remove in MainNet
         String issuer = "691af5cbc92d8f4e5683246d27d199ccfa2548d6";
 
         setUpReceipt("0x00", issuer, BRANCH_ID, 1);
@@ -371,6 +372,47 @@ public class YeedTest {
         assertEquals("Contract Balance is zero", 0, contractBalance.compareTo(BigInteger.ZERO));
     }
 
+    @Test
+    public void endblockBurnTest() {
+        BigInteger totalSupply = yeedContract.totalSupply();
+
+        Receipt receipt = setUpReceipt(""); // Endblock execute by node
+        // Burn network Fee
+        yeedContract.endBlock();
+        Assert.assertTrue("Network Fee is Zero", receipt.isSuccess());
+        Assert.assertTrue("Total Supply is same",
+                yeedContract.totalSupply().compareTo(totalSupply) == 0);
+
+        BigInteger sendAmount = BASE_CURRENCY; // 1 YEED
+        final BigInteger sendAddress = getBalance(ADDRESS_1);
+        final BigInteger receiveAmount = getBalance(ADDRESS_2);
+        BigInteger feeAmount = BASE_CURRENCY; // 1YEED
+
+        JsonObject paramObj = new JsonObject();
+        paramObj.addProperty("to", ADDRESS_2);
+        paramObj.addProperty("amount", sendAmount);
+        paramObj.addProperty("fee", feeAmount);
+
+
+        totalSupply = yeedContract.totalSupply();
+
+        // Transfer YEED
+        receipt = setUpReceipt(ADDRESS_1);
+
+        yeedContract.transfer(paramObj);
+
+        Assert.assertTrue("Transfer success", receipt.isSuccess());
+
+        receipt = setUpReceipt(""); // Endblock execute by node
+        // Burn network Fee
+        yeedContract.endBlock();
+
+        BigInteger burnAfterSupply = yeedContract.totalSupply();
+        BigInteger burnedYeed = totalSupply.subtract(burnAfterSupply);
+        Assert.assertTrue("Burn is Success", receipt.isSuccess());
+        Assert.assertTrue("Burn Network YEED", burnedYeed.compareTo(feeAmount) == 0);
+
+    }
 
 
     private BranchStateStore branchStateStoreMock() {

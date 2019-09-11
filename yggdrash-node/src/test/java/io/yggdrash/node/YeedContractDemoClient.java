@@ -79,8 +79,15 @@ public class YeedContractDemoClient {
 
     private static void sendTx() {
         String address = getTargetAddress();
-        JsonObject txBody = ContractTestUtils.transferTxBodyJson(address, BigInteger.valueOf(TRANSFER_AMOUNT));
+        JsonObject txBody = ContractTestUtils.transferTxBodyJson(address, getTransferAmount());
         lastTxId = ContractDemoClientUtils.sendTx(txBody);
+    }
+
+    private static BigInteger getTransferAmount() {
+        System.out.println("전송할 이드를 입력해주세요. (기본값 : " + TRANSFER_AMOUNT + ")");
+        String amountStr = scan.nextLine();
+        return amountStr.isEmpty() ? BigInteger.valueOf(TRANSFER_AMOUNT)
+                : new BigInteger(amountStr).multiply(BigInteger.TEN.pow(18));
     }
 
     private static String getTargetAddress() {

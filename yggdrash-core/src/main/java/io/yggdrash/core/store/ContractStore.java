@@ -24,12 +24,14 @@ public class ContractStore {
     private StateStore stateStore;
     private ReceiptStore receiptStore;
     private TempStateStore tmpStateStore;
+    private TempStateStore pendingStateStore;
 
     public ContractStore(BranchStore branchStore, StateStore stateStore, ReceiptStore receiptStore) {
         this.branchStore = branchStore;
         this.stateStore = stateStore;
         this.receiptStore = receiptStore;
         this.tmpStateStore = new TempStateStore(stateStore);
+        this.pendingStateStore = new TempStateStore(stateStore);
     }
 
     public BranchStore getBranchStore() {
@@ -42,6 +44,10 @@ public class ContractStore {
 
     public TempStateStore getTmpStateStore() {
         return this.tmpStateStore;
+    }
+
+    public TempStateStore getPendingStateStore() {
+        return this.pendingStateStore;
     }
 
     public ReceiptStore getReceiptStore() {
@@ -58,6 +64,7 @@ public class ContractStore {
         this.branchStore.close();
         this.stateStore.close();
         this.tmpStateStore.close();
+        this.pendingStateStore.close();
         this.receiptStore.close();
     }
 
