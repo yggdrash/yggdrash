@@ -86,6 +86,11 @@ public class NodeHealthIndicator implements HealthIndicator, NodeStatus {
         return health.get().getStatus().equals(Status.UP);
     }
 
+    @Override
+    public boolean isSyncStatus() {
+        return health.get().getStatus().equals(SYNC);
+    }
+
     private void updateDetail(Status status) {
         Health.Builder builder = Health.status(status);
         builder.withDetail("name", Constants.NODE_NAME);

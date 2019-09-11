@@ -213,7 +213,7 @@ public class BlockChainSyncManager implements SyncManager {
     }
 
     private void reqSyncBlockToHandlers(BlockChain blockChain) {
-        if (!nodeStatus.isUpStatus()) {
+        if (nodeStatus.isSyncStatus()) {
             log.debug("NodeStatus is down. ({})", nodeStatus.toString());
             return;
         }
@@ -231,7 +231,7 @@ public class BlockChainSyncManager implements SyncManager {
     }
 
     private void reqSyncBlockToPeer(BlockChain blockChain, Peer peer) {
-        if (!nodeStatus.isUpStatus()) {
+        if (nodeStatus.isSyncStatus()) {
             log.debug("NodeStatus is down. ({})", nodeStatus.toString());
             return;
         }

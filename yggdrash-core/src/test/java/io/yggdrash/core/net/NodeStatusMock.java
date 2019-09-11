@@ -11,6 +11,11 @@ public class NodeStatusMock implements NodeStatus {
     }
 
     @Override
+    public boolean isSyncStatus() {
+        return status.equals("sync");
+    }
+
+    @Override
     public void up() {
         status = "up";
     }
