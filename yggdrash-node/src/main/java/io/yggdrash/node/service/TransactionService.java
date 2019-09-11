@@ -34,6 +34,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 import java.util.Map;
 
+import static io.yggdrash.common.config.Constants.TRANSACTION_UNCONFIRMED_MAX;
+
 @GrpcService
 public class TransactionService extends TransactionServiceGrpc.TransactionServiceImplBase {
     private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
@@ -107,14 +109,15 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
         return new StreamObserver<Proto.Transaction>() {
             @Override
             public void onNext(Proto.Transaction protoTx) {
-                if (syncManager.isSyncStatus()) {
-                    return;
-                }
-
                 Transaction tx = new TransactionImpl(protoTx);
-                log.trace("Received transaction: hash={}", tx.getHash());
-
                 try {
+                    log.trace("Received transaction: hash={}", tx.getHash());
+                    // TODO: change logics to consider syncing blocks rapidly
+                    if (syncManager.isSyncStatus()
+                            || branchGroup.getUnconfirmedTxs(tx.getBranchId()).size() > TRANSACTION_UNCONFIRMED_MAX) {
+                        return;
+                    }
+
                     branchGroup.addTransaction(tx);
                 } catch (Exception e) {
                     log.warn(e.getMessage());
