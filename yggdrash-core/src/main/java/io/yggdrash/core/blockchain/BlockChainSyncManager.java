@@ -38,15 +38,17 @@ public class BlockChainSyncManager implements SyncManager {
     }
 
     @Override
+    public boolean isSyncStatus() {
+        return nodeStatus.isSyncStatus();
+    }
+
+    @Override
     public void fullSync() {
         nodeStatus.sync();
         try {
             for (BlockChain blockChain : branchGroup.getAllBranch()) {
                 List<BlockChainHandler> peerHandlerList = peerNetwork.getHandlerList(blockChain.getBranchId());
-
                 fullSyncBlock(blockChain, peerHandlerList);
-
-                syncTransaction(blockChain, peerHandlerList);
             }
         } finally {
             nodeStatus.up();

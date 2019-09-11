@@ -18,6 +18,7 @@ package io.yggdrash.node.service;
 
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.core.blockchain.BlockChainSyncManager;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
@@ -39,10 +40,12 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
     private static final CommonProto.Empty EMPTY = CommonProto.Empty.getDefaultInstance();
 
     private final BranchGroup branchGroup;
+    private final BlockChainSyncManager syncManager;
 
     @Autowired
-    public TransactionService(BranchGroup branchGroup) {
+    public TransactionService(BranchGroup branchGroup, BlockChainSyncManager syncManager) {
         this.branchGroup = branchGroup;
+        this.syncManager = syncManager;
     }
 
     /**
@@ -104,8 +107,13 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
         return new StreamObserver<Proto.Transaction>() {
             @Override
             public void onNext(Proto.Transaction protoTx) {
+                if (syncManager.isSyncStatus()) {
+                    return;
+                }
+
                 Transaction tx = new TransactionImpl(protoTx);
                 log.trace("Received transaction: hash={}", tx.getHash());
+
                 try {
                     branchGroup.addTransaction(tx);
                 } catch (Exception e) {

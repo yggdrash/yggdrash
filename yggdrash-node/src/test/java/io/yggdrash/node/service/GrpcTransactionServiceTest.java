@@ -20,6 +20,7 @@ import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
 import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.core.blockchain.BlockChainSyncManager;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
@@ -51,13 +52,16 @@ public class GrpcTransactionServiceTest {
     @Mock
     private BranchGroup branchGroupMock;
 
+    @Mock
+    private BlockChainSyncManager syncManager;
+
     private Transaction tx;
     private ConsensusBlock block;
     private BranchId branchId;
 
     @Before
     public void setUp() {
-        grpcServerRule.getServiceRegistry().addService(new TransactionService(branchGroupMock));
+        grpcServerRule.getServiceRegistry().addService(new TransactionService(branchGroupMock, syncManager));
 
         tx = BlockChainTestUtils.createTransferTx();
         block = BlockChainTestUtils.genesisBlock();

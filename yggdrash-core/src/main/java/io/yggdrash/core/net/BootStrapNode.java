@@ -26,6 +26,7 @@ public abstract class BootStrapNode implements BootStrap {
     @Override
     public void bootstrapping() {
         peerNetwork.init();
+        syncManager.fullSync();
     }
 
     public void setPeerNetwork(PeerNetwork peerNetwork) {
