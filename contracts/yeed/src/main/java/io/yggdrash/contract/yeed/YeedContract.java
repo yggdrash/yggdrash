@@ -705,7 +705,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
             ProcessTransaction pt = new ProcessTransaction();
             pt.setSenderAddress(senderAddress);
-            pt.setReceiverAddress(receiveAddress);
+            pt.setReceiverAddress(receiveAddress.substring(24));
             pt.setChainId(tokenTransaction.getChainId());
             pt.setTargetAddress(targetAddress);
             pt.setAsset(sendAsset);

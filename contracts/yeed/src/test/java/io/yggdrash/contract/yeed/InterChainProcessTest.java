@@ -30,7 +30,6 @@ import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.regex.Matcher;
@@ -1211,13 +1210,13 @@ public class InterChainProcessTest {
     @Test
     public void issueTokenInterchain() {
         // TODO Token transfer to YEED
-        BigInteger stakeYeed = BigInteger.TEN.pow(26); // 1억 YEED
+        BigInteger stakeYeedOrigin = BigInteger.TEN.pow(26); // 1억 YEED
         BigInteger receiveAsset = BigInteger.TEN.pow(26); // 1억 YEED TOKEN ->
         // Ratio = receiveAsset/stakeYeed
 
         BigInteger fee = BigInteger.TEN.pow(17); // 0.1 YEED
 
-        String proposeId = issueTokenPropose(ISSUER, "", receiveAsset, stakeYeed, fee);
+        String proposeId = issueTokenPropose(ISSUER, "", receiveAsset, stakeYeedOrigin, fee);
         log.debug("Propose ID : {} ", proposeId);
 
         JsonObject queryProposeParam = new JsonObject();
@@ -1256,7 +1255,33 @@ public class InterChainProcessTest {
 
         yeedContract.processPropose(processJson);
 
+        String confirmId = proposeConfirmIdFromLog(proposeReceipt.getLog());
+        Assert.assertNotNull("", confirmId);
 
+
+        Assert.assertTrue("SUCCESS ", proposeReceipt.isSuccess());
+
+        Receipt confirmTr = setUpReceipt("0x00", VALIDATOR, BRANCH_ID, 100);
+
+        JsonObject confirmParams = new JsonObject();
+        //params.addProperty("proposeId", "18d48bc062ecab96a6d5b24791b5b41fdb69a12ef76d56f9f842871f92716b7a");
+        confirmParams.addProperty("txConfirmId", confirmId);
+        confirmParams.addProperty("txId", HexUtil.toHexString(tx.getHash()));
+        confirmParams.addProperty("status", TxConfirmStatus.DONE.toValue());
+        confirmParams.addProperty("blockHeight", 100010L);
+        confirmParams.addProperty("lastBlockHeight", 100030L);
+        confirmParams.addProperty("index", 1);
+
+        yeedContract.transactionConfirm(confirmParams);
+        BigInteger stakeYeedAfter = getBalance(proposeId);
+        Assert.assertTrue("SEND Success", proposeReceipt.isSuccess());
+        Assert.assertTrue("Confirm Success", confirmTr.isSuccess());
+
+        BigInteger tokenSenderYeed = getBalance(HexUtil.toHexString(ecKey.getAddress()));
+
+        // Stake After asset is origin Stake Yeed and network fee
+        Assert.assertEquals("", stakeYeedOrigin.subtract(asset).add(fee), stakeYeedAfter);
+        Assert.assertEquals("TokenSender Yeed",0, tokenSenderYeed.compareTo(asset));
     }
 
     private byte[] tokenData(String method, String receiveAddress, BigInteger asset) {
