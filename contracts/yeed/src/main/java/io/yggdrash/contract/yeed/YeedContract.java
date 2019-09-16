@@ -24,7 +24,6 @@ import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.utils.ByteUtil;
-import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
@@ -32,8 +31,8 @@ import io.yggdrash.contract.core.annotation.ContractChannelField;
 import io.yggdrash.contract.core.annotation.ContractChannelMethod;
 import io.yggdrash.contract.core.annotation.ContractEndBlock;
 import io.yggdrash.contract.core.annotation.ContractQuery;
-import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractReceipt;
+import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.Genesis;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.annotation.ParamValidation;
@@ -47,14 +46,12 @@ import io.yggdrash.contract.yeed.propose.ProcessTransaction;
 import io.yggdrash.contract.yeed.propose.ProposeErrorCode;
 import io.yggdrash.contract.yeed.propose.ProposeInterChain;
 import io.yggdrash.contract.yeed.propose.ProposeStatus;
-import io.yggdrash.contract.yeed.propose.ProposeType;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -374,10 +371,10 @@ public class YeedContract implements BundleActivator, ServiceListener {
         @InvokeTransaction
         @Override
         public Receipt transferFrom(JsonObject params) {
-            String to = params.get("to").getAsString().toLowerCase();
-            String from = params.get("from").getAsString().toLowerCase();
-            String sender = receipt.getIssuer();
-            String approveKey = approveKey(from, sender);
+            final String to = params.get("to").getAsString().toLowerCase();
+            final String from = params.get("from").getAsString().toLowerCase();
+            final String sender = receipt.getIssuer();
+            final String approveKey = approveKey(from, sender);
 
             // Check approved amount empty
             if (isAccountEmpty(approveKey)) {
@@ -455,8 +452,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 return false;
             }
 
-            if (toAccount.equalsIgnoreCase(contractName) &&
-                    fromAccount.equalsIgnoreCase(issuer)) {
+            if (toAccount.equalsIgnoreCase(contractName)
+                    && fromAccount.equalsIgnoreCase(issuer)) {
                 // deposit
                 return transfer(fromAccount, contractAccount, amount, serviceFee);
             } else if (fromAccount.equalsIgnoreCase(contractName)) { // withdraw
@@ -727,7 +724,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
         }
 
         private void processProposeTransaction(ProposeInterChain propose, ProcessTransaction pt) {
-            boolean isProposeSender = propose.proposeSender(pt.getSenderAddress());
+            final boolean isProposeSender = propose.proposeSender(pt.getSenderAddress());
 
             BigDecimal receiveValue = new BigDecimal(pt.getAsset());
             BigDecimal stakeYeedDecimal = new BigDecimal(propose.getStakeYeed());
