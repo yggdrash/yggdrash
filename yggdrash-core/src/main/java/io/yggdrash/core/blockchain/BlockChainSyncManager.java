@@ -84,12 +84,12 @@ public class BlockChainSyncManager implements SyncManager {
                     return true;
                 }
             }
+
+            if (blockChain.getBlockChainManager().getLastIndex() < peerHandler.getPeer().getBestBlock()) {
+                syncBlock(peerHandler, blockChain);
+            }
         } catch (Exception e) {
             log.warn("[SyncManager] Sync Block ERR occurred: {}", e.getMessage());
-        }
-
-        if (blockChain.getBlockChainManager().getLastIndex() < peerHandler.getPeer().getBestBlock()) {
-            syncBlock(peerHandler, blockChain);
         }
 
         return false;
