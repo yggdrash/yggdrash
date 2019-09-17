@@ -61,7 +61,7 @@ public class GrpcTransactionServiceTest {
 
     @Before
     public void setUp() {
-        grpcServerRule.getServiceRegistry().addService(new TransactionService(branchGroupMock, syncManager));
+        grpcServerRule.getServiceRegistry().addService(new TransactionService(branchGroupMock));
 
         tx = BlockChainTestUtils.createTransferTx();
         block = BlockChainTestUtils.genesisBlock();

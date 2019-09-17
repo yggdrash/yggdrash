@@ -18,7 +18,6 @@ package io.yggdrash.node.service;
 
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
-import io.yggdrash.core.blockchain.BlockChainSyncManager;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
@@ -34,20 +33,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 import java.util.Map;
 
-import static io.yggdrash.common.config.Constants.TRANSACTION_UNCONFIRMED_MAX;
-
 @GrpcService
 public class TransactionService extends TransactionServiceGrpc.TransactionServiceImplBase {
     private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
     private static final CommonProto.Empty EMPTY = CommonProto.Empty.getDefaultInstance();
 
     private final BranchGroup branchGroup;
-    private final BlockChainSyncManager syncManager;
 
     @Autowired
-    public TransactionService(BranchGroup branchGroup, BlockChainSyncManager syncManager) {
+    public TransactionService(BranchGroup branchGroup) {
         this.branchGroup = branchGroup;
-        this.syncManager = syncManager;
     }
 
     /**
@@ -60,6 +55,10 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
     public void syncTx(CommonProto.SyncLimit syncLimit, StreamObserver<Proto.TransactionList> responseObserver) {
         BranchId branchId = BranchId.of(syncLimit.getBranch().toByteArray());
         log.debug("Received syncTransaction request branchId={}", branchId);
+        if (!branchGroup.getBranch(branchId).isFullSynced()) {
+            log.debug("Not yet fullSynced.");
+            return;
+        }
 
         Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
         for (Transaction tx : branchGroup.getUnconfirmedTxs(branchId)) {
@@ -80,6 +79,10 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
     public void sendTx(Proto.Transaction tx, StreamObserver<Proto.TransactionResponse> responseObserver) {
         BranchId branchId = BranchId.of(tx.getHeader().getChain().toByteArray());
         log.debug("Received sendTx request branchId={}", branchId);
+        if (!branchGroup.getBranch(branchId).isFullSynced()) {
+            log.debug("Not yet fullSynced.");
+            return;
+        }
 
         Proto.TransactionResponse.Builder builder = Proto.TransactionResponse.newBuilder();
         Transaction transaction = new TransactionImpl(tx);
@@ -111,13 +114,10 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
             public void onNext(Proto.Transaction protoTx) {
                 Transaction tx = new TransactionImpl(protoTx);
                 try {
-                    log.trace("Received transaction: hash={}", tx.getHash());
-                    // TODO: change logics to consider syncing blocks rapidly
-                    if (syncManager.isSyncStatus()
-                            || branchGroup.getUnconfirmedTxs(tx.getBranchId()).size() > TRANSACTION_UNCONFIRMED_MAX) {
+                    if (!branchGroup.getBranch(tx.getBranchId()).isFullSynced()) {
+                        log.debug("Not yet fullSynced.");
                         return;
                     }
-
                     branchGroup.addTransaction(tx);
                 } catch (Exception e) {
                     log.warn(e.getMessage());

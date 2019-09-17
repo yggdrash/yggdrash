@@ -128,7 +128,7 @@ public class TestNode extends BootStrapNode {
         }
         BlockChain bc = BlockChainTestUtils.createBlockChain(isProd);
         branchGroup.addBranch(bc);
-        transactionService = new TransactionService(branchGroup, syncManager);
+        transactionService = new TransactionService(branchGroup);
     }
 
     private void networkConfiguration() {

@@ -47,6 +47,8 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     private final Consensus consensus;
     private final ReentrantLock lock = new ReentrantLock();
 
+    private boolean isFullSynced = false;
+
     public BlockChainImpl(Branch branch,
                           ConsensusBlock<T> genesisBlock,
                           BranchStore branchStore,
@@ -65,6 +67,14 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         }
 
         init();
+    }
+
+    public boolean isFullSynced() {
+        return isFullSynced;
+    }
+
+    public void setFullSynced(boolean fullSynced) {
+        isFullSynced = fullSynced;
     }
 
     private void init() {
