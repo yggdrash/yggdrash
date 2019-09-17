@@ -75,15 +75,20 @@ public class DiscoveryHandler<T> implements BlockChainHandler<T> {
 
     @Override
     public List<Peer> findPeers(BranchId branchId, Peer peer) {
+        log.trace("findPeers() Branch({}) Peer({})", branchId.toString(), peer.toString());
         Proto.TargetPeer targetPeer = Proto.TargetPeer.newBuilder()
                 .setPubKey(peer.getPubKey().toString())
                 .setIp(peer.getHost())
                 .setPort(peer.getPort())
                 .setBranch(ByteString.copyFrom(branchId.getBytes()))
                 .build();
-        return peerBlockingStub.findPeers(targetPeer).getPeersList().stream()
+        List<Peer> peerList = peerBlockingStub.findPeers(targetPeer).getPeersList().stream()
                 .map(peerInfo -> Peer.valueOf(peerInfo.getUrl()))
                 .collect(Collectors.toList());
+
+        log.trace("findPeers() result: {}", peerList.toString());
+
+        return peerList;
     }
 
     @Override

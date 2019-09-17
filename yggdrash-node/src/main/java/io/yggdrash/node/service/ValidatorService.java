@@ -19,6 +19,7 @@ import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftMessageSet;
 import io.yggdrash.validator.service.ebft.EbftServerStub;
 import io.yggdrash.validator.service.ebft.EbftService;
+import io.yggdrash.validator.service.node.DiscoveryServiceStub;
 import io.yggdrash.validator.service.node.TransactionServiceStub;
 import io.yggdrash.validator.service.pbft.PbftServerStub;
 import io.yggdrash.validator.service.pbft.PbftService;
@@ -61,6 +62,7 @@ public class ValidatorService {
                     this.grpcServer = ServerBuilder.forPort(port)
                             .addService(new PbftServerStub(pbftService))
                             .addService(new TransactionServiceStub(blockChain, pbftService))
+                            .addService(new DiscoveryServiceStub(blockChain, pbftService))
                             .build()
                             .start();
                 } catch (IOException e) {

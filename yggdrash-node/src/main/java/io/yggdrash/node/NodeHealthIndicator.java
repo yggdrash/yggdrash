@@ -66,7 +66,7 @@ public class NodeHealthIndicator implements HealthIndicator, NodeStatus {
         } catch (Exception e) {
             log.warn("Status up() is error. {}", e.getMessage());
         } finally {
-            log.info("nodeStatus {} -> {}", health.get().getStatus(), Status.UP);
+            log.info("nodeStatus -> {}", health.get().getStatus());
         }
     }
 
@@ -77,13 +77,18 @@ public class NodeHealthIndicator implements HealthIndicator, NodeStatus {
         } catch (Exception e) {
             log.warn("Status sync() is error. {}", e.getMessage());
         } finally {
-            log.info("nodeStatus {} -> {}", health.get().getStatus(), SYNC);
+            log.info("nodeStatus -> {}", health.get().getStatus());
         }
     }
 
     @Override
     public boolean isUpStatus() {
         return health.get().getStatus().equals(Status.UP);
+    }
+
+    @Override
+    public boolean isSyncStatus() {
+        return health.get().getStatus().equals(SYNC);
     }
 
     private void updateDetail(Status status) {

@@ -84,7 +84,8 @@ public class PeerHandlerProvider {
 
         @Override
         public Future<List<ConsensusBlock<PbftProto.PbftBlock>>> syncBlock(BranchId branchId, long offset) {
-            log.debug("Requesting sync block: branchId={}, offset={}", branchId, offset);
+            log.debug("Requesting sync block: branchId={}, offset={}, to={}",
+                    branchId, offset, this.getPeer().getYnodeUri());
 
             CommonProto.Offset request = CommonProto.Offset.newBuilder()
                     .setIndex(offset)
@@ -96,12 +97,12 @@ public class PeerHandlerProvider {
                     = blockingStub.withDeadlineAfter(TIMEOUT_BLOCKLIST, TimeUnit.SECONDS).getPbftBlockList(request);
 
             CompletableFuture<List<ConsensusBlock<PbftProto.PbftBlock>>> futureBlockList = new CompletableFuture<>();
-            List<ConsensusBlock<PbftProto.PbftBlock>> newEbftBlockList = new ArrayList<>();
+            List<ConsensusBlock<PbftProto.PbftBlock>> newBlockList = new ArrayList<>();
             for (PbftProto.PbftBlock block : protoPbftBlockList.getPbftBlockList()) {
-                newEbftBlockList.add(new PbftBlock(block));
+                newBlockList.add(new PbftBlock(block));
             }
 
-            futureBlockList.complete(newEbftBlockList);
+            futureBlockList.complete(newBlockList);
             return futureBlockList;
         }
 
@@ -132,7 +133,8 @@ public class PeerHandlerProvider {
 
         @Override
         public Future<List<ConsensusBlock<EbftProto.EbftBlock>>> syncBlock(BranchId branchId, long offset) {
-            log.debug("Requesting sync block: branchId={}, offset={}", branchId, offset);
+            log.debug("Requesting sync block: branchId={}, offset={}, to={}",
+                    branchId, offset, this.getPeer().getYnodeUri());
 
             CommonProto.Offset request = CommonProto.Offset.newBuilder()
                     .setIndex(offset)

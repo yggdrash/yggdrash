@@ -97,6 +97,7 @@ public final class Constants {
     public static final long TIMEOUT_STATUS = 5;
 
     public static final long BLOCK_SYNC_COUNT = 10;
+    public static final long TRANSACTION_UNCONFIRMED_MAX = 1000;
 
     // Base currency
     public static final BigInteger BASE_CURRENCY = BigInteger.TEN.pow(18);

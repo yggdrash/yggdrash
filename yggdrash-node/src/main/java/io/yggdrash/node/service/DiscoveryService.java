@@ -12,6 +12,8 @@ import io.yggdrash.node.springboot.grpc.GrpcServerRunner;
 import io.yggdrash.node.springboot.grpc.GrpcService;
 import io.yggdrash.proto.DiscoveryServiceGrpc;
 import io.yggdrash.proto.Proto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 
@@ -20,6 +22,7 @@ import java.util.List;
 @Profile({Constants.ActiveProfiles.NODE, Constants.ActiveProfiles.BOOTSTRAP})
 @GrpcService
 public class DiscoveryService extends DiscoveryServiceGrpc.DiscoveryServiceImplBase {
+    private static final Logger log = LoggerFactory.getLogger(DiscoveryService.class);
 
     private final DiscoveryConsumer discoveryConsumer;
 
@@ -54,6 +57,7 @@ public class DiscoveryService extends DiscoveryServiceGrpc.DiscoveryServiceImplB
         }
 
         Proto.PeerList peerList = peerListBuilder.build();
+        log.trace("findPeers() response: {}", peerList.getPeersList().toString());
 
         responseObserver.onNext(peerList);
         responseObserver.onCompleted();
