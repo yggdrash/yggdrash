@@ -135,6 +135,7 @@ public class ContractExecutor {
     }
 
     private TransactionRuntimeResult getTransactionRuntimeResult(Map<String, Object> serviceMap, Transaction tx, TempStateStore curTmpStateStore) {
+        TransactionRuntimeResult txRuntimeResult = null;
         locker.lock();
         try {
             while (!isTx) {
@@ -148,7 +149,7 @@ public class ContractExecutor {
             isTx = true;
             setStoreAdapter(curTmpStateStore);
 
-            TransactionRuntimeResult txRuntimeResult = new TransactionRuntimeResult(tx);
+            txRuntimeResult = new TransactionRuntimeResult(tx);
             Receipt receipt = createReceipt(tx, null);
             Set<Map.Entry<String, JsonObject>> result = null;
             try {
@@ -167,10 +168,10 @@ public class ContractExecutor {
             if (curTmpStateStore.equals(tmpStateStore)) {
                 curTmpStateStore.close();
             }
-            return txRuntimeResult;
         } finally {
             locker.unlock();
         }
+        return txRuntimeResult;
     }
 
     boolean executePendingTx(Map<String, Object> serviceMap, Transaction tx) {
@@ -240,10 +241,10 @@ public class ContractExecutor {
                 isTx = true;
                 isBlockExecuting.signal();
             }
-            return blockRuntimeResult;
         } finally {
             locker.unlock();
         }
+        return blockRuntimeResult;
     }
 
     BlockRuntimeResult endBlock(Map<String, Object> serviceMap, ConsensusBlock addedBlock) {
