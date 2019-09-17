@@ -139,6 +139,15 @@ public class ContractExecutor {
 
         locker.lock();
         try {
+            while (!isTx) {
+                try {
+                    isBlockExecuting.await();
+                } catch (InterruptedException e) {
+                    log.warn("executeTx err : {}", e.getMessage());
+                    Thread.currentThread().interrupt();
+                }
+            }
+            isTx = true;
             setStoreAdapter(curTmpStateStore);
 
             txRuntimeResult = new TransactionRuntimeResult(tx);
