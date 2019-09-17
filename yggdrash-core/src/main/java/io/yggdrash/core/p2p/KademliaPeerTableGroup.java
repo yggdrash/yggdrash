@@ -74,13 +74,23 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
     @Override
     public void addPeer(BranchId branchId, Peer peer) {
         PeerTable peerTable = tableMap.get(branchId);
-        if (peerTable == null && !isNotSeed(owner)) {
+        if (peerTable == null) {
             peerTable = createTable(branchId);
         }
+
+        peerTable.addPeer(peer);
+    }
+
+    @Override
+    public void dropPeer(BranchId branchId, Peer peer) {
+        PeerTable peerTable = tableMap.get(branchId);
         if (peerTable == null) {
-            log.warn("{} branch is not exist to add peer", branchId);
-        } else {
-            peerTable.addPeer(peer);
+            return;
+        }
+
+        if (!seedPeerList.contains(peer.getYnodeUri())) {
+            log.trace("dropPeer: {}", peer);
+            peerTable.dropPeer(peer);
         }
     }
 
@@ -108,7 +118,10 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
     @Override
     public List<Peer> getClosestPeers(BranchId branchId, Peer targetPeer, int limit) {
         if (tableMap.containsKey(branchId)) {
-            return tableMap.get(branchId).getClosestPeers(targetPeer, limit);
+            List<Peer> peerList = tableMap.get(branchId).getClosestPeers(targetPeer, limit);
+            log.trace("Total PeerTableMap: {}", tableMap);
+            log.trace("getClosestPeers(): {}", peerList);
+            return peerList;
         }
         return Collections.emptyList();
     }
@@ -116,7 +129,7 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
     @Override
     public List<Peer> getBroadcastPeerList(BranchId branchId) {
         List<Peer> closest = getClosestPeers(branchId, owner, KademliaOptions.BROADCAST_SIZE);
-        return closest.stream().filter(this::isNotSeed).collect(Collectors.toList());
+        return closest.stream().collect(Collectors.toList());
     }
 
     @Override
@@ -187,7 +200,10 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
             tried.add(peer);
         } catch (Exception e) {
             log.debug("Cannot connect to {}", peer);
-            peerDialer.removeHandler(peerHandler);
+            if (!seedPeerList.contains(peerHandler.getPeer().getYnodeUri())) {
+                log.trace("removeHandler: {}", peerHandler.getPeer());
+                peerDialer.removeHandler(peerHandler);
+            }
         }
     }
 

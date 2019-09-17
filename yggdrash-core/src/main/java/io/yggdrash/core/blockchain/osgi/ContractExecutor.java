@@ -2,7 +2,6 @@ package io.yggdrash.core.blockchain.osgi;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.ExecuteStatus;
@@ -136,40 +135,34 @@ public class ContractExecutor {
     }
 
     private TransactionRuntimeResult getTransactionRuntimeResult(Map<String, Object> serviceMap, Transaction tx, TempStateStore curTmpStateStore) {
+        TransactionRuntimeResult txRuntimeResult = null;
+
         locker.lock();
-        while (!isTx) {
-            try {
-                isBlockExecuting.await();
-            } catch (InterruptedException e) {
-                log.warn("executeTx err : {}", e.getMessage());
-                Thread.currentThread().interrupt();
-            }
-        }
-        isTx = true;
-
-        setStoreAdapter(curTmpStateStore);
-
-        TransactionRuntimeResult txRuntimeResult = new TransactionRuntimeResult(tx);
-        Receipt receipt = createReceipt(tx, null);
-        Set<Map.Entry<String, JsonObject>> result = null;
         try {
-            result = invokeTx(serviceMap, tx, receipt);
-        } catch (ExecutorException e) {
-            exceptionHandler(e, receipt);
+            setStoreAdapter(curTmpStateStore);
+
+            txRuntimeResult = new TransactionRuntimeResult(tx);
+            Receipt receipt = createReceipt(tx, null);
+            Set<Map.Entry<String, JsonObject>> result = null;
+            try {
+                result = invokeTx(serviceMap, tx, receipt);
+            } catch (ExecutorException e) {
+                exceptionHandler(e, receipt);
+            }
+
+            if (result != null) {
+                txRuntimeResult.setChangeValues(result);
+            }
+
+            txRuntimeResult.setReceipt(receipt);
+
+            // PendingStateStore keeps running without closing. It is only reset when a block is added.
+            if (curTmpStateStore.equals(tmpStateStore)) {
+                curTmpStateStore.close();
+            }
+        } finally {
+            locker.unlock();
         }
-
-        if (result != null) {
-            txRuntimeResult.setChangeValues(result);
-        }
-
-        txRuntimeResult.setReceipt(receipt);
-
-        // PendingStateStore keeps running without closing. It is only reset when a block is added.
-        if (curTmpStateStore.equals(tmpStateStore)) {
-            curTmpStateStore.close();
-        }
-
-        locker.unlock();
         return txRuntimeResult;
     }
 
@@ -237,6 +230,7 @@ public class ContractExecutor {
         } else {
             // CommitBlockResult will not run after executing pending txs, so isTx has to be set manually.
             isTx = true;
+            isBlockExecuting.signal();
         }
 
         locker.unlock();

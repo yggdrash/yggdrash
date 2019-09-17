@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 
 @Configuration
 @EnableScheduling
-@DependsOn("branchLoader")
+@DependsOn({"branchLoader", "peerTableGroup"})
 public class NetworkConfiguration {
     private static final Logger log = LoggerFactory.getLogger(NetworkConfiguration.class);
 

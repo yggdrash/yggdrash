@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class BlockChainSyncManager implements SyncManager {
@@ -39,15 +38,19 @@ public class BlockChainSyncManager implements SyncManager {
     }
 
     @Override
+    public boolean isSyncStatus() {
+        return nodeStatus.isSyncStatus();
+    }
+
+    @Override
     public void fullSync() {
         nodeStatus.sync();
         try {
             for (BlockChain blockChain : branchGroup.getAllBranch()) {
                 List<BlockChainHandler> peerHandlerList = peerNetwork.getHandlerList(blockChain.getBranchId());
-
                 fullSyncBlock(blockChain, peerHandlerList);
-
-                syncTransaction(blockChain, peerHandlerList);
+                blockChain.setFullSynced(true);
+                log.debug("Branch({}) is fullSynced.", blockChain.getBranch().getBranchId().toString());
             }
         } finally {
             nodeStatus.up();
@@ -58,10 +61,10 @@ public class BlockChainSyncManager implements SyncManager {
     public boolean syncBlock(BlockChainHandler peerHandler, BlockChain blockChain) {
         long offset = blockChain.getBlockChainManager().getLastIndex() + 1;
 
-        BranchId branchId = blockChain.getBranchId();
-        Future<List<ConsensusBlock>> futureBlockList = peerHandler.syncBlock(branchId, offset);
-
         try {
+            BranchId branchId = blockChain.getBranchId();
+            Future<List<ConsensusBlock>> futureBlockList = peerHandler.syncBlock(branchId, offset);
+
             List<ConsensusBlock> blockList = futureBlockList.get();
             if (blockList.isEmpty()) {
                 return true;
@@ -81,35 +84,21 @@ public class BlockChainSyncManager implements SyncManager {
                     return true;
                 }
             }
-        } catch (InterruptedException ie) {
-            log.warn("[SyncManager] Sync Block ERR occurred: {}", ie.getMessage());
-            Thread.currentThread().interrupt();
-        } catch (ExecutionException e) {
+        } catch (Exception e) {
             log.warn("[SyncManager] Sync Block ERR occurred: {}", e.getMessage());
+        }
+
+        if (blockChain.getBlockChainManager().getLastIndex() < peerHandler.getPeer().getBestBlock()) {
+            syncBlock(peerHandler, blockChain);
         }
 
         return false;
     }
 
     private void fullSyncBlock(BlockChain blockChain, List<BlockChainHandler> peerHandlerList) {
-        boolean retry = true;
-
-        while (retry) {
-            retry = false;
-            for (BlockChainHandler peerHandler : peerHandlerList) {
-                try {
-                    boolean syncFinish = syncBlock(peerHandler, blockChain);
-                    if (!syncFinish) {
-                        retry = true;
-                    }
-                } catch (Exception e) {
-                    String error = e.getMessage();
-                    if (e.getCause() != null) {
-                        error = e.getCause().getMessage();
-                    }
-                    log.warn("[SyncManager] Full Sync Block ERR occurred: {}, from={}", error,
-                            peerHandler.getPeer().getYnodeUri());
-                }
+        for (BlockChainHandler peerHandler : peerHandlerList) {
+            if (peerHandler.getPeer().getBestBlock() > blockChain.getBlockChainManager().getLastIndex()) {
+                syncBlock(peerHandler, blockChain);
             }
         }
     }
@@ -124,10 +113,7 @@ public class BlockChainSyncManager implements SyncManager {
                     txList.size(), peerHandler.getPeer().getYnodeUri());
             addTransaction(blockChain, txList);
 
-        } catch (InterruptedException ie) {
-            log.debug("[SyncManager] Sync Tx ERR occurred: {}", ie.getMessage());
-            Thread.currentThread().interrupt();
-        } catch (ExecutionException e) {
+        } catch (Exception e) {
             log.debug("[SyncManager] Sync Tx ERR occurred: {}", e.getMessage());
         }
     }
@@ -231,7 +217,7 @@ public class BlockChainSyncManager implements SyncManager {
     }
 
     private void reqSyncBlockToHandlers(BlockChain blockChain) {
-        if (!nodeStatus.isUpStatus()) {
+        if (nodeStatus.isSyncStatus()) {
             log.debug("NodeStatus is down. ({})", nodeStatus.toString());
             return;
         }
@@ -249,7 +235,7 @@ public class BlockChainSyncManager implements SyncManager {
     }
 
     private void reqSyncBlockToPeer(BlockChain blockChain, Peer peer) {
-        if (!nodeStatus.isUpStatus()) {
+        if (nodeStatus.isSyncStatus()) {
             log.debug("NodeStatus is down. ({})", nodeStatus.toString());
             return;
         }

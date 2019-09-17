@@ -47,6 +47,8 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     private final Consensus consensus;
     private final ReentrantLock lock = new ReentrantLock();
 
+    private boolean isFullSynced = false;
+
     public BlockChainImpl(Branch branch,
                           ConsensusBlock<T> genesisBlock,
                           BranchStore branchStore,
@@ -65,6 +67,14 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         }
 
         init();
+    }
+
+    public boolean isFullSynced() {
+        return isFullSynced;
+    }
+
+    public void setFullSynced(boolean fullSynced) {
+        isFullSynced = fullSynced;
     }
 
     private void init() {
@@ -210,7 +220,9 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     public Map<String, List<String>> addTransaction(Transaction tx, boolean broadcast) {
         int verifyResult = blockChainManager.verify(tx);
         if (verifyResult == BusinessError.VALID.toValue()) {
+            log.trace("contractManager.executeTx: {}", tx.toString());
             TransactionRuntimeResult txResult = contractManager.executeTx(tx); //checkTx
+            log.trace("contractManager.executeTx Result: {}", txResult.toString());
             if (txResult.getReceipt().getStatus() != ExecuteStatus.ERROR) {
 
                 // Execute tx before adding tx to pending pool. Err tx would not be added.
