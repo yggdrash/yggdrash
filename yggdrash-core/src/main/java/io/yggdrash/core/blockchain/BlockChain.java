@@ -46,4 +46,8 @@ public interface BlockChain<T, V> extends ConsensusBlockChain<T, V> {
 
     void addListener(ContractEventListener listener);
 
+    boolean isFullSynced();
+
+    void setFullSynced(boolean fullSynced);
+
 }

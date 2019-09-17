@@ -55,6 +55,10 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
     public void syncTx(CommonProto.SyncLimit syncLimit, StreamObserver<Proto.TransactionList> responseObserver) {
         BranchId branchId = BranchId.of(syncLimit.getBranch().toByteArray());
         log.debug("Received syncTransaction request branchId={}", branchId);
+        if (!branchGroup.getBranch(branchId).isFullSynced()) {
+            log.debug("Not yet fullSynced.");
+            return;
+        }
 
         Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
         for (Transaction tx : branchGroup.getUnconfirmedTxs(branchId)) {
@@ -75,6 +79,10 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
     public void sendTx(Proto.Transaction tx, StreamObserver<Proto.TransactionResponse> responseObserver) {
         BranchId branchId = BranchId.of(tx.getHeader().getChain().toByteArray());
         log.debug("Received sendTx request branchId={}", branchId);
+        if (!branchGroup.getBranch(branchId).isFullSynced()) {
+            log.debug("Not yet fullSynced.");
+            return;
+        }
 
         Proto.TransactionResponse.Builder builder = Proto.TransactionResponse.newBuilder();
         Transaction transaction = new TransactionImpl(tx);
@@ -105,8 +113,11 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
             @Override
             public void onNext(Proto.Transaction protoTx) {
                 Transaction tx = new TransactionImpl(protoTx);
-                log.trace("Received transaction: hash={}", tx.getHash());
                 try {
+                    if (!branchGroup.getBranch(tx.getBranchId()).isFullSynced()) {
+                        log.debug("Not yet fullSynced.");
+                        return;
+                    }
                     branchGroup.addTransaction(tx);
                 } catch (Exception e) {
                     log.warn(e.getMessage());
