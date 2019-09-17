@@ -82,6 +82,7 @@ class GenesisBlock {
                 0L,
                 timestamp,
                 blockBody.getMerkleRoot(),
+                blockBody.getStateRoot(),
                 blockBody.getLength());
 
         genesisBlock = new BlockImpl(blockHeader, wallet, blockBody);
