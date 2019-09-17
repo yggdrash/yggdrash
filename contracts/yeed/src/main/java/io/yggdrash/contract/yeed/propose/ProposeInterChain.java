@@ -37,6 +37,8 @@ public class ProposeInterChain {
 
     String issuer;          // Transaction issuer
 
+    String method;
+
     public String getTransactionId() {
         return transactionId;
     }
@@ -93,6 +95,10 @@ public class ProposeInterChain {
         return issuer;
     }
 
+    public String getMethod() {
+        return method;
+    }
+
     public ProposeInterChain(JsonObject object) {
         this.transactionId = object.get("transactionId").getAsString();
         this.targetAddress = JsonUtil.parseString(object, "targetAddress", "");
@@ -107,6 +113,9 @@ public class ProposeInterChain {
         this.blockHeight = object.get("blockHeight").getAsLong();
         this.fee = object.get("fee").getAsBigInteger();
         this.issuer = object.get("issuer").getAsString();
+        // Token
+        this.method = object.has("method") ? object.get("method").getAsString() : "";
+
         generateProposeId();
     }
 
@@ -175,6 +184,7 @@ public class ProposeInterChain {
         JsonObject proposal = new JsonObject();
         proposal.addProperty("proposeId", proposeId);
         proposal.addProperty("transactionId", transactionId);
+        proposal.addProperty("targetAddress", targetAddress);
         proposal.addProperty("receiverAddress", receiverAddress);
         proposal.addProperty("receiveAsset", receiveAsset);
         proposal.addProperty("receiveChainId", receiveChainId);
@@ -186,6 +196,7 @@ public class ProposeInterChain {
         proposal.addProperty("blockHeight", blockHeight);
         proposal.addProperty("fee", fee);
         proposal.addProperty("issuer", issuer);
+        proposal.addProperty("method", method);
 
         return proposal;
     }
@@ -196,7 +207,7 @@ public class ProposeInterChain {
         // check Send Address
         if (!Strings.isNullOrEmpty(getSenderAddress())) {
             checkProcess |= ProposeErrorCode.addCode(
-                    getSenderAddress().equals(pt.getSenderAddress()),
+                    getSenderAddress().equalsIgnoreCase(pt.getSenderAddress()),
                     ProposeErrorCode.PROPOSE_SENDER_ADDRESS_INVALID);
         }
 
@@ -221,6 +232,12 @@ public class ProposeInterChain {
 
         if (pt.getAsset().compareTo(BigInteger.ZERO) == 0) {
             checkProcess |= ProposeErrorCode.PROPOSE_RECEIVE_TARGET_INVALID.toValue();
+        }
+
+        if (pt.getMethod() != null) {
+            if (!pt.getMethod().equalsIgnoreCase(getMethod())) {
+                checkProcess |= ProposeErrorCode.PROPOSE_RECEIVE_METHOD_INVALID.toValue();
+            }
         }
 
         return checkProcess;
