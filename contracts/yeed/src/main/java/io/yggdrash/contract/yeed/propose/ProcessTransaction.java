@@ -9,6 +9,7 @@ public class ProcessTransaction {
     String targetAddress;
     BigInteger asset;
     String transactionHash;
+    String method;
 
     public String getSenderAddress() {
         return senderAddress;
@@ -56,5 +57,13 @@ public class ProcessTransaction {
 
     public void setTransactionHash(String transactionHash) {
         this.transactionHash = transactionHash;
+    }
+
+    public String getMethod() {
+        return method;
+    }
+
+    public void setMethod(String method) {
+        this.method = method;
     }
 }
