@@ -13,7 +13,6 @@
 package io.yggdrash.core.blockchain.osgi.service;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ContractEvent;
@@ -30,27 +29,24 @@ import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.channel.ContractEventType;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.osgi.ContractConstants;
-import io.yggdrash.core.blockchain.osgi.Downloader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 
 public class VersioningContract {
 
     private static final Logger log = LoggerFactory.getLogger(VersioningContract.class);
-    private static final String SUFFIX_TEMP_CONTRACT = "/update-temp-contracts";
-    private static final String SUFFIX_CONTRACT = "/.yggdrash/contract";
 
     private static final String LOG_PREFIX = "[Versioning Contract]";
+    private static final String TX_ID = "txId";
+    private static final String PROPOSAL_VERSION = "proposalVersion";
+    private static final String SOURCE_URL = "sourceUrl";
+    private static final String BUILD_VERSION = "buildVersion";
+
 
     @ContractStateStore
     ReadWriterStore<String, JsonObject> state;
@@ -63,7 +59,7 @@ public class VersioningContract {
 
     @ContractQuery
     public ContractProposal proposalStatus(JsonObject params) {
-        return getProposal(params.get("txId").getAsString());
+        return getProposal(params.get(TX_ID).getAsString());
     }
 
     @Genesis
@@ -85,10 +81,14 @@ public class VersioningContract {
         String txId = receipt.getTxId();
         String proposer = receipt.getIssuer();
         long blockHeight = receipt.getBlockHeight();
-        String proposalVersion = params.get("proposalVersion").getAsString();
-        String sourceUrl = params.get("sourceUrl").getAsString();
-        String buildVersion = params.get("buildVersion").getAsString();
+        String proposalVersion = params.get(PROPOSAL_VERSION).getAsString();
+        String sourceUrl = params.get(SOURCE_URL).getAsString();
+        String buildVersion = params.get(BUILD_VERSION).getAsString();
         Set<String> validatorSet = new HashSet<>(branchStore.getValidators().getValidatorMap().keySet());
+
+        if (!isSha1Hash(proposalVersion)) {
+            setFalseTxReceipt("Proposal Version is not validate.");
+        }
 
         // blockHeight => targetBlockHeight
         ContractProposal proposal = new ContractProposal(
@@ -100,7 +100,8 @@ public class VersioningContract {
         JsonObject proposalObj = JsonUtil.parseJsonObject(proposal);
         // Store the proposal in stateStore
         state.put(txId, JsonUtil.parseJsonObject(proposal));
-        state.put(String.valueOf(proposal.getTargetBlockHeight()), JsonUtil.parseJsonObject(proposal));
+        // Store the txId in endblock store
+        state.put(String.valueOf(proposal.getTargetBlockHeight()), createTxIdJson(txId));
 
         setSuccessTxReceipt("Contract proposal has been issued");
         log.info("Contract Proposal : txId = {}, proposal = {}", txId, proposalObj);
@@ -143,7 +144,7 @@ public class VersioningContract {
         proposal.vote(issuer, agree);
 
         state.put(txId, JsonUtil.parseJsonObject(proposal));
-        state.put(String.valueOf(proposal.getTargetBlockHeight()), JsonUtil.parseJsonObject(proposal));
+        state.put(String.valueOf(proposal.getTargetBlockHeight()), createTxIdJson(txId));
 
         setSuccessTxReceipt("Update proposal voting is in progress");
 
@@ -155,13 +156,10 @@ public class VersioningContract {
         // Check if an event of the current block height exists in the StateStore.
         String currentBlockHeight = String.valueOf(receipt.getBlockHeight());
         if (state.contains(currentBlockHeight)) {
-            /**
-             * todo : add event set.
-             * 2. the vote ends with agree or disagree then add load bundle(download, install, start, inject) event
-             * 3. add receipt log!
-             */
+            JsonObject txIdJson = state.get(currentBlockHeight);
+            String txId = txIdJson.get(TX_ID).getAsString();
 
-            JsonObject proposalJson = state.get(currentBlockHeight);
+            JsonObject proposalJson = state.get(txId);
             ContractProposal proposal = JsonUtil.generateJsonToClass(proposalJson.toString(), ContractProposal.class);
             VotingProgress.VotingStatus votingStatus = proposal.getVotingProgress().getVotingStatus();
 
@@ -183,16 +181,16 @@ public class VersioningContract {
                     proposal.setVotingStatus(VotingProgress.VotingStatus.APPLYING);
 
                     state.put(proposal.getTxId(), JsonUtil.parseJsonObject(proposal));
-                    state.put(String.valueOf(proposal.getApplyBlockHeight()), JsonUtil.parseJsonObject(proposal));
+                    state.put(String.valueOf(proposal.getApplyBlockHeight()), createTxIdJson(txId));
 
                     setSuccessTxReceipt(
-                            String.format("%s The vote ends up with agreed. tx id : %s", LOG_PREFIX, proposal.getTxId())
+                            String.format("%s The vote ends up with agreed. tx id : %s", LOG_PREFIX, txId)
                     );
                     break;
                 case DISAGREE:
                     log.debug("The vote end with disagreed.");
                     setSuccessTxReceipt(
-                            String.format("%s The vote ends up with disagreed. tx id : %s", LOG_PREFIX, proposal.getTxId())
+                            String.format("%s The vote ends up with disagreed. tx id : %s", LOG_PREFIX, txId)
                     );
                     break;
                 case APPLYING:
@@ -200,37 +198,17 @@ public class VersioningContract {
                     ContractEvent applyEvent = new ContractEvent(ContractEventType.APPLY, proposal, ContractConstants.VERSIONING_CONTRACT.toString());
                     eventSet.addEvents(applyEvent);
                     setSuccessTxReceipt(
-                            String.format("%s The proposal is applying. tx id : %s", LOG_PREFIX, proposal.getTxId())
+                            String.format("%s The proposal is applying. tx id : %s", LOG_PREFIX, txId)
                     );
                     break;
-                case EXPIRED:
                 default:
+                    setFalseTxReceipt("The vote is in unknown status.");
                     log.warn("The vote is in unknown status.");
-                    break;
+                    return receipt;
             }
-
             receipt.setEvent(eventSet);
         }
         return receipt;
-    }
-
-    private void moveTmpContract(String contractVersion) throws IOException {
-        Path tmp = Paths.get(String.format("%s/%s", tmpContractPath(), contractVersion + ".jar"));
-        Path origin = Paths.get(contractPath());
-        Files.move(tmp, origin.resolve(tmp.getFileName()), StandardCopyOption.REPLACE_EXISTING);
-    }
-
-    private File downloadContractFile(String contractVersion) {
-        return Downloader.downloadContract(tmpContractPath(), ContractVersion.of(contractVersion));
-    }
-
-    private String tmpContractPath() {
-        return String.format("%s%s", contractPath(), SUFFIX_TEMP_CONTRACT);
-    }
-
-    private String contractPath() {
-        Path path = Paths.get(System.getProperty("user.home"));
-        return String.format("%s%s", path, SUFFIX_CONTRACT);
     }
 
     private ContractProposal getProposal(String txId) {
@@ -242,6 +220,19 @@ public class VersioningContract {
     private boolean isValidator() {
         return branchStore.getValidators() != null && branchStore.getValidators().getValidatorMap().keySet().stream()
                 .anyMatch(key -> !key.isEmpty() && key.equals(receipt.getIssuer()));
+    }
+
+    private JsonObject createTxIdJson(String txId) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty(TX_ID, txId);
+        return jsonObject;
+    }
+
+    private boolean isSha1Hash(String proposalVersion) {
+        // Mark: add match fail reason. @lucas. @190917
+        Pattern pattern = Pattern.compile("\\b[0-9a-f]{5,40}\\b");
+        return pattern.matcher(proposalVersion).matches();
+
     }
 
     private void setFalseTxReceipt(String msg) {
