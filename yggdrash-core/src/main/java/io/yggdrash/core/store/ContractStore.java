@@ -63,8 +63,6 @@ public class ContractStore {
     public void close() {
         this.branchStore.close();
         this.stateStore.close();
-        this.tmpStateStore.close();
-        this.pendingStateStore.close();
         this.receiptStore.close();
     }
 

@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -204,6 +205,17 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     }
 
     @Override
+    public void addTransaction(Transaction tx, Sha3Hash stateRootHash) {
+        try {
+            if (!transactionStore.contains(tx.getHash())) {
+                transactionStore.addTransaction(tx, stateRootHash);
+            }
+        } catch (Exception e) {
+            throw new FailedOperationException(e);
+        }
+    }
+
+    @Override
     public void flushUnconfirmedTxs(Set<Sha3Hash> keys) {
         transactionStore.flush(keys);
     }
@@ -259,8 +271,18 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     }
 
     @Override
+    public void setPendingStateRoot(Sha3Hash stateRootHash) {
+        transactionStore.setStateRoot(stateRootHash);
+    }
+
+    @Override
     public List<Transaction> getUnconfirmedTxs() {
         return new ArrayList<>(transactionStore.getUnconfirmedTxs());
+    }
+
+    @Override
+    public Map<Sha3Hash, List<Transaction>> getUnconfirmedTxsWithStateRoot() {
+        return transactionStore.getUnconfirmedTxsWithStateRoot();
     }
 
     @Override

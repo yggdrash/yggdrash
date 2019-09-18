@@ -990,9 +990,10 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 // Set Total Supply
                 putBalance(TOTAL_SUPPLY, totalSupply);
                 this.receipt.addLog(String.format("Burn %s Yeed", networkFee));
+
+                // Network Fee is Zero
+                putBalance(receipt.getBranchId(), BigInteger.ZERO);
             }
-            // network Fee is Zero
-            putBalance(receipt.getBranchId(), BigInteger.ZERO);
             receipt.setStatus(ExecuteStatus.SUCCESS);
         }
 
