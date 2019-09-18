@@ -64,7 +64,7 @@ task contractsPackage(type: Jar) {
     manifest {
         attributes(
                 'Bundle-ManifestVersion': '2',
-                'Bundle-Name': 'Yeed Contract',
+                'Bundle-Name': 'YEED',
                 'Bundle-Description': 'Yggdrash YEED Contract',
                 'Bundle-Vendor': 'YGGDRASH',
                 'Bundle-SymbolicName': 'io.yggdrash.contract.yeed.YeedContract',
@@ -75,7 +75,8 @@ task contractsPackage(type: Jar) {
     }
     preserveFileTimestamps = false
     exclude(excludeList)
-    archiveName "system-yeed-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+    project.archivesBaseName = manifest.attributes.get('Bundle-Name')
+    project.version = manifest.attributes.get('Bundle-Version')
 }
 
 

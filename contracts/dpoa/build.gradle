@@ -61,7 +61,7 @@ task contractsPackage(type: Jar) {
     manifest {
         attributes(
                 'Bundle-ManifestVersion': '2',
-                'Bundle-Name': 'DPoA Contract',
+                'Bundle-Name': 'DPoA',
                 'Bundle-Description': 'DPoA Contract',
                 'Bundle-Vendor': 'YGGDRASH',
                 'Bundle-SymbolicName': 'io.yggdrash.contract.dpoa.DPoAContract',
@@ -73,7 +73,8 @@ task contractsPackage(type: Jar) {
     }
     exclude(excludeList)
     preserveFileTimestamps = false
-    archiveName "system-dpoa-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+    project.archivesBaseName = manifest.attributes.get('Bundle-Name')
+    project.version = manifest.attributes.get('Bundle-Version')
 }
 
 
