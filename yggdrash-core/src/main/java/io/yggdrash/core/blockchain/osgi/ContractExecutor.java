@@ -188,79 +188,85 @@ public class ContractExecutor {
 
     private BlockRuntimeResult getBlockRuntimeResult(BlockRuntimeResult blockRuntimeResult, Map<String, Object> serviceMap) {
         locker.lock();
+        try {
+            // Set Coupler Contract and contractCache
+            coupler.setContract(serviceMap, contractCache);
 
-        // Set Coupler Contract and contractCache
-        coupler.setContract(serviceMap, contractCache);
+            ConsensusBlock nextBlock = blockRuntimeResult.getOriginBlock();
+            List<Transaction> txList = nextBlock != null
+                    ? nextBlock.getBody().getTransactionList() : blockRuntimeResult.getTxList();
+            TempStateStore curTmpStateStore = nextBlock != null ? tmpStateStore : pendingStateStore;
 
-        ConsensusBlock nextBlock = blockRuntimeResult.getOriginBlock();
-        List<Transaction> txList = nextBlock != null ? nextBlock.getBody().getTransactionList() : blockRuntimeResult.getTxList();
-        TempStateStore curTmpStateStore = nextBlock != null ? tmpStateStore : pendingStateStore;
+            setStoreAdapter(curTmpStateStore);
 
-        setStoreAdapter(curTmpStateStore);
+            for (Transaction tx : txList) {
+                // get all exceptions
+                Receipt receipt = createReceipt(tx, nextBlock);
 
-        for (Transaction tx : txList) {
-            // get all exceptions
-            Receipt receipt = createReceipt(tx, nextBlock);
+                Set<Map.Entry<String, JsonObject>> result = null;
+                try {
+                    result = invokeTx(serviceMap, tx, receipt);
+                } catch (ExecutorException e) {
+                    exceptionHandler(e, receipt);
+                }
 
-            Set<Map.Entry<String, JsonObject>> result = null;
-            try {
-                result = invokeTx(serviceMap, tx, receipt);
-            } catch (ExecutorException e) {
-                exceptionHandler(e, receipt);
+                blockRuntimeResult.addReceipt(receipt);
+                if (!receipt.getStatus().equals(ExecuteStatus.ERROR)) {
+                    blockRuntimeResult.setBlockResult(result);
+                } else {
+                    log.warn("Error TxId={}, TxLog={}", receipt.getTxId(), receipt.getLog());
+                }
             }
 
-            blockRuntimeResult.addReceipt(receipt);
-            if (!receipt.getStatus().equals(ExecuteStatus.ERROR)) {
-                blockRuntimeResult.setBlockResult(result);
-            } else {
-                log.warn("Error TxId={}, TxLog={}", receipt.getTxId(), receipt.getLog());
+            if (nextBlock != null) {
+                commitBlockResult(blockRuntimeResult);
             }
+
+            // PendingStateStore keeps running without closing. It is only reset when a block is added.
+            if (curTmpStateStore.equals(tmpStateStore)) {
+                curTmpStateStore.close();
+            }
+        } finally {
+            locker.unlock();
         }
 
-        if (nextBlock != null) {
-            commitBlockResult(blockRuntimeResult);
-        }
-
-        // PendingStateStore keeps running without closing. It is only reset when a block is added.
-        if (curTmpStateStore.equals(tmpStateStore)) {
-            curTmpStateStore.close();
-        }
-
-        locker.unlock();
         return blockRuntimeResult;
     }
 
     BlockRuntimeResult endBlock(Map<String, Object> serviceMap, ConsensusBlock addedBlock) {
         locker.lock();
-
         BlockRuntimeResult result = new BlockRuntimeResult(addedBlock);
-        setStoreAdapter(tmpStateStore);
-        int i = 0;
-        Set<Map.Entry<String, JsonObject>> changedValues;
-        for (String contractVersion : serviceMap.keySet()) {
-            Receipt receipt = createReceipt(addedBlock, i);
-            Object service = serviceMap.get(contractVersion);
-            List<Method> values = new ArrayList<>(contractCache
-                    .getContractMethodMap(contractVersion, ContractMethodType.END_BLOCK, service)
-                    .values());
-            if (!values.isEmpty()) {
-                // Each contract has only one endBlock method
-                Method method = values.get(0);
-                receipt.setContractVersion(contractVersion);
-                changedValues = invokeMethod(receipt, service, method, new JsonObject());
 
-                if (!receipt.getStatus().equals(ExecuteStatus.ERROR) && changedValues != null) {
-                    result.setBlockResult(changedValues);
+        try {
+            setStoreAdapter(tmpStateStore);
+            int i = 0;
+            Set<Map.Entry<String, JsonObject>> changedValues;
+            for (String contractVersion : serviceMap.keySet()) {
+                Receipt receipt = createReceipt(addedBlock, i);
+                Object service = serviceMap.get(contractVersion);
+                List<Method> values = new ArrayList<>(contractCache
+                        .getContractMethodMap(contractVersion, ContractMethodType.END_BLOCK, service)
+                        .values());
+                if (!values.isEmpty()) {
+                    // Each contract has only one endBlock method
+                    Method method = values.get(0);
+                    receipt.setContractVersion(contractVersion);
+                    changedValues = invokeMethod(receipt, service, method, new JsonObject());
+
+                    if (!receipt.getStatus().equals(ExecuteStatus.ERROR) && changedValues != null) {
+                        result.setBlockResult(changedValues);
+                    }
+
+                    result.addReceipt(receipt);
+                    i++;
                 }
-
-                result.addReceipt(receipt);
-                i++;
             }
+            commitBlockResult(result);
+            tmpStateStore.close();
+        } finally {
+            locker.unlock();
         }
-        commitBlockResult(result);
-        tmpStateStore.close();
 
-        locker.unlock();
         return result;
     }
 
@@ -317,7 +323,6 @@ public class ContractExecutor {
 
         return storeAdapterList.listIterator().next().getStateStore().changeValues();
     }
-
 
     void commitBlockResult(BlockRuntimeResult result) {
         if (!result.getBlockResult().isEmpty()) {
