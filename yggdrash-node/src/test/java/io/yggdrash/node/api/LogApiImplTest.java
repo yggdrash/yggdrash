@@ -110,7 +110,8 @@ public class LogApiImplTest {
 
         assertEquals("Last Index", 1, mgr.getLastIndex());
         assertEquals("Tx Count", generateTx + contractSize, mgr.countOfTxs());
-        assertEquals("Current Index", defaultLogIndex, logApi.curIndex(branchId));
+        // last 2 logs -> ["EndBlock completed" , "Burn 660000000000000000 Yeed"]
+        assertEquals("Current Index", defaultLogIndex + 2 , logApi.curIndex(branchId));
 
 
         Log log = logApi.getLog(branchId, 33);
