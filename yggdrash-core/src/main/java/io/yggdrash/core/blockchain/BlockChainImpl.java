@@ -93,7 +93,8 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             log.debug("BlockChain Load in Storage");
             // Load Block Chain Information
             blockChainManager.loadTransaction();
-            // load contract
+            // Load StateRoot
+            blockChainManager.setPendingStateRoot(contractManager.getOriginStateRoot());
         }
     }
 
@@ -161,6 +162,10 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             if (nextBlock.getIndex() > branchStore.getLastExecuteBlockIndex()) {
                 // Execute block and commit the result of block.
                 BlockRuntimeResult blockResult = contractManager.executeTxs(nextBlock); //TODO Exception
+                Sha3Hash blockStateRoot = blockResult.getBlockResult().size() > 0
+                        ? new Sha3Hash(blockResult.getBlockResult().get("stateRoot").get("stateHash").getAsString())
+                        : contractManager.getOriginStateRoot();
+                log.debug("blockStateRoot : {} ", blockStateRoot);
                 // TODO StateRoot Validation
                 /*
                 String blockStateRoot = blockResult.getBlockResult().size() > 0
@@ -274,10 +279,13 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         }
     }
 
-    private void executeAndAddToPendingPool(Transaction tx) {
+    @Override
+    public void executeAndAddToPendingPool(Transaction tx) {
         Sha3Hash curStateRootHash = contractManager.executePendingTxWithStateRoot(tx);
+        log.debug("executeAndAddToPendingPool : curStateRootHash {}", curStateRootHash);
         if (curStateRootHash != null) {
-            blockChainManager.addTransaction(tx, curStateRootHash);
+            blockChainManager.setPendingStateRoot(curStateRootHash);
+            blockChainManager.addTransaction(tx);
         }
     }
 

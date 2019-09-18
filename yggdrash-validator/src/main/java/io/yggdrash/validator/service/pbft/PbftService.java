@@ -301,6 +301,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         Map<Sha3Hash, List<Transaction>> unconfirmedTxsWithStateRoot = blockChain.getBlockChainManager().getUnconfirmedTxsWithStateRoot();
         Sha3Hash curStateRootHash = unconfirmedTxsWithStateRoot.keySet().iterator().next();
         List<Transaction> txList = unconfirmedTxsWithStateRoot.get(curStateRootHash);
+        log.debug("makeNexBlock : stateRootHash {}, txList size {}", curStateRootHash, txList.size());
 
         BlockBody newBlockBody = new BlockBody(txList);
 

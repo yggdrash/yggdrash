@@ -205,17 +205,6 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     }
 
     @Override
-    public void addTransaction(Transaction tx, Sha3Hash stateRootHash) {
-        try {
-            if (!transactionStore.contains(tx.getHash())) {
-                transactionStore.addTransaction(tx, stateRootHash);
-            }
-        } catch (Exception e) {
-            throw new FailedOperationException(e);
-        }
-    }
-
-    @Override
     public void flushUnconfirmedTxs(Set<Sha3Hash> keys) {
         transactionStore.flush(keys);
     }

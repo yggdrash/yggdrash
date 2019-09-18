@@ -63,7 +63,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
         log.trace("Received transaction: hash={}", tx.getHash());
         if (tx.getBranchId().equals(blockChain.getBranchId())
                 && blockChain.getBlockChainManager().verify(tx) == BusinessError.VALID.toValue()) {
-            blockChain.getBlockChainManager().addTransaction(tx);
+            blockChain.executeAndAddToPendingPool(tx);
         }
         responseObserver.onNext(EMPTY);
         responseObserver.onCompleted();
