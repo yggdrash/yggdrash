@@ -23,6 +23,7 @@ import io.yggdrash.core.store.BlockChainStore;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class BlockChainManagerMock<T> implements BlockChainManager<T> {
@@ -64,8 +65,18 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     }
 
     @Override
+    public void addTransaction(Transaction tx, Sha3Hash stateRootHash) {
+        blockChainManager.addTransaction(tx, stateRootHash);
+    }
+
+    @Override
     public void flushUnconfirmedTxs(Set<Sha3Hash> keys) {
         blockChainManager.flushUnconfirmedTxs(keys);
+    }
+
+    @Override
+    public void setPendingStateRoot(Sha3Hash stateRootHash) {
+        blockChainManager.setPendingStateRoot(stateRootHash);
     }
 
     @Override
@@ -106,6 +117,11 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     @Override
     public List<Transaction> getUnconfirmedTxs() {
         return blockChainManager.getUnconfirmedTxs();
+    }
+
+    @Override
+    public Map<Sha3Hash, List<Transaction>> getUnconfirmedTxsWithStateRoot() {
+        return blockChainManager.getUnconfirmedTxsWithStateRoot();
     }
 
     @Override

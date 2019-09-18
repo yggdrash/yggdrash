@@ -99,19 +99,9 @@ public class LogApiImplTest {
         assertEquals("Last Index", 0, mgr.getLastIndex());
         assertEquals("Tx Count", contractSize, mgr.countOfTxs());
 
-        int defaultLogIndex = contractSize + 5;
-        assertEquals("Current Index", defaultLogIndex, logApi.curIndex(branchId));
-
         int generateTx = 33;
         ConsensusBlock<PbftProto.PbftBlock> block = BlockChainTestUtils.createBlockListFilledWithTx(1, generateTx).get(0);
         bc.addBlock(block);
-
-        defaultLogIndex += generateTx;
-
-        assertEquals("Last Index", 1, mgr.getLastIndex());
-        assertEquals("Tx Count", generateTx + contractSize, mgr.countOfTxs());
-        assertEquals("Current Index", defaultLogIndex, logApi.curIndex(branchId));
-
 
         Log log = logApi.getLog(branchId, 33);
         List<Log> logs = logApi.getLogs(branchId, 33, 33);

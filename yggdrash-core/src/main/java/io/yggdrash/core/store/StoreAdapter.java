@@ -12,12 +12,21 @@ public class StoreAdapter implements ReadWriterStore<String, JsonObject> {
         this.nameSpace = nameSpace;
     }
 
+    public StoreAdapter(TempStateStore stateStore, String nameSpace) {
+        this.stateStore = stateStore;
+        this.nameSpace = nameSpace;
+    }
+
     private String getNameSpaceKey(String key) {
         return String.format("%s%s",nameSpace,key);
     }
 
-    public void setStateStore(ReadWriterStore<String, JsonObject> stateStore) {
+    public void setStateStore(TempStateStore stateStore) {
         this.stateStore = stateStore;
+    }
+
+    public TempStateStore getStateStore() {
+        return (TempStateStore) stateStore;
     }
 
     @Override
