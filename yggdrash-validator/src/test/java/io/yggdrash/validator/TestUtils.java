@@ -134,7 +134,9 @@ public class TestUtils {
                     prevBlockHash,
                     index,
                     timestamp,
-                    blockBody.getMerkleRoot(), blockBody.getLength());
+                    blockBody.getMerkleRoot(),
+                    blockBody.getStateRoot(),
+                    blockBody.getLength());
 
             byte[] blockSig = wallet.sign(blockHeader.getHashForSigning(), true);
 

@@ -72,12 +72,12 @@ public class BlockHeaderTest {
 
         BlockHeader blockHeader1 = new BlockHeader(
                 chain, version, type, prevBlockHash, Long.MAX_VALUE, Long.MAX_VALUE,
-                blockBody1.getMerkleRoot(), Long.MAX_VALUE);
+                blockBody1.getMerkleRoot(), blockBody1.getStateRoot(), Long.MAX_VALUE);
         assertEquals(BlockHeader.LENGTH, blockHeader1.getBinaryForSigning().length);
 
         BlockHeader blockHeader2 = new BlockHeader(
                 chain, version, type, prevBlockHash, index, timestamp,
-                blockBody1.getMerkleRoot(), blockBody1.getLength());
+                blockBody1.getMerkleRoot(), blockBody1.getStateRoot(), blockBody1.getLength());
         assertEquals(BlockHeader.LENGTH, blockHeader2.getBinaryForSigning().length);
 
         BlockHeader blockHeader3 = new BlockHeader(blockHeader1.toBinary());
