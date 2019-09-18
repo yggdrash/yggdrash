@@ -1133,13 +1133,13 @@ public class TokenContract implements BundleActivator, ServiceListener {
          * @issuer an account
          * @param params the params
          *               @tokenId
-         *               @targetTokenId Exchange target token
+         *               @tokenExT2TTargetTokenId Exchange target token
          *               @amount Amount of tokens to exchange
          * @return the receipt
          */
         @InvokeTransaction
         public Receipt exchangeT2T(JsonObject params) {
-            String[] requiredParamKeys = {"tokenId", "targetTokenId", "amount"};
+            String[] requiredParamKeys = {TOKEN_ID, TOKEN_EX_T2T_TARGET_TOKEN_ID, AMOUNT};
             String checkParamsResult = checkParams(params, requiredParamKeys);
             if (checkParamsResult != null) {
                 setErrorTxReceipt(
