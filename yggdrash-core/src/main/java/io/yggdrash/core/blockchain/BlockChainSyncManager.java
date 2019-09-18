@@ -17,6 +17,7 @@ import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerNetwork;
 import io.yggdrash.core.p2p.BlockChainHandler;
 import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.p2p.PeerTableGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,11 +31,14 @@ public class BlockChainSyncManager implements SyncManager {
     private NodeStatus nodeStatus;
     private BranchGroup branchGroup;
     private PeerNetwork peerNetwork;
+    private PeerTableGroup peerTableGroup;
 
-    public BlockChainSyncManager(NodeStatus nodeStatus, PeerNetwork peerNetwork, BranchGroup branchGroup) {
+    public BlockChainSyncManager(NodeStatus nodeStatus, PeerNetwork peerNetwork, BranchGroup branchGroup,
+                                 PeerTableGroup peerTableGroup) {
         this.nodeStatus = nodeStatus;
         this.branchGroup = branchGroup;
         this.peerNetwork = peerNetwork;
+        this.peerTableGroup = peerTableGroup;
     }
 
     @Override
@@ -97,8 +101,14 @@ public class BlockChainSyncManager implements SyncManager {
 
     private void fullSyncBlock(BlockChain blockChain, List<BlockChainHandler> peerHandlerList) {
         for (BlockChainHandler peerHandler : peerHandlerList) {
-            if (peerHandler.getPeer().getBestBlock() > blockChain.getBlockChainManager().getLastIndex()) {
-                syncBlock(peerHandler, blockChain);
+            try {
+                peerHandler.getPeer().setBestBlock(
+                        peerHandler.pingPong(blockChain.getBranchId(), peerTableGroup.getOwner(), "Ping"));
+                if (peerHandler.getPeer().getBestBlock() > blockChain.getBlockChainManager().getLastIndex()) {
+                    syncBlock(peerHandler, blockChain);
+                }
+            } catch (Exception e) {
+                log.debug("fullSyncBlock() is failed. {}", e.getMessage());
             }
         }
     }

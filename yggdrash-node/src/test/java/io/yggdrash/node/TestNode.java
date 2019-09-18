@@ -43,8 +43,9 @@ public class TestNode extends BootStrapNode {
     private final BranchId branchId = TestConstants.yggdrash();
     private final BranchGroup branchGroup = new BranchGroup();
     private final NodeStatus nodeStatus = NodeStatusMock.create();
+
     private final BlockChainSyncManager syncManager
-            = new BlockChainSyncManager(nodeStatus, new PeerNetworkMock(), branchGroup);
+            = new BlockChainSyncManager(nodeStatus, new PeerNetworkMock(), branchGroup, PeerTestUtils.createTableGroup());
 
     private boolean enableBranch;
     private BlockChainHandlerFactory factory;
@@ -134,7 +135,7 @@ public class TestNode extends BootStrapNode {
     private void networkConfiguration() {
         NetworkConfiguration config = new NetworkConfiguration(nodeProperties);
         this.peerNetwork = config.peerNetwork(peerTableGroup, peerDialer, branchGroup);
-        setSyncManager(config.syncManager(nodeStatus, peerNetwork, branchGroup));
+        setSyncManager(config.syncManager(nodeStatus, peerNetwork, branchGroup, peerTableGroup));
     }
 
     public PeerNetwork getPeerNetwork() {
