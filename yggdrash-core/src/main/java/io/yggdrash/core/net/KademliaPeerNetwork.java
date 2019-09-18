@@ -174,6 +174,11 @@ public class KademliaPeerNetwork implements PeerNetwork {
             List<BlockChainHandler> handlerList = getHandlerList(block.getBranchId());
             for (BlockChainHandler peerHandler : handlerList) {
                 try {
+                    if (peerTableGroup.getSeedPeerList().contains(peerHandler.getPeer().getYnodeUri())
+                            || peerHandler.getPeer().equals(peerTableGroup.getOwner())) {
+                        log.debug("broadcastBlock() is failed. peer: {}", peerHandler.getPeer().getYnodeUri());
+                        continue;
+                    }
                     peerHandler.broadcastBlock(block);
                 } catch (Exception e) {
                     log.debug("Cannot broadcst a block to {}", peerHandler.getPeer());
