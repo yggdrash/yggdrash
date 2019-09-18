@@ -114,13 +114,14 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
             public void onNext(Proto.Transaction protoTx) {
                 Transaction tx = new TransactionImpl(protoTx);
                 try {
-                    if (!branchGroup.getBranch(tx.getBranchId()).isFullSynced()) {
-                        log.debug("Not yet fullSynced.");
+                    if (branchGroup.getBranch(tx.getBranchId()).isFullSynced()) {
+                        branchGroup.addTransaction(tx);
+                    } else {
+                        log.debug("BroadcastTx() is failed. Not yet fullSynced.");
                         return;
                     }
-                    branchGroup.addTransaction(tx);
                 } catch (Exception e) {
-                    log.warn(e.getMessage());
+                    log.warn("BroadcastTx() is failed. {}", e.getMessage());
                 }
             }
 
