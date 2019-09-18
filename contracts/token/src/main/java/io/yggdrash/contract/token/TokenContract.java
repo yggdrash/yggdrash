@@ -59,10 +59,10 @@ public class TokenContract implements BundleActivator, ServiceListener {
 
     private static final String TOKEN_PHASE = "tokenPhase";
     private static final String TOKEN_PHASE_PREFIX = "phase-";
-    private static final String TOKEN_PHASE_INIT = "init";
-    private static final String TOKEN_PHASE_RUN = "run";
-    private static final String TOKEN_PHASE_PAUSE = "pause";
-    private static final String TOKEN_PHASE_STOP = "stop";
+    private static final String TOKEN_PHASE_INIT = "INIT";
+    private static final String TOKEN_PHASE_RUN = "RUN";
+    private static final String TOKEN_PHASE_PAUSE = "PAUSE";
+    private static final String TOKEN_PHASE_STOP = "STOP";
 
     private static final String TOTAL_SUPPLY = "TOTAL_SUPPLY";
     private static final String YEED_STAKE = "YEED_STAKE";
@@ -97,7 +97,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
 
 
     // TODO : @kevin : 2019-08-22 : should apply tx fee
-    // FIXME : @kevin : 2019-09-06 : should check if each parameter is empty
+    // TODO : @kevin : 2019-09-06 : should check if each parameter is empty
     public static class TokenService {
 
         @SuppressWarnings("WeakerAccess")
@@ -154,7 +154,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
          * @issuer anonymous
          * @param params the params
          *               @tokenId
-         *               @address account address
+         *               @address account addressO
          * @return Balance of an account for a token
          */
         @ContractQuery
@@ -223,14 +223,14 @@ public class TokenContract implements BundleActivator, ServiceListener {
          * @issuer anonymous, is to be the owner of the token
          * @param params the params
          *               @tokenId
-         *               @tokenName name of the token to create
-         *               @tokenInitYeedStakeAmount initial amount of yeed stake
-         *               @tokenInitMintAmount initial amount of mint
-         *               @tokenMintable whether the additional mint of the token is available
-         *               @tokenBurnable whether the burn of the token is available
-         *               @tokenExT2YEnabled whether the exchange between the token and YEED is available
-         *               @tokenExT2YType
-         *               @tokenExT2YRate
+         *               @tokenName Name of the token to create
+         *               @tokenInitYeedStakeAmount Amount of YEEDs to stake initially
+         *               @tokenInitMintAmount Amount of tokens mint initially
+         *               @tokenMintable Whether the additional mint of the token is available
+         *               @tokenBurnable Whether the burn of the token is available
+         *               @tokenExT2YEnabled Whether the exchange between the token and YEED is available
+         *               @tokenExT2YType Type of T2Y(Y2T) exchange (FIXED or LINKED)
+         *               @tokenExT2YRate Exchange rate for FIXED T2Y(Y2T) exchange
          * @return the receipt
          */
         @InvokeTransaction
@@ -243,10 +243,10 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            token = makeTokenObject(params);
+            String ownerAccount = txReceipt.getIssuer();
+            token = makeTokenObject(ownerAccount, params);
 
             BigInteger initMintAmount = token.get(TOKEN_INIT_MINT_AMOUNT).getAsBigInteger();
-            String ownerAccount = token.get(TOKEN_OWNER_ACCOUNT).getAsString();
             putBalance(tokenId, ownerAccount, initMintAmount);
             putBalance(tokenId, TOTAL_SUPPLY, initMintAmount);
 
@@ -270,14 +270,14 @@ public class TokenContract implements BundleActivator, ServiceListener {
             return txReceipt;
         }
 
-        private JsonObject makeTokenObject(JsonObject params) {
+        private JsonObject makeTokenObject(String ownerAccount, JsonObject params) {
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
 
             JsonObject token = new JsonObject();
 
             token.addProperty(TOKEN_ID, tokenId);
             token.addProperty(TOKEN_NAME, params.get(TOKEN_NAME).getAsString());
-            token.addProperty(TOKEN_OWNER_ACCOUNT, txReceipt.getIssuer());
+            token.addProperty(TOKEN_OWNER_ACCOUNT, ownerAccount);
             token.addProperty(TOKEN_INIT_YEED_STAKE_AMOUNT, params.get(TOKEN_INIT_YEED_STAKE_AMOUNT).getAsBigInteger());
             token.addProperty(TOKEN_INIT_MINT_AMOUNT, params.get(TOKEN_INIT_MINT_AMOUNT).getAsBigInteger());
             token.addProperty(TOKEN_MINTABLE, params.get(TOKEN_MINTABLE).getAsBoolean());
@@ -297,8 +297,9 @@ public class TokenContract implements BundleActivator, ServiceListener {
 
 
         /**
-         * Deposit the additional YEED stake to a token.
+         * Deposit 'amount' of YEED to a token.
          * It is possible only by the owner of the token.
+         * Token's YEED stake increases by 'amount'
          *
          * @issuer the owner of the token
          * @param params the params
@@ -343,7 +344,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
         }
 
         /**
-         * Withdrawal of YEED stake from a token
+         * Withdraws 'amount' of YEED stake from a token's YEED balance
          *
          * @issuer the owner of the token
          * @param params the params
@@ -414,7 +415,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
 
             String phase = loadTokenPhase(tokenId);
             if ((TOKEN_PHASE_INIT.equals(phase) || TOKEN_PHASE_PAUSE.equals(phase)) == false) {
-                log.debug("[movePhaseRun] cur phase = ".concat(phase));
+                log.debug(String.format("[movePhaseRun] cur phase = %s", phase));
                 setErrorTxReceipt("If you want to move token phase to RUN, current token phase must be INIT or PAUSE!");
                 return txReceipt;
             }
@@ -453,7 +454,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
 
             String phase = loadTokenPhase(tokenId);
             if (TOKEN_PHASE_RUN.equals(phase) == false) {
-                log.debug("[movePhasePause] cur phase = ".concat(phase));
+                log.debug(String.format("[movePhasePause] cur phase = %s", phase));
                 setErrorTxReceipt("If you want to move token phase to PAUSE, current token phase must be RUN!");
                 return txReceipt;
             }
@@ -492,7 +493,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
 
             String phase = loadTokenPhase(tokenId);
             if ((TOKEN_PHASE_RUN.equals(phase) || TOKEN_PHASE_PAUSE.equals(phase)) == false) {
-                log.debug("[movePhaseStop] cur phase = ".concat(phase));
+                log.debug(String.format("[movePhaseStop] cur phase = %s", phase));
                 setErrorTxReceipt("If you want to move token phase to STOP, current token phase must be RUN or PAUSE!");
                 return txReceipt;
             }
@@ -531,7 +532,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
 
             String phase = loadTokenPhase(tokenId);
             if (TOKEN_PHASE_STOP.equals(phase) == false) {
-                log.debug("[movePhaseStop] cur phase = ".concat(phase));
+                log.debug(String.format("[movePhaseStop] cur phase = %s", phase));
                 setErrorTxReceipt("If you want to destroy the token, current token phase must be STOP!");
                 return txReceipt;
             }
@@ -540,7 +541,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
         }
 
         /**
-         * Transfer token
+         * Transfers 'amount' of issuer's tokens to 'to' account
          *
          * @issuer an account who wants to transfer to another account
          * @param params the params
@@ -551,8 +552,6 @@ public class TokenContract implements BundleActivator, ServiceListener {
          */
         @InvokeTransaction
         public Receipt transfer(JsonObject params) {
-            // TODO : CHECK PARAMS
-            String issuer = txReceipt.getIssuer();
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
             String to = params.get("to").getAsString().toLowerCase();
 
@@ -576,6 +575,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
+            String issuer = txReceipt.getIssuer();
             if (to.equals(issuer)) {
                 setErrorTxReceipt("Transfer 'to' account must be different from issuer!");
                 return txReceipt;
@@ -608,9 +608,13 @@ public class TokenContract implements BundleActivator, ServiceListener {
         }
 
         /**
-         * Approve receipt.
+         * Allows 'spender' to use 'amount' of issuer's token at transferFrom
          *
+         * @issuer an account, 'sender' who wants to allow another account to spend sender's token
          * @param params the params
+         *               @tokenId
+         *               @spender who was allowed to use the token at transferFrom
+         *               @amount allowed amount of the token to use at transferFrom
          * @return the receipt
          */
         @InvokeTransaction
@@ -651,9 +655,14 @@ public class TokenContract implements BundleActivator, ServiceListener {
         }
 
         /**
-         * Transfer from receipt.
+         * Send 'amount' tokens from account 'from' to account 'to'
          *
+         * @issuer an account, who wants to transfer some amount of tokens from 'from' to 'to'
          * @param params the params
+         *               @tokenId
+         *               @from an account approved issuer to use its tokens at transferFrom
+         *               @to a target account
+         *               @amount amount of tokens that issuer wants to transfer from 'from' to 'to'
          * @return the receipt
          */
         @InvokeTransaction
@@ -705,9 +714,12 @@ public class TokenContract implements BundleActivator, ServiceListener {
         }
 
         /**
-         * Mint receipt.
+         * Mints additional tokens. Only owner can call. Minted tokens will be added to owner's token balance
          *
+         * @issuer token owner
          * @param params the params
+         *               @tokenId
+         *               @amount
          * @return the receipt
          */
         @InvokeTransaction
@@ -762,9 +774,12 @@ public class TokenContract implements BundleActivator, ServiceListener {
         }
 
         /**
-         * Burn receipt.
+         * Burns 'amount' of tokens. Only owner can call.
          *
+         * @issuer the owner of the token
          * @param params the params
+         *               @tokenId
+         *               @amount
          * @return the receipt
          */
         @InvokeTransaction
@@ -824,9 +839,12 @@ public class TokenContract implements BundleActivator, ServiceListener {
         }
 
         /**
-         * Exchange t 2 y receipt.
+         * Exchange tokens to YEEDs
          *
+         * @issuer an account
          * @param params the params
+         *               @tokenId
+         *               @amount Amount of tokens to exchange to YEED
          * @return the receipt
          */
         @InvokeTransaction
@@ -867,7 +885,6 @@ public class TokenContract implements BundleActivator, ServiceListener {
             }
 
             String exType = token.get(TOKEN_EX_T2Y_TYPE).getAsString();
-            BigInteger yeedAmount = BigInteger.ZERO;
             BigDecimal tokenAmountDecimal = new BigDecimal(tokenAmount);
             BigDecimal exRate = BigDecimal.ONE;
             switch (exType) {
@@ -877,13 +894,14 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 case TOKEN_EX_T2Y_TYPE_LINKED:
                     BigDecimal decimalStake = new BigDecimal(getYeedBalanceOf(params));
                     BigDecimal decimalTotalSupply = new BigDecimal(getBalance(tokenId, TOTAL_SUPPLY));
-                    exRate = decimalTotalSupply.divide(decimalStake);
+                    exRate = decimalTotalSupply.divide(decimalStake, 18, RoundingMode.HALF_EVEN);
                     break;
                 default :
                     break;
             }
 
-            yeedAmount = tokenAmountDecimal.divide(exRate).setScale(0, RoundingMode.HALF_EVEN).toBigInteger();
+            BigInteger yeedAmount =
+                    tokenAmountDecimal.divide(exRate, 18, RoundingMode.HALF_EVEN).setScale(0, RoundingMode.HALF_EVEN).toBigInteger();
 
             BigInteger yeedStakeAmountOfToken = getBalance(tokenId, YEED_STAKE);
             if (yeedStakeAmountOfToken.compareTo(yeedAmount) < 0) {
@@ -916,9 +934,12 @@ public class TokenContract implements BundleActivator, ServiceListener {
         }
 
         /**
-         * Exchange y 2 t receipt.
+         * Exchange YEEDs to tokens
          *
+         * @issuer an account
          * @param params the params
+         *               @tokenId
+         *               @amount Amount of YEEDs to exchange to tokens
          * @return the receipt
          */
         @InvokeTransaction
@@ -961,7 +982,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 case TOKEN_EX_T2Y_TYPE_LINKED:
                     BigDecimal decimalStake = new BigDecimal(getYeedBalanceOf(params));
                     BigDecimal decimalTotalSupply = new BigDecimal(getBalance(tokenId, TOTAL_SUPPLY));
-                    exRate = decimalTotalSupply.divide(decimalStake);
+                    exRate = decimalTotalSupply.divide(decimalStake, 18, RoundingMode.HALF_EVEN);
                     break;
                 default:
                     break;
@@ -995,10 +1016,18 @@ public class TokenContract implements BundleActivator, ServiceListener {
             return txReceipt;
         }
 
+        // TODO : @kevin : 2019-09-09 : check if YEED stake transfer between tokens needed
+        // 현재 로직은 YEED 교환이 허용되지 않은 토큰 간에만 T2T 교환을 허용할 수 밖에 없을 것으로 추정된다.
+        // 전체 교환 로직을 만들기 위해서는 교환 시에 YEED stake 이동을 전제해야 한다.
+        // 가능한 모든 교환 유형을 상정하여 도식화 하고, 각 유형의 교환 가능 여부와 환율을 체크해야 한다.
         /**
-         * Exchange t 2 t open receipt.
+         * Opens the exchange from token A to token B
          *
+         * @issuer the owner of token A
          * @param params the params
+         *               @tokenId tokenId of token A
+         *               @targetTokenId tokenId of token B
+         *               @tokenExT2TRate Exchange rate (B = r * A)
          * @return the receipt
          */
         @InvokeTransaction
@@ -1050,9 +1079,11 @@ public class TokenContract implements BundleActivator, ServiceListener {
         }
 
         /**
-         * Exchange t 2 t close receipt.
+         * Close exchange from a token to another token
          *
          * @param params the params
+         *               @tokenId
+         *               @targetTokenId Exchange target token
          * @return the receipt
          */
         @InvokeTransaction
@@ -1097,13 +1128,25 @@ public class TokenContract implements BundleActivator, ServiceListener {
         }
 
         /**
-         * Exchange t 2 t receipt.
+         * Do exchange from a token to another token
          *
+         * @issuer an account
          * @param params the params
+         *               @tokenId
+         *               @targetTokenId Exchange target token
+         *               @amount Amount of tokens to exchange
          * @return the receipt
          */
         @InvokeTransaction
         public Receipt exchangeT2T(JsonObject params) {
+            String[] requiredParamKeys = {"tokenId", "targetTokenId", "amount"};
+            String checkParamsResult = checkParams(params, requiredParamKeys);
+            if (checkParamsResult != null) {
+                setErrorTxReceipt(
+                        String.format("Param [%s] does not exist!", checkParamsResult));
+                return txReceipt;
+            }
+
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
 
             JsonObject token = loadTokenObject(tokenId);
@@ -1172,6 +1215,17 @@ public class TokenContract implements BundleActivator, ServiceListener {
             return txReceipt;
         }
 
+
+        private String checkParams(JsonObject params, String[] requiredParamKeys) {
+            for (String key:requiredParamKeys) {
+                JsonElement e = params.get(key);
+                if (e == null || e.isJsonNull()) {
+                    return key;
+                }
+            }
+
+            return null;
+        }
 
         private void saveTokenPhase(String tokenId, String tokenPhase) {
             String key = TOKEN_PHASE_PREFIX.concat(tokenId);
