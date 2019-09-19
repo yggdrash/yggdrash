@@ -17,6 +17,7 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.util.TimeUtils;
@@ -103,7 +104,7 @@ public class BlockTest {
     public void shouldBeLoadedBranchJsonFile() throws IOException {
         ClassLoader loader = BlockTest.class.getClassLoader();
         InputStream is = loader.getResourceAsStream("branch-sample.json");
-        GenesisBlock genesisBlock = GenesisBlock.of(is);
+        GenesisBlock genesisBlock = BlockChainTestUtils.generateGenesisBlockByInputStream(is);
 
         assertThat(genesisBlock.getBlock()).isNotNull();
         assertThat(genesisBlock.getBlock().getIndex()).isEqualTo(0);

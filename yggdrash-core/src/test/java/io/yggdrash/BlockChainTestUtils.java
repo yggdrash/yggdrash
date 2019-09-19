@@ -17,6 +17,7 @@
 package io.yggdrash;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
@@ -51,12 +52,12 @@ import io.yggdrash.core.store.PbftBlockStoreMock;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
 import org.junit.Assert;
-import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -76,20 +77,33 @@ public class BlockChainTestUtils {
     }
 
     static {
-        try (InputStream is = new FileInputStream(TestConstants.branchFile)) {
-            genesis = GenesisBlock.of(is);
+        try {
+            GenesisBlock genesisBlock = generateGenesisBlockByFile(TestConstants.branchFile);
             TestConstants.yggdrash();
+            genesis = genesisBlock;
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
         }
     }
 
-    private static GenesisBlock generateGenesisBlockByFile(File file) {
+
+    public static GenesisBlock generateGenesisBlockByFile(File file) {
         try (InputStream is = new FileInputStream(file)) {
-            return GenesisBlock.of(is);
+            return generateGenesisBlockByInputStream(is);
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
         }
+    }
+
+    public static GenesisBlock generateGenesisBlockByInputStream(InputStream is) {
+        try {
+            GenesisBlock genesisBlock = GenesisBlock.of(is);
+            genesisBlock.toBlock(TestConstants.GENESIS_STATE_ROOT_HASH);
+            return genesisBlock;
+        } catch (IOException e) {
+            throw new InvalidSignatureException(e);
+        }
+
     }
 
     private static List<ConsensusBlock<PbftProto.PbftBlock>> sampleBlockList = createBlockList(
@@ -117,13 +131,15 @@ public class BlockChainTestUtils {
 
     public static ConsensusBlock<PbftProto.PbftBlock> createNextBlock(List<Transaction> blockBody,
                                                                       ConsensusBlock prevBlock) {
-        return new PbftBlockMock(BlockImpl.nextBlock(TestConstants.wallet(), blockBody, prevBlock));
+        byte[] stateRoot = ContractTestUtils.calStateRoot(prevBlock, blockBody).getBytes();
+        return new PbftBlockMock(BlockImpl.nextBlock(TestConstants.wallet(), blockBody, stateRoot, prevBlock));
     }
 
     public static ConsensusBlock<PbftProto.PbftBlock> createNextBlock(Wallet wallet,
                                                                       List<Transaction> blockBody,
                                                                       ConsensusBlock prevBlock) {
-        return new PbftBlockMock(BlockImpl.nextBlock(wallet, blockBody, prevBlock));
+        byte[] stateRoot = ContractTestUtils.calStateRoot(prevBlock, blockBody).getBytes();
+        return new PbftBlockMock(BlockImpl.nextBlock(wallet, blockBody, stateRoot, prevBlock));
     }
 
     public static Transaction createBranchTx() {
@@ -193,6 +209,16 @@ public class BlockChainTestUtils {
                 >= genesis.getBranch().getBranchContracts().size());
 
         BlockChainManager blockChainManager = new BlockChainManagerImpl(bcStore);
+
+        Sha3Hash genesisStateRootHash;
+        if (genesis.getContractTxs().size() > 0) {
+            genesisStateRootHash = new Sha3Hash(contractManager.executePendingTxs(genesis.getContractTxs())
+                    .getBlockResult().get("stateRoot").get("stateHash").getAsString());
+            blockChainManager.setPendingStateRoot(genesisStateRootHash);
+        } else {
+            genesisStateRootHash = new Sha3Hash(Constants.EMPTY_HASH);
+        }
+        genesis.toBlock(genesisStateRootHash);
 
         return BlockChainBuilder.newBuilder()
                 .setGenesis(genesis)

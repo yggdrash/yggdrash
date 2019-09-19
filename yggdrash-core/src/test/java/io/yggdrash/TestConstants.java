@@ -16,6 +16,7 @@
 
 package io.yggdrash;
 
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.crypto.ECKey;
@@ -39,6 +40,8 @@ public class TestConstants {
 
     private static BranchId YGGDRASH_BRANCH_ID;
 
+    public static Sha3Hash GENESIS_STATE_ROOT_HASH
+            = new Sha3Hash("6a4196162d67c6ef00cf641658910505cabee14002f36429042676dd5da60446");
     public static ContractVersion STEM_CONTRACT;
     public static ContractVersion YEED_CONTRACT;
     public static final ContractVersion VERSIONING_CONTRACT

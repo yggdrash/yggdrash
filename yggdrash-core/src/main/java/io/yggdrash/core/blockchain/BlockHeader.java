@@ -80,9 +80,10 @@ public class BlockHeader implements ProtoObject<Proto.Block.Header> {
             byte[] prevBlockHash,
             long index,
             long timestamp,
+            byte[] stateRoot,
             BlockBody blockBody) {
         this(chain, version, type, prevBlockHash, index, timestamp,
-                blockBody.getMerkleRoot(), blockBody.getStateRoot(), blockBody.getLength());
+                blockBody.getMerkleRoot(), stateRoot, blockBody.getLength());
     }
 
     public BlockHeader(JsonObject jsonObject) {

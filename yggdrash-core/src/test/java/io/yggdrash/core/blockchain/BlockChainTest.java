@@ -188,7 +188,7 @@ public class BlockChainTest extends CiTest {
 
     // The same function of pbftService
     private Block makeNewBlock(BlockChain blockChain, long index, byte[] prevBlockHash) {
-        // ret -> {pendingStateRootHash : unfirmedTxs}
+        // ret -> {pendingStateRootHash : unconfirmedTxs}
         Map<Sha3Hash, List<Transaction>> ret = blockChain.getBlockChainManager().getUnconfirmedTxsWithStateRoot();
         newBlockStateRoot = ret.keySet().iterator().next();
         List<Transaction> txList = ret.get(newBlockStateRoot);
@@ -202,6 +202,7 @@ public class BlockChainTest extends CiTest {
                 prevBlockHash,
                 index,
                 TimeUtils.time(),
+                newBlockStateRoot.getBytes(),
                 newBlockBody);
         return new BlockImpl(newBlockHeader, TestConstants.wallet(), newBlockBody);
     }
@@ -363,6 +364,7 @@ public class BlockChainTest extends CiTest {
                     prevHash,
                     index,
                     TimeUtils.time(),
+                    tmpBlockHeader.getStateRoot(),
                     tmpBlockBody);
 
             Block block = new BlockImpl(newBlockHeader, TestConstants.wallet(), tmpBlockBody);

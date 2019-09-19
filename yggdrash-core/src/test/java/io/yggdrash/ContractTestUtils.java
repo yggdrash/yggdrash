@@ -22,10 +22,13 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.common.contract.vo.dpoa.Validator;
+import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.SystemProperties;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractConstants;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
@@ -37,6 +40,7 @@ import io.yggdrash.core.blockchain.osgi.framework.BundleServiceImpl;
 import io.yggdrash.core.blockchain.osgi.framework.FrameworkConfig;
 import io.yggdrash.core.blockchain.osgi.framework.FrameworkLauncher;
 import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
 import io.yggdrash.core.store.ContractStore;
@@ -55,6 +59,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -90,6 +95,47 @@ public class ContractTestUtils {
         res.put(manager, contractStore);
 
         return res;
+    }
+
+    public static Sha3Hash calStateRoot(ConsensusBlock prevBlock, List<Transaction> txs) {
+
+        Map<ContractManager, ContractStore> map = createContractManager(BlockChainTestUtils.getGenesis());
+        ContractManager contractManager =  map.keySet().stream().findFirst().get();
+        ContractStore contractStore = map.get(contractManager);
+        Map<String, Validator> validatorMap = new HashMap<>();
+        validatorMap.put("TEST1",
+                new Validator("a2b0f5fce600eb6c595b28d6253bed92be0568ed"));
+        validatorMap.put("TEST2",
+                new Validator("a2b0f5fce600eb6c595b28d6253bed92be0568ed"));
+        validatorMap.put("TEST3",
+                new Validator("a2b0f5fce600eb6c595b28d6253bed92be0568ed"));
+        ValidatorSet validatorSet = new ValidatorSet();
+        validatorSet.setValidatorMap(validatorMap);
+        contractStore.getBranchStore().setValidators(validatorSet);
+
+
+        byte[] prevStateRoot = prevBlock.getHeader().getStateRoot();
+        Sha3Hash prevStateRootHash = new Sha3Hash(prevStateRoot, true);
+        JsonObject stateHash = new JsonObject();
+        stateHash.addProperty("stateHash", prevStateRootHash.toString());
+
+        contractStore.getStateStore().put("stateRoot", stateHash);
+
+        String result = "";
+
+        BlockRuntimeResult endBlockResult = contractManager.endBlock(prevBlock);
+        if (endBlockResult.getBlockResult().size() > 0 && endBlockResult.getBlockResult().containsKey("stateRoot)")) {
+            System.out.println(endBlockResult.getBlockResult().get("stateRoot"));
+            result = endBlockResult.getBlockResult().get("stateRoot").get("stateHash").getAsString();
+        }
+
+        BlockRuntimeResult txsResult = contractManager.executePendingTxs(txs);
+        if (txsResult.getBlockResult().size() > 0 && txsResult.getBlockResult().containsKey("stateRoot)")) {
+            System.out.println(txsResult.getBlockResult().get("stateRoot"));
+            result = txsResult.getBlockResult().get("stateRoot").get("stateHash").getAsString();
+        }
+
+        return result.isEmpty() ? prevStateRootHash : new Sha3Hash(result);
     }
 
     public static String setNamespace(ContractManager manager, ContractVersion contractVersion) {
@@ -287,4 +333,5 @@ public class ContractTestUtils {
         }
         return raw;
     }
+
 }

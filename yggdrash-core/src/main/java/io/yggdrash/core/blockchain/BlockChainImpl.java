@@ -101,7 +101,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     private void initGenesis() {
         // After executing the transactions of GenesisBlock,
         // put them in the txStore with the stateRootHash of pendingStateStore.
-        genesisBlock.getBody().getTransactionList().forEach(this::executeAndAddToPendingPool);
+        blockChainManager.initGenesis(genesisBlock);
         addBlock(genesisBlock, false);
 
         // Add Meta Information
@@ -146,7 +146,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     public Map<String, List<String>> addBlock(ConsensusBlock<T> nextBlock, boolean broadcast) {
         try {
             lock.lock();
-
             int verificationCode = blockChainManager.verify(nextBlock);
             if (verificationCode != BusinessError.VALID.toValue()) {
                 log.debug("Add Block failed. Index : {}, ErrorLogs : {}",
