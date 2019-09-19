@@ -303,7 +303,7 @@ public class ContractExecutorTest {
 
     @Test
     public void executeVersionProposalTest() throws DecoderException {
-        JsonObject txBody = ContractTestUtils.contractProposeTxBodyJson(contractVersion.toString());
+        JsonObject txBody = ContractTestUtils.contractProposeTxBodyJson(contractVersion.toString(), "activate");
 
         Transaction tx = new TransactionBuilder()
                 .setType(Hex.decodeHex(VERSIONING_TX))

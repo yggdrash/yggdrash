@@ -257,12 +257,12 @@ public class BlockChainTestUtils {
         return blockList.size() > 0 ? blockList : Collections.emptyList();
     }
 
-    public static Transaction createContractProposeTx(String contractVersion) {
-        return createContractProposeTx(TestConstants.transferWallet(), contractVersion);
+    public static Transaction createContractProposeTx(String contractVersion, String proposalType) {
+        return createContractProposeTx(TestConstants.transferWallet(), contractVersion, proposalType);
     }
 
-    public static Transaction createContractProposeTx(Wallet wallet, String contractVersion) {
-        return buildTx(ContractTestUtils.contractProposeTxBodyJson(contractVersion),
+    public static Transaction createContractProposeTx(Wallet wallet, String contractVersion, String proposalType) {
+        return buildTx(ContractTestUtils.contractProposeTxBodyJson(contractVersion, proposalType),
                 wallet, TestConstants.yggdrash());
     }
 

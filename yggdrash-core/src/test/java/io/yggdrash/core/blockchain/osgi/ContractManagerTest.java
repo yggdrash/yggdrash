@@ -1,10 +1,18 @@
 package io.yggdrash.core.blockchain.osgi;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.ContractTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.contract.core.ContractEvent;
+import io.yggdrash.contract.core.ExecuteStatus;
+import io.yggdrash.contract.core.channel.ContractEventType;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.SystemProperties;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkConfig;
 import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkLauncher;
@@ -12,10 +20,13 @@ import io.yggdrash.core.blockchain.osgi.framework.BundleService;
 import io.yggdrash.core.blockchain.osgi.framework.BundleServiceImpl;
 import io.yggdrash.core.blockchain.osgi.framework.FrameworkConfig;
 import io.yggdrash.core.blockchain.osgi.framework.FrameworkLauncher;
+import io.yggdrash.core.blockchain.osgi.service.ContractProposal;
+import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
 import io.yggdrash.core.store.ContractStore;
 import io.yggdrash.core.store.PbftBlockStoreMock;
+import io.yggdrash.core.wallet.Wallet;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Assert;
 import org.junit.Before;
@@ -24,6 +35,16 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.crypto.InvalidCipherTextException;
+
+import java.io.File;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 public class ContractManagerTest {
@@ -115,6 +136,94 @@ public class ContractManagerTest {
 
         Assert.assertFalse(notExist);
         Assert.assertTrue(exist);
+    }
+
+
+    @Test
+    public void versioningEventTest() throws Exception {
+        // best case test.
+        ContractEvent activateAgreeEvent =
+                createEvent(ContractEventType.AGREE, coinContract.toString(), "ACTIVATE");
+        ContractEvent activateApplyEvent =
+                createEvent(ContractEventType.APPLY, coinContract.toString(), "ACTIVATE");
+
+        ContractEvent deactivateAgreeEvent =
+                createEvent(ContractEventType.AGREE, coinContract.toString(), "DEACTIVATE");
+        ContractEvent deactivateApplyEvent =
+                createEvent(ContractEventType.APPLY, coinContract.toString(), "DEACTIVATE");
+
+        int originNumberOfBundles = getNumberOfBundles();
+        int originNumberOfBranchContracts = getNumberOfBranchContracts();
+
+        // download file to temp folder: contractPath/tmp/contractVersion.jar
+        manager.endBlock(activateAgreeEvent);
+        Assert.assertTrue(isFileDownloaded(coinContract.toString()));
+
+        // load new contract.
+        manager.endBlock(activateApplyEvent);
+        Assert.assertEquals(originNumberOfBundles + 1, getNumberOfBundles());
+        Assert.assertEquals(originNumberOfBranchContracts + 1, getNumberOfBranchContracts());
+
+
+        Transaction tx = generateTx(BigInteger.valueOf(10), coinContract);
+        TransactionRuntimeResult res = manager.executeTx(tx);
+
+        Assert.assertEquals(ExecuteStatus.ERROR, res.getReceipt().getStatus());
+        Assert.assertTrue(res.getReceipt().getLog().contains("Insufficient funds"));
+
+        // do nothing deactivate agree event.
+        manager.endBlock(deactivateAgreeEvent);
+
+        // unload contract
+        manager.endBlock(deactivateApplyEvent);
+        Assert.assertEquals(originNumberOfBundles, getNumberOfBundles());
+        Assert.assertEquals(originNumberOfBranchContracts, getNumberOfBranchContracts());
+
+        // transaction test : not allowed.
+        TransactionRuntimeResult res2 = manager.executeTx(tx);
+        Assert.assertEquals(ExecuteStatus.ERROR, res2.getReceipt().getStatus());
+        Assert.assertTrue(res2.getReceipt().getLog().contains("ContractVersion doesn't exist"));
+
+    }
+
+    private ContractEvent createEvent(ContractEventType eventType, String proposalVersion, String proposalType) {
+        ContractProposal proposal = createContractProposal(proposalVersion, proposalType);
+        return new ContractEvent(eventType, proposal, ContractConstants.VERSIONING_CONTRACT.toString());
+
+    }
+
+    private ContractProposal createContractProposal(String proposalVersion, String proposalType) {
+        String txId = "aeb57125e362e49eec4a737c18348f6e9bd4ea68962dfd7671bc8552eaa0c95f";
+        String proposer = "77283a04b3410fe21ba5ed04c7bd3ba89e70b78c";
+        String sourceUrl = "http://github.com/yggdrash";
+        String buildVersion = "1.0.0";
+        Set<String> validatorSet = new HashSet<>();
+        long blockHeight = 10L;
+
+        return new ContractProposal(
+                txId, proposer, proposalVersion, sourceUrl, buildVersion, blockHeight, validatorSet, proposalType);
+    }
+
+    private boolean isFileDownloaded(String version) {
+        String tmpFile = config.getContractPath() + File.separator + "tmp" + File.separator + version + ".jar";
+        File file = new File(tmpFile);
+        return file.isFile();
+    }
+
+    private int getNumberOfBundles() {
+        return manager.getBundles().length;
+    }
+
+    private int getNumberOfBranchContracts() {
+        return contractStore.getBranchStore().getBranchContacts().size();
+    }
+
+    private Transaction generateTx(BigInteger amount, ContractVersion contractVersion) throws Exception {
+        Wallet wallet = null;
+            wallet = ContractTestUtils.createTestWallet("dea328146c7248231a5bcafdeea12019a2f5dc58.json");
+            JsonObject txBody = ContractTestUtils.transferTxBodyJson(TestConstants.TRANSFER_TO, amount, contractVersion);
+            TransactionBuilder builder = new TransactionBuilder();
+            return builder.setTxBody(txBody).setWallet(wallet).setBranchId(branchId).build();
     }
 
 }

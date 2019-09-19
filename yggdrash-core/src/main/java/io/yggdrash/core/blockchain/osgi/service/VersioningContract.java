@@ -46,7 +46,7 @@ public class VersioningContract {
     private static final String PROPOSAL_VERSION = "proposalVersion";
     private static final String SOURCE_URL = "sourceUrl";
     private static final String BUILD_VERSION = "buildVersion";
-
+    private static final String PROPOSAL_TYPE = "proposalType";
 
     @ContractStateStore
     ReadWriterStore<String, JsonObject> state;
@@ -73,6 +73,7 @@ public class VersioningContract {
     public Receipt propose(JsonObject params) {
         // Verify that the issuer is a validator
         if (!isValidator()) {
+            log.warn("{} Validator verification failed in TX {}.", LOG_PREFIX, receipt.getTxId());
             setFalseTxReceipt("Validator verification failed");
             return receipt;
         }
@@ -85,14 +86,23 @@ public class VersioningContract {
         String sourceUrl = params.get(SOURCE_URL).getAsString();
         String buildVersion = params.get(BUILD_VERSION).getAsString();
         Set<String> validatorSet = new HashSet<>(branchStore.getValidators().getValidatorMap().keySet());
+        String proposalType = params.get(PROPOSAL_TYPE).getAsString().toUpperCase();
 
         if (!isSha1Hash(proposalVersion)) {
+            log.warn("{} Proposal Version is not validate in TX {}.", LOG_PREFIX, txId);
             setFalseTxReceipt("Proposal Version is not validate.");
+            return receipt;
+        }
+
+        if (ProposalType.findBy(proposalType) == null) {
+            log.warn("{} Proposal Type is not validate in TX {}.", LOG_PREFIX, txId);
+            setFalseTxReceipt("Proposal Type is not validate.");
+            return receipt;
         }
 
         // blockHeight => targetBlockHeight
         ContractProposal proposal = new ContractProposal(
-                txId, proposer, proposalVersion, sourceUrl, buildVersion, blockHeight, validatorSet);
+                txId, proposer, proposalVersion, sourceUrl, buildVersion, blockHeight, validatorSet, proposalType);
 
         // The proposer automatically votes to agree
         proposal.vote(proposer, true);

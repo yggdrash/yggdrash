@@ -31,13 +31,15 @@ public class ContractProposal implements Serializable, Comparable<ContractPropos
     public long applyBlockHeight;
 
     public VotingProgress votingProgress;
+    public ProposalType proposalType;
+
 
     ContractProposal() {
 
     }
 
-    ContractProposal(String txId, String proposer, String proposalVersion, String sourceUrl,
-                     String buildVersion, long blockHeight, Set<String> validatorSet) {
+    public ContractProposal(String txId, String proposer, String proposalVersion, String sourceUrl,
+                     String buildVersion, long blockHeight, Set<String> validatorSet, String proposalType) {
         this.txId = txId;
         this.proposer = proposer;
         this.proposalVersion = proposalVersion;
@@ -46,6 +48,7 @@ public class ContractProposal implements Serializable, Comparable<ContractPropos
         this.targetBlockHeight = blockHeight + DEFAULT_PERIOD;
         this.applyBlockHeight = targetBlockHeight + DAY;
         this.votingProgress = new VotingProgress(validatorSet);
+        this.proposalType = ProposalType.valueOf(proposalType);
     }
 
     boolean isExpired(long blockHeight) {
@@ -95,6 +98,10 @@ public class ContractProposal implements Serializable, Comparable<ContractPropos
 
     public VotingProgress getVotingProgress() {
         return votingProgress;
+    }
+
+    public ProposalType getProposalType() {
+        return this.proposalType;
     }
 
     @Override

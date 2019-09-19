@@ -232,6 +232,7 @@ public class VersioningContractTest {
         param.addProperty("proposalVersion", updateContract);
         param.addProperty("sourceUrl", "https://github.com/yggdrash/yggdrash");
         param.addProperty("buildVersion", "1.8.0_172");
+        param.addProperty("proposalType", "activate");
 
         service.propose(param);
 

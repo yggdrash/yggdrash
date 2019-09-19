@@ -15,6 +15,7 @@ import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.framework.BundleService;
 import io.yggdrash.core.blockchain.osgi.service.ContractProposal;
+import io.yggdrash.core.blockchain.osgi.service.ProposalType;
 import io.yggdrash.core.blockchain.osgi.service.VersioningContract;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
@@ -35,9 +36,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.jar.JarFile;
 
 public class ContractManager implements ContractEventListener {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
@@ -99,55 +103,99 @@ public class ContractManager implements ContractEventListener {
         ContractProposal proposal = (ContractProposal) event.getItem();
         ContractVersion proposalVersion = ContractVersion.of(proposal.getProposalVersion());
 
+        ProposalType proposalType = proposal.getProposalType();
+
+        if (proposalType.equals(ProposalType.ACTIVATE)) {
+            proposalActivateHandler(eventType, proposalVersion);
+        } else if (proposalType.equals(ProposalType.DEACTIVATE)) {
+            proposalDeactivateHandler(eventType, proposalVersion);
+        }
+    }
+
+    private void proposalActivateHandler(ContractEventType eventType, ContractVersion proposalVersion) {
         try {
             switch (eventType) {
                 case AGREE:
                     // download contract file to contract tmp folder
-                    Downloader.downloadContract(String.format("%s/%s", contractPath, "tmp"), proposalVersion);
+                    if (Downloader.verifyUrl(proposalVersion)) {
+                        Downloader.downloadContract(String.format("%s/%s", contractPath, "tmp"), proposalVersion);
+                    }
                     break;
                 case APPLY:
-                    // todo : pkg version check
-
-                    Path tmp = Paths.get(String.format("%s/%s/%s", contractPath, "tmp", proposalVersion + ".jar"));
-                    Path origin = Paths.get(contractPath);
-                    Files.copy(tmp, origin.resolve(tmp.getFileName()), StandardCopyOption.REPLACE_EXISTING);
-
-                    // install
-                    install(proposalVersion);
-                    // bundle start and inject and register(service map & branch store)
-                    bundleService.start(proposalVersion);
-                    injectBundle(bundleService.getBundle(proposalVersion));
-                    registerServiceMap(proposalVersion, bundleService.getBundle(proposalVersion));
-                    addNewBranchContract(bundleService.getBundle(proposalVersion), proposalVersion);
+                    // pkg version check
+                    if(isPackageAvailable(proposalVersion)) {
+                        // copy file
+                        copyContractFile(proposalVersion);
+                        // load bundle service
+                        loadBundle(proposalVersion);
+                        // save into branchStore.
+                        addNewBranchContract(bundleService.getBundle(proposalVersion), proposalVersion);
+                    } else {
+                        log.warn("proposal contract {} dose not installed. Already exist package version", proposalVersion);
+                    }
                     break;
                 default:
                     log.info("Not defined event type in version contract");
                     break;
             }
-        } catch (BundleException | IOException e) {
+        } catch (Exception e) {
+            log.error("VersioningContract event failed. {} ", e.getMessage());
+        }
+    }
+
+    private void proposalDeactivateHandler(ContractEventType eventType, ContractVersion proposalVersion) {
+        try {
+            switch (eventType) {
+                case AGREE:
+                    log.info("[DeactivateHandler]\teventType: {}, proposalVersion: {}", eventType, proposalVersion);
+                    break;
+                case APPLY:
+                    // unload process.
+                    unloadBundle(proposalVersion);
+                    deleteBranchContract(proposalVersion.toString());
+                    log.info("[DeactivateHandler]\teventType: {}, proposalVersion: {}", eventType, proposalVersion);
+                    break;
+                default:
+                    log.info("Not defined event type in version contract");
+                    break;
+            }
+        } catch (Exception e) {
             log.error("VersioningContract event failed. {} ", e.getMessage());
         }
     }
 
     private void addNewBranchContract(Bundle newBundle, ContractVersion proposalVersion) {
-        JsonObject branchContractJson = new JsonObject();
-        branchContractJson.add("init", new JsonObject());
-        branchContractJson.addProperty("name", newBundle.getSymbolicName());
-        branchContractJson.addProperty("description", "description");
-        branchContractJson.addProperty("property", "property");
-        branchContractJson.addProperty("isSystem", true);
-        branchContractJson.addProperty("contractVersion", proposalVersion.toString());
+
+        Dictionary<String, String> bundleMeta = newBundle.getHeaders();
+        List<BranchContract> branchContracts = getBranchContractListByName(bundleMeta.get("Bundle-Name"));
+
+        JsonObject branchContractJson = null;
+        if (branchContracts.isEmpty()) {
+            // create new branch contract from bundle metadata
+            branchContractJson = new JsonObject();
+            branchContractJson.add("init", new JsonObject());
+            branchContractJson.addProperty("name", bundleMeta.get("Bundle-Name"));
+            branchContractJson.addProperty("description", bundleMeta.get("Bundle-Description"));
+            branchContractJson.addProperty("property", "");
+            branchContractJson.addProperty("isSystem", false);
+            branchContractJson.addProperty("contractVersion", proposalVersion.toString());
+        } else {
+            // create new branch contract from already exist contract data.
+            branchContractJson = branchContracts.get(0).getJson().deepCopy();
+            branchContractJson.addProperty("contractVersion", proposalVersion.toString());
+        }
+        // save new branch contract into branch store
         BranchContract newBranchContract = BranchContract.of(branchContractJson);
+        contractStore.getBranchStore().addBranchContract(newBranchContract);
+    }
 
-        List<BranchContract> branchContracts = contractStore.getBranchStore().getBranchContacts();
-        branchContracts.add(newBranchContract);
-        contractStore.getBranchStore().setBranchContracts(branchContracts);
-
+    private void deleteBranchContract(String contractVersioon) {
+        contractStore.getBranchStore().removeBranchContract(contractVersioon);
     }
 
     private void initBootBundles() {
 
-        List<BranchContract> branchContractList = this.getContractList();
+        List<BranchContract> branchContractList = this.getBranchContractList();
 
         if (branchContractList.isEmpty()) {
             log.warn("This branch {} has no any contract.", bootBranchId);
@@ -205,15 +253,30 @@ public class ContractManager implements ContractEventListener {
         injectBundle(bundle);
     }
 
+    private void unloadBundle(ContractVersion contractVersion) throws Exception {
+        Bundle bundle = bundleService.getBundle(contractVersion);
+        if (bundle == null) {
+            throw new Exception(String.format("contract %s does not exist", contractVersion));
+        } else {
+            bundleService.stop(contractVersion);
+            bundleService.uninstall(contractVersion);
+            serviceMap.remove(contractVersion.toString());
+        }
+    }
+
     /**
      * get contract list from branchStore or genesis block.
      * @return contractList
      */
-    private List<BranchContract> getContractList() {
+    private List<BranchContract> getBranchContractList() {
         if (contractStore.getBranchStore().getBranchContacts().isEmpty()) {
             return genesis.getBranch().getBranchContracts();
         }
         return contractStore.getBranchStore().getBranchContacts();
+    }
+
+    private List<BranchContract> getBranchContractListByName(String contractName) {
+        return contractStore.getBranchStore().getBranchContractsByName(contractName);
     }
 
     private void injectBundle(Bundle bundle) {
@@ -237,6 +300,10 @@ public class ContractManager implements ContractEventListener {
 
     public Bundle[] getBundles() {
         return bundleService.getBundles();
+    }
+
+    public List<Bundle> getBundlesByName(String contractName) {
+        return bundleService.getBundlesByName(contractName);
     }
 
     private void install(ContractVersion contractVersion) throws IOException, BundleException {
@@ -343,6 +410,31 @@ public class ContractManager implements ContractEventListener {
 
     private String contractFilePath(ContractVersion contractVersion) {
         return this.contractPath + File.separator + contractVersion + ".jar";
+    }
+
+    private String contractTempFilePath(ContractVersion contractVersion) {
+        return this.contractPath + File.separator + "tmp" + File.separator + contractVersion + ".jar";
+    }
+
+    private void copyContractFile(ContractVersion proposalVersion) throws IOException {
+        Path tmp = Paths.get(String.format("%s/%s/%s", contractPath, "tmp", proposalVersion + ".jar"));
+        Path origin = Paths.get(contractPath);
+        Files.copy(tmp, origin.resolve(tmp.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    private boolean isPackageAvailable(ContractVersion proposalVersion) throws IOException {
+        File file = new File(contractTempFilePath(proposalVersion));
+
+        if (verifyContractFile(file, proposalVersion)) {
+            try (JarFile jarFile = new JarFile(file)) {
+                String contractName = jarFile.getManifest().getMainAttributes().getValue("Bundle-Name");
+                String pacakgeVersion = jarFile.getManifest().getMainAttributes().getValue("Bundle-Version");
+                List<Bundle> bundles = getBundlesByName(contractName);
+                return !bundles.stream().anyMatch(bundle -> bundle.getHeaders().get("Bundle-Version").equals(pacakgeVersion));
+            }
+        }
+
+        return false;
     }
 
     public void close() {
