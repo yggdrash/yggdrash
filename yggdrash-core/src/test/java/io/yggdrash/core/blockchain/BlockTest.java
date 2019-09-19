@@ -79,7 +79,7 @@ public class BlockTest {
         long index = 0;
         BlockHeader blockHeader = new BlockHeader(
                 chain, version, type, prevBlockHash, index, timestamp,
-                blockBody1.getMerkleRoot(), blockBody1.getLength());
+                blockBody1.getMerkleRoot(), blockBody1.getStateRoot(), blockBody1.getLength());
 
         log.debug(blockHeader.toString());
 
@@ -92,7 +92,7 @@ public class BlockTest {
         BlockBody blockBody = new BlockBody(Collections.emptyList());
         BlockHeader blockHeader = new BlockHeader(
                 chain, version, type, prevBlockHash, 0, TimeUtils.time(),
-                blockBody.getMerkleRoot(), blockBody.getLength());
+                blockBody.getMerkleRoot(), blockBody.getStateRoot(), blockBody.getLength());
         BlockSignature blockSig = new BlockSignature(wallet, blockHeader.getHashForSigning());
         Block emptyBlock = new BlockImpl(blockHeader, blockSig.getSignature(), blockBody);
 

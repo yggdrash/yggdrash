@@ -627,6 +627,7 @@ public class TokenContractTest {
 
         JsonObject params = new JsonObject();
         params.addProperty(TOKEN_ID, "NONE_TOKEN");
+        params.addProperty("to", owner);
 
         tokenContract.transfer(params);
 
@@ -644,17 +645,26 @@ public class TokenContractTest {
         tx.getLog().stream().forEach(l -> log.debug(l));
         Assert.assertFalse("Transfer of not running token should be failed", tx.isSuccess());
 
-        // move phase to run
+        //     move phase to run
         tx = new ReceiptImpl("0x04", 300L, owner);
         this.adapter.setReceipt(tx);
         tokenContract.movePhaseRun(params);
 
-        // NEGATIVE AMOUNT
+        // 'to' == issuer
         tx = new ReceiptImpl("0x05", 300L, owner);
         this.adapter.setReceipt(tx);
 
+        tokenContract.transfer(params);
+
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Transfer 'to' account should different from the issuer!", tx.isSuccess());
+
+        // NEGATIVE AMOUNT
+        tx = new ReceiptImpl("0x06", 300L, owner);
+        this.adapter.setReceipt(tx);
+
         params.addProperty("to", account1);
-        params.addProperty(AMOUNT, BigInteger.valueOf(-1).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, getBigInt18(-1));
 
         tokenContract.transfer(params);
 
@@ -662,10 +672,10 @@ public class TokenContractTest {
         Assert.assertFalse("Transfer of negative amount should be failed", tx.isSuccess());
 
         // NORMAL
-        tx = new ReceiptImpl("0x06", 300L, owner);
+        tx = new ReceiptImpl("0x07", 300L, owner);
         this.adapter.setReceipt(tx);
 
-        params.addProperty(AMOUNT, BigInteger.valueOf(100).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, getBigInt18(100));
 
         tokenContract.transfer(params);
 
@@ -673,11 +683,11 @@ public class TokenContractTest {
         Assert.assertTrue("Transfer is failed", tx.isSuccess());
 
         // INSUFFICIENT BALANCE
-        tx = new ReceiptImpl("0x07", 300L, account1);
+        tx = new ReceiptImpl("0x08", 300L, account1);
         this.adapter.setReceipt(tx);
 
         params.addProperty("to", owner);
-        params.addProperty(AMOUNT, BigInteger.valueOf(101).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, getBigInt18(101));
 
         tokenContract.transfer(params);
 
@@ -736,7 +746,7 @@ public class TokenContractTest {
         tx = new ReceiptImpl("0x07", 300L, owner);
         this.adapter.setReceipt(tx);
 
-        params.addProperty(AMOUNT, BigInteger.valueOf(100000).multiply(BigInteger.TEN.pow(18)));
+        params.addProperty(AMOUNT, getBigInt18(100000));
 
         tokenContract.approve(params);
 

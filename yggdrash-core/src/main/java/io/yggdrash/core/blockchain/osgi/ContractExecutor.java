@@ -2,7 +2,6 @@ package io.yggdrash.core.blockchain.osgi;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.ExecuteStatus;
@@ -38,9 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 public class ContractExecutor {
     private static final Logger log = LoggerFactory.getLogger(ContractExecutor.class);
@@ -60,8 +57,6 @@ public class ContractExecutor {
     private ContractChannelCoupler coupler;
 
     private final ReentrantLock locker = new ReentrantLock();
-    private final Condition isBlockExecuting = locker.newCondition();
-    private boolean isTx = false;
 
     ContractExecutor(ContractStore contractStore, LogIndexer logIndexer) {
         this.contractStore = contractStore;
@@ -136,59 +131,50 @@ public class ContractExecutor {
     }
 
     private TransactionRuntimeResult getTransactionRuntimeResult(Map<String, Object> serviceMap, Transaction tx, TempStateStore curTmpStateStore) {
+        TransactionRuntimeResult txRuntimeResult;
+
         locker.lock();
-        while (!isTx) {
-            try {
-                isBlockExecuting.await();
-            } catch (InterruptedException e) {
-                log.warn("executeTx err : {}", e.getMessage());
-                Thread.currentThread().interrupt();
-            }
-        }
-        isTx = true;
-
-        setStoreAdapter(curTmpStateStore);
-
-        TransactionRuntimeResult txRuntimeResult = new TransactionRuntimeResult(tx);
-        Receipt receipt = createReceipt(tx, null);
-        Set<Map.Entry<String, JsonObject>> result = null;
         try {
-            result = invokeTx(serviceMap, tx, receipt);
-        } catch (ExecutorException e) {
-            exceptionHandler(e, receipt);
+            setStoreAdapter(curTmpStateStore);
+
+            txRuntimeResult = new TransactionRuntimeResult(tx);
+            Receipt receipt = createReceipt(tx, null);
+            Set<Map.Entry<String, JsonObject>> result = null;
+            try {
+                result = invokeTx(serviceMap, tx, receipt);
+            } catch (ExecutorException e) {
+                exceptionHandler(e, receipt);
+            }
+
+            if (result != null) {
+                txRuntimeResult.setChangeValues(result);
+            }
+
+            txRuntimeResult.setReceipt(receipt);
+
+            // PendingStateStore keeps running without closing. It is only reset when a block is added.
+            if (curTmpStateStore.equals(tmpStateStore)) {
+                curTmpStateStore.close();
+            }
+        } finally {
+            locker.unlock();
         }
 
-        if (result != null) {
-            txRuntimeResult.setChangeValues(result);
-        }
-
-        txRuntimeResult.setReceipt(receipt);
-
-        // PendingStateStore keeps running without closing. It is only reset when a block is added.
-        if (curTmpStateStore.equals(tmpStateStore)) {
-            curTmpStateStore.close();
-        }
-
-        locker.unlock();
         return txRuntimeResult;
     }
 
-    boolean executePendingTx(Map<String, Object> serviceMap, Transaction tx) {
+    Sha3Hash executePendingTxWithStateRoot(Map<String, Object> serviceMap, Transaction tx) {
         TransactionRuntimeResult transactionRuntimeResult = getTransactionRuntimeResult(serviceMap, tx, pendingStateStore);
-        return !transactionRuntimeResult.getReceipt().getStatus().equals(ExecuteStatus.ERROR);
+        return !transactionRuntimeResult.getReceipt().getStatus().equals(ExecuteStatus.ERROR)
+                ? pendingStateStore.getStateRoot() : null;
     }
 
     TransactionRuntimeResult executeTx(Map<String, Object> serviceMap, Transaction tx) {
         return getTransactionRuntimeResult(serviceMap, tx, tmpStateStore);
     }
 
-    Set<Sha3Hash> executePendingTxs(Map<String, Object> serviceMap, List<Transaction> txs) { //executeTxs 처럼 executeTx 하는동안 피해야함
-        BlockRuntimeResult blockRuntimeResult = getBlockRuntimeResult(new BlockRuntimeResult(txs), serviceMap);
-        Set<Sha3Hash> errPendingTxs = blockRuntimeResult.getReceipts().stream()
-                .filter(receipt -> receipt.getStatus().equals(ExecuteStatus.ERROR))
-                .map(receipt -> new Sha3Hash(receipt.getTxId()))
-                .collect(Collectors.toSet());
-        return errPendingTxs;
+    BlockRuntimeResult executePendingTxs(Map<String, Object> serviceMap, List<Transaction> txs) { //executeTxs 처럼 executeTx 하는동안 피해야함
+        return getBlockRuntimeResult(new BlockRuntimeResult(txs), serviceMap);
     }
 
     BlockRuntimeResult executeTxs(Map<String, Object> serviceMap, ConsensusBlock nextBlock) {
@@ -202,74 +188,85 @@ public class ContractExecutor {
 
     private BlockRuntimeResult getBlockRuntimeResult(BlockRuntimeResult blockRuntimeResult, Map<String, Object> serviceMap) {
         locker.lock();
-        isTx = false;
-        // Set Coupler Contract and contractCache
-        coupler.setContract(serviceMap, contractCache);
+        try {
+            // Set Coupler Contract and contractCache
+            coupler.setContract(serviceMap, contractCache);
 
-        ConsensusBlock nextBlock = blockRuntimeResult.getOriginBlock();
-        List<Transaction> txList = nextBlock != null ? nextBlock.getBody().getTransactionList() : blockRuntimeResult.getTxList();
-        TempStateStore curTmpStateStore = nextBlock != null ? tmpStateStore : pendingStateStore;
+            ConsensusBlock nextBlock = blockRuntimeResult.getOriginBlock();
+            List<Transaction> txList = nextBlock != null
+                    ? nextBlock.getBody().getTransactionList() : blockRuntimeResult.getTxList();
+            TempStateStore curTmpStateStore = nextBlock != null ? tmpStateStore : pendingStateStore;
 
-        setStoreAdapter(curTmpStateStore);
+            setStoreAdapter(curTmpStateStore);
 
-        for (Transaction tx : txList) {
-            // get all exceptions
-            Receipt receipt = createReceipt(tx, nextBlock);
+            for (Transaction tx : txList) {
+                // get all exceptions
+                Receipt receipt = createReceipt(tx, nextBlock);
 
-            Set<Map.Entry<String, JsonObject>> result = null;
-            try {
-                result = invokeTx(serviceMap, tx, receipt);
-            } catch (ExecutorException e) {
-                exceptionHandler(e, receipt);
+                Set<Map.Entry<String, JsonObject>> result = null;
+                try {
+                    result = invokeTx(serviceMap, tx, receipt);
+                } catch (ExecutorException e) {
+                    exceptionHandler(e, receipt);
+                }
+
+                blockRuntimeResult.addReceipt(receipt);
+                if (!receipt.getStatus().equals(ExecuteStatus.ERROR)) {
+                    blockRuntimeResult.setBlockResult(result);
+                } else {
+                    log.warn("Error TxId={}, TxLog={}", receipt.getTxId(), receipt.getLog());
+                }
             }
 
-            blockRuntimeResult.addReceipt(receipt);
-            if (!receipt.getStatus().equals(ExecuteStatus.ERROR)) {
-                blockRuntimeResult.setBlockResult(result);
-            } else {
-                log.warn("Error TxId={}, TxLog={}", receipt.getTxId(), receipt.getLog());
+            if (nextBlock != null) {
+                commitBlockResult(blockRuntimeResult);
             }
+
+            // PendingStateStore keeps running without closing. It is only reset when a block is added.
+            if (curTmpStateStore.equals(tmpStateStore)) {
+                curTmpStateStore.close();
+            }
+        } finally {
+            locker.unlock();
         }
 
-        // PendingStateStore keeps running without closing. It is only reset when a block is added.
-        if (curTmpStateStore.equals(tmpStateStore)) {
-            curTmpStateStore.close();
-        } else {
-            // CommitBlockResult will not run after executing pending txs, so isTx has to be set manually.
-            isTx = true;
-        }
-
-        locker.unlock();
         return blockRuntimeResult;
     }
 
     BlockRuntimeResult endBlock(Map<String, Object> serviceMap, ConsensusBlock addedBlock) {
-        setStoreAdapter(tmpStateStore);
+        locker.lock();
         BlockRuntimeResult result = new BlockRuntimeResult(addedBlock);
-        int i = 0;
-        Set<Map.Entry<String, JsonObject>> changedValues;
-        for (String contractVersion : serviceMap.keySet()) {
-            Receipt receipt = createReceipt(addedBlock, i);
-            Object service = serviceMap.get(contractVersion);
-            List<Method> methods = new ArrayList<>(contractCache
-                    .getContractMethodMap(contractVersion, ContractMethodType.END_BLOCK, service)
-                    .values());
-            if (!methods.isEmpty()) {
-                // Each contract has only one endBlock method
-                Method method = methods.get(0);
-                receipt.setContractVersion(contractVersion);
-                changedValues = invokeMethod(receipt, service, method, new JsonObject());
 
-                if (!receipt.getStatus().equals(ExecuteStatus.ERROR) && !changedValues.isEmpty()) {
-                    result.setBlockResult(changedValues);
+        try {
+            setStoreAdapter(tmpStateStore);
+            int i = 0;
+            Set<Map.Entry<String, JsonObject>> changedValues;
+            for (String contractVersion : serviceMap.keySet()) {
+                Receipt receipt = createReceipt(addedBlock, i);
+                Object service = serviceMap.get(contractVersion);
+                List<Method> values = new ArrayList<>(contractCache
+                        .getContractMethodMap(contractVersion, ContractMethodType.END_BLOCK, service)
+                        .values());
+                if (!values.isEmpty()) {
+                    // Each contract has only one endBlock method
+                    Method method = values.get(0);
+                    receipt.setContractVersion(contractVersion);
+                    changedValues = invokeMethod(receipt, service, method, new JsonObject());
+
+                    if (!receipt.getStatus().equals(ExecuteStatus.ERROR) && changedValues != null) {
+                        result.setBlockResult(changedValues);
+                    }
+
+                    result.addReceipt(receipt);
+                    i++;
                 }
-
-                result.addReceipt(receipt);
-                i++;
             }
+            commitBlockResult(result);
+            tmpStateStore.close();
+        } finally {
+            locker.unlock();
         }
 
-        contractStore.getTmpStateStore().close(); // clear(revert) tmpStateStore
         return result;
     }
 
@@ -324,35 +321,25 @@ public class ContractExecutor {
             log.error("Invoke failed. {}", e.getMessage());
         }
 
-        return contractStore.getTmpStateStore().changeValues();
+        return storeAdapterList.listIterator().next().getStateStore().changeValues();
     }
 
     void commitBlockResult(BlockRuntimeResult result) {
-        locker.lock();
-        ReceiptStore receiptStore = contractStore.getReceiptStore();
-
-        for (Receipt receipt : result.getReceipts()) {
-            /* todo : Implements better way how to distinguish receipt between blocks and transaction. @lucase, 190904 */
-            if (receipt.getTxId() == null) {
-                // case 1. store block receipt
-                receiptStore.put(receipt.getBlockId(), receipt); // endBlock
-                logIndexer.put(receipt.getBlockId(), receipt.getLog().size());
-            } else {
-                // case 2. store tx receipt
-                receiptStore.put(receipt.getTxId(), receipt);
-                logIndexer.put(receipt.getTxId(), receipt.getLog().size());
+        if (!result.getBlockResult().isEmpty()) {
+            ReceiptStore receiptStore = contractStore.getReceiptStore();
+            for (Receipt receipt : result.getReceipts()) {
+                if (receipt.getTxId() == null) { // endBlock
+                    receiptStore.put(receipt.getBlockId(), receipt);
+                    logIndexer.put(receipt.getBlockId(), receipt.getLog().size());
+                } else {
+                    receiptStore.put(receipt.getTxId(), receipt);
+                    logIndexer.put(receipt.getTxId(), receipt.getLog().size());
+                }
             }
 
-            // Reflect changed values
-            Map<String, JsonObject> changes = result.getBlockResult();
-            if (!changes.isEmpty()) {
-                StateStore stateStore = contractStore.getStateStore();
-                changes.forEach(stateStore::put);
-            }
+            StateStore stateStore = contractStore.getStateStore();
+            result.getBlockResult().forEach(stateStore::put);
         }
-        isTx = true;
-        isBlockExecuting.signal();
-        locker.unlock();
     }
 
     private void setStoreAdapter(TempStateStore curTmpStateStore) {

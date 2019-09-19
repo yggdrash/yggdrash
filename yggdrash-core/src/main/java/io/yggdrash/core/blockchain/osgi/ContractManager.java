@@ -38,7 +38,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class ContractManager implements ContractEventListener {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
@@ -296,7 +295,8 @@ public class ContractManager implements ContractEventListener {
         return contractExecutor.executeTxs(serviceMap, nextBlock);
     }
 
-    public Set<Sha3Hash> executePendingTxs(List<Transaction> txs) {
+    public BlockRuntimeResult executePendingTxs(List<Transaction> txs) {
+        resetPendingStateStore();
         return contractExecutor.executePendingTxs(serviceMap, txs);
     }
 
@@ -304,15 +304,11 @@ public class ContractManager implements ContractEventListener {
         return contractExecutor.executeTx(serviceMap, tx);
     }
 
-    public boolean executePendingTx(Transaction tx) {
-        return contractExecutor.executePendingTx(serviceMap, tx);
+    public Sha3Hash executePendingTxWithStateRoot(Transaction tx) {
+        return contractExecutor.executePendingTxWithStateRoot(serviceMap, tx);
     }
 
-    public void commitBlockResult(BlockRuntimeResult result) {
-        contractExecutor.commitBlockResult(result);
-    }
-
-    public void resetPendingStateStore() {
+    private void resetPendingStateStore() {
         contractStore.getPendingStateStore().close();
     }
 

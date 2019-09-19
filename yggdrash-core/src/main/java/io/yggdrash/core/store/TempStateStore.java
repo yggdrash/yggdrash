@@ -16,8 +16,11 @@
 
 package io.yggdrash.core.store;
 
+import com.google.common.primitives.Bytes;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.config.Constants;
+import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 
 import java.util.LinkedHashMap;
@@ -28,17 +31,35 @@ public class TempStateStore implements ReadWriterStore<String, JsonObject> {
     private final ReadWriterStore<String, JsonObject> stateStore;
     private final Map<String, JsonObject> tempStore = new LinkedHashMap<>();
 
-    // TODO check State root
-    Sha3Hash stateRoot;
+    private final String STATE_ROOT = "stateRoot";
+    private final String STATE_HASH = "stateHash";
+    private Sha3Hash stateRootHash;
 
     public TempStateStore(ReadWriterStore<String, JsonObject> originStore) {
         this.stateStore = originStore;
+        setStateRootHash();
+    }
+
+    public Sha3Hash getStateRoot() {
+        return stateRootHash;
     }
 
     @Override
     public void put(String key, JsonObject value) {
         tempStore.put(key, value);
-        // TODO calculate State Root
+        tempStore.put(STATE_ROOT, stateRoot(key, value)); // sateRootObj contains stateHash
+    }
+
+    private JsonObject stateRoot(String key, JsonObject value) {
+        byte[] changedStateRootByte =  HashUtil.sha3(key.concat(value.toString()).getBytes());
+        stateRootHash = new Sha3Hash(Bytes.concat(stateRootHash.getBytes(), changedStateRootByte));
+        return stateRootObj(stateRootHash);
+    }
+
+    private JsonObject stateRootObj(Sha3Hash stateHash) {
+        JsonObject obj = contains(STATE_ROOT) ? get(STATE_ROOT) : new JsonObject();
+        obj.addProperty(STATE_HASH, stateHash.toString());
+        return obj;
     }
 
     @Override
@@ -62,13 +83,24 @@ public class TempStateStore implements ReadWriterStore<String, JsonObject> {
     @Override
     public void close() {
         tempStore.clear();
+        setStateRootHash();
     }
 
     public void putAll(Set<Map.Entry<String, JsonObject>> values) {
         values.forEach(entry -> tempStore.put(entry.getKey(), entry.getValue()));
     }
 
+
     public Set<Map.Entry<String, JsonObject>> changeValues() {
         return this.tempStore.entrySet();
     }
+
+    private void setStateRootHash() {
+        if (stateStore.contains(STATE_ROOT)) {
+            stateRootHash = new Sha3Hash(stateStore.get(STATE_ROOT).get(STATE_HASH).getAsString());
+        } else {
+            stateRootHash = new Sha3Hash(Constants.EMPTY_HASH);
+        }
+    }
+
 }

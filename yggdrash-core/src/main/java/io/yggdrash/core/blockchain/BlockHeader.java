@@ -35,7 +35,7 @@ public class BlockHeader implements ProtoObject<Proto.Block.Header> {
     public static final int VERSION_LENGTH = 8;
     public static final int TYPE_LENGTH = 8;
 
-    static final int LENGTH = 124;
+    static final int LENGTH = 156;
 
     private final Proto.Block.Header protoHeader;
 
@@ -57,6 +57,7 @@ public class BlockHeader implements ProtoObject<Proto.Block.Header> {
             long index,
             long timestamp,
             byte[] merkleRoot,
+            byte[] stateRoot,
             long bodyLength) {
 
         this.protoHeader = Proto.Block.Header.newBuilder()
@@ -67,6 +68,7 @@ public class BlockHeader implements ProtoObject<Proto.Block.Header> {
                 .setIndex(index)
                 .setTimestamp(timestamp)
                 .setMerkleRoot(ByteString.copyFrom(merkleRoot))
+                .setStateRoot(ByteString.copyFrom(stateRoot))
                 .setBodyLength(bodyLength)
                 .build();
     }
@@ -79,7 +81,8 @@ public class BlockHeader implements ProtoObject<Proto.Block.Header> {
             long index,
             long timestamp,
             BlockBody blockBody) {
-        this(chain, version, type, prevBlockHash, index, timestamp, blockBody.getMerkleRoot(), blockBody.getLength());
+        this(chain, version, type, prevBlockHash, index, timestamp,
+                blockBody.getMerkleRoot(), blockBody.getStateRoot(), blockBody.getLength());
     }
 
     public BlockHeader(JsonObject jsonObject) {
@@ -90,6 +93,7 @@ public class BlockHeader implements ProtoObject<Proto.Block.Header> {
                 HexUtil.hexStringToLong(jsonObject.get("index").getAsString()),
                 HexUtil.hexStringToLong(jsonObject.get("timestamp").getAsString()),
                 Hex.decode(jsonObject.get("merkleRoot").getAsString()),
+                Hex.decode(jsonObject.get("stateRoot").getAsString()),
                 HexUtil.hexStringToLong(jsonObject.get("bodyLength").getAsString()));
     }
 
@@ -119,6 +123,10 @@ public class BlockHeader implements ProtoObject<Proto.Block.Header> {
 
     public byte[] getMerkleRoot() {
         return protoHeader.getMerkleRoot().toByteArray();
+    }
+
+    public byte[] getStateRoot() {
+        return protoHeader.getStateRoot().toByteArray();
     }
 
     public long getBodyLength() {
@@ -157,6 +165,7 @@ public class BlockHeader implements ProtoObject<Proto.Block.Header> {
             bao.write(ByteUtil.longToBytes(getIndex()));
             bao.write(ByteUtil.longToBytes(getTimestamp()));
             bao.write(getMerkleRoot());
+            bao.write(getStateRoot());
             bao.write(ByteUtil.longToBytes(getBodyLength()));
         } catch (IOException e) {
             throw new NotValidateException();
@@ -190,6 +199,7 @@ public class BlockHeader implements ProtoObject<Proto.Block.Header> {
         jsonObject.addProperty("index", Hex.toHexString(ByteUtil.longToBytes(getIndex())));
         jsonObject.addProperty("timestamp", Hex.toHexString(ByteUtil.longToBytes(getTimestamp())));
         jsonObject.addProperty("merkleRoot", Hex.toHexString(getMerkleRoot()));
+        jsonObject.addProperty("stateRoot", Hex.toHexString(getStateRoot()));
         jsonObject.addProperty("bodyLength", Hex.toHexString(ByteUtil.longToBytes(getBodyLength())));
 
         return jsonObject;

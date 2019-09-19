@@ -1,7 +1,9 @@
 package io.yggdrash.contract.yeed.propose;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.contract.yeed.ehtereum.EthTransaction;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,9 +35,23 @@ public class ProposeInterChainTest {
         String issuer = "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e";
         long networkBlockHeight = 10;
 
-        ProposeInterChain testPropose = new ProposeInterChain(transactionId, tokenAddress, receiveAddress,
-                receiveEth, receiveChainId, networkBlockHeight, proposeType, senderAddress, inputData,
-                stakeYeed, targetBlockHeight, fee, issuer);
+        JsonObject propose = new JsonObject();
+        propose.addProperty("transactionId", transactionId);
+        propose.addProperty("tokenAddress", tokenAddress);
+        propose.addProperty("receiverAddress", receiveAddress);
+        propose.addProperty("receiveAsset", receiveEth);
+        propose.addProperty("receiveChainId", receiveChainId);
+        propose.addProperty("networkBlockHeight", networkBlockHeight);
+        propose.addProperty("proposeType", proposeType.toValue());
+        propose.addProperty("senderAddress", senderAddress);
+        propose.addProperty("inputData", inputData);
+        propose.addProperty("stakeYeed", stakeYeed);
+        propose.addProperty("blockHeight", targetBlockHeight);
+        propose.addProperty("fee", fee);
+        propose.addProperty("issuer", issuer);
+
+
+        ProposeInterChain testPropose = new ProposeInterChain(propose);
 
         log.debug("Propose ID : {} ", testPropose.getProposeId());
         assertNotNull(testPropose.getProposeId());
@@ -79,7 +95,7 @@ public class ProposeInterChainTest {
                 receiveEth, receiveChainId, networkBlockHeight, proposeType, senderAddress, inputData, stakeYeed,
                 targetBlockHeight, fee, issuer);
 
-        assert ethPropose.getFee().compareTo(fee) == 0;
+        Assert.assertTrue("", ethPropose.getFee().compareTo(fee) == 0);
 
         log.debug("Propose ETH : {}", ethPropose.getReceiveAsset());
         log.debug("Ethereum Transaction ETH : {}", ethTransaction.getValue());

@@ -84,7 +84,8 @@ public class PeerHandlerProvider {
 
         @Override
         public Future<List<ConsensusBlock<PbftProto.PbftBlock>>> syncBlock(BranchId branchId, long offset) {
-            log.debug("Requesting sync block: branchId={}, offset={}", branchId, offset);
+            log.debug("Requesting sync block: branchId={}, offset={}, to={}",
+                    branchId, offset, this.getPeer().getYnodeUri());
 
             CommonProto.Offset request = CommonProto.Offset.newBuilder()
                     .setIndex(offset)
@@ -132,7 +133,8 @@ public class PeerHandlerProvider {
 
         @Override
         public Future<List<ConsensusBlock<EbftProto.EbftBlock>>> syncBlock(BranchId branchId, long offset) {
-            log.debug("Requesting sync block: branchId={}, offset={}", branchId, offset);
+            log.debug("Requesting sync block: branchId={}, offset={}, to={}",
+                    branchId, offset, this.getPeer().getYnodeUri());
 
             CommonProto.Offset request = CommonProto.Offset.newBuilder()
                     .setIndex(offset)

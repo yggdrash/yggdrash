@@ -17,6 +17,7 @@ import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerNetwork;
 import io.yggdrash.core.p2p.BlockChainHandler;
 import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.p2p.PeerTableGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,11 +31,19 @@ public class BlockChainSyncManager implements SyncManager {
     private NodeStatus nodeStatus;
     private BranchGroup branchGroup;
     private PeerNetwork peerNetwork;
+    private PeerTableGroup peerTableGroup;
 
-    public BlockChainSyncManager(NodeStatus nodeStatus, PeerNetwork peerNetwork, BranchGroup branchGroup) {
+    public BlockChainSyncManager(NodeStatus nodeStatus, PeerNetwork peerNetwork, BranchGroup branchGroup,
+                                 PeerTableGroup peerTableGroup) {
         this.nodeStatus = nodeStatus;
         this.branchGroup = branchGroup;
         this.peerNetwork = peerNetwork;
+        this.peerTableGroup = peerTableGroup;
+    }
+
+    @Override
+    public boolean isSyncStatus() {
+        return nodeStatus.isSyncStatus();
     }
 
     @Override
@@ -43,10 +52,9 @@ public class BlockChainSyncManager implements SyncManager {
         try {
             for (BlockChain blockChain : branchGroup.getAllBranch()) {
                 List<BlockChainHandler> peerHandlerList = peerNetwork.getHandlerList(blockChain.getBranchId());
-
                 fullSyncBlock(blockChain, peerHandlerList);
-
-                syncTransaction(blockChain, peerHandlerList);
+                blockChain.setFullSynced(true);
+                log.debug("Branch({}) is fullSynced.", blockChain.getBranch().getBranchId().toString());
             }
         } finally {
             nodeStatus.up();
@@ -80,12 +88,12 @@ public class BlockChainSyncManager implements SyncManager {
                     return true;
                 }
             }
+
+            if (blockChain.getBlockChainManager().getLastIndex() < peerHandler.getPeer().getBestBlock()) {
+                syncBlock(peerHandler, blockChain);
+            }
         } catch (Exception e) {
             log.warn("[SyncManager] Sync Block ERR occurred: {}", e.getMessage());
-        }
-
-        if (blockChain.getBlockChainManager().getLastIndex() < peerHandler.getPeer().getBestBlock()) {
-            syncBlock(peerHandler, blockChain);
         }
 
         return false;
@@ -93,8 +101,14 @@ public class BlockChainSyncManager implements SyncManager {
 
     private void fullSyncBlock(BlockChain blockChain, List<BlockChainHandler> peerHandlerList) {
         for (BlockChainHandler peerHandler : peerHandlerList) {
-            if (peerHandler.getPeer().getBestBlock() > blockChain.getBlockChainManager().getLastIndex()) {
-                syncBlock(peerHandler, blockChain);
+            try {
+                peerHandler.getPeer().setBestBlock(
+                        peerHandler.pingPong(blockChain.getBranchId(), peerTableGroup.getOwner(), "Ping"));
+                if (peerHandler.getPeer().getBestBlock() > blockChain.getBlockChainManager().getLastIndex()) {
+                    syncBlock(peerHandler, blockChain);
+                }
+            } catch (Exception e) {
+                log.debug("fullSyncBlock() is failed. {}", e.getMessage());
             }
         }
     }
@@ -213,7 +227,7 @@ public class BlockChainSyncManager implements SyncManager {
     }
 
     private void reqSyncBlockToHandlers(BlockChain blockChain) {
-        if (!nodeStatus.isUpStatus()) {
+        if (nodeStatus.isSyncStatus()) {
             log.debug("NodeStatus is down. ({})", nodeStatus.toString());
             return;
         }
@@ -231,7 +245,7 @@ public class BlockChainSyncManager implements SyncManager {
     }
 
     private void reqSyncBlockToPeer(BlockChain blockChain, Peer peer) {
-        if (!nodeStatus.isUpStatus()) {
+        if (nodeStatus.isSyncStatus()) {
             log.debug("NodeStatus is down. ({})", nodeStatus.toString());
             return;
         }

@@ -24,7 +24,6 @@ import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.utils.ByteUtil;
-import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
@@ -32,8 +31,8 @@ import io.yggdrash.contract.core.annotation.ContractChannelField;
 import io.yggdrash.contract.core.annotation.ContractChannelMethod;
 import io.yggdrash.contract.core.annotation.ContractEndBlock;
 import io.yggdrash.contract.core.annotation.ContractQuery;
-import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractReceipt;
+import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.Genesis;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.annotation.ParamValidation;
@@ -47,14 +46,12 @@ import io.yggdrash.contract.yeed.propose.ProcessTransaction;
 import io.yggdrash.contract.yeed.propose.ProposeErrorCode;
 import io.yggdrash.contract.yeed.propose.ProposeInterChain;
 import io.yggdrash.contract.yeed.propose.ProposeStatus;
-import io.yggdrash.contract.yeed.propose.ProposeType;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -374,10 +371,10 @@ public class YeedContract implements BundleActivator, ServiceListener {
         @InvokeTransaction
         @Override
         public Receipt transferFrom(JsonObject params) {
-            String to = params.get("to").getAsString().toLowerCase();
-            String from = params.get("from").getAsString().toLowerCase();
-            String sender = receipt.getIssuer();
-            String approveKey = approveKey(from, sender);
+            final String to = params.get("to").getAsString().toLowerCase();
+            final String from = params.get("from").getAsString().toLowerCase();
+            final String sender = receipt.getIssuer();
+            final String approveKey = approveKey(from, sender);
 
             // Check approved amount empty
             if (isAccountEmpty(approveKey)) {
@@ -455,8 +452,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 return false;
             }
 
-            if (toAccount.equalsIgnoreCase(contractName) &&
-                    fromAccount.equalsIgnoreCase(issuer)) {
+            if (toAccount.equalsIgnoreCase(contractName)
+                    && fromAccount.equalsIgnoreCase(issuer)) {
                 // deposit
                 return transfer(fromAccount, contractAccount, amount, serviceFee);
             } else if (fromAccount.equalsIgnoreCase(contractName)) { // withdraw
@@ -560,32 +557,17 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 return;
             }
 
-            // TokenAddress is YEED TO TOKEN
-            String tokenAddress = JsonUtil.parseString(params, "tokenAddress", "");
-            String receiveAddress = params.get("receiverAddress").getAsString().toLowerCase();
-            BigInteger receiveAsset = params.get("receiveAsset").getAsBigInteger();
-            Integer receiveChainId = params.get("receiveChainId").getAsInt();
-            long networkBlockHeight = params.get("networkBlockHeight").getAsLong();
-            long target = params.get("blockHeight").getAsLong();
-            ProposeType proposeType = ProposeType.fromValue(params.get("proposeType").getAsInt());
-            String senderAddress = null;
-            String inputData = null;
-            if (ProposeType.YEED_TO_ETHER.equals(proposeType)) {
-                senderAddress = params.get("senderAddress").getAsString().toLowerCase();
-                if (!params.get("inputData").isJsonNull()) {
-                    inputData = params.get("inputData").getAsString();
-                }
-            }
-
             // Issue Proposal
             String txId = this.receipt.getTxId();
-            ProposeInterChain propose = new ProposeInterChain(txId, tokenAddress, receiveAddress,
-                    receiveAsset, receiveChainId, networkBlockHeight, proposeType, senderAddress, inputData,
-                    stakeYeed, target, fee, issuer);
+            // Add Transaction Id
+            params.addProperty("transactionId", txId);
+            params.addProperty("issuer", this.receipt.getIssuer());
+
+            ProposeInterChain propose = new ProposeInterChain(params);
 
             String proposeIdKey = String.format("%s%s", PrefixKeyEnum.PROPOSE_INTER_CHAIN.toValue(),
                     propose.getProposeId());
-
+            log.debug("Propose Id Key : {} ", proposeIdKey);
             // The fee is transferred at the end (Issue closed or done)
             boolean isTransfer = transfer(issuer, propose.getProposeId(), stakeFee, BigInteger.ZERO);
 
@@ -693,13 +675,12 @@ public class YeedContract implements BundleActivator, ServiceListener {
             pt.setTransactionHash(HexUtil.toHexString(ethTransaction.getTxHash()));
 
             // Ethereum Transaction and Proposal verification
+            transferFee(this.receipt.getIssuer(), fee);
             int checkPropose = propose.verificationProposeProcess(pt);
             if (checkPropose == 0) {
                 processProposeTransaction(propose, pt);
-                transferFee(this.receipt.getIssuer(), fee);
                 setSuccessTxReceipt("Yeed to Eth Proposal completed successfully");
             } else {
-                transferFee(this.receipt.getIssuer(), fee);
                 log.error("[Yeed -> Eth] Error Code", checkPropose);
                 List<String> errors = ProposeErrorCode.errorLogs(checkPropose);
                 setFalseTxReceipt(errors);
@@ -714,32 +695,36 @@ public class YeedContract implements BundleActivator, ServiceListener {
             // TODO Token Swap Need to Method
             // input data param[0] == method, param[1] == ReceiveAddress, param[2] == asset
             // Check Method - Token a9059cbb
-            String receiveAddress = HexUtil.toHexString(tokenTransaction.getParam()[1]);
-            BigInteger sendAsset = new BigInteger(tokenTransaction.getParam()[2]);
+            String method = HexUtil.toHexString(tokenTransaction.getMethod());
+            String receiveAddress = HexUtil.toHexString(tokenTransaction.getParam()[0]);
+            BigInteger sendAsset = new BigInteger(tokenTransaction.getParam()[1]);
             String targetAddress = HexUtil.toHexString(tokenTransaction.getReceiverAddress());
 
             ProcessTransaction pt = new ProcessTransaction();
             pt.setSenderAddress(senderAddress);
-            pt.setReceiverAddress(receiveAddress);
+            pt.setReceiverAddress(receiveAddress.substring(24));
             pt.setChainId(tokenTransaction.getChainId());
             pt.setTargetAddress(targetAddress);
             pt.setAsset(sendAsset);
+            pt.setMethod(method);
+            pt.setTransactionHash(HexUtil.toHexString(tokenTransaction.getTxHash()));
+            // Transfer Fee
+            transferFee(this.receipt.getIssuer(), fee);
 
+            // Check Propose
             int checkPropose = propose.verificationProposeProcess(pt);
             if (checkPropose == 0) {
                 processProposeTransaction(propose, pt);
-                transferFee(this.receipt.getIssuer(), fee);
                 setSuccessTxReceipt("Yeed to EthToken Proposal completed successfully");
             } else {
-                transferFee(this.receipt.getIssuer(), fee);
-                log.error("[Yeed -> EthToken] Error Code", checkPropose);
+                log.error("[Yeed -> EthToken] Error Code {}", checkPropose);
                 List<String> errors = ProposeErrorCode.errorLogs(checkPropose);
                 setFalseTxReceipt(errors);
             }
         }
 
         private void processProposeTransaction(ProposeInterChain propose, ProcessTransaction pt) {
-            boolean isProposeSender = propose.proposeSender(pt.getSenderAddress());
+            final boolean isProposeSender = propose.proposeSender(pt.getSenderAddress());
 
             BigDecimal receiveValue = new BigDecimal(pt.getAsset());
             BigDecimal stakeYeedDecimal = new BigDecimal(propose.getStakeYeed());
@@ -1005,9 +990,10 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 // Set Total Supply
                 putBalance(TOTAL_SUPPLY, totalSupply);
                 this.receipt.addLog(String.format("Burn %s Yeed", networkFee));
+
+                // Network Fee is Zero
+                putBalance(receipt.getBranchId(), BigInteger.ZERO);
             }
-            // network Fee is Zero
-            putBalance(receipt.getBranchId(), BigInteger.ZERO);
             receipt.setStatus(ExecuteStatus.SUCCESS);
         }
 

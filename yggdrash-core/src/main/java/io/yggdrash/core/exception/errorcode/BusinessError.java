@@ -19,14 +19,15 @@ import java.util.Map;
 
 public enum BusinessError {
     //The errors are appended to the transactionResponseDto.
-    VALID(32000),                        //111110100000000
-    UNTRUSTED(32001),                    //111110100000001
-    REQUEST_TIMEOUT(32002),              //111110100000010
-    UNKNOWN_BLOCK_HEIGHT(32004),         //111110100000100
-    INVALID_MERKLE_ROOT_HASH(32008),     //111110100001000
-    DUPLICATED(32016),                   //111110100010000
-    INVALID_DATA_FORMAT(32032),          //111110100100000
-    INVALID_BLOCK_HASH(32064)            //111110101000000
+    VALID(32000),                       //0x7d00, 0111 1101 0000 0000
+    UNTRUSTED(32001),                   //0x7d01, 0111 1101 0000 0001
+    REQUEST_TIMEOUT(32002),             //0x7d02, 0111 1101 0000 0010
+    UNKNOWN_BLOCK_HEIGHT(32004),        //0x7d04, 0111 1101 0000 0100
+    INVALID_MERKLE_ROOT_HASH(32008),    //0x7d08, 0111 1101 0000 1000
+    DUPLICATED(32016),                  //0x7d10, 0111 1101 0001 0000
+    INVALID_DATA_FORMAT(32032),         //0x7d20, 0111 1101 0010 0000
+    INVALID_BLOCK_HASH(32064),          //0x7d40, 0111 1101 0100 0000
+    UNDEFINED_ERROR(32128)              //0x7d80, 0111 1101 1000 0000
     ;
 
     private int code;
@@ -70,6 +71,9 @@ public enum BusinessError {
         }
         if ((code & INVALID_BLOCK_HASH.code) == INVALID_BLOCK_HASH.code) {
             errorLogs.add("Invalid BlockHash");
+        }
+        if ((code & UNDEFINED_ERROR.code) == UNDEFINED_ERROR.code) {
+            errorLogs.add("Undefined Error");
         }
 
         return errorLogs;
