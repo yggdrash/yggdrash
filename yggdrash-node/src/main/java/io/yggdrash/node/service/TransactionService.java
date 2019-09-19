@@ -18,6 +18,7 @@ package io.yggdrash.node.service;
 
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
@@ -29,10 +30,12 @@ import io.yggdrash.proto.TransactionServiceGrpc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 
 import java.util.List;
 import java.util.Map;
 
+@Profile(Constants.ActiveProfiles.NODE)
 @GrpcService
 public class TransactionService extends TransactionServiceGrpc.TransactionServiceImplBase {
     private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
@@ -114,13 +117,14 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
             public void onNext(Proto.Transaction protoTx) {
                 Transaction tx = new TransactionImpl(protoTx);
                 try {
-                    if (!branchGroup.getBranch(tx.getBranchId()).isFullSynced()) {
-                        log.debug("Not yet fullSynced.");
+                    if (branchGroup.getBranch(tx.getBranchId()).isFullSynced()) {
+                        branchGroup.addTransaction(tx);
+                    } else {
+                        log.debug("BroadcastTx() is failed. Not yet fullSynced.");
                         return;
                     }
-                    branchGroup.addTransaction(tx);
                 } catch (Exception e) {
-                    log.warn(e.getMessage());
+                    log.warn("BroadcastTx() is failed. {}", e.getMessage());
                 }
             }
 

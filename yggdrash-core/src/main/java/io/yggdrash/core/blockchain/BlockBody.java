@@ -18,6 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonArray;
 import com.google.protobuf.InvalidProtocolBufferException;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.trie.Trie;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.Proto;
@@ -90,6 +91,11 @@ public class BlockBody implements ProtoObject<Proto.TransactionList> {
 
     public byte[] getMerkleRoot() {
         return Trie.getMerkleRoot(getTransactionList());
+    }
+
+    public byte[] getStateRoot() {
+        // TODO: change method for stateRoot.
+        return Constants.EMPTY_HASH;
     }
 
     @Override

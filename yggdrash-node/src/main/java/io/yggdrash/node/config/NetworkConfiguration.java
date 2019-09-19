@@ -82,11 +82,12 @@ public class NetworkConfiguration {
     }
 
     @Bean
-    public SyncManager syncManager(NodeStatus nodeStatus, PeerNetwork peerNetwork, BranchGroup branchGroup) {
-        return new BlockChainSyncManager(nodeStatus, peerNetwork, branchGroup);
+    public SyncManager syncManager(NodeStatus nodeStatus, PeerNetwork peerNetwork, BranchGroup branchGroup,
+                                   PeerTableGroup peerTableGroup) {
+        return new BlockChainSyncManager(nodeStatus, peerNetwork, branchGroup, peerTableGroup);
     }
 
-    @Profile({Constants.ActiveProfiles.NODE, Constants.ActiveProfiles.BOOTSTRAP})
+    @Profile({Constants.ActiveProfiles.NODE})
     @Bean
     @Primary
     public GrpcServerBuilderConfigurer configurer(BranchGroup branchGroup, SyncManager syncManager) {
