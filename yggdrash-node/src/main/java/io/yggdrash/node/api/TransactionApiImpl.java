@@ -10,6 +10,7 @@ import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.exception.errorcode.BusinessError;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
 import io.yggdrash.gateway.dto.TransactionResponseDto;
@@ -88,6 +89,18 @@ public class TransactionApiImpl implements TransactionApi {
     @Override
     public TransactionResponseDto sendTransaction(TransactionDto tx) {
         Transaction transaction = TransactionDto.of(tx);
+        try {
+            if (!branchGroup.getBranch(transaction.getBranchId()).isFullSynced()) {
+                log.debug("sendRawTransaction() is failed. Not yet fullSynced.");
+                return TransactionResponseDto.createBy(transaction.getHash().toString(), false,
+                        BusinessError.getErrorLogsMap(BusinessError.UNDEFINED_ERROR.toValue()));
+            }
+        } catch (Exception e) {
+            log.debug("sendRawTransaction() is failed. {}", e.getMessage());
+            return TransactionResponseDto.createBy(transaction.getHash().toString(), false,
+                    BusinessError.getErrorLogsMap(BusinessError.UNDEFINED_ERROR.toValue()));
+        }
+
         Map<String, List<String>> errorLogs = branchGroup.addTransaction(transaction);
 
         if (errorLogs.size() > 0) {
@@ -102,6 +115,18 @@ public class TransactionApiImpl implements TransactionApi {
     @Override
     public byte[] sendRawTransaction(byte[] bytes) {
         Transaction transaction = TransactionImpl.parseFromRaw(bytes);
+        try {
+            if (!branchGroup.getBranch(transaction.getBranchId()).isFullSynced()) {
+                log.debug("sendRawTransaction() is failed. Not yet fullSynced.");
+                return BusinessError.getErrorLogsMap(BusinessError.UNDEFINED_ERROR.toValue())
+                        .entrySet().stream().map(Object::toString).collect(Collectors.joining(",")).getBytes();
+            }
+        } catch (Exception e) {
+            log.debug("sendRawTransaction() is failed. {}", e.getMessage());
+            return BusinessError.getErrorLogsMap(BusinessError.UNDEFINED_ERROR.toValue())
+                    .entrySet().stream().map(Object::toString).collect(Collectors.joining(",")).getBytes();
+        }
+
         Map<String, List<String>> errorLogs = branchGroup.addTransaction(transaction);
 
         if (errorLogs.size() > 0) {
