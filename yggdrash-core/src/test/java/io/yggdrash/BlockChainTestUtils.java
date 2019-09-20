@@ -185,12 +185,14 @@ public class BlockChainTestUtils {
                 .withBundleManager(bundleService)
                 .withDefaultConfig(config)
                 .withContractStore(contractStore)
-                .withLogStore(bcStore.getLogStore()) // is this logstore for what?
+                .withLogStore(bcStore.getLogStore())
                 .withSystemProperties(systemProperties)
                 .build();
 
-        Assert.assertTrue(contractManager.getBundles().length
-                >= genesis.getBranch().getBranchContracts().size());
+        int numOfBundles =  contractManager.getBundles().length;
+        int numOfBranchContracts = genesis.getBranch().getBranchContracts().size();
+
+        Assert.assertEquals(numOfBundles, numOfBranchContracts);
 
         BlockChainManager blockChainManager = new BlockChainManagerImpl(bcStore);
 
