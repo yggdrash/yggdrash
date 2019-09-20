@@ -84,26 +84,31 @@ public class PeerHandlerProvider {
 
         @Override
         public Future<List<ConsensusBlock<PbftProto.PbftBlock>>> syncBlock(BranchId branchId, long offset) {
-            log.debug("Requesting sync block: branchId={}, offset={}, to={}",
-                    branchId, offset, this.getPeer().getYnodeUri());
+            try {
+                log.debug("Requesting sync block: branchId={}, offset={}, to={}",
+                        branchId, offset, this.getPeer().getYnodeUri());
+                CommonProto.Offset request = CommonProto.Offset.newBuilder()
+                        .setIndex(offset)
+                        .setCount(Constants.BLOCK_SYNC_COUNT)
+                        .setChain(ByteString.copyFrom(branchId.getBytes()))
+                        .build();
 
-            CommonProto.Offset request = CommonProto.Offset.newBuilder()
-                    .setIndex(offset)
-                    .setCount(Constants.BLOCK_SYNC_COUNT)
-                    .setChain(ByteString.copyFrom(branchId.getBytes()))
-                    .build();
+                PbftProto.PbftBlockList protoPbftBlockList
+                        = blockingStub.withDeadlineAfter(TIMEOUT_BLOCKLIST, TimeUnit.SECONDS).getPbftBlockList(request);
 
-            PbftProto.PbftBlockList protoPbftBlockList
-                    = blockingStub.withDeadlineAfter(TIMEOUT_BLOCKLIST, TimeUnit.SECONDS).getPbftBlockList(request);
+                CompletableFuture<List<ConsensusBlock<PbftProto.PbftBlock>>> futureBlockList = new CompletableFuture<>();
+                List<ConsensusBlock<PbftProto.PbftBlock>> newBlockList = new ArrayList<>();
+                for (PbftProto.PbftBlock block : protoPbftBlockList.getPbftBlockList()) {
+                    newBlockList.add(new PbftBlock(block));
+                }
 
-            CompletableFuture<List<ConsensusBlock<PbftProto.PbftBlock>>> futureBlockList = new CompletableFuture<>();
-            List<ConsensusBlock<PbftProto.PbftBlock>> newBlockList = new ArrayList<>();
-            for (PbftProto.PbftBlock block : protoPbftBlockList.getPbftBlockList()) {
-                newBlockList.add(new PbftBlock(block));
+                futureBlockList.complete(newBlockList);
+                return futureBlockList;
+
+            } catch (Exception e) {
+                log.debug("syncBlock is failed(). {}", e.getMessage());
+                return null;
             }
-
-            futureBlockList.complete(newBlockList);
-            return futureBlockList;
         }
 
         // When we send a (single) block to the server and get back a (single) empty.
