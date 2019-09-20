@@ -256,7 +256,7 @@ public class BlockImpl implements Block, ProtoObject<Proto.Block> {
     }
 
     @VisibleForTesting
-    public static Block nextBlock(Wallet wallet, List<Transaction> body, ConsensusBlock prevBlock) {
+    public static Block nextBlock(Wallet wallet, List<Transaction> body, byte[] stateRoot, ConsensusBlock prevBlock) {
         if (body == null || prevBlock == null) {
             throw new NotValidateException();
         }
@@ -269,6 +269,7 @@ public class BlockImpl implements Block, ProtoObject<Proto.Block> {
                 prevBlock.getHash().getBytes(),
                 prevBlock.getIndex() + 1,
                 TimeUtils.time(),
+                stateRoot,
                 blockBody);
         return new BlockImpl(blockHeader, wallet, blockBody);
     }

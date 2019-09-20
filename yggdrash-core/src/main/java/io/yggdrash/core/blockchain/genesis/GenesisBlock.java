@@ -1,5 +1,6 @@
 package io.yggdrash.core.blockchain.genesis;
 
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.core.blockchain.Block;
@@ -18,8 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GenesisBlock {
-    private final Block block;
     private final Branch branch;
+    private Block block;
+    private List<Transaction> contractTxs;
 
     /**
      * Build genesis for dynamic branch.json
@@ -28,7 +30,7 @@ public class GenesisBlock {
      */
     private GenesisBlock(Branch branch) {
         this.branch = branch;
-        this.block = toBlock();
+        this.contractTxs = contractTransactions();
     }
 
     private GenesisBlock(Branch branch, Block block) {
@@ -52,8 +54,12 @@ public class GenesisBlock {
         return new Consensus(branch.getConsensus());
     }
 
-    private Block toBlock() {
-        return generatorGenesisBlock(contractTransactions());
+   public List<Transaction> getContractTxs() {
+       return this.contractTxs;
+   }
+
+    public void toBlock(Sha3Hash stateRoot) {
+        this.block = generatorGenesisBlock(contractTxs, stateRoot);
     }
 
     // Contract initial value
@@ -75,7 +81,7 @@ public class GenesisBlock {
         return txs;
     }
 
-    private Block generatorGenesisBlock(List<Transaction> txs) {
+    private Block generatorGenesisBlock(List<Transaction> txs, Sha3Hash stateRoot) {
         BlockBody blockBody = new BlockBody(txs);
         BlockHeader blockHeader = new BlockHeader(
                 branch.getBranchId().getBytes(),
@@ -84,6 +90,7 @@ public class GenesisBlock {
                 Constants.EMPTY_HASH,
                 0L,
                 branch.getTimestamp(),
+                stateRoot.getBytes(),
                 blockBody);
 
         return new BlockImpl(blockHeader, Constants.EMPTY_SIGNATURE, blockBody);

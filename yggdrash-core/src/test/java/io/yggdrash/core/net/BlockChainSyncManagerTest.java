@@ -12,6 +12,8 @@
 
 package io.yggdrash.core.net;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.core.blockchain.BlockChain;
@@ -76,9 +78,19 @@ public class BlockChainSyncManagerTest {
                 .setProperty("TEST")
                 .setDescription("TEST")
                 .setContractName("TEST_CONTRACT")
+                .setContractInit(createAllocParam())
                 .setContractDescription("TEST_CONTRACT")
                 .build();
         return ContractTestUtils.createBranch(contractMock);
+    }
+
+    private JsonObject createAllocParam() {
+        String allocStr = "{\"alloc\": {\n" +
+                "          \"101167aaf090581b91c08480f6e559acdd9a3ddd\": {\n" +
+                "            \"balance\": \"1000000000000000000000\"\n" +
+                "          }" +
+                "        }}";
+        return new JsonParser().parse(allocStr).getAsJsonObject();
     }
 
     @Test
