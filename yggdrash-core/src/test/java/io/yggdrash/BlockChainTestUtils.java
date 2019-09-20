@@ -192,7 +192,8 @@ public class BlockChainTestUtils {
         int numOfBundles =  contractManager.getBundles().length;
         int numOfBranchContracts = genesis.getBranch().getBranchContracts().size();
 
-        Assert.assertEquals(numOfBundles, numOfBranchContracts);
+        // System bundle + contract bundle
+        Assert.assertEquals(numOfBundles, numOfBranchContracts + 1);
 
         BlockChainManager blockChainManager = new BlockChainManagerImpl(bcStore);
 
