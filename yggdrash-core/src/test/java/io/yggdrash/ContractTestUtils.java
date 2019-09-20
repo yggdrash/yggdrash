@@ -97,8 +97,16 @@ public class ContractTestUtils {
         return res;
     }
 
-    public static Sha3Hash calStateRoot(ConsensusBlock prevBlock, List<Transaction> txs) {
+    public static Sha3Hash calStateRoot(ContractManager contractManager, List<Transaction> txs) {
+        if (txs.size() > 0) {
+            BlockRuntimeResult executePendingTxs = contractManager.executePendingTxs(txs);
+            return new Sha3Hash(executePendingTxs.getBlockResult().get("stateRoot").get("stateHash").getAsString());
+        } else {
+            return contractManager.getOriginStateRoot();
+        }
+    }
 
+    public static Sha3Hash calStateRoot(ConsensusBlock prevBlock, List<Transaction> txs) {
         Map<ContractManager, ContractStore> map = createContractManager(BlockChainTestUtils.getGenesis());
         ContractManager contractManager =  map.keySet().stream().findFirst().get();
         ContractStore contractStore = map.get(contractManager);
@@ -113,29 +121,25 @@ public class ContractTestUtils {
         validatorSet.setValidatorMap(validatorMap);
         contractStore.getBranchStore().setValidators(validatorSet);
 
+        contractManager.executeTxs(BlockChainTestUtils.genesisBlock());
 
-        byte[] prevStateRoot = prevBlock.getHeader().getStateRoot();
-        Sha3Hash prevStateRootHash = new Sha3Hash(prevStateRoot, true);
+        if (prevBlock.getHeader().getIndex() != 0L) {
+            byte[] prevStateRoot = prevBlock.getHeader().getStateRoot();
+            contractStore.getStateStore().put("stateRoot", createStateHashObj(prevStateRoot));
+            contractManager.executeTxs(prevBlock);
+        }
+
+        contractManager.endBlock(prevBlock);
+        contractManager.executePendingTxs(txs);
+
+        return contractStore.getPendingStateStore().getStateRoot();
+    }
+
+    private static JsonObject createStateHashObj(byte[] stateRootBytes) {
+        Sha3Hash prevStateRootHash = new Sha3Hash(stateRootBytes, true);
         JsonObject stateHash = new JsonObject();
         stateHash.addProperty("stateHash", prevStateRootHash.toString());
-
-        contractStore.getStateStore().put("stateRoot", stateHash);
-
-        String result = "";
-
-        BlockRuntimeResult endBlockResult = contractManager.endBlock(prevBlock);
-        if (endBlockResult.getBlockResult().size() > 0 && endBlockResult.getBlockResult().containsKey("stateRoot)")) {
-            System.out.println(endBlockResult.getBlockResult().get("stateRoot"));
-            result = endBlockResult.getBlockResult().get("stateRoot").get("stateHash").getAsString();
-        }
-
-        BlockRuntimeResult txsResult = contractManager.executePendingTxs(txs);
-        if (txsResult.getBlockResult().size() > 0 && txsResult.getBlockResult().containsKey("stateRoot)")) {
-            System.out.println(txsResult.getBlockResult().get("stateRoot"));
-            result = txsResult.getBlockResult().get("stateRoot").get("stateHash").getAsString();
-        }
-
-        return result.isEmpty() ? prevStateRootHash : new Sha3Hash(result);
+        return  stateHash;
     }
 
     public static String setNamespace(ContractManager manager, ContractVersion contractVersion) {

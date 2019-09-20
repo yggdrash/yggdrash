@@ -22,10 +22,13 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
 import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BlockChainManagerImpl;
+import io.yggdrash.core.blockchain.BlockHeader;
 import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
@@ -140,6 +143,44 @@ public class BlockChainTestUtils {
                                                                       ConsensusBlock prevBlock) {
         byte[] stateRoot = ContractTestUtils.calStateRoot(prevBlock, blockBody).getBytes();
         return new PbftBlockMock(BlockImpl.nextBlock(wallet, blockBody, stateRoot, prevBlock));
+    }
+
+    public static ConsensusBlock<PbftProto.PbftBlock> createNextBlock(List<Transaction> blockBody,
+                                                                      ConsensusBlock prevBlock,
+                                                                      ContractManager contractManager) {
+        byte[] stateRoot = ContractTestUtils.calStateRoot(contractManager, blockBody).getBytes();
+        return new PbftBlockMock(BlockImpl.nextBlock(TestConstants.wallet(), blockBody, stateRoot, prevBlock));
+    }
+
+    public static ConsensusBlock<PbftProto.PbftBlock> createSpecificHeightBlock(long index,
+                                                                                List<Transaction> blockBody,
+                                                                                ConsensusBlock prevBlock,
+                                                                                ContractManager contractManager) {
+        ConsensusBlock<PbftProto.PbftBlock> nextBlock = createNextBlock(blockBody, prevBlock, contractManager);
+        for (long i = 1L; i < index; i++) {
+            nextBlock = createNextBlock(blockBody, nextBlock, contractManager);
+        }
+        return nextBlock;
+    }
+
+    public static ConsensusBlock<PbftProto.PbftBlock> createNextBlockByPrevHash(Sha3Hash specificPrevHash,
+                                                                                ConsensusBlock prevBlock) {
+        Block prevTmpBlock = prevBlock.getBlock();
+        BlockHeader prevTmpBlockHeader = prevTmpBlock.getHeader();
+        BlockBody blockBody = new BlockBody(new ArrayList<>()); // no txs
+
+        BlockHeader newBlockHeader = new BlockHeader(
+                prevTmpBlockHeader.getChain(),
+                prevTmpBlockHeader.getVersion(),
+                prevTmpBlockHeader.getType(),
+                specificPrevHash.getBytes(),
+                prevTmpBlockHeader.getIndex() + 1L,
+                TimeUtils.time(),
+                prevTmpBlockHeader.getStateRoot(),
+                blockBody);
+
+        Block block = new BlockImpl(newBlockHeader, TestConstants.wallet(), blockBody);
+        return new PbftBlockMock(block);
     }
 
     public static Transaction createBranchTx() {
