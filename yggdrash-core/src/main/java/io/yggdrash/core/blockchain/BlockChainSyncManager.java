@@ -68,14 +68,16 @@ public class BlockChainSyncManager implements SyncManager {
         try {
             BranchId branchId = blockChain.getBranchId();
             Future<List<ConsensusBlock>> futureBlockList = peerHandler.syncBlock(branchId, offset);
+            if (futureBlockList == null) {
+                return false;
+            }
 
             List<ConsensusBlock> blockList = futureBlockList.get();
             if (blockList.isEmpty()) {
-                return true;
+                return false;
             }
-            log.debug("[SyncManager] Synchronize reqStart={} receivedSize={}, receivedStart={} receivedEnd={} from={}",
+            log.debug("syncBlock() reqBlock={} resBlock=({} - {}) from={}",
                     offset,
-                    blockList.size(),
                     ((ConsensusBlock) blockList.toArray()[0]).getBlock().getIndex(),
                     ((ConsensusBlock) blockList.toArray()[blockList.size() - 1]).getBlock().getIndex(),
                     peerHandler.getPeer().getYnodeUri());
@@ -84,19 +86,23 @@ public class BlockChainSyncManager implements SyncManager {
                 // Handling exception if the block was not added properly
                 Map<String, List<String>> errorLogs = blockChain.addBlock(block, false);
                 if (errorLogs.size() > 0) {
-                    log.warn("ErrorLogs: {}", errorLogs);
-                    return true;
+                    log.info("addBlock() is failed. {}", errorLogs);
+                    return false;
                 }
             }
 
             if (blockChain.getBlockChainManager().getLastIndex() < peerHandler.getPeer().getBestBlock()) {
-                syncBlock(peerHandler, blockChain);
+                log.debug("MyBlockIndex({}) < PeerBlockIndex({})",
+                        blockChain.getBlockChainManager().getLastIndex(),
+                        peerHandler.getPeer().getBestBlock());
+                return syncBlock(peerHandler, blockChain);
             }
         } catch (Exception e) {
-            log.warn("[SyncManager] Sync Block ERR occurred: {}", e.getMessage());
+            log.info("syncBlock() is failed. {}", e.getMessage());
+            return false;
         }
 
-        return false;
+        return true;
     }
 
     private void fullSyncBlock(BlockChain blockChain, List<BlockChainHandler> peerHandlerList) {
