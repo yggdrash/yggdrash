@@ -27,7 +27,8 @@ public enum BusinessError {
     DUPLICATED(32016),                  //0x7d10, 0111 1101 0001 0000
     INVALID_DATA_FORMAT(32032),         //0x7d20, 0111 1101 0010 0000
     INVALID_BLOCK_HASH(32064),          //0x7d40, 0111 1101 0100 0000
-    UNDEFINED_ERROR(32128)              //0x7d80, 0111 1101 1000 0000
+    UNDEFINED_ERROR(32128),             //0x7d80, 0111 1101 1000 0000
+    INVALID_STATE_ROOT_HASH(32256)      //0x7E00, 0111 1110 0000 0000
     ;
 
     private int code;
@@ -74,6 +75,9 @@ public enum BusinessError {
         }
         if ((code & UNDEFINED_ERROR.code) == UNDEFINED_ERROR.code) {
             errorLogs.add("Undefined Error");
+        }
+        if ((code & INVALID_STATE_ROOT_HASH.code) == INVALID_STATE_ROOT_HASH.code) {
+            errorLogs.add("Invalid StateRoot");
         }
 
         return errorLogs;

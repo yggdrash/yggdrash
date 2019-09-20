@@ -93,14 +93,15 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             log.debug("BlockChain Load in Storage");
             // Load Block Chain Information
             blockChainManager.loadTransaction();
-            // load contract
+            // Load StateRoot
+            blockChainManager.setPendingStateRoot(contractManager.getOriginStateRoot());
         }
     }
 
     private void initGenesis() {
         // After executing the transactions of GenesisBlock,
         // put them in the txStore with the stateRootHash of pendingStateStore.
-        genesisBlock.getBody().getTransactionList().forEach(this::executeAndAddToPendingPool);
+        blockChainManager.initGenesis(genesisBlock);
         addBlock(genesisBlock, false);
 
         // Add Meta Information
@@ -145,10 +146,9 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     public Map<String, List<String>> addBlock(ConsensusBlock<T> nextBlock, boolean broadcast) {
         try {
             lock.lock();
-
             int verificationCode = blockChainManager.verify(nextBlock);
             if (verificationCode != BusinessError.VALID.toValue()) {
-                log.debug("Add Block failed. Index : {}, ErrorLogs : {}",
+                log.warn("Add Block failed. Index : {}, ErrorLogs : {}",
                         nextBlock.getIndex(), BusinessError.getErrorLogsMap(verificationCode).values());
                 return BusinessError.getErrorLogsMap(verificationCode);
             }
@@ -161,17 +161,20 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             if (nextBlock.getIndex() > branchStore.getLastExecuteBlockIndex()) {
                 // Execute block and commit the result of block.
                 BlockRuntimeResult blockResult = contractManager.executeTxs(nextBlock); //TODO Exception
-                // TODO StateRoot Validation
-                /*
-                String blockStateRoot = blockResult.getBlockResult().size() > 0
-                        ? blockResult.getBlockResult().get("stateRoot").get("stateHash").getAsString()
-                        : contractManager.getOriginStateRoot;
-                log.debug("blockStateRoot : {} ", blockStateRoot);
-                String stateRoot = nextBlock.getStateRoot;
-                if (!stateRoot.equals(executedStateRoot) {
-                    // do something
+
+                // Validate StateRoot
+                Sha3Hash blockResultStateRoot = blockResult.getBlockResult().size() > 0
+                        ? new Sha3Hash(blockResult.getBlockResult().get("stateRoot").get("stateHash").getAsString())
+                        : contractManager.getOriginStateRoot();
+                Sha3Hash nextBlockStateRoot = new Sha3Hash(nextBlock.getHeader().getStateRoot(), true);
+                log.debug("nextBlockStateRoot : {}, blockResultStateRoot : {} ",
+                        nextBlockStateRoot, blockResultStateRoot);
+
+                if (!nextBlockStateRoot.equals(blockResultStateRoot)) {
+                    log.warn("Add block failed. Invalid stateRoot. BlockStateRoot : {}, CurStateRoot : {}"
+                            , nextBlockStateRoot, blockResultStateRoot);
+                    return BusinessError.getErrorLogsMap(BusinessError.INVALID_STATE_ROOT_HASH.toValue());
                 }
-                */
 
                 branchStore.setLastExecuteBlock(nextBlock);
             }
@@ -274,10 +277,13 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         }
     }
 
-    private void executeAndAddToPendingPool(Transaction tx) {
+    @Override
+    public void executeAndAddToPendingPool(Transaction tx) {
         Sha3Hash curStateRootHash = contractManager.executePendingTxWithStateRoot(tx);
+        log.debug("executeAndAddToPendingPool : curStateRootHash {}", curStateRootHash);
         if (curStateRootHash != null) {
-            blockChainManager.addTransaction(tx, curStateRootHash);
+            blockChainManager.setPendingStateRoot(curStateRootHash);
+            blockChainManager.addTransaction(tx);
         }
     }
 

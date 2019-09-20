@@ -16,6 +16,8 @@
 
 package io.yggdrash.node.config;
 
+import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.Constants.ActiveProfiles;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
@@ -146,6 +148,16 @@ public class BranchConfiguration {
                 .withLogStore(blockChainStore.getLogStore()) // is this logstore for what?
                 .withSystemProperties(systemProperties) // Contract Executor. do not need contractManager.
                 .build();
+
+        Sha3Hash genesisStateRootHash;
+        if (genesis.getContractTxs().size() > 0) {
+             genesisStateRootHash = new Sha3Hash(contractManager.executePendingTxs(genesis.getContractTxs())
+                    .getBlockResult().get("stateRoot").get("stateHash").getAsString());
+            blockChainManager.setPendingStateRoot(genesisStateRootHash);
+        } else {
+            genesisStateRootHash = new Sha3Hash(Constants.EMPTY_HASH);
+        }
+        genesis.toBlock(genesisStateRootHash);
 
         BlockChain blockChain = BlockChainBuilder.newBuilder()
                 .setGenesis(genesis)

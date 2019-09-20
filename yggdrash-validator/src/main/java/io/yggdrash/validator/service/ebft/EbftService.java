@@ -2,6 +2,7 @@ package io.yggdrash.validator.service.ebft;
 
 import com.google.protobuf.ByteString;
 import com.typesafe.config.ConfigException;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
@@ -299,7 +300,10 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
     }
 
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
-        List<Transaction> txList = new ArrayList<>(blockChain.getBlockChainManager().getUnconfirmedTxs());
+        Map<Sha3Hash, List<Transaction>> unconfirmedTxsWithStateRoot
+                = blockChain.getBlockChainManager().getUnconfirmedTxsWithStateRoot();
+        Sha3Hash curStateRootHash = unconfirmedTxsWithStateRoot.keySet().iterator().next();
+        List<Transaction> txList = unconfirmedTxsWithStateRoot.get(curStateRootHash);
 
         BlockBody newBlockBody = new BlockBody(txList);
         BlockHeader newBlockHeader = new BlockHeader(
@@ -309,6 +313,7 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
                 prevBlockHash,
                 index,
                 TimeUtils.time(),
+                curStateRootHash.getBytes(),
                 newBlockBody);
         return new BlockImpl(newBlockHeader, wallet, newBlockBody);
     }

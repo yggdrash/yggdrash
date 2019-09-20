@@ -22,6 +22,7 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.Receipt;
+import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.DuplicatedException;
 import org.junit.Assert;
@@ -147,9 +148,11 @@ public class BranchGroupTest {
 
     @Test
     public void addBlock() {
+        ContractManager contractManager = branchGroup.getBranch(tx.getBranchId()).getContractManager();
         Map<String, List<String>> errLogs = branchGroup.addTransaction(tx);
         branchGroup.addBlock(block);
-        ConsensusBlock newBlock = BlockChainTestUtils.createNextBlock(Collections.singletonList(tx), block);
+        ConsensusBlock newBlock
+                = BlockChainTestUtils.createNextBlock(Collections.singletonList(tx), block, contractManager);
         branchGroup.addBlock(newBlock);
 
         assertThat(branchGroup.getLastIndex(newBlock.getBranchId())).isEqualTo(2);

@@ -3,6 +3,7 @@ package io.yggdrash.core.consensus;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.store.BlockKeyStore;
 
 import java.util.List;
@@ -23,6 +24,8 @@ public interface ConsensusBlockChain<T, V> {
     Map<String, List<String>> addBlock(ConsensusBlock<T> block); // return errorLogs
 
     Map<String, List<String>> addBlock(ConsensusBlock<T> block, boolean broadcast); // return errorLogs
+
+    void executeAndAddToPendingPool(Transaction tx);
 
     boolean isValidator(String addr);
 

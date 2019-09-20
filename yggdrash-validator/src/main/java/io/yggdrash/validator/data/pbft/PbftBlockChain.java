@@ -7,6 +7,7 @@ import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
@@ -160,6 +161,11 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
         this.blockKeyStore.put(block.getIndex(), block.getHash().getBytes());
         loggingBlock((PbftBlock) block);
         return new HashMap<>();
+    }
+
+    @Override
+    public void executeAndAddToPendingPool(Transaction tx) {
+
     }
 
     @Override
