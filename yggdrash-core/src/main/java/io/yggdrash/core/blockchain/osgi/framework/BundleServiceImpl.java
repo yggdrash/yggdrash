@@ -158,6 +158,21 @@ public class BundleServiceImpl implements BundleService {
     }
 
     @Override
+    public List<Bundle> getBundlesByName(String contractName) {
+        List<Bundle> bundleList = new ArrayList<>();
+
+        for (Bundle bundle: getBundles()) {
+            Dictionary<String, String> header = bundle.getHeaders();
+            if (header.get("Bundle-Name").equals(contractName)) {
+                bundleList.add(bundle);
+            }
+        }
+
+        return bundleList;
+
+    }
+
+    @Override
     public Bundle getBundle(ContractVersion contractVersion) {
         return context.getBundle(contractVersion.toString());
     }

@@ -22,10 +22,13 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.common.contract.vo.dpoa.Validator;
+import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.SystemProperties;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractConstants;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
@@ -37,6 +40,7 @@ import io.yggdrash.core.blockchain.osgi.framework.BundleServiceImpl;
 import io.yggdrash.core.blockchain.osgi.framework.FrameworkConfig;
 import io.yggdrash.core.blockchain.osgi.framework.FrameworkLauncher;
 import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
 import io.yggdrash.core.store.ContractStore;
@@ -55,6 +59,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -92,6 +97,51 @@ public class ContractTestUtils {
         return res;
     }
 
+    public static Sha3Hash calStateRoot(ContractManager contractManager, List<Transaction> txs) {
+        if (txs.size() > 0) {
+            BlockRuntimeResult executePendingTxs = contractManager.executePendingTxs(txs);
+            return new Sha3Hash(executePendingTxs.getBlockResult().get("stateRoot").get("stateHash").getAsString());
+        } else {
+            return contractManager.getOriginStateRoot();
+        }
+    }
+
+    public static Sha3Hash calStateRoot(ConsensusBlock prevBlock, List<Transaction> txs) {
+        Map<ContractManager, ContractStore> map = createContractManager(BlockChainTestUtils.getGenesis());
+        ContractManager contractManager =  map.keySet().stream().findFirst().get();
+        ContractStore contractStore = map.get(contractManager);
+        Map<String, Validator> validatorMap = new HashMap<>();
+        validatorMap.put("TEST1",
+                new Validator("a2b0f5fce600eb6c595b28d6253bed92be0568ed"));
+        validatorMap.put("TEST2",
+                new Validator("a2b0f5fce600eb6c595b28d6253bed92be0568ed"));
+        validatorMap.put("TEST3",
+                new Validator("a2b0f5fce600eb6c595b28d6253bed92be0568ed"));
+        ValidatorSet validatorSet = new ValidatorSet();
+        validatorSet.setValidatorMap(validatorMap);
+        contractStore.getBranchStore().setValidators(validatorSet);
+
+        contractManager.executeTxs(BlockChainTestUtils.genesisBlock());
+
+        if (prevBlock.getHeader().getIndex() != 0L) {
+            byte[] prevStateRoot = prevBlock.getHeader().getStateRoot();
+            contractStore.getStateStore().put("stateRoot", createStateHashObj(prevStateRoot));
+            contractManager.executeTxs(prevBlock);
+        }
+
+        contractManager.endBlock(prevBlock);
+        contractManager.executePendingTxs(txs);
+
+        return contractStore.getPendingStateStore().getStateRoot();
+    }
+
+    private static JsonObject createStateHashObj(byte[] stateRootBytes) {
+        Sha3Hash prevStateRootHash = new Sha3Hash(stateRootBytes, true);
+        JsonObject stateHash = new JsonObject();
+        stateHash.addProperty("stateHash", prevStateRootHash.toString());
+        return  stateHash;
+    }
+
     public static String setNamespace(ContractManager manager, ContractVersion contractVersion) {
         Bundle bundle = manager.getBundle(contractVersion);
         String name = bundle.getSymbolicName();
@@ -119,8 +169,8 @@ public class ContractTestUtils {
         return new Wallet(path, "Aa1234567890!");
     }
 
-    public static JsonObject contractProposeTxBodyJson(String contractVersion) {
-        return nodeContractTxBodJson("propose", contractProposeParam(contractVersion));
+    public static JsonObject contractProposeTxBodyJson(String contractVersion, String proposalType) {
+        return nodeContractTxBodJson("propose", contractProposeParam(contractVersion, proposalType));
     }
 
     public static JsonObject contractVoteTxBodyJson(String txId, boolean agree) {
@@ -136,11 +186,12 @@ public class ContractTestUtils {
         return txBody;
     }
 
-    private static JsonObject contractProposeParam(String contractVersion) {
+    private static JsonObject contractProposeParam(String contractVersion, String proposalType) {
         JsonObject param = new JsonObject();
-        param.addProperty("contractVersion", contractVersion);
+        param.addProperty("proposalVersion", contractVersion);
         param.addProperty("sourceUrl", "https://github.com/yggdrash/yggdrash");
         param.addProperty("buildVersion", "1.8.0_172");
+        param.addProperty("proposalType", proposalType);
 
         return param;
     }
@@ -287,4 +338,5 @@ public class ContractTestUtils {
         }
         return raw;
     }
+
 }

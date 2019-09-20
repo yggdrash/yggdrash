@@ -64,7 +64,7 @@ task contractsPackage(type: Jar) {
     manifest {
         attributes(
                 'Bundle-ManifestVersion': '2',
-                'Bundle-Name': 'Token Contract',
+                'Bundle-Name': 'TOKEN',
                 'Bundle-Description': 'Token Contract',
                 'Bundle-Vendor': 'YGGDRASH',
                 'Bundle-SymbolicName': 'io.yggdrash.contract.token.TokenContract',
@@ -75,7 +75,8 @@ task contractsPackage(type: Jar) {
     }
     preserveFileTimestamps = false
     exclude(excludeList)
-    archiveName "system-token-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+    project.archivesBaseName = manifest.attributes.get('Bundle-Name')
+    project.version = manifest.attributes.get('Bundle-Version')
 }
 
 

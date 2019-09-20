@@ -112,7 +112,7 @@ public class VersioningContractDemoClient {
         System.out.println("제안한 Contract Version 선택 : [1] CoinContract(1.0.0)  [2] StemContract(2.0.0");
         String num = scan.nextLine();
         String contractVersion = num.equals("2") ? testStemContractVersion : testCoinContractVersion;
-        Transaction proposeTx = BlockChainTestUtils.createContractProposeTx(valWallet1, contractVersion);
+        Transaction proposeTx = BlockChainTestUtils.createContractProposeTx(valWallet1, contractVersion, "activate");
         lastTxId = ContractDemoClientUtils.sendTx(proposeTx);
         proposalTxId = lastTxId;
     }

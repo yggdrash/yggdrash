@@ -221,13 +221,32 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
         }
     }
 
+    /**
+     * save new contract in store
+     * @param contract
+     */
+    public void addBranchContract(BranchContract contract) {
+        this.contracts.add(contract);
+        setBranchContracts(this.contracts);
+
+    }
+
+    /**
+     * delete contract in store
+     * @param contractVersion
+     */
+    public void removeBranchContract(String contractVersion) {
+        this.contracts.remove(getBranchContractByVersion(contractVersion));
+        setBranchContracts(this.contracts);
+    }
+
     /***
      * Get Branch's Contract List
      * @return Branch Contract List
      */
     public List<BranchContract> getBranchContacts() {
         if (this.contracts != null) {
-            return contracts.stream().collect(Collectors.toList());
+            return new ArrayList<>(contracts);
         }
         contracts = new ArrayList<>();
         JsonObject contract = store.get(BlockchainMetaInfo.BRANCH_CONTRACTS.toString());
@@ -240,42 +259,68 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
                 contracts.add(BranchContract.of(contractObject));
             }
         }
-        return contracts.stream().collect(Collectors.toList());
+        return new ArrayList<>(contracts);
     }
 
     /**
-     * Get branch Versions by Name
+     * get contract list by contract name.
+     * @param contractName
+     * @return
+     */
+    public List<BranchContract> getBranchContractsByName(String contractName) {
+        List<BranchContract> result = new ArrayList<>();
+        for (BranchContract bc: this.contracts) {
+            if (bc.getName().equals(contractName)) {
+                result.add(bc);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * get branch contract by contract version.
+     * @param contractVersion
+     * @return BranchContract
+     */
+    private BranchContract getBranchContractByVersion(String contractVersion) {
+        Optional<BranchContract> contract = this.contracts.stream()
+                .filter(c -> contractVersion.equalsIgnoreCase(c.getContractVersion().toString()))
+                .findFirst();
+        return contract.orElse(null);
+    }
+
+    /**
+     * Get contract version by contact name
      * @param contractName find contract Name
      * @return contract version
      */
     @Override
     public String getContractVersion(String contractName) {
-        Optional<BranchContract> contract = this.contracts.stream()
+        List<BranchContract> contractList = this.contracts.stream()
                 .filter(c -> contractName.equalsIgnoreCase(c.getName()))
-                .findFirst();
+                .collect(Collectors.toList());
 
-        if (contract.isPresent()) {
-            return contract.get().getContractVersion().toString();
+        if (!contractList.isEmpty()) {
+            return contractList.get(contractList.size() - 1).getName();
         }
-        // TODO get branch Versions by Name
         return null;
     }
 
     /**
-     * Get branch Versions by Name
+     * Get contract name by contact version
      * @param contractVersion find contract version
      * @return contract name
      */
     @Override
     public String getContractName(String contractVersion) {
-        // get branch Name by ContractVersion
-        Optional<BranchContract> contract = this.contracts.stream()
+        // get contract Name by ContractVersion
+        List<BranchContract> contractList = this.contracts.stream()
                 .filter(c -> contractVersion.equalsIgnoreCase(c.getContractVersion().toString()))
-                .findFirst();
-        if (contract.isPresent()) {
-            return contract.get().getName();
-        }
+                .collect(Collectors.toList());
 
+        if (!contractList.isEmpty()) {
+            return contractList.get(contractList.size() - 1).getName();
+        }
         return null;
     }
 

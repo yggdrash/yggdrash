@@ -16,6 +16,8 @@
 
 package io.yggdrash.node.config;
 
+import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.Constants.ActiveProfiles;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
@@ -135,6 +137,8 @@ public class BranchConfiguration {
         FrameworkConfig frameworkConfig = new BootFrameworkConfig(config, branchId);
         FrameworkLauncher frameworkLauncher = new BootFrameworkLauncher(frameworkConfig);
         BundleServiceImpl bundleService = new BundleServiceImpl(frameworkLauncher.getBundleContext());
+        // fix me downloader @lucas. 190909.
+        new Downloader(config);
 
         ContractManager contractManager = ContractManagerBuilder.newInstance()
                 .withGenesis(genesis)
@@ -144,6 +148,16 @@ public class BranchConfiguration {
                 .withLogStore(blockChainStore.getLogStore()) // is this logstore for what?
                 .withSystemProperties(systemProperties) // Contract Executor. do not need contractManager.
                 .build();
+
+        Sha3Hash genesisStateRootHash;
+        if (genesis.getContractTxs().size() > 0) {
+             genesisStateRootHash = new Sha3Hash(contractManager.executePendingTxs(genesis.getContractTxs())
+                    .getBlockResult().get("stateRoot").get("stateHash").getAsString());
+            blockChainManager.setPendingStateRoot(genesisStateRootHash);
+        } else {
+            genesisStateRootHash = new Sha3Hash(Constants.EMPTY_HASH);
+        }
+        genesis.toBlock(genesisStateRootHash);
 
         BlockChain blockChain = BlockChainBuilder.newBuilder()
                 .setGenesis(genesis)
@@ -155,11 +169,6 @@ public class BranchConfiguration {
 
         blockChain.addListener(contractManager);
         return blockChain;
-    }
-
-    @Bean
-    Downloader downloader(DefaultConfig defaultConfig) {
-        return new Downloader(defaultConfig);
     }
 
 }

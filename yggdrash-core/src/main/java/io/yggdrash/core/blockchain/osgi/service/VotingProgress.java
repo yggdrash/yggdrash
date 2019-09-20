@@ -25,10 +25,12 @@ public class VotingProgress implements Serializable {
     public Map<String, Vote> votingHistory;
     public VotingStatus votingStatus;
 
-    enum VotingStatus {
-        VOTABLE,
+    public enum VotingStatus {
+        VOTEABLE,
         AGREE,
-        DISAGREE
+        DISAGREE,
+        EXPIRED,
+        APPLYING
     }
 
     VotingProgress() {
@@ -41,7 +43,7 @@ public class VotingProgress implements Serializable {
         this.disagreeCnt = 0;
         this.votingHistory = new HashMap<>();
         validatorSet.forEach(validator -> this.votingHistory.put(validator, new Vote()));
-        this.votingStatus = VotingStatus.VOTABLE;
+        this.votingStatus = VotingStatus.VOTEABLE;
     }
 
     void vote(String issuer, boolean agree) {
@@ -51,20 +53,35 @@ public class VotingProgress implements Serializable {
             disagreeCnt++;
         }
         votingHistory.put(issuer, new Vote(agree));
-        votingStatus = isAgreed() ? VotingStatus.AGREE : VotingStatus.DISAGREE;
+        isAgreed();
     }
 
     boolean hashVoted(String issuer) {
         return votingHistory.get(issuer).isVoted;
     }
 
-    private boolean isAgreed() {
+
+    boolean isAgreed() {
         int cnt = (int) (((double) totalVotingCnt * 0.66) + 1.0);
-        return agreeCnt >= cnt;
+
+        boolean bAgreed = agreeCnt >= cnt;
+        if (bAgreed) {
+            votingStatus = VotingStatus.AGREE;
+        }
+
+        if (disagreeCnt > totalVotingCnt - cnt) {
+            votingStatus = VotingStatus.DISAGREE;
+        }
+
+        return bAgreed;
     }
 
     VotingStatus getVotingStatus() {
         return votingStatus;
+    }
+
+    void setVotingStatus(VotingStatus votingStatus) {
+        this.votingStatus = votingStatus;
     }
 
     static class Vote implements Serializable {

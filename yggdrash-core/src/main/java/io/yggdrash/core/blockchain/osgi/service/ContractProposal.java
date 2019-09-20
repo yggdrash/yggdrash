@@ -23,7 +23,7 @@ public class ContractProposal implements Serializable, Comparable<ContractPropos
     public String txId;
     public String proposer;
 
-    public String contractVersion;
+    public String proposalVersion;
     public String sourceUrl;
     public String buildVersion;
 
@@ -31,25 +31,29 @@ public class ContractProposal implements Serializable, Comparable<ContractPropos
     public long applyBlockHeight;
 
     public VotingProgress votingProgress;
+    public ProposalType proposalType;
+
 
     ContractProposal() {
 
     }
 
-    ContractProposal(String txId, String proposer, String contractVersion, String sourceUrl,
-                     String buildVersion, long blockHeight, Set<String> validatorSet) {
+    public ContractProposal(String txId, String proposer, String proposalVersion, String sourceUrl,
+                     String buildVersion, long blockHeight, Set<String> validatorSet, String proposalType) {
         this.txId = txId;
         this.proposer = proposer;
-        this.contractVersion = contractVersion;
+        this.proposalVersion = proposalVersion;
         this.sourceUrl = sourceUrl;
         this.buildVersion = buildVersion;
         this.targetBlockHeight = blockHeight + DEFAULT_PERIOD;
         this.applyBlockHeight = targetBlockHeight + DAY;
         this.votingProgress = new VotingProgress(validatorSet);
+        this.proposalType = ProposalType.valueOf(proposalType);
     }
 
     boolean isExpired(long blockHeight) {
-        return blockHeight > targetBlockHeight;
+        return votingProgress.votingStatus.equals(VotingProgress.VotingStatus.EXPIRED)
+                | blockHeight > targetBlockHeight;
     }
 
     boolean hasAlreadyVoted(String validator) {
@@ -61,15 +65,19 @@ public class ContractProposal implements Serializable, Comparable<ContractPropos
     }
 
     boolean isAgreed() {
-        return votingProgress.getVotingStatus() == VotingProgress.VotingStatus.AGREE;
+        return votingProgress.isAgreed();
+    }
+
+    void setVotingStatus(VotingProgress.VotingStatus status) {
+        this.votingProgress.setVotingStatus(status);
     }
 
     String getTxId() {
         return txId;
     }
 
-    String getContractVersion() {
-        return contractVersion;
+    public String getProposalVersion() {
+        return proposalVersion;
     }
 
     public String getSourceUrl() {
@@ -92,9 +100,13 @@ public class ContractProposal implements Serializable, Comparable<ContractPropos
         return votingProgress;
     }
 
+    public ProposalType getProposalType() {
+        return this.proposalType;
+    }
+
     @Override
     public int compareTo(ContractProposal proposal) {
-        return contractVersion.compareTo(proposal.contractVersion);
+        return proposalVersion.compareTo(proposal.proposalVersion);
     }
 
 }

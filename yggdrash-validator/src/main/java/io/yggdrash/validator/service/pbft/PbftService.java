@@ -298,9 +298,11 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
-        Map<Sha3Hash, List<Transaction>> unconfirmedTxsWithStateRoot = blockChain.getBlockChainManager().getUnconfirmedTxsWithStateRoot();
+        Map<Sha3Hash, List<Transaction>> unconfirmedTxsWithStateRoot
+                = blockChain.getBlockChainManager().getUnconfirmedTxsWithStateRoot();
         Sha3Hash curStateRootHash = unconfirmedTxsWithStateRoot.keySet().iterator().next();
         List<Transaction> txList = unconfirmedTxsWithStateRoot.get(curStateRootHash);
+        log.debug("makeNexBlock : stateRootHash {}, txList size {}", curStateRootHash, txList.size());
 
         BlockBody newBlockBody = new BlockBody(txList);
 
@@ -312,6 +314,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
                 prevBlockHash,
                 index,
                 TimeUtils.time(),
+                curStateRootHash.getBytes(),
                 newBlockBody);
         return new BlockImpl(newBlockHeader, wallet, newBlockBody);
     }
