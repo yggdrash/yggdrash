@@ -2,6 +2,7 @@ package io.yggdrash.core.blockchain.osgi;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.ContractVersion;
@@ -276,6 +277,12 @@ public class ContractManager implements ContractEventListener {
     // Executor Services
     public Object query(String contractVersion, String methodName, JsonObject params) {
         return contractExecutor.query(serviceMap, contractVersion, methodName, params);
+    }
+
+    public Sha3Hash getOriginStateRoot() {
+        return contractStore.getStateStore().contains("stateRoot")
+                ? new Sha3Hash(contractStore.getStateStore().get("stateRoot").get("stateHash").getAsString())
+                : new Sha3Hash(Constants.EMPTY_HASH);
     }
 
     public BlockRuntimeResult endBlock(ConsensusBlock addedBlock) {
