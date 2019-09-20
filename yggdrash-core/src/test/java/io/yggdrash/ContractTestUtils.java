@@ -169,8 +169,8 @@ public class ContractTestUtils {
         return new Wallet(path, "Aa1234567890!");
     }
 
-    public static JsonObject contractProposeTxBodyJson(String contractVersion) {
-        return nodeContractTxBodJson("propose", contractProposeParam(contractVersion));
+    public static JsonObject contractProposeTxBodyJson(String contractVersion, String proposalType) {
+        return nodeContractTxBodJson("propose", contractProposeParam(contractVersion, proposalType));
     }
 
     public static JsonObject contractVoteTxBodyJson(String txId, boolean agree) {
@@ -186,11 +186,12 @@ public class ContractTestUtils {
         return txBody;
     }
 
-    private static JsonObject contractProposeParam(String contractVersion) {
+    private static JsonObject contractProposeParam(String contractVersion, String proposalType) {
         JsonObject param = new JsonObject();
-        param.addProperty("contractVersion", contractVersion);
+        param.addProperty("proposalVersion", contractVersion);
         param.addProperty("sourceUrl", "https://github.com/yggdrash/yggdrash");
         param.addProperty("buildVersion", "1.8.0_172");
+        param.addProperty("proposalType", proposalType);
 
         return param;
     }

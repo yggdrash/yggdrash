@@ -26,6 +26,8 @@ public interface BundleService {
 
     Bundle[] getBundles();
 
+    List<Bundle> getBundlesByName(String contractName);
+
     Bundle getBundle(ContractVersion contractVersion);
 
     Object getBundleService(Bundle bundle);

@@ -137,6 +137,8 @@ public class BranchConfiguration {
         FrameworkConfig frameworkConfig = new BootFrameworkConfig(config, branchId);
         FrameworkLauncher frameworkLauncher = new BootFrameworkLauncher(frameworkConfig);
         BundleServiceImpl bundleService = new BundleServiceImpl(frameworkLauncher.getBundleContext());
+        // fix me downloader @lucas. 190909.
+        new Downloader(config);
 
         ContractManager contractManager = ContractManagerBuilder.newInstance()
                 .withGenesis(genesis)
@@ -167,11 +169,6 @@ public class BranchConfiguration {
 
         blockChain.addListener(contractManager);
         return blockChain;
-    }
-
-    @Bean
-    Downloader downloader(DefaultConfig defaultConfig) {
-        return new Downloader(defaultConfig);
     }
 
 }

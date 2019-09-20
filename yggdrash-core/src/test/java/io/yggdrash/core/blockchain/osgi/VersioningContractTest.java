@@ -22,7 +22,9 @@ import io.yggdrash.contract.core.annotation.ContractReceipt;
 import io.yggdrash.contract.core.channel.ContractEventType;
 import io.yggdrash.core.blockchain.osgi.service.ContractProposal;
 import io.yggdrash.core.blockchain.osgi.service.VersioningContract;
+import io.yggdrash.core.blockchain.osgi.service.VotingProgress;
 import io.yggdrash.core.store.StoreAdapter;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,11 +37,13 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -103,7 +107,7 @@ public class VersioningContractTest {
     private static long DEFAULT_PERIOD = 60480L;
 
     @Test
-    public void endBlockTest() {
+    public void endBlockTestInstallEvent() {
         contractPropose();
 
         // issuer1 is proposer
@@ -123,8 +127,24 @@ public class VersioningContractTest {
         assertEquals(1, adapter.getEvents().size());
         ContractEvent event = adapter.getEvents().stream().findFirst().get();
         log.info("EndBlock Status : {},  Event : {}", adapter.getStatus(), JsonUtil.parseJsonObject(event));
-        assertEquals(ContractEventType.INSTALL, event.getType());
-        assertEquals(updateContract, event.getItem());
+        assertEquals(ContractEventType.AGREE, event.getType());
+
+    }
+
+    @Test
+    public void endblockTestExpiredEvent() {
+        contractPropose();
+
+        // EndBlock receipt
+        Receipt receipt = new ReceiptImpl();
+        receipt.setBlockHeight(curBlockHeight + DEFAULT_PERIOD); // EndBlock Height
+        adapter.setReceipt(receipt);
+
+        service.endBlock();
+
+        assertEquals(ExecuteStatus.SUCCESS, adapter.getStatus());
+        assertEquals(VotingProgress.VotingStatus.EXPIRED, proposalStatus().getVotingProgress().votingStatus);
+
     }
 
     @Test
@@ -139,12 +159,13 @@ public class VersioningContractTest {
         // issuer1 is proposer
         vote(issuer3, false);
 
+        Assert.assertEquals(VotingProgress.VotingStatus.VOTEABLE, proposalStatus().getVotingProgress().votingStatus);
+
         assertTrue(adapter.getLog().contains("Update proposal voting is in progress"));
 
         vote(issuer2, true); // agreeCnt -> 2/3
 
-        assertTrue(adapter.getLog().contains("Contract file has been downloaded"));
-        assertTrue(adapter.getLog().contains("Update proposal voting was completed successfully"));
+        Assert.assertEquals(VotingProgress.VotingStatus.AGREE, proposalStatus().getVotingProgress().votingStatus);
     }
 
     @Test
@@ -208,9 +229,10 @@ public class VersioningContractTest {
         adapter.setReceipt(receipt);
 
         JsonObject param = new JsonObject();
-        param.addProperty("contractVersion", updateContract);
+        param.addProperty("proposalVersion", updateContract);
         param.addProperty("sourceUrl", "https://github.com/yggdrash/yggdrash");
         param.addProperty("buildVersion", "1.8.0_172");
+        param.addProperty("proposalType", "activate");
 
         service.propose(param);
 

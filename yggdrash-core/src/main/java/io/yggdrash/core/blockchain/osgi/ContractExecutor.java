@@ -305,7 +305,7 @@ public class ContractExecutor {
         return service;
     }
 
-    private Object invokeMethod(Object service, Method method, JsonObject params) throws Exception {
+    private Object invokeMethod(Object service, Method method, JsonObject params) throws InvocationTargetException, IllegalAccessException {
         return method.getParameterCount() == 0 ? method.invoke(service) : method.invoke(service, params);
     }
 

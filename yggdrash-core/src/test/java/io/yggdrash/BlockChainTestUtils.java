@@ -242,12 +242,15 @@ public class BlockChainTestUtils {
                 .withBundleManager(bundleService)
                 .withDefaultConfig(config)
                 .withContractStore(contractStore)
-                .withLogStore(bcStore.getLogStore()) // is this logstore for what?
+                .withLogStore(bcStore.getLogStore())
                 .withSystemProperties(systemProperties)
                 .build();
 
-        Assert.assertTrue(contractManager.getBundles().length
-                >= genesis.getBranch().getBranchContracts().size());
+        int numOfBundles =  contractManager.getBundles().length;
+        int numOfBranchContracts = genesis.getBranch().getBranchContracts().size();
+
+        // System bundle + contract bundle
+        Assert.assertEquals(numOfBundles, numOfBranchContracts + 1);
 
         BlockChainManager blockChainManager = new BlockChainManagerImpl(bcStore);
 
@@ -324,12 +327,12 @@ public class BlockChainTestUtils {
         return blockList.size() > 0 ? blockList : Collections.emptyList();
     }
 
-    public static Transaction createContractProposeTx(String contractVersion) {
-        return createContractProposeTx(TestConstants.transferWallet(), contractVersion);
+    public static Transaction createContractProposeTx(String contractVersion, String proposalType) {
+        return createContractProposeTx(TestConstants.transferWallet(), contractVersion, proposalType);
     }
 
-    public static Transaction createContractProposeTx(Wallet wallet, String contractVersion) {
-        return buildTx(ContractTestUtils.contractProposeTxBodyJson(contractVersion),
+    public static Transaction createContractProposeTx(Wallet wallet, String contractVersion, String proposalType) {
+        return buildTx(ContractTestUtils.contractProposeTxBodyJson(contractVersion, proposalType),
                 wallet, TestConstants.yggdrash());
     }
 
