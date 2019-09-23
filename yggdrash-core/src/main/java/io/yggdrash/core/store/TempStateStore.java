@@ -57,11 +57,11 @@ public class TempStateStore implements ReadWriterStore<String, JsonObject> {
 
     private JsonObject stateRoot(String key, JsonObject value) {
         byte[] changedStateRootByte =  HashUtil.sha3(key.concat(value.toString()).getBytes());
-        log.debug("key={} value={} changedStateRoot={}",
+        log.trace("key={} value={} changedStateRoot={}",
                 key, value.toString(), stateRootHash.toString(), Hex.toHexString(changedStateRootByte));
-        log.debug("before stateRootHash={}", stateRootHash);
+        log.trace("before stateRootHash={}", stateRootHash);
         stateRootHash = new Sha3Hash(Bytes.concat(stateRootHash.getBytes(), changedStateRootByte));
-        log.debug("after stateRootHash={}", stateRootHash);
+        log.trace("after stateRootHash={}", stateRootHash);
 
         return stateRootObj(stateRootHash);
     }
