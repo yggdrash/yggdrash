@@ -264,10 +264,10 @@ public class PbftBlockStoreTest {
         assertFalse(blockStore.contains(Sha3Hash.createByHashed(Constants.EMPTY_HASH)));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void closeTest() {
         blockStore.close();
-        blockStore.get(this.pbftBlock.getHash());
+        assertEquals(null, blockStore.get(this.pbftBlock.getHash()));
     }
 
     @Test
