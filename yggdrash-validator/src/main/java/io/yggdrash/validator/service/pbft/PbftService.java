@@ -24,7 +24,6 @@ import io.yggdrash.validator.data.pbft.PbftStatus;
 import io.yggdrash.validator.data.pbft.PbftVerifier;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -113,8 +112,14 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         }
 
         lock.lock();
-        PbftMessage viewChangeMsg = makeViewChangeMsg();
-        lock.unlock();
+        PbftMessage viewChangeMsg = null;
+        try {
+            viewChangeMsg = makeViewChangeMsg();
+        } catch (Exception e) {
+            log.debug("makeViewChangeMsg() is failed. {}", e.getMessage());
+        } finally {
+            lock.unlock();
+        }
         if (viewChangeMsg != null) {
             multicastMessage(viewChangeMsg);
             if (!waitingForMessage(Constants.PBFT_VIEWCHANGE)) {
@@ -123,13 +128,25 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         }
 
         lock.lock();
-        checkPrimary();
-        lock.unlock();
+        try {
+            checkPrimary();
+        } catch (Exception e) {
+            log.debug("checkPrimary() is failed. {}", e.getMessage());
+        } finally {
+            lock.unlock();
+        }
 
         // make PrePrepare msg
         lock.lock();
-        PbftMessage prePrepareMsg = makePrePrepareMsg();
-        lock.unlock();
+        PbftMessage prePrepareMsg = null;
+        try {
+            prePrepareMsg = makePrePrepareMsg();
+        } catch (Exception e) {
+            log.debug("makePrePrepareMsg() is failed. {}", e.getMessage());
+        } finally {
+            lock.unlock();
+        }
+
         if (prePrepareMsg != null) {
             multicastMessage(prePrepareMsg);
         } else if (!waitingForMessage(Constants.PBFT_PREPREPARE)) {
@@ -139,8 +156,15 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
         // make Prepare msg
         lock.lock();
-        PbftMessage prepareMsg = makePrepareMsg();
-        lock.unlock();
+        PbftMessage prepareMsg = null;
+        try {
+            prepareMsg = makePrepareMsg();
+        } catch (Exception e) {
+            log.debug("makePrepareMsg() is failed. {}", e.getMessage());
+        } finally {
+            lock.unlock();
+        }
+
         if (prepareMsg != null) {
             multicastMessage(prepareMsg);
             if (!waitingForMessage(Constants.PBFT_PREPARE)) {
@@ -150,8 +174,15 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
         // make commit msg
         lock.lock();
-        PbftMessage commitMsg = makeCommitMsg();
-        lock.unlock();
+        PbftMessage commitMsg = null;
+        try {
+            commitMsg = makeCommitMsg();
+        } catch (Exception e) {
+            log.debug("makeCommitMsg() is failed. {}", e.getMessage());
+        } finally {
+            lock.unlock();
+        }
+
         if (commitMsg != null) {
             multicastMessage(commitMsg);
             if (!waitingForMessage(Constants.PBFT_COMMIT)) {
@@ -160,8 +191,15 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         }
 
         lock.lock();
-        PbftBlock block = confirmFinalBlock();
-        lock.unlock();
+        PbftBlock block = null;
+        try {
+            block = confirmFinalBlock();
+        } catch (Exception e) {
+            log.debug("confirmFinalBlock() is failed. {}", e.getMessage());
+        } finally {
+            lock.unlock();
+        }
+
         if (block != null) {
             broadcastBlock(block, this.proxyNodeMap);
         }
@@ -170,7 +208,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     private boolean waitingForMessage(String message) {
         int messageCount;
         for (int i = 0; i < consensusCount; i++) {
-            if (Constants.PBFT_PREPARE.equals(message)) {
+            if (Constants.PBFT_PREPREPARE.equals(message)) {
                 messageCount = 1;
             } else {
                 messageCount = consensusCount;
@@ -192,13 +230,15 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     private void loggingStatus() {
-        log.info("Status: activeNode={}, "
-                        + "failCount={}, isActive={}, isSynced={}, isPrePrepared={}, isPrepared={}, isCommitted={} "
-                        + "unConfirmedMsgCount={}, unConfirmedTxCount={}",
+        log.info("Status: node={}, "
+                        + "fail={}, active={}, synced={}, prePrepared={}, prepared={}, committed={} "
+                        + "unConMsg={}, unConTx={}, viewNum={}, seqNum={}",
                 getActiveNodeCount(),
                 this.failCount, this.isActive, this.isSynced, this.isPrePrepared, this.isPrepared, this.isCommitted,
                 this.blockChain.getUnConfirmedData().size(),
-                blockChain.getBlockChainManager().getUnconfirmedTxs().size());
+                blockChain.getBlockChainManager().getUnconfirmedTxs().size(),
+                this.viewNumber,
+                this.seqNumber);
         if (log.isTraceEnabled()) {
             for (PbftMessage message : this.blockChain.getUnConfirmedData().values()) {
                 log.trace(message.toJsonObject().toString());
@@ -242,6 +282,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     private PbftMessage makePrePrepareMsg() {
         if (!this.isPrimary
                 || this.isPrePrepared) {
+            log.trace("isPrimary({}), isPrePrepared({})", isPrimary, isPrePrepared);
             return null;
         }
 
@@ -322,6 +363,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     private PbftMessage makePrepareMsg() {
         if (!this.isPrePrepared
                 || this.isPrepared) {
+            log.trace("isPrePrepared({}), isPrepared({})", isPrePrepared, isPrepared);
             return null;
         }
 
@@ -366,6 +408,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     private PbftMessage makeCommitMsg() {
         if (!this.isPrepared
                 || this.isCommitted) {
+            log.trace("isPrepared({}), isCommitted({})", isPrepared, isCommitted);
             return null;
         }
 
@@ -614,14 +657,14 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         if (myStatus == null) {
             return;
         }
-        log.trace("My PbftStatus is {}", myStatus);
+        log.trace("My PbftStatus is {}", myStatus.toJsonObject());
 
         PbftStatus pbftStatus = client.exchangePbftStatus(PbftStatus.toProto(myStatus));
         if (pbftStatus == null) {
             client.setIsRunning(false);
             return;
         }
-        log.trace("Client {} PbftStatus is {}", client, myStatus);
+        log.trace("Client {} PbftStatus is {}", client, pbftStatus.toJsonObject());
 
         updateStatus(client, pbftStatus);
         pbftStatus.clear();
@@ -672,9 +715,16 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         PbftBlock pbftBlock;
         for (; i < pbftBlockList.size(); i++) {
             pbftBlock = pbftBlockList.get(i);
-            if (!PbftVerifier.INSTANCE.verify(pbftBlock)
-                    || this.blockChain.addBlock(pbftBlock, false).size() > 0) {
-                log.warn("Failed verifing a block when syncing");
+            boolean verifyResult = PbftVerifier.INSTANCE.verify(pbftBlock);
+            if (!verifyResult) {
+                log.debug("Block verify() is failed. [{}] {}", pbftBlock.getIndex(), client.getId());
+                client.setIsRunning(false);
+                return;
+            }
+
+            Map<String, List<String>> addBlockResult = this.blockChain.addBlock(pbftBlock, false);
+            if (addBlockResult.size() > 0) {
+                log.debug("addBlock() failed. {}", addBlockResult.toString());
                 client.setIsRunning(false);
                 for (PbftBlock pbBlock : pbftBlockList) {
                     pbBlock.clear();
