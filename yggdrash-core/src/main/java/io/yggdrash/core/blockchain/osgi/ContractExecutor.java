@@ -106,7 +106,7 @@ public class ContractExecutor {
                     // todo : Implements event store policy. 190814 - lucas
 
                 } catch (IllegalAccessException e) {
-                    log.warn(e.getMessage());
+                    log.debug("inject() is failed. {}", e.getMessage());
                 }
             }
         }

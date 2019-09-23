@@ -469,7 +469,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
                 switch (pbftMessage.getType()) {
                     case Constants.PBFT_PREPREPARE:
                         if (prePrepareMsg != null) {
-                            log.warn("PrePrepare msg is duplicated.");
+                            log.debug("PrePrepare msg is duplicated.");
                             pbftMessage.clear();
                             this.blockChain.getUnConfirmedData().remove(key);
                         } else {

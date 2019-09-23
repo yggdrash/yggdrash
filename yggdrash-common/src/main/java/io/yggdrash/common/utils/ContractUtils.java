@@ -21,8 +21,8 @@ import io.yggdrash.common.contract.methods.ContractMethod;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import io.yggdrash.contract.core.annotation.ContractChannelField;
-import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractReceipt;
+import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ParamValidation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,7 +72,7 @@ public class ContractUtils {
                 f.setAccessible(true);
                 f.set(contract, store);
             } catch (IllegalAccessException e) {
-                log.warn(e.getMessage());
+                log.debug("updateContractFields() is failed. {}", e.getMessage());
             }
         }
     }
@@ -97,7 +97,7 @@ public class ContractUtils {
         try {
             return contract.getClass().getDeclaredConstructor().newInstance();
         } catch (Exception e) {
-            log.warn(e.getMessage());
+            log.debug("contractInstance() is failed. {}", e.getMessage());
             throw new FailedOperationException("Contract instance Fail");
         }
     }

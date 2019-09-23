@@ -70,11 +70,11 @@ public class BlockServiceConsumer<T> implements BlockConsumer<T> {
             if (receivedIndex == nextIndex) {
                 branchGroup.addBlock(block, true);
             } else {
-                log.debug("Received Block index is not Next Block Index. {} {}",
+                log.trace("Received blockIndex({}) is not nextBlockIndex({}).",
                         block.getIndex(), nextIndex);
             }
         } catch (Exception e) {
-            log.debug("BroadcastBlock ERR={}", e.getMessage());
+            log.debug("BroadcastBlock() is failed. {}", e.getMessage());
         }
     }
 
@@ -93,7 +93,7 @@ public class BlockServiceConsumer<T> implements BlockConsumer<T> {
         BlockChain blockChain = branchGroup.getBranch(branchId);
 
         if (blockChain == null) {
-            log.warn("Invalid syncBlock request for branchId={}", branchId);
+            log.debug("Invalid syncBlock request for branchId={}", branchId);
             return;
         }
         if (offset < 0) {

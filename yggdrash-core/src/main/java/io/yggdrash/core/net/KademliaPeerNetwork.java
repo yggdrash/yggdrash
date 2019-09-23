@@ -101,7 +101,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
         try {
             txQueue.put(tx);
         } catch (Exception e) {
-            log.warn(e.getMessage());
+            log.debug("receivedTransaction() is failed. {}", e.getMessage());
         }
     }
 
@@ -110,7 +110,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
         try {
             blockQueue.put(block);
         } catch (Exception e) {
-            log.warn(e.getMessage());
+            log.debug("chainedBlock() is failed. {}", e.getMessage());
         }
     }
 
@@ -143,12 +143,12 @@ public class KademliaPeerNetwork implements PeerNetwork {
                 try {
                     if (peerTableGroup.getSeedPeerList().contains(peerHandler.getPeer().getYnodeUri())
                             || peerHandler.getPeer().equals(peerTableGroup.getOwner())) {
-                        log.debug("broadcastTx() is failed. peer: {}", peerHandler.getPeer().getYnodeUri());
+                        log.trace("broadcastTx() is failed. peer: {}", peerHandler.getPeer().getYnodeUri());
                         continue;
                     }
                     peerHandler.broadcastTx(tx);
                 } catch (Exception e) {
-                    log.warn("[KademliaPeerNetwork] broadcast {} -> {}, tx ERR: {}",
+                    log.debug("broadcastTx is failed. {} -> {} {}",
                             peerTableGroup.getOwner().getPort(),
                             peerHandler.getPeer().getPort(), e.getMessage());
                 }

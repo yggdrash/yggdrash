@@ -112,7 +112,7 @@ public class ValidatorConfiguration {
 
                 validatorServiceList.add(new ValidatorService(mergedConfig, blockChain));
             } catch (Exception e) {
-                log.warn("Load validatorService conf={}, err={}", validatorServicePath, e.getMessage());
+                log.warn("loadValidatorService() is failed. conf={}, err={}", validatorServicePath, e.getMessage());
             }
         }
 
