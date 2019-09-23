@@ -22,12 +22,17 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
 public class TempStateStore implements ReadWriterStore<String, JsonObject> {
+    private static final Logger log = LoggerFactory.getLogger(TempStateStore.class);
+
     private final ReadWriterStore<String, JsonObject> stateStore;
     private final Map<String, JsonObject> tempStore = new LinkedHashMap<>();
 
@@ -52,7 +57,12 @@ public class TempStateStore implements ReadWriterStore<String, JsonObject> {
 
     private JsonObject stateRoot(String key, JsonObject value) {
         byte[] changedStateRootByte =  HashUtil.sha3(key.concat(value.toString()).getBytes());
+        log.debug("key={} value={} changedStateRoot={}",
+                key, value.toString(), stateRootHash.toString(), Hex.toHexString(changedStateRootByte));
+        log.debug("before stateRootHash={}", stateRootHash);
         stateRootHash = new Sha3Hash(Bytes.concat(stateRootHash.getBytes(), changedStateRootByte));
+        log.debug("after stateRootHash={}", stateRootHash);
+
         return stateRootObj(stateRootHash);
     }
 

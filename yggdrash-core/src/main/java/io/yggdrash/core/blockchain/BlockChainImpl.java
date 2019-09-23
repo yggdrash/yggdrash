@@ -166,6 +166,8 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                 Sha3Hash blockResultStateRoot = blockResult.getBlockResult().size() > 0
                         ? new Sha3Hash(blockResult.getBlockResult().get("stateRoot").get("stateHash").getAsString())
                         : contractManager.getOriginStateRoot();
+                log.debug("addBlock() before stateRoot={}",
+                        blockResult.getBlockResult().get("stateRoot").get("stateHash").getAsString());
                 Sha3Hash nextBlockStateRoot = new Sha3Hash(nextBlock.getHeader().getStateRoot(), true);
                 log.debug("nextBlockStateRoot : {}, blockResultStateRoot : {} ",
                         nextBlockStateRoot, blockResultStateRoot);
