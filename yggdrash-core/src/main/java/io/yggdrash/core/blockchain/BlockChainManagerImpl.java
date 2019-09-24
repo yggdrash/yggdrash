@@ -170,7 +170,7 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
             for (Transaction tx : nextBlock.getBody().getTransactionList()) {
                 if (receiptStore.contains(tx.getHash().toString())
                         && receiptStore.get(tx.getHash().toString()).getStatus() != ExecuteStatus.ERROR) {
-                    addTransaction(tx);
+                    addTransaction(tx, null);
                 }
             }
 
@@ -196,9 +196,9 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     }
 
     @Override
-    public void addTransaction(Transaction tx) {
+    public void addTransaction(Transaction tx, Sha3Hash stateRootHash) {
         try {
-            transactionStore.addTransaction(tx);
+            transactionStore.addTransaction(tx, stateRootHash);
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }

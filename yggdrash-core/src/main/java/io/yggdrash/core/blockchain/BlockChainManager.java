@@ -33,7 +33,7 @@ public interface BlockChainManager<T> {
 
     void addBlock(ConsensusBlock<T> nextBlock);
 
-    void addTransaction(Transaction tx);
+    void addTransaction(Transaction tx, Sha3Hash stateRootHash);
 
     void flushUnconfirmedTxs(Set<Sha3Hash> keys);
 

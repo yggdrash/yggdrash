@@ -171,7 +171,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                     log.warn("Add block failed. Invalid stateRoot. BlockStateRoot : {}, CurStateRoot : {}"
                             , nextBlockStateRoot, blockResultStateRoot);
                     // TODO: uncommented when fixed the bug about stateRoot
-                    //return BusinessError.getErrorLogsMap(BusinessError.INVALID_STATE_ROOT_HASH.toValue());
+                    return BusinessError.getErrorLogsMap(BusinessError.INVALID_STATE_ROOT_HASH.toValue());
                 }
 
                 branchStore.setLastExecuteBlock(nextBlock);
@@ -277,11 +277,12 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
     @Override
     public void executeAndAddToPendingPool(Transaction tx) {
-        Sha3Hash curStateRootHash = contractManager.executePendingTxWithStateRoot(tx);
-        log.debug("executeAndAddToPendingPool : curStateRootHash {}", curStateRootHash);
-        if (curStateRootHash != null) {
-            blockChainManager.setPendingStateRoot(curStateRootHash);
-            blockChainManager.addTransaction(tx);
+        if (!blockChainManager.contains(tx)) {
+            Sha3Hash curStateRootHash = contractManager.executePendingTxWithStateRoot(tx);
+            log.debug("executeAndAddToPendingPool : curStateRootHash {}", curStateRootHash);
+            if (curStateRootHash != null) {
+                blockChainManager.addTransaction(tx, curStateRootHash);
+            }
         }
     }
 

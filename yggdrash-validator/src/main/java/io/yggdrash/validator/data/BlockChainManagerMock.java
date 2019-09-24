@@ -60,8 +60,8 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     }
 
     @Override
-    public void addTransaction(Transaction tx) {
-        blockChainManager.addTransaction(tx);
+    public void addTransaction(Transaction tx, Sha3Hash stateRootHash) {
+        blockChainManager.addTransaction(tx, stateRootHash);
     }
 
     @Override

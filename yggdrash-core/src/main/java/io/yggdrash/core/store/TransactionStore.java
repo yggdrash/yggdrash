@@ -85,30 +85,28 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
 
     @Override
     public void put(Sha3Hash key, Transaction tx) {
-        lock.lock();
-        try {
-            pendingPool.put(key, tx);
-            if (pendingPool.containsKey(key)) {
-                pendingKeys.add(key);
-            } else {
-                log.debug("unconfirmedTxs size={}, ignore key={}", pendingKeys.size(), key);
-            }
-        } finally {
-            lock.unlock();
+        pendingPool.put(key, tx);
+        if (pendingPool.containsKey(key)) {
+            pendingKeys.add(key);
+        } else {
+            log.debug("unconfirmedTxs size={}, ignore key={}", pendingKeys.size(), key);
         }
     }
 
-    public void addTransaction(Transaction tx) {
-        put(tx.getHash(), tx);
+    public void addTransaction(Transaction tx, Sha3Hash stateRoot) {
+        lock.lock();
+        try {
+            if (stateRoot != null) {
+                setStateRoot(stateRoot);
+            }
+            put(tx.getHash(), tx);
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void setStateRoot(Sha3Hash stateRoot) {
-        lock.lock();
-        try {
-            this.stateRoot = stateRoot;
-        } finally {
-            lock.unlock();
-        }
+        this.stateRoot = stateRoot;
     }
 
     @Override
@@ -193,12 +191,13 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
         Map<Sha3Hash, List<Transaction>> result;
         lock.lock();
         try {
+            Sha3Hash stateRootHash = stateRoot;
             List<Transaction> unconfirmedTxs = new ArrayList<>(pendingPool.getAll(pendingKeys).values());
             if (!unconfirmedTxs.isEmpty()) {
                 log.debug("unconfirmedKeys={} unconfirmedTxs={}", pendingKeys.size(), unconfirmedTxs.size());
             }
             result = new HashMap<>();
-            result.put(stateRoot, unconfirmedTxs);
+            result.put(stateRootHash, unconfirmedTxs);
         } finally {
             lock.unlock();
         }
