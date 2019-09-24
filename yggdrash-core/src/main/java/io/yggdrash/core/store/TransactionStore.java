@@ -208,7 +208,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
     public void flush(Set<Sha3Hash> keys) {
         pendingPool.removeAll(keys);
         pendingKeys.removeAll(keys);
-        log.debug("flushSize={} remainPendingSize={}", keys.size(), pendingKeys.size());
+        log.trace("flushSize={} remainPendingSize={}", keys.size(), pendingKeys.size());
     }
 
     public void updateCache(List<Transaction> body) {
