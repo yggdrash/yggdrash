@@ -170,7 +170,7 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
             for (Transaction tx : nextBlock.getBody().getTransactionList()) {
                 if (receiptStore.contains(tx.getHash().toString())
                         && receiptStore.get(tx.getHash().toString()).getStatus() != ExecuteStatus.ERROR) {
-                    addTransaction(tx, null);
+                    addTransaction(tx);
                 }
             }
 
@@ -193,6 +193,15 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
                 .map(Transaction::getHash).collect(Collectors.toSet());
 
         transactionStore.batch(keys);
+    }
+
+    @Override
+    public void addTransaction(Transaction tx) {
+        try {
+            transactionStore.addTransaction(tx);
+        } catch (Exception e) {
+            throw new FailedOperationException(e);
+        }
     }
 
     @Override

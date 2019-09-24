@@ -93,6 +93,15 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
         }
     }
 
+    public void addTransaction(Transaction tx) {
+        lock.lock();
+        try {
+            put(tx.getHash(), tx);
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public void addTransaction(Transaction tx, Sha3Hash stateRoot) {
         lock.lock();
         try {
