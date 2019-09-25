@@ -121,7 +121,7 @@ public class DiscoveryHandler<T> implements BlockChainHandler<T> {
 
     @Override
     public Future<List<ConsensusBlock<T>>> syncBlock(BranchId branchId, long offset) {
-        throw NOT_IMPLEMENTED;
+        return null;
     }
 
     @Override

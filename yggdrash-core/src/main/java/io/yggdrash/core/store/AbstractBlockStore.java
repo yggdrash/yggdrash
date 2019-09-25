@@ -41,6 +41,7 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
     protected final ReentrantLock lock = new ReentrantLock();
 
     protected AbstractBlockStore(DbSource<byte[], byte[]> dbSource) {
+        // TODO: config params to configfile
         Options options = new Options();
         options.createIfMissing(true);
         options.compressionType(CompressionType.NONE);
@@ -57,6 +58,7 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
     @Override
     public void put(Sha3Hash key, ConsensusBlock<T> value) {
         if (key == null || value == null) {
+            log.debug("put() is failed.");
             return;
         }
 
@@ -65,9 +67,13 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
             log.debug("block binary {} > {}", bytes.length, Constants.MAX_MEMORY);
             return;
         }
+
         lock.lock();
         try {
-            if (!contains(key)) {
+            if (contains(key)) {
+                log.debug("put(): Key is duplicated. (key: {})(blockHash {})", key, value.getHash());
+                db.put(key.getBytes(), bytes);
+            } else {
                 log.trace("put (key: {})(blockHash {})", key, value.getHash());
                 db.put(key.getBytes(), bytes);
                 size++;
@@ -82,66 +88,47 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
 
     @Override
     public boolean contains(Sha3Hash key) {
-        if (key == null) {
-            return false;
-        }
-
-        // TODO: check syncronizing about blockchain data, this is a defence code about leveldb exceptions.
-        boolean result = false;
         try {
-            if (db.get(key.getBytes()) != null) {
-                result = true;
-            }
+            return db.get(key.getBytes()) != null;
         } catch (Exception e) {
             log.debug(e.getMessage());
+            return false;
         }
-
-        return result;
     }
 
     @Override
     public long size() {
-        lock.lock();
-        try {
-            return size;
-        } finally {
-            lock.unlock();
-        }
+        return size;
     }
 
     @Override
     public void close() {
-        lock.lock();
-        try {
-            db.close();
-        } finally {
-            lock.unlock();
-        }
+        db.close();
     }
 
     @Override
     public void addBlock(ConsensusBlock<T> block) {
-        if (block == null) {
-            return;
-        }
-        // Add BlockIndex and Add Block Data
-        long index = block.getIndex();
-        byte[] indexKey = blockIndexKey(index);
-        // store block index
         lock.lock();
-        db.put(indexKey, block.getHash().getBytes());
-        // store block data
-        put(block.getHash(), block);
-        lock.unlock();
+        try {
+            if (block == null) {
+                return;
+            }
+            // Add BlockIndex and Add Block Data
+            long index = block.getIndex();
+            byte[] indexKey = blockIndexKey(index);
+            // store block index
+            db.put(indexKey, block.getHash().getBytes());
+            // store block data
+            put(block.getHash(), block);
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public ConsensusBlock<T> getBlockByIndex(long index) {
         byte[] indexKey = blockIndexKey(index);
-        lock.lock();
         byte[] blockHash = db.get(indexKey);
-        lock.unlock();
-
         if (blockHash == null) {
             throw new NonExistObjectException(String.valueOf(index));
         }
