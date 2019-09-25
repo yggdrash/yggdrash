@@ -94,7 +94,7 @@ public class BranchConfiguration {
                 branchGroup.addBranch(bc);
             }
         } catch (Exception e) {
-            log.warn(e.getMessage(), e);
+            log.warn("branchLoader() is failed.", e.getMessage());
         }
         return branchLoader;
     }
@@ -119,7 +119,7 @@ public class BranchConfiguration {
 
             return blockChain;
         } catch (Exception e) {
-            log.warn(e.getMessage(), e);
+            log.warn("createBranch() is failed. {}", e.getMessage());
             return null;
         }
     }

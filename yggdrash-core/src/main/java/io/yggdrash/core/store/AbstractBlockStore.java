@@ -72,7 +72,6 @@ public abstract class AbstractBlockStore<T> implements ConsensusBlockStore<T> {
         try {
             if (contains(key)) {
                 log.debug("put(): Key is duplicated. (key: {})(blockHash {})", key, value.getHash());
-                db.put(key.getBytes(), bytes);
             } else {
                 log.trace("put (key: {})(blockHash {})", key, value.getHash());
                 db.put(key.getBytes(), bytes);

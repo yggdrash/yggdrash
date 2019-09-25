@@ -22,18 +22,26 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class TempStateStore implements ReadWriterStore<String, JsonObject> {
+    private static final Logger log = LoggerFactory.getLogger(TempStateStore.class);
+
     private final ReadWriterStore<String, JsonObject> stateStore;
     private final Map<String, JsonObject> tempStore = new LinkedHashMap<>();
+    private final ReentrantLock lock = new ReentrantLock();
 
     private final String STATE_ROOT = "stateRoot";
     private final String STATE_HASH = "stateHash";
     private Sha3Hash stateRootHash;
+
 
     public TempStateStore(ReadWriterStore<String, JsonObject> originStore) {
         this.stateStore = originStore;
@@ -46,13 +54,24 @@ public class TempStateStore implements ReadWriterStore<String, JsonObject> {
 
     @Override
     public void put(String key, JsonObject value) {
-        tempStore.put(key, value);
-        tempStore.put(STATE_ROOT, stateRoot(key, value)); // sateRootObj contains stateHash
+        lock.lock();
+        try {
+            tempStore.put(key, value);
+            tempStore.put(STATE_ROOT, stateRoot(key, value)); // sateRootObj contains stateHash
+        } finally {
+            lock.unlock();
+        }
     }
 
+    // TODO: delete logging for speed up
     private JsonObject stateRoot(String key, JsonObject value) {
         byte[] changedStateRootByte =  HashUtil.sha3(key.concat(value.toString()).getBytes());
+        log.trace("key={} value={} changedStateRoot={}",
+                key, value.toString(), stateRootHash.toString(), Hex.toHexString(changedStateRootByte));
+        log.trace("before stateRootHash={}", stateRootHash);
         stateRootHash = new Sha3Hash(Bytes.concat(stateRootHash.getBytes(), changedStateRootByte));
+        log.trace("after stateRootHash={}", stateRootHash);
+
         return stateRootObj(stateRootHash);
     }
 
@@ -87,7 +106,12 @@ public class TempStateStore implements ReadWriterStore<String, JsonObject> {
     }
 
     public void putAll(Set<Map.Entry<String, JsonObject>> values) {
-        values.forEach(entry -> tempStore.put(entry.getKey(), entry.getValue()));
+        lock.lock();
+        try {
+            values.forEach(entry -> tempStore.put(entry.getKey(), entry.getValue()));
+        } finally {
+            lock.unlock();
+        }
     }
 
 

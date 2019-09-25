@@ -18,7 +18,6 @@ package io.yggdrash.core.store;
 
 import com.google.common.collect.EvictingQueue;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.contract.core.store.ReadWriterStore;
@@ -44,7 +43,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> {
     private static final Logger log = LoggerFactory.getLogger(TransactionStore.class);
-    private static final Lock LOCK = new ReentrantLock();
+    private static final Lock lock = new ReentrantLock();
 
     private static final int CACHE_SIZE = 500;
     private long countOfTxs = 0;
@@ -86,14 +85,17 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
 
     @Override
     public void put(Sha3Hash key, Transaction tx) {
-        LOCK.lock();
-        pendingPool.put(key, tx);
-        if (pendingPool.containsKey(key)) {
-            pendingKeys.add(key);
-        } else {
-            log.warn("unconfirmedTxs size={}, ignore key={}", pendingKeys.size(), key);
+        lock.lock();
+        try {
+            pendingPool.put(key, tx);
+            if (pendingPool.containsKey(key)) {
+                pendingKeys.add(key);
+            } else {
+                log.debug("unconfirmedTxs size={}, ignore key={}", pendingKeys.size(), key);
+            }
+        } finally {
+            lock.unlock();
         }
-        LOCK.unlock();
     }
 
     public void addTransaction(Transaction tx) {
@@ -101,9 +103,12 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
     }
 
     public void setStateRoot(Sha3Hash stateRoot) {
-        LOCK.lock();
-        this.stateRoot = stateRoot;
-        LOCK.unlock();
+        lock.lock();
+        try {
+            this.stateRoot = stateRoot;
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -120,21 +125,24 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
         if (keys.isEmpty()) {
             return;
         }
-        LOCK.lock();
-        Map<Sha3Hash, Transaction> map = pendingPool.getAll(keys);
-        int countOfBatchedTxs = map.size();
-        for (Map.Entry<Sha3Hash, Transaction> entry : map.entrySet()) {
-            Transaction foundTx = entry.getValue();
-            if (foundTx != null) {
-                db.put(entry.getKey().getBytes(), foundTx.toBinary());
-                addReadCache(foundTx);
-            } else {
-                countOfBatchedTxs -= 1;
+        lock.lock();
+        try {
+            Map<Sha3Hash, Transaction> map = pendingPool.getAll(keys);
+            int countOfBatchedTxs = map.size();
+            for (Map.Entry<Sha3Hash, Transaction> entry : map.entrySet()) {
+                Transaction foundTx = entry.getValue();
+                if (foundTx != null) {
+                    db.put(entry.getKey().getBytes(), foundTx.toBinary());
+                    addReadCache(foundTx);
+                } else {
+                    countOfBatchedTxs -= 1;
+                }
             }
+            this.countOfTxs += countOfBatchedTxs;
+            this.flush(keys);
+        } finally {
+            lock.unlock();
         }
-        this.countOfTxs += countOfBatchedTxs;
-        this.flush(keys);
-        LOCK.unlock();
     }
 
     private void addReadCache(Transaction tx) {
@@ -146,49 +154,61 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
     }
 
     public List<Transaction> getUnconfirmedTxsWithLimit(long limit) {
-        LOCK.lock();
-        long bodySizeSum = 0;
-        List<Transaction> unconfirmedTxs = new ArrayList<>(pendingKeys.size());
-        for (Sha3Hash key : pendingKeys) {
-            Transaction tx = pendingPool.get(key);
-            if (tx != null) {
-                bodySizeSum += tx.getLength();
-                if (bodySizeSum > limit) {
-                    break;
+        List<Transaction> unconfirmedTxs;
+        lock.lock();
+        try {
+            long bodySizeSum = 0;
+            unconfirmedTxs = new ArrayList<>(pendingKeys.size());
+            for (Sha3Hash key : pendingKeys) {
+                Transaction tx = pendingPool.get(key);
+                if (tx != null) {
+                    bodySizeSum += tx.getLength();
+                    if (bodySizeSum > limit) {
+                        break;
+                    }
+                    unconfirmedTxs.add(tx);
                 }
-                unconfirmedTxs.add(tx);
             }
+        } finally {
+            lock.unlock();
         }
-        LOCK.unlock();
         return unconfirmedTxs;
     }
 
     public Collection<Transaction> getUnconfirmedTxs() {
-        LOCK.lock();
-        Collection<Transaction> unconfirmedTxs = pendingPool.getAll(pendingKeys).values();
-        if (!unconfirmedTxs.isEmpty()) {
-            log.debug("unconfirmedKeys={} unconfirmedTxs={}", pendingKeys.size(), unconfirmedTxs.size());
+        Collection<Transaction> unconfirmedTxs;
+        lock.lock();
+        try {
+            unconfirmedTxs = pendingPool.getAll(pendingKeys).values();
+            if (!unconfirmedTxs.isEmpty()) {
+                log.debug("unconfirmedKeys={} unconfirmedTxs={}", pendingKeys.size(), unconfirmedTxs.size());
+            }
+        } finally {
+            lock.unlock();
         }
-        LOCK.unlock();
         return unconfirmedTxs;
     }
 
     public Map<Sha3Hash, List<Transaction>> getUnconfirmedTxsWithStateRoot() {
-        LOCK.lock();
-        List<Transaction> unconfirmedTxs = new ArrayList<>(pendingPool.getAll(pendingKeys).values());
-        if (!unconfirmedTxs.isEmpty()) {
-            log.debug("unconfirmedKeys={} unconfirmedTxs={}", pendingKeys.size(), unconfirmedTxs.size());
+        Map<Sha3Hash, List<Transaction>> result;
+        lock.lock();
+        try {
+            List<Transaction> unconfirmedTxs = new ArrayList<>(pendingPool.getAll(pendingKeys).values());
+            if (!unconfirmedTxs.isEmpty()) {
+                log.debug("unconfirmedKeys={} unconfirmedTxs={}", pendingKeys.size(), unconfirmedTxs.size());
+            }
+            result = new HashMap<>();
+            result.put(stateRoot, unconfirmedTxs);
+        } finally {
+            lock.unlock();
         }
-        Map<Sha3Hash, List<Transaction>> result = new HashMap<>();
-        result.put(stateRoot, unconfirmedTxs);
-        LOCK.unlock();
         return result;
     }
 
     public void flush(Set<Sha3Hash> keys) {
         pendingPool.removeAll(keys);
         pendingKeys.removeAll(keys);
-        log.debug("flushSize={} remainPendingSize={}", keys.size(), pendingKeys.size());
+        log.trace("flushSize={} remainPendingSize={}", keys.size(), pendingKeys.size());
     }
 
     public void updateCache(List<Transaction> body) {

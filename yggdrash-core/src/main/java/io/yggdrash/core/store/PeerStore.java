@@ -21,12 +21,10 @@ import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
-import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +64,6 @@ public class PeerStore implements ReadWriterStore<PeerId, Peer> {
         if (foundedValue != null) {
             return Peer.valueOf(foundedValue);
         }
-        log.warn(new NonExistObjectException(Hex.toHexString(key)).getMessage());
         return null;
     }
 

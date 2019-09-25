@@ -65,7 +65,12 @@ public class VerifierUtils {
             return false;
         }
 
-        return verifySignature(transaction);
+        if (!verifySignature(transaction)) {
+            log.debug("verifySignature() is failed.");
+            return false;
+        }
+
+        return true;
     }
 
     public static boolean verify(Block block) {
@@ -74,14 +79,21 @@ public class VerifierUtils {
             return true;
         }
         if (!verifyDataFormat(block)) {
+            log.debug("verifyDataFormat() is failed.");
             return false;
         }
 
         if (!verifyBlockBodyHash(block)) {
+            log.debug("verifyBlockBodyHash() is failed.");
             return false;
         }
 
-        return verifySignature(block);
+        if (!verifySignature(block)) {
+            log.debug("verifySignature() is failed.");
+            return false;
+        }
+
+        return true;
     }
 
     public static boolean verifyBlockBodyHash(Block block) {

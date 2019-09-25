@@ -124,13 +124,13 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
                         return;
                     }
                 } catch (Exception e) {
-                    log.warn("BroadcastTx() is failed. {}", e.getMessage());
+                    log.debug("BroadcastTx() is failed. {}", e.getMessage());
                 }
             }
 
             @Override
             public void onError(Throwable t) {
-                log.warn("Encountered error in broadcastTx: {}", Status.fromThrowable(t));
+                log.debug("Encountered error in broadcastTx: {}", Status.fromThrowable(t));
             }
 
             @Override

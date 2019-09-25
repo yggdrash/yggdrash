@@ -214,7 +214,7 @@ public class TransactionImpl implements Transaction {
             asJsonObject.addProperty("txId", getHash().toString());
             return asJsonObject;
         } catch (InvalidProtocolBufferException e) {
-            log.warn(e.getMessage());
+            log.debug("toJsonObjectFromProto() is failed. {}", e.getMessage());
         }
         return null;
     }
