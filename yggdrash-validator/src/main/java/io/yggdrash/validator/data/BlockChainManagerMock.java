@@ -65,6 +65,11 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     }
 
     @Override
+    public void addTransaction(Transaction tx, Sha3Hash stateRootHash) {
+        blockChainManager.addTransaction(tx, stateRootHash);
+    }
+
+    @Override
     public void flushUnconfirmedTxs(Set<Sha3Hash> keys) {
         blockChainManager.flushUnconfirmedTxs(keys);
     }
