@@ -12,6 +12,8 @@ public final class Constants {
         throw new IllegalStateException("Constants class");
     }
 
+    public static final String YGGDRASH_CONFIG_PATH = "yggdrash.config.path";
+
     //yggdrash.conf
     public static final String NODE_NAME = "yggdrash";
     public static final String NODE_VERSION = "0.8.0";
