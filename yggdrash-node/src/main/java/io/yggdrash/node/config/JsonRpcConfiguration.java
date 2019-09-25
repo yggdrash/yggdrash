@@ -17,9 +17,12 @@
 package io.yggdrash.node.config;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImplExporter;
+import io.yggdrash.common.config.Constants;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
+@Profile(Constants.ActiveProfiles.NODE)
 @Configuration
 public class JsonRpcConfiguration {
 
