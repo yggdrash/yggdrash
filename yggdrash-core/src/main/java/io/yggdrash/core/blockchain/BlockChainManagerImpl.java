@@ -170,29 +170,36 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
             for (Transaction tx : nextBlock.getBody().getTransactionList()) {
                 if (receiptStore.contains(tx.getHash().toString())
                         && receiptStore.get(tx.getHash().toString()).getStatus() != ExecuteStatus.ERROR) {
+                    //System.out.println("BlockChainManager :: addBlock -> addTx : stateRoot => " + stateRoot);
                     addTransaction(tx);
                 }
             }
+            //batchTxs(nextBlock);
 
+            System.out.println("Add And Set lastConfirmedBlock! Index : " + nextBlock.getIndex());
             // Store Block Index and Block Data
             this.blockStore.addBlock(nextBlock);
             setLastConfirmedBlock(nextBlock);
 
-            batchTxs(nextBlock);
         } finally {
             lock.unlock();
         }
     }
 
-    private void batchTxs(ConsensusBlock<T> block) {
-        if (block == null || block.getBlock() == null || block.getBody().getTransactionList() == null) {
-            return;
+    @Override
+    public void batchTxs(ConsensusBlock<T> block, Sha3Hash stateRoot) {
+        try {
+            lock.lock();
+            if (block == null || block.getBlock() == null || block.getBody().getTransactionList() == null) {
+                return;
+            }
+
+            Set<Sha3Hash> keys = block.getBlock().getBody().getTransactionList().stream()
+                    .map(Transaction::getHash).collect(Collectors.toSet());
+            transactionStore.batch(keys, stateRoot);
+        } finally {
+            lock.unlock();
         }
-
-        Set<Sha3Hash> keys = block.getBlock().getBody().getTransactionList().stream()
-                .map(Transaction::getHash).collect(Collectors.toSet());
-
-        transactionStore.batch(keys);
     }
 
     @Override
@@ -219,8 +226,14 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     }
 
     @Override
+    public void flushUnconfirmedTx(Sha3Hash key) {
+        transactionStore.flush(key);
+    }
+
+    @Override
     public void updateTxCache(Block block) {
-        transactionStore.updateCache(block.getBody().getTransactionList());
+        //transactionStore.updateCache(block.getBody().getTransactionList());
+        transactionStore.updateCache(block);
     }
 
     private void setLastConfirmedBlock(ConsensusBlock<T> block) {
@@ -268,10 +281,12 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
         return transactionStore.getRecentTxs();
     }
 
+    /*
     @Override
     public void setPendingStateRoot(Sha3Hash stateRootHash) {
         transactionStore.setStateRoot(stateRootHash);
     }
+    */
 
     @Override
     public List<Transaction> getUnconfirmedTxs() {

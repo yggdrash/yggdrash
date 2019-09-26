@@ -258,7 +258,7 @@ public class BlockChainTestUtils {
         if (genesis.getContractTxs().size() > 0) {
             genesisStateRootHash = new Sha3Hash(contractManager.executePendingTxs(genesis.getContractTxs())
                     .getBlockResult().get("stateRoot").get("stateHash").getAsString());
-            blockChainManager.setPendingStateRoot(genesisStateRootHash);
+            //blockChainManager.setPendingStateRoot(genesisStateRootHash);
         } else {
             genesisStateRootHash = new Sha3Hash(Constants.EMPTY_HASH);
         }

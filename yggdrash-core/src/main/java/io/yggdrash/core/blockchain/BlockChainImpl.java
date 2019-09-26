@@ -19,6 +19,7 @@ import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.BlockKeyStore;
 import io.yggdrash.core.store.BranchStore;
+import javafx.scene.shape.Shape3D;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +50,8 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     private final ReentrantLock lock = new ReentrantLock();
 
     private boolean isFullSynced = false;
+
+    public ReentrantLock lock2 = new ReentrantLock();
 
     public BlockChainImpl(Branch branch,
                           ConsensusBlock<T> genesisBlock,
@@ -92,9 +95,9 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         } else {
             log.debug("BlockChain Load in Storage");
             // Load Block Chain Information
-            blockChainManager.loadTransaction();
+            blockChainManager.loadTransaction(); // load stateRoot when updateTxCache!
             // Load StateRoot
-            blockChainManager.setPendingStateRoot(contractManager.getOriginStateRoot());
+            //blockChainManager.setPendingStateRoot(contractManager.getOriginStateRoot());
         }
     }
 
@@ -154,14 +157,17 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             }
             // Add best Block
             branchStore.setBestBlock(nextBlock);
+            System.out.println("AddBlock -> nextBlock index : " + nextBlock.getIndex()
+                    + ", bodySize : " + nextBlock.getBlock().getBody().getTransactionList().size()
+                    + ", nexBlock stateRoot : " + new Sha3Hash(nextBlock.getHeader().getStateRoot(), true));
 
             // Run Block Transactions
             // TODO run block execute move to other process (or thread)
             // TODO last execute block will invoke
             if (nextBlock.getIndex() > branchStore.getLastExecuteBlockIndex()) {
                 // Execute block and commit the result of block.
+                System.out.println("OriginState => " + contractManager.getOriginStateRoot());
                 BlockRuntimeResult blockResult = contractManager.executeTxs(nextBlock); //TODO Exception
-
                 // Validate StateRoot
                 Sha3Hash blockResultStateRoot = blockResult.getBlockResult().size() > 0
                         ? new Sha3Hash(blockResult.getBlockResult().get("stateRoot").get("stateHash").getAsString())
@@ -171,6 +177,8 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                     log.warn("Add block failed. Invalid stateRoot. BlockStateRoot : {}, CurStateRoot : {}"
                             , nextBlockStateRoot, blockResultStateRoot);
                     // TODO: uncommented when fixed the bug about stateRoot
+                    System.out.println("--------------------AddBlock Failed!-----------------------");
+                    System.out.println("Add block failed. Invalid stateRoot. BlockStateRoot : " + nextBlockStateRoot + ", CurStateRoot : " + blockResultStateRoot);
                     return BusinessError.getErrorLogsMap(BusinessError.INVALID_STATE_ROOT_HASH.toValue());
                 }
 
@@ -179,13 +187,14 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
             // BlockChainManager add nextBlock to the blockStore, set the lastConfirmedBlock to nextBlock,
             // and then batch the transactions.
-            blockChainManager.addBlock(nextBlock);
+            //blockChainManager.addBlock(nextBlock);
 
             BlockRuntimeResult endBlockResult = contractManager.endBlock(nextBlock);
             if (endBlockResult.getBlockResult().size() > 0) {
                 String endBlockStateRoot = endBlockResult.getBlockResult().get("stateRoot").get("stateHash").getAsString();
                 log.debug("endBlockStateRoot : {} ", endBlockStateRoot);
-                blockChainManager.setPendingStateRoot(new Sha3Hash(endBlockStateRoot)); //endBlock stateRoot
+                //blockChainManager.setPendingStateRoot(new Sha3Hash(endBlockStateRoot)); //endBlock stateRoot
+                System.out.println("After Execute End Block : " + contractManager.getOriginStateRoot());
             }
 
             // Fire contract event
@@ -193,19 +202,34 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                     .filter(event -> !contractEventListenerList.isEmpty())
                     .forEach(event -> contractEventListenerList.forEach(l -> l.endBlock(event)));
 
+            // Lock (2) Start!
+            lock2.lock();
+            blockChainManager.batchTxs(nextBlock, contractManager.getOriginStateRoot());
+
             // PendingStateStore is still running without reset.
+            Sha3Hash curStateRoot = reExecuteAndRemoveFromPendingPool(blockChainManager.getUnconfirmedTxs());
+            /*
+            // TODO FIX THIS
             BlockRuntimeResult pendingTxsResult = contractManager.executePendingTxs(blockChainManager.getUnconfirmedTxs());
             if (pendingTxsResult.getBlockResult().size() > 0) {
-                String pendingStateRoot = pendingTxsResult.getBlockResult().get("stateRoot").get("stateHash").getAsString();
-                log.debug("pendingStateRoot : {} ", pendingStateRoot);
-                blockChainManager.setPendingStateRoot(new Sha3Hash(pendingStateRoot)); //endBlock + pending stateRoot
+                //String pendingStateRoot = pendingTxsResult.getBlockResult().get("stateRoot").get("stateHash").getAsString();
+                updatedPendingStateRoot = new Sha3Hash(pendingTxsResult.getBlockResult().get("stateRoot").get("stateHash").getAsString());
+                log.debug("pendingStateRoot : {} ", updatedPendingStateRoot);
+                //blockChainManager.setPendingStateRoot(new Sha3Hash(pendingStateRoot)); //endBlock + pending stateRoot
+                //System.out.println("After Execute PendingTxs : " + contractManager.getOriginStateRoot());
             }
+
             // Flush error pending txs
             Set<Sha3Hash> errPendingTxKeys = pendingTxsResult.getReceipts().stream()
                     .filter(receipt -> receipt.getStatus().equals(ExecuteStatus.ERROR))
                     .map(receipt -> new Sha3Hash(receipt.getTxId()))
                     .collect(Collectors.toSet());
             blockChainManager.flushUnconfirmedTxs(errPendingTxKeys);
+            */
+            // Lock (2) End!
+            blockChainManager.addBlock(nextBlock);
+            blockChainManager.batchTxs(nextBlock, curStateRoot);
+            lock2.unlock();
 
             if (!listenerList.isEmpty() && broadcast) {
                 listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
@@ -218,6 +242,36 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         }
 
         return new HashMap<>();
+    }
+
+    private Sha3Hash reExecuteAndRemoveFromPendingPool(List<Transaction> txs) { // Lock (2)
+        // PendingStateStore is still running without reset.
+        System.out.println("reExecuteAndRemoveFromPendingPool -> txs size : " + txs.size());
+        contractManager.resetPendingStateStore();
+        Sha3Hash curStateRoot = contractManager.getOriginStateRoot();
+        for (Transaction tx : txs) {
+            curStateRoot = addPendingTxs(tx);
+            if (curStateRoot == null) { // Err tx in pendingPool
+                System.out.println("reExecuteAndRemoveFromPendingPool : flushUnconfirmedTx -> " + tx.getHash());
+                blockChainManager.flushUnconfirmedTx(tx.getHash());
+            }
+        }
+
+        return curStateRoot;
+    }
+
+    private Sha3Hash addPendingTxs(Transaction tx) {
+        lock2.lock();
+        try {
+            Sha3Hash curStateRootHash = contractManager.executePendingTxWithStateRoot(tx);
+            log.debug("executeAndAddToPendingPool : curStateRootHash {}", curStateRootHash);
+            if (curStateRootHash != null) {
+                blockChainManager.addTransaction(tx, curStateRootHash);
+            }
+            return curStateRootHash;
+        } finally {
+            lock2.unlock();
+        }
     }
 
     private List<ContractEvent> getContractEventList(BlockRuntimeResult result) {
@@ -256,7 +310,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             TransactionRuntimeResult txResult = contractManager.executeTx(tx); //checkTx
             log.trace("contractManager.executeTx Result: {}", txResult.toString());
             if (txResult.getReceipt().getStatus() != ExecuteStatus.ERROR) {
-
+                System.out.println("@@ AddTransaction =>  executeAndAddToPendingPool @@");
                 // Execute tx before adding tx to pending pool. Err tx would not be added.
                 executeAndAddToPendingPool(tx);
 
@@ -276,13 +330,23 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     }
 
     @Override
-    public void executeAndAddToPendingPool(Transaction tx) {
-        if (!blockChainManager.contains(tx)) {
-            Sha3Hash curStateRootHash = contractManager.executePendingTxWithStateRoot(tx);
-            log.debug("executeAndAddToPendingPool : curStateRootHash {}", curStateRootHash);
-            if (curStateRootHash != null) {
-                blockChainManager.addTransaction(tx, curStateRootHash);
+    public Sha3Hash executeAndAddToPendingPool(Transaction tx) { //return stateRootHash
+        lock2.lock();
+        try {
+            if (!blockChainManager.contains(tx)) {
+        /*
+        Sha3Hash curStateRootHash = contractManager.executePendingTxWithStateRoot(tx);
+        log.debug("executeAndAddToPendingPool : curStateRootHash {}", curStateRootHash);
+        if (curStateRootHash != null) {
+            blockChainManager.addTransaction(tx, curStateRootHash);
+        }
+        return curStateRootHash;
+        */
+                return addPendingTxs(tx);
             }
+            return null;
+        } finally {
+            lock2.unlock();
         }
     }
 

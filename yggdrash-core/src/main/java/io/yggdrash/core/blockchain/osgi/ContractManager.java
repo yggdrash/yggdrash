@@ -381,7 +381,13 @@ public class ContractManager implements ContractEventListener {
         return contractExecutor.executePendingTxWithStateRoot(serviceMap, tx);
     }
 
+    /*
     private void resetPendingStateStore() {
+        contractStore.getPendingStateStore().close();
+    }
+    */
+
+    public void resetPendingStateStore() {
         contractStore.getPendingStateStore().close();
     }
 

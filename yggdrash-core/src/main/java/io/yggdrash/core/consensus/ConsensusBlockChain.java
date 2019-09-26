@@ -1,5 +1,6 @@
 package io.yggdrash.core.consensus;
 
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BranchId;
@@ -25,7 +26,9 @@ public interface ConsensusBlockChain<T, V> {
 
     Map<String, List<String>> addBlock(ConsensusBlock<T> block, boolean broadcast); // return errorLogs
 
-    void executeAndAddToPendingPool(Transaction tx);
+    //void executeAndAddToPendingPool(Transaction tx);
+
+    Sha3Hash executeAndAddToPendingPool(Transaction tx); // return stateRootHash
 
     boolean isValidator(String addr);
 

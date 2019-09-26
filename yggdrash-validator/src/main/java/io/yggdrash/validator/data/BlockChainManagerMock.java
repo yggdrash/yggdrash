@@ -60,6 +60,18 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     }
 
     @Override
+    public void batchTxs(ConsensusBlock<T> block, Sha3Hash stateRoot) {
+        blockChainManager.batchTxs(block, stateRoot);
+    }
+
+    /*
+    @Override
+    public void addBlock(ConsensusBlock<T> nextBlock, Sha3Hash stateRoot) {
+        blockChainManager.addBlock(nextBlock, stateRoot);
+    }
+    */
+
+    @Override
     public void addTransaction(Transaction tx) {
         blockChainManager.addTransaction(tx);
     }
@@ -75,9 +87,16 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     }
 
     @Override
+    public void flushUnconfirmedTx(Sha3Hash key) {
+        blockChainManager.flushUnconfirmedTx(key);
+    }
+
+    /*
+    @Override
     public void setPendingStateRoot(Sha3Hash stateRootHash) {
         blockChainManager.setPendingStateRoot(stateRootHash);
     }
+    */
 
     @Override
     public void updateTxCache(Block block) {

@@ -196,7 +196,7 @@ public class ContractExecutor {
             List<Transaction> txList = nextBlock != null
                     ? nextBlock.getBody().getTransactionList() : blockRuntimeResult.getTxList();
             TempStateStore curTmpStateStore = nextBlock != null ? tmpStateStore : pendingStateStore;
-
+            System.out.println(">> (START) getBlockRuntimeResult =>" + curTmpStateStore.getStateRoot());
             setStoreAdapter(curTmpStateStore);
 
             for (Transaction tx : txList) {
@@ -213,6 +213,7 @@ public class ContractExecutor {
                 blockRuntimeResult.addReceipt(receipt);
                 if (!receipt.getStatus().equals(ExecuteStatus.ERROR)) {
                     blockRuntimeResult.setBlockResult(result);
+                    System.out.println(">> TxHash : " + tx.getHash() + ", stateRoot : " + blockRuntimeResult.getBlockResult().get("stateRoot"));
                 } else {
                     log.warn("Error TxId={}, TxLog={}", receipt.getTxId(), receipt.getLog());
                 }
