@@ -150,23 +150,17 @@ public class BranchConfiguration {
                 .build();
 
         Sha3Hash genesisStateRootHash;
-        System.out.println("BranchConfig : last blockIndex -> " + blockChainManager.countOfBlocks());
         if (blockChainManager.countOfBlocks() > 0) {
-            System.out.println("Set origin Genesis!");
             genesisStateRootHash = new Sha3Hash(blockChainStore.getConsensusBlockStore().getBlockByIndex(0).getBlock().getHeader().getStateRoot(), true);
         } else {
-            System.out.println("Execute Genesis!");
             if (genesis.getContractTxs().size() > 0) {
                 genesisStateRootHash = new Sha3Hash(contractManager.executePendingTxs(genesis.getContractTxs())
                         .getBlockResult().get("stateRoot").get("stateHash").getAsString());
-                //blockChainManager.setPendingStateRoot(genesisStateRootHash);
             } else {
                 genesisStateRootHash = new Sha3Hash(Constants.EMPTY_HASH);
             }
-            //blockChainStore.getTransactionStore().setStateRoot(genesisStateRootHash);
         }
 
-        System.out.println("BranchConfiguration : genesisStateRootHash -> " + genesisStateRootHash);
         genesis.toBlock(genesisStateRootHash);
 
         BlockChain blockChain = BlockChainBuilder.newBuilder()

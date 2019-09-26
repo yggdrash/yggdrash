@@ -170,13 +170,11 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
             for (Transaction tx : nextBlock.getBody().getTransactionList()) {
                 if (receiptStore.contains(tx.getHash().toString())
                         && receiptStore.get(tx.getHash().toString()).getStatus() != ExecuteStatus.ERROR) {
-                    //System.out.println("BlockChainManager :: addBlock -> addTx : stateRoot => " + stateRoot);
                     addTransaction(tx);
                 }
             }
             //batchTxs(nextBlock);
 
-            System.out.println("Add And Set lastConfirmedBlock! Index : " + nextBlock.getIndex());
             // Store Block Index and Block Data
             this.blockStore.addBlock(nextBlock);
             setLastConfirmedBlock(nextBlock);

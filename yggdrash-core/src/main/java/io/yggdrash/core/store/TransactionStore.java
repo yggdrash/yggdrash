@@ -101,7 +101,6 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
             pendingPool.put(key, tx);
             if (pendingPool.containsKey(key)) {
                 pendingKeys.add(key);
-                System.out.println("(Put) Before-StateRoot -> " + stateRoot + "TransactionStore : tx -> " + tx.getHash() + ", pendingKeys size -> " + pendingKeys.size());
             } else {
                 log.debug("unconfirmedTxs size={}, ignore key={}", pendingKeys.size(), key);
             }
@@ -119,7 +118,6 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
 
     public void addTransaction(Transaction tx, Sha3Hash stateRoot) {
         lock.lock();
-        System.out.println("@@ TransactionStore - AddTransaction : " + tx.getHash() + ", stateRoot -> " + stateRoot + " @@");
         try {
             if (!contains(tx.getHash())) {
                 put(tx.getHash(), tx);
@@ -147,13 +145,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
 
     public void batch(Set<Sha3Hash> keys, Sha3Hash stateRoot) {
         lock.lock();
-        System.out.println("TransactionStore : BATCH START!!");
         setStateRoot(stateRoot);
-        System.out.println("TransactionStore : BATCH END | stateRootHash -> " + stateRoot);
-//        if (keys.isEmpty()) {
-//            return;
-//        }
-        //lock.lock();
         try {
             if (keys.isEmpty()) {
                 return;
@@ -260,7 +252,6 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
             pendingPool.removeAll(keys);
             pendingKeys.removeAll(keys);
             log.trace("flushSize={} remainPendingSize={}", keys.size(), pendingKeys.size());
-            System.out.println("flushSize= " + keys.size() + ", remainPendingSize= " + pendingKeys.size());
         } finally {
             lock.unlock();
         }
