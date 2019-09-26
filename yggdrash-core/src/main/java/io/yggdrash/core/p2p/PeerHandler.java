@@ -30,4 +30,8 @@ public interface PeerHandler {
     Peer getPeer();
 
     void stop();
+
+    void setFailCount(int failCount);
+
+    int getFailCount();
 }
