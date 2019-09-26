@@ -75,16 +75,13 @@ public class BranchConfiguration {
 
     @Bean
     BranchLoader branchLoader(DefaultConfig defaultConfig, BranchGroup branchGroup, Environment env) {
-
         BranchLoader branchLoader = new BranchLoader(defaultConfig.getBranchPath());
         boolean isValidator = Arrays.asList(env.getActiveProfiles()).contains(ActiveProfiles.VALIDATOR);
-        boolean isBsNode = Arrays.asList(env.getActiveProfiles()).contains(ActiveProfiles.BOOTSTRAP);
 
-        if (isValidator || isBsNode) {
+        if (isValidator) {
             return branchLoader;
         }
 
-        // TODO check exist branch
         try {
             for (GenesisBlock genesis : branchLoader.getGenesisBlockList()) {
                 if (branchGroup.getBranch(genesis.getBranchId()) != null) {
