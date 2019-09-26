@@ -129,7 +129,6 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
     }
 
     public void setStateRoot(Sha3Hash stateRoot) {
-        System.out.println("TransactionStore :: setStateRoot ===> " + stateRoot);
         this.stateRoot = stateRoot;
     }
 
@@ -232,8 +231,6 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
         lock.lock();
         try {
             Sha3Hash stateRootHash = getStateRoot();
-            System.out.println("GetUnconfiremdTxsWithStateRoot :: stateRootHash -> " + stateRootHash + ", pendingKeys size -> " + pendingKeys.size());
-            //List<Transaction> unconfirmedTxs = new ArrayList<>(pendingPool.getAll(pendingKeys).values());
             List<Transaction> unconfirmedTxs = getTransactionList();
             if (!unconfirmedTxs.isEmpty()) {
                 log.debug("unconfirmedKeys={} unconfirmedTxs={}", pendingKeys.size(), unconfirmedTxs.size());
@@ -279,7 +276,6 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
         List<Transaction> body = block.getBody().getTransactionList();
         //this.stateRoot = new Sha3Hash(block.getHeader().getStateRoot(), true);
         setStateRoot(new Sha3Hash(block.getHeader().getStateRoot(), true));
-        System.out.println("updateCache -> " + stateRoot);
         this.countOfTxs += body.size();
         this.readCache.addAll(body);
     }
