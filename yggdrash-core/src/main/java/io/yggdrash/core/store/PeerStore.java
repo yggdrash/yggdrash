@@ -28,11 +28,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class PeerStore implements ReadWriterStore<PeerId, Peer> {
-
     private static final Logger log = LoggerFactory.getLogger(PeerStore.class);
     private static final byte[] TOTAL_SIZE = SerializationUtil.serializeString("TOTAL_SIZE");
+    private static final Lock lock = new ReentrantLock();
 
     private final DbSource<byte[], byte[]> db;
     private long peerSize;
@@ -44,14 +46,25 @@ public class PeerStore implements ReadWriterStore<PeerId, Peer> {
 
     @Override
     public void put(PeerId key, Peer value) { //TODO invalid data validation
-        if (!contains(key)) {
-            peerSize++;
-            byte[] indexKey = getIndexKey(peerSize);
-            // store peer index
-            db.put(indexKey, key.getBytes());
-            db.put(TOTAL_SIZE, ByteUtil.longToBytes(peerSize));
+        if (key == null || key.getBytes() == null || value == null) {
+            log.debug("put() is failed. key or value are null.");
+            return;
         }
-        db.put(key.getBytes(), value.toString().getBytes());
+
+        lock.lock();
+        try {
+            if (!contains(key)) {
+                peerSize++;
+                byte[] indexKey = getIndexKey(peerSize);
+                // store peer index
+                db.put(indexKey, key.getBytes());
+                db.put(TOTAL_SIZE, ByteUtil.longToBytes(peerSize));
+            }
+            db.put(key.getBytes(), value.toString().getBytes());
+        } finally {
+            lock.unlock();
+        }
+        log.trace("put() {} {}", key.toString(), value.toString());
     }
 
     @Override
@@ -73,33 +86,45 @@ public class PeerStore implements ReadWriterStore<PeerId, Peer> {
     }
 
     public void overwrite(List<Peer> peerList) {
-        // remove all
-        for (int i = 1; i <= peerSize; i++) {
-            byte[] indexKey = getIndexKey(i);
-            byte[] key = db.get(indexKey);
-            if (key != null) {
-                db.delete(key);
+        lock.lock();
+        try {
+            // remove all
+            for (int i = 1; i <= peerSize; i++) {
+                byte[] indexKey = getIndexKey(i);
+                byte[] key = db.get(indexKey);
+                if (key != null) {
+                    db.delete(key);
+                }
             }
+            peerSize = 0L;
+            // put all
+            peerList.forEach(peer -> put(peer.getPeerId(), peer));
+        } finally {
+            lock.unlock();
         }
-        peerSize = 0L;
-        // put all
-        peerList.forEach(peer -> put(peer.getPeerId(), peer));
     }
 
+    @Override
     public void close() {
         this.db.close();
     }
 
     public void remove(PeerId key) {
-        byte[] foundedValue = db.get(key.getBytes());
-        if (foundedValue == null) {
-            return;
+        lock.lock();
+        try {
+            byte[] foundedValue = db.get(key.getBytes());
+            if (foundedValue == null) {
+                return;
+            }
+            byte[] indexKey = getIndexKey(peerSize);
+            db.delete(indexKey);
+            db.delete(key.getBytes());
+            peerSize--;
+            db.put(TOTAL_SIZE, ByteUtil.longToBytes(peerSize));
+        } finally {
+            lock.unlock();
         }
-        byte[] indexKey = getIndexKey(peerSize);
-        db.delete(indexKey);
-        db.delete(key.getBytes());
-        peerSize--;
-        db.put(TOTAL_SIZE, ByteUtil.longToBytes(peerSize));
+        log.trace("remove() {} {}", key.toString());
     }
 
     public List<String> getAll() {
@@ -119,6 +144,9 @@ public class PeerStore implements ReadWriterStore<PeerId, Peer> {
                 db.delete(indexKey);
             }
         }
+
+        log.trace("getAll(): {}", list.toString());
+
         return list;
     }
 
