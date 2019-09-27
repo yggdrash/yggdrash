@@ -115,7 +115,7 @@ public interface TransactionApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = FailedOperationException.class,
                     code = FailedOperationException.CODE)})
-    byte[] sendRawTransaction(@JsonRpcParam(value = "rawTx") byte[] rawTx);
+    TransactionResponseDto sendRawTransaction(@JsonRpcParam(value = "rawTx") byte[] rawTx);
 
     /**
      * Creates a filter in the node, to notify when new pending transactions arrive.

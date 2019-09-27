@@ -211,16 +211,11 @@ public class TransactionApiImplTest {
     @Test
     public void sendRawTransactionTest() {
         // Request Transaction with byteArr
-        try {
-            //success tx
-            byte[] input = createTx().toRawTransaction();
-            // Convert byteArray to Transaction
-            byte[] res = TX_API.sendRawTransaction(input);
-            assertThat(res).isNotEmpty();
-            assertArrayEquals(TransactionImpl.parseFromRaw(input).getHash().getBytes(), res);
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-        }
+        //success tx
+        byte[] input = createTx().toRawTransaction();
+        // Convert byteArray to Transaction
+        TransactionResponseDto res = TX_API.sendRawTransaction(input);
+        assertTrue(res.status);
     }
 
     @Test

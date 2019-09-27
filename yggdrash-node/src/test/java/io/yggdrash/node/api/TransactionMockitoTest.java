@@ -48,6 +48,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -140,18 +141,16 @@ public class TransactionMockitoTest {
 
     @Test(expected = FailedOperationException.class)
     public void sendInvalidRawTransaction() {
-        byte[] res = txApiImpl.sendRawTransaction(tx.toBinary());
-        log.debug("\n\nres :: " + Hex.encodeHexString(res));
-        assertThat(res).isNotEmpty();
+        TransactionResponseDto res = txApiImpl.sendRawTransaction(tx.toBinary());
+        assertFalse(res.status);
     }
 
-    @Ignore
     @Test
     public void sendRawTransaction() {
         TransactionImpl testTx = new TransactionImpl(tx.getInstance());
-        byte[] res = txApiImpl.sendRawTransaction(testTx.toRawTransaction());
-        log.debug("\n\nres :: " + Hex.encodeHexString(res));
-        assertThat(res).isEqualTo(testTx.getHash().getBytes()); //success tx
+        TransactionResponseDto res = txApiImpl.sendRawTransaction(testTx.toRawTransaction());
+        //success tx
+        assertEquals(testTx.getHash().toString(), res.txHash);
     }
 
     @Test
