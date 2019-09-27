@@ -58,7 +58,7 @@ public class TempStateStoreTest {
     }
 
     @Test
-    public void name() {
+    public void RevertStateRoot() {
         TempStateStore store = new TempStateStore(stateStore);
 
         Sha3Hash initStateRoot = store.getStateRoot();
