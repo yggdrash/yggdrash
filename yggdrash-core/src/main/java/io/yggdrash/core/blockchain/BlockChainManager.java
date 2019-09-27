@@ -33,15 +33,21 @@ public interface BlockChainManager<T> {
 
     void addBlock(ConsensusBlock<T> nextBlock);
 
+    //void addBlock(ConsensusBlock<T> nextBlock, Sha3Hash stateRoot);
+
+    void batchTxs(ConsensusBlock<T> block, Sha3Hash stateRoot);
+
     void addTransaction(Transaction tx);
 
     void addTransaction(Transaction tx, Sha3Hash stateRootHash);
 
     void flushUnconfirmedTxs(Set<Sha3Hash> keys);
 
+    void flushUnconfirmedTx(Sha3Hash key);
+
     void updateTxCache(Block block);
 
-    void setPendingStateRoot(Sha3Hash stateRootHash);
+    //void setPendingStateRoot(Sha3Hash stateRootHash);
 
     ConsensusBlock<T> getLastConfirmedBlock();
 

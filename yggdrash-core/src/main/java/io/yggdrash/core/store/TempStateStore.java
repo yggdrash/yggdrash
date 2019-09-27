@@ -41,7 +41,7 @@ public class TempStateStore implements ReadWriterStore<String, JsonObject> {
     private final String STATE_ROOT = "stateRoot";
     private final String STATE_HASH = "stateHash";
     private Sha3Hash stateRootHash;
-
+    private Sha3Hash stateRootHashBak;
 
     public TempStateStore(ReadWriterStore<String, JsonObject> originStore) {
         this.stateStore = originStore;
@@ -65,13 +65,13 @@ public class TempStateStore implements ReadWriterStore<String, JsonObject> {
 
     // TODO: delete logging for speed up
     private JsonObject stateRoot(String key, JsonObject value) {
+        stateRootHashBak = stateRootHash;
         byte[] changedStateRootByte =  HashUtil.sha3(key.concat(value.toString()).getBytes());
         log.trace("key={} value={} changedStateRoot={}",
                 key, value.toString(), stateRootHash.toString(), Hex.toHexString(changedStateRootByte));
         log.trace("before stateRootHash={}", stateRootHash);
         stateRootHash = new Sha3Hash(Bytes.concat(stateRootHash.getBytes(), changedStateRootByte));
         log.trace("after stateRootHash={}", stateRootHash);
-
         return stateRootObj(stateRootHash);
     }
 
@@ -117,6 +117,10 @@ public class TempStateStore implements ReadWriterStore<String, JsonObject> {
 
     public Set<Map.Entry<String, JsonObject>> changeValues() {
         return this.tempStore.entrySet();
+    }
+
+    public void revertStateRootHash() {
+        stateRootHash = stateRootHashBak;
     }
 
     private void setStateRootHash() {

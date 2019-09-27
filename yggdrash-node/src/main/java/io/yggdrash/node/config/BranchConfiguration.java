@@ -147,13 +147,17 @@ public class BranchConfiguration {
                 .build();
 
         Sha3Hash genesisStateRootHash;
-        if (genesis.getContractTxs().size() > 0) {
-             genesisStateRootHash = new Sha3Hash(contractManager.executePendingTxs(genesis.getContractTxs())
-                    .getBlockResult().get("stateRoot").get("stateHash").getAsString());
-            blockChainManager.setPendingStateRoot(genesisStateRootHash);
+        if (blockChainManager.countOfBlocks() > 0) {
+            genesisStateRootHash = new Sha3Hash(blockChainStore.getConsensusBlockStore().getBlockByIndex(0).getBlock().getHeader().getStateRoot(), true);
         } else {
-            genesisStateRootHash = new Sha3Hash(Constants.EMPTY_HASH);
+            if (genesis.getContractTxs().size() > 0) {
+                genesisStateRootHash = new Sha3Hash(contractManager.executePendingTxs(genesis.getContractTxs())
+                        .getBlockResult().get("stateRoot").get("stateHash").getAsString());
+            } else {
+                genesisStateRootHash = new Sha3Hash(Constants.EMPTY_HASH);
+            }
         }
+
         genesis.toBlock(genesisStateRootHash);
 
         BlockChain blockChain = BlockChainBuilder.newBuilder()

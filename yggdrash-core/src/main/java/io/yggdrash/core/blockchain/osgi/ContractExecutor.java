@@ -156,6 +156,12 @@ public class ContractExecutor {
             if (curTmpStateStore.equals(tmpStateStore)) {
                 curTmpStateStore.close();
             }
+
+            // Revert to the previous pendingStateRoot rather than returning to the origin state when error transaction executed.
+            if (curTmpStateStore.equals(pendingStateStore) && receipt.getStatus().equals(ExecuteStatus.ERROR)) {
+                curTmpStateStore.revertStateRootHash();
+            }
+
         } finally {
             locker.unlock();
         }
@@ -196,7 +202,6 @@ public class ContractExecutor {
             List<Transaction> txList = nextBlock != null
                     ? nextBlock.getBody().getTransactionList() : blockRuntimeResult.getTxList();
             TempStateStore curTmpStateStore = nextBlock != null ? tmpStateStore : pendingStateStore;
-
             setStoreAdapter(curTmpStateStore);
 
             for (Transaction tx : txList) {
