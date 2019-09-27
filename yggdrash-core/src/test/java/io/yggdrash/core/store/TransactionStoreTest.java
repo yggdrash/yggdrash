@@ -40,7 +40,7 @@ public class TransactionStoreTest {
     private TransactionStore ts;
     private Transaction tx;
 
-//    @Before
+    @Before
     public void setUp() {
         ts = new TransactionStore(new HashMapDbSource());
         assertThat(ts).isNotNull();
@@ -140,6 +140,6 @@ public class TransactionStoreTest {
 
     private void batch() {
         Set<Sha3Hash> keys = ts.getUnconfirmedTxs().stream().map(Transaction::getHash).collect(Collectors.toSet());
-//        ts.batch(keys);
+        ts.batch(keys, null);
     }
 }

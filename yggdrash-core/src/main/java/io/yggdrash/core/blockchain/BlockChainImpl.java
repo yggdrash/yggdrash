@@ -217,6 +217,15 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         return new HashMap<>();
     }
 
+    private List<ContractEvent> getContractEventList(BlockRuntimeResult result) {
+        List<ContractEvent> contractEventList = new ArrayList<>();
+        result.getReceipts().stream()
+                .filter(receipt -> !receipt.getEvents().isEmpty())
+                .map(Receipt::getEvents)
+                .forEach(contractEventList::addAll);
+        return contractEventList;
+    }
+
     private Sha3Hash reExecuteAndRemoveFromPendingPool(List<Transaction> txs) {
         // PendingStateStore is still running without reset.
         contractManager.resetPendingStateStore();
@@ -243,15 +252,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         } finally {
             lock2.unlock();
         }
-    }
-
-    private List<ContractEvent> getContractEventList(BlockRuntimeResult result) {
-        List<ContractEvent> contractEventList = new ArrayList<>();
-        result.getReceipts().stream()
-                .filter(receipt -> !receipt.getEvents().isEmpty())
-                .map(Receipt::getEvents)
-                .forEach(contractEventList::addAll);
-        return contractEventList;
     }
 
     @Override
@@ -300,9 +300,10 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     }
 
     @Override
-    public Sha3Hash executeAndAddToPendingPool(Transaction tx) { //return stateRootHash
+    public Sha3Hash executeAndAddToPendingPool(Transaction tx) {
         lock2.lock();
         try {
+            // return pendingTx stateRootHash
             if (!blockChainManager.contains(tx)) {
                 return addPendingTxs(tx);
             }
