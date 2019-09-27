@@ -76,6 +76,8 @@ public final class Constants {
     public static final String NODE_KEY_PASSWORD = "yggdrash.node.key.password";
     public static final String NODE_GRPC_HOST = "yggdrash.node.grpc.host";
     public static final String NODE_GRPC_PORT = "yggdrash.node.grpc.port";
+    public static final long NODE_DISCOVERY_TIME = 5000;
+    public static final long NODE_DISCOVERY_INITDELAY = 10000;
 
     public static final String VALIDATOR_PATH = "yggdrash.validator.path";
     public static final String VALIDATOR_INFO = "yggdrash.validator.info";

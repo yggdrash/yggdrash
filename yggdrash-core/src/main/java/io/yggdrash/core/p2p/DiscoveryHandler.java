@@ -35,13 +35,13 @@ import java.util.stream.Collectors;
 
 public class DiscoveryHandler<T> implements BlockChainHandler<T> {
     private static final FailedOperationException NOT_IMPLEMENTED = new FailedOperationException("Not implemented");
-
     private static final Logger log = LoggerFactory.getLogger(DiscoveryHandler.class);
 
     private final Peer peer;
-
     private final ManagedChannel channel;
+
     private DiscoveryServiceGrpc.DiscoveryServiceBlockingStub peerBlockingStub;
+    private int failCount = 0;
 
     public DiscoveryHandler(Peer peer) {
         this(ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext().build(), peer);
@@ -51,6 +51,16 @@ public class DiscoveryHandler<T> implements BlockChainHandler<T> {
         this.channel = channel;
         this.peer = peer;
         this.peerBlockingStub = DiscoveryServiceGrpc.newBlockingStub(channel);
+    }
+
+    @Override
+    public int getFailCount() {
+        return failCount;
+    }
+
+    @Override
+    public void setFailCount(int failCount) {
+        this.failCount = failCount;
     }
 
     @Override
