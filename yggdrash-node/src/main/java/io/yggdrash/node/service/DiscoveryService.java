@@ -47,45 +47,49 @@ public class DiscoveryService extends DiscoveryServiceGrpc.DiscoveryServiceImplB
 
     @Override
     public void findPeers(Proto.TargetPeer target, StreamObserver<Proto.PeerList> responseObserver) {
-        Peer peer = Peer.valueOf(target.getPubKey(), target.getIp(), target.getPort());
-        BranchId branchId = BranchId.of(target.getBranch().toByteArray());
-        List<Peer> list = discoveryConsumer.findPeers(branchId, peer); // peer -> target
-        Proto.PeerList.Builder peerListBuilder = Proto.PeerList.newBuilder();
+        try {
+            Peer peer = Peer.valueOf(target.getPubKey(), target.getIp(), target.getPort());
+            BranchId branchId = BranchId.of(target.getBranch().toByteArray());
+            List<Peer> list = discoveryConsumer.findPeers(branchId, peer); // peer -> target
+            Proto.PeerList.Builder peerListBuilder = Proto.PeerList.newBuilder();
 
-        for (Peer p : list) {
-            peerListBuilder.addPeers(Proto.PeerInfo.newBuilder().setUrl(p.getYnodeUri()).build());
+            for (Peer p : list) {
+                peerListBuilder.addPeers(Proto.PeerInfo.newBuilder().setUrl(p.getYnodeUri()).build());
+            }
+
+            Proto.PeerList peerList = peerListBuilder.build();
+            log.trace("findPeers() response: {}", peerList.getPeersList().toString());
+
+            responseObserver.onNext(peerList);
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            log.debug("findPeers() is failed. {}", e.getMessage());
         }
-
-        Proto.PeerList peerList = peerListBuilder.build();
-        log.trace("findPeers() response: {}", peerList.getPeersList().toString());
-
-        responseObserver.onNext(peerList);
-        responseObserver.onCompleted();
     }
 
     @Override
     public void ping(Proto.Ping request, StreamObserver<Proto.Pong> responseObserver) {
-        BranchId branchId = BranchId.of(request.getBranch().toByteArray());
-        if (branchId == null || branchId.toString().equals("")) {
-            return;
-        }
+        try {
+            BranchId branchId = BranchId.of(request.getBranch().toByteArray());
+            if (branchId == null || branchId.toString().equals("")) {
+                return;
+            }
 
-        Peer from = Peer.valueOf(request.getFrom());
-        Peer to = Peer.valueOf(request.getTo());
-
-        String grpcHost = "127.0.0.1"; // TODO: change when considering test cases.
-        if (grpcServerRunner != null) {
-            grpcHost = grpcServerRunner.getServerCallCapture().get()
+            Peer from = Peer.valueOf(request.getFrom());
+            Peer to = Peer.valueOf(request.getTo());
+            String grpcHost = grpcServerRunner.getServerCallCapture().get()
                     .getAttributes().get(Grpc.TRANSPORT_ATTR_REMOTE_ADDR)
                     .toString().split(":")[0].replaceAll("/", "");
+
+            from.setBestBlock(request.getBestBlock());
+            to.setBestBlock(branchGroup != null ? branchGroup.getLastIndex(branchId) : 0L);
+            Proto.Pong pong = discoveryConsumer.ping(
+                    branchId, from, to, request.getPing(), to.getBestBlock(), from.getHost().equals(grpcHost));
+
+            responseObserver.onNext(pong);
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            log.debug("ping() is failed. {}", e.getMessage());
         }
-
-        from.setBestBlock(request.getBestBlock());
-        to.setBestBlock(branchGroup != null ? branchGroup.getLastIndex(branchId) : 0L);
-        Proto.Pong pong = discoveryConsumer.ping(
-                branchId, from, to, request.getPing(), to.getBestBlock(), from.getHost().equals(grpcHost));
-
-        responseObserver.onNext(pong);
-        responseObserver.onCompleted();
     }
 }
