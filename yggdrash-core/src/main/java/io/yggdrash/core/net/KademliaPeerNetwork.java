@@ -58,7 +58,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
 
     @Override
     public void init() {
-        log.info("Init node={}", peerTableGroup.getOwner());
+        log.info("My Node = {}", peerTableGroup.getOwner());
         peerTableGroup.selfRefresh();
 
         for (BranchId branchId : peerTableGroup.getAllBranchId()) {

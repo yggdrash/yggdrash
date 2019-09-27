@@ -39,6 +39,7 @@ public class PeerHandlerMock implements BlockChainHandler {
 
     private final Peer peer;
     private boolean pongResponse = true;
+    private int failCount = 0;
 
     private PeerHandlerMock(String ynodeUri) {
         this.peer = Peer.valueOf(ynodeUri);
@@ -127,6 +128,16 @@ public class PeerHandlerMock implements BlockChainHandler {
 
     @Override
     public void broadcastTx(Transaction tx) {
+    }
+
+    @Override
+    public void setFailCount(int failCount) {
+        this.failCount = failCount;
+    }
+
+    @Override
+    public int getFailCount() {
+        return failCount;
     }
 
     public static BlockChainHandler dummy() {

@@ -29,6 +29,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import static io.yggdrash.common.config.Constants.NODE_DISCOVERY_INITDELAY;
+import static io.yggdrash.common.config.Constants.NODE_DISCOVERY_TIME;
+
 public class PeerTask {
 
     private static final Logger log = LoggerFactory.getLogger(PeerTask.class);
@@ -61,25 +64,29 @@ public class PeerTask {
         this.peerNetwork = peerNetwork;
     }
 
-    @Scheduled(initialDelay = 5000, fixedRate = 2000) // TODO: change from value to configfile
-    public void healthCheck() { // ==> Task of PeerDialer?
-        log.trace("HealthCheck() Branches: {}", peerTableGroup.getAllBranchId());
-        for (BranchId branchId : peerTableGroup.getAllBranchId()) {
-            for (PeerHandler peerHandler : peerNetwork.getHandlerList(branchId)) {
-                long peerBlockIndex
-                        = peerDialer.healthCheck(branchId, peerTableGroup.getOwner(), peerHandler.getPeer());
-                log.trace("HealthCheck() Node({}) BlockIndex({})",
-                        peerHandler.getPeer().getYnodeUri(),
-                        peerBlockIndex);
-                if (peerBlockIndex >= 0) {
-                    peerHandler.getPeer().setBestBlock(peerBlockIndex);
-                    if (branchGroup != null && peerBlockIndex > branchGroup.getLastIndex(branchId)) {
-                        listener.catchUpRequest(branchId, peerHandler.getPeer());
+    @Scheduled(initialDelay = NODE_DISCOVERY_INITDELAY, fixedRate = NODE_DISCOVERY_TIME)
+    public void healthCheck() {
+        try {
+            for (BranchId branchId : peerTableGroup.getAllBranchId()) {
+                for (PeerHandler peerHandler : peerNetwork.getHandlerList(branchId)) {
+                    long peerBlockIndex
+                            = peerDialer.healthCheck(branchId, peerTableGroup.getOwner(), peerHandler.getPeer());
+                    log.trace("HealthCheck() Node({}) BlockIndex({})", peerHandler.getPeer().getYnodeUri(), peerBlockIndex);
+                    if (peerBlockIndex >= 0) {
+                        peerHandler.getPeer().setBestBlock(peerBlockIndex);
+                        if (branchGroup != null && peerBlockIndex > branchGroup.getLastIndex(branchId)) {
+                            listener.catchUpRequest(branchId, peerHandler.getPeer());
+                        }
+                    } else {
+                        peerHandler.setFailCount(peerHandler.getFailCount() + 1);
+                        if (peerHandler.getFailCount() > 3) {
+                            peerTableGroup.dropPeer(branchId, peerHandler.getPeer());
+                        }
                     }
-                } else {
-                    peerTableGroup.dropPeer(branchId, peerHandler.getPeer());
                 }
             }
+        } catch (Exception e) {
+            log.warn("healthCheck() is failed. {}", e.getMessage());
         }
     }
 
@@ -87,9 +94,12 @@ public class PeerTask {
     // seed nodes are inserted if the table is empty (initial bootstrap or discarded faulty peers).
     @Scheduled(cron = "*/" + KademliaOptions.BUCKET_REFRESH + " * * * * *")
     public void refresh() {
-        log.debug("Peer Network refresh() start: {}", peerTableGroup.getActivePeerListWithStatus());
-        peerTableGroup.refresh();
-        log.debug("Peer Network refresh() end: {}", peerTableGroup.getActivePeerListWithStatus());
+        try {
+            peerTableGroup.refresh();
+            log.debug("refresh(): {}", peerTableGroup.getActivePeerListWithStatus());
+        } catch (Exception e) {
+            log.warn("refresh() is failed. {}", e.getMessage());
+        }
     }
 
 }

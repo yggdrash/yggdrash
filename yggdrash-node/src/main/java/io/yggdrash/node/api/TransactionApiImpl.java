@@ -91,12 +91,13 @@ public class TransactionApiImpl implements TransactionApi {
         Transaction transaction = TransactionDto.of(tx);
         try {
             if (!branchGroup.getBranch(transaction.getBranchId()).isFullSynced()) {
-                log.debug("sendRawTransaction() is failed. Not yet fullSynced.");
                 return TransactionResponseDto.createBy(transaction.getHash().toString(), false,
                         BusinessError.getErrorLogsMap(BusinessError.UNDEFINED_ERROR.toValue()));
+            } else {
+                log.warn("SendTransaction failed. Not yet full synced.");
             }
         } catch (Exception e) {
-            log.debug("sendRawTransaction() is failed. {}", e.getMessage());
+            log.debug("SendTransaction failed. {}", e.getMessage());
             return TransactionResponseDto.createBy(transaction.getHash().toString(), false,
                     BusinessError.getErrorLogsMap(BusinessError.UNDEFINED_ERROR.toValue()));
         }
@@ -117,12 +118,13 @@ public class TransactionApiImpl implements TransactionApi {
         Transaction transaction = TransactionImpl.parseFromRaw(bytes);
         try {
             if (!branchGroup.getBranch(transaction.getBranchId()).isFullSynced()) {
-                log.debug("sendRawTransaction() is failed. Not yet fullSynced.");
                 return BusinessError.getErrorLogsMap(BusinessError.UNDEFINED_ERROR.toValue())
                         .entrySet().stream().map(Object::toString).collect(Collectors.joining(",")).getBytes();
+            } else {
+                log.debug("SendRawTransaction is failed. Not yet fullSynced.");
             }
         } catch (Exception e) {
-            log.debug("sendRawTransaction() is failed. {}", e.getMessage());
+            log.debug("SendRawTransaction failed. {}", e.getMessage());
             return BusinessError.getErrorLogsMap(BusinessError.UNDEFINED_ERROR.toValue())
                     .entrySet().stream().map(Object::toString).collect(Collectors.joining(",")).getBytes();
         }

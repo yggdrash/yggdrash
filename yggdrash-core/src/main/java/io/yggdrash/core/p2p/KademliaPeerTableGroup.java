@@ -78,7 +78,10 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
             peerTable = createTable(branchId);
         }
 
-        peerTable.addPeer(peer);
+        if (!peerTable.getPeerUriList().contains(peer.getYnodeUri())) {
+            log.info("Add a peer({})", peer.getYnodeUri());
+            peerTable.addPeer(peer);
+        }
     }
 
     @Override
@@ -89,7 +92,7 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
         }
 
         if (!seedPeerList.contains(peer.getYnodeUri())) {
-            log.trace("dropPeer: {}", peer);
+            log.info("Delete a peer({})", peer.getYnodeUri());
             peerTable.dropPeer(peer);
         }
     }

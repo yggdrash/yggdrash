@@ -170,7 +170,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                     log.warn("Add block failed. Invalid stateRoot. BlockStateRoot : {}, CurStateRoot : {}"
                             , nextBlockStateRoot, blockResultStateRoot);
                     // TODO: uncommented when fixed the bug about stateRoot
-                    return BusinessError.getErrorLogsMap(BusinessError.INVALID_STATE_ROOT_HASH.toValue());
+                    //return BusinessError.getErrorLogsMap(BusinessError.INVALID_STATE_ROOT_HASH.toValue());
                 }
 
                 branchStore.setLastExecuteBlock(nextBlock);
