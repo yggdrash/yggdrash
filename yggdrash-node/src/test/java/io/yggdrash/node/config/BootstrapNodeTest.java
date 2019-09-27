@@ -21,6 +21,7 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.gateway.controller.BranchController;
 import io.yggdrash.node.PeerTask;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,7 @@ public class BootstrapNodeTest extends TestConstants.CiTest {
         assertThat(peerTask).isNotNull();
     }
 
+    @Ignore
     @Test
     public void shouldBeEmptyBranch() {
         assertThat(branchGroup.getAllBranch()).isEmpty();
