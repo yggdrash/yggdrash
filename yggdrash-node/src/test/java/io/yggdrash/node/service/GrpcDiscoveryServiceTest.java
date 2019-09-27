@@ -25,6 +25,7 @@ import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.proto.DiscoveryServiceGrpc;
 import io.yggdrash.proto.Proto;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -68,6 +69,7 @@ public class GrpcDiscoveryServiceTest {
         assertEquals(0, peerList.getPeersCount());
     }
 
+    @Ignore
     @Test
     public void ping() {
         DiscoveryServiceGrpc.DiscoveryServiceBlockingStub blockingStub = DiscoveryServiceGrpc.newBlockingStub(
