@@ -114,19 +114,20 @@ public class TransactionApiImpl implements TransactionApi {
     }
 
     @Override
-    public byte[] sendRawTransaction(byte[] bytes) {
+    public TransactionResponseDto sendRawTransaction(byte[] bytes) {
         Transaction transaction = TransactionImpl.parseFromRaw(bytes);
         try {
             if (!branchGroup.getBranch(transaction.getBranchId()).isFullSynced()) {
-                return BusinessError.getErrorLogsMap(BusinessError.UNDEFINED_ERROR.toValue())
-                        .entrySet().stream().map(Object::toString).collect(Collectors.joining(",")).getBytes();
+                return TransactionResponseDto.createBy(transaction.getHash().toString(), false,
+                        BusinessError.getErrorLogsMap(BusinessError.UNDEFINED_ERROR.toValue()
+                        ));
             } else {
                 log.debug("SendRawTransaction is failed. Not yet fullSynced.");
             }
         } catch (Exception e) {
             log.debug("SendRawTransaction failed. {}", e.getMessage());
-            return BusinessError.getErrorLogsMap(BusinessError.UNDEFINED_ERROR.toValue())
-                    .entrySet().stream().map(Object::toString).collect(Collectors.joining(",")).getBytes();
+            return TransactionResponseDto.createBy(transaction.getHash().toString(), false,
+                    BusinessError.getErrorLogsMap(BusinessError.UNDEFINED_ERROR.toValue()));
         }
 
         Map<String, List<String>> errorLogs = branchGroup.addTransaction(transaction);
@@ -138,8 +139,8 @@ public class TransactionApiImpl implements TransactionApi {
         }
 
         return errorLogs.size() > 0
-                ? errorLogs.entrySet().stream().map(Object::toString).collect(Collectors.joining(",")).getBytes()
-                : transaction.getHash().getBytes();
+                ? TransactionResponseDto.createBy(transaction.getHash().toString(), false, errorLogs)
+                : TransactionResponseDto.createBy(transaction.getHash().toString(), true, errorLogs);
     }
 
     /* filter */
