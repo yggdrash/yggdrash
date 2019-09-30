@@ -53,8 +53,6 @@ public class TransactionApiImplTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionApiImplTest.class);
 
-    private final int blockNumber = 3;
-    private final int txIndexPosition = 2;
     private final String yggdrashBranch = TestConstants.yggdrash().toString();
     private final BranchGroup branchGroup = BlockChainTestUtils.createBranchGroup();
     private final TransactionApiImpl txApi = new TransactionApiImpl(branchGroup);
@@ -132,6 +130,7 @@ public class TransactionApiImplTest {
     }
 
     @Test
+    @Ignore
     public void sendTransactionTest() {
         Transaction tx = createTx();
         try {
@@ -159,6 +158,7 @@ public class TransactionApiImplTest {
     }
 
     @Test
+    @Ignore
     public void sendRawTransactionTest() {
         // TODO remove
         // Request Transaction with byteArr
@@ -176,6 +176,7 @@ public class TransactionApiImplTest {
 
 
     @Test
+    @Ignore
     public void newPendingTransactionFilterTest() {
         // TODO remove
         try {
@@ -188,12 +189,7 @@ public class TransactionApiImplTest {
 
     @Test
     public void getPendingTransactionListTest() {
-        // TODO remove
-        try {
-            TX_API.getPendingTransactionList(yggdrashBranch);
-        } catch (Exception e) {
-            log.debug("\n\ngetPendingTransactionListTest :: exception => " + e);
-        }
+        assertThat(txApi.getPendingTransactionList(yggdrashBranch)).isNotNull();
     }
 
     @Test
@@ -224,8 +220,8 @@ public class TransactionApiImplTest {
 
     @Test
     public void getNullTransactionReceiptTest() {
-        String unValidTxhash = "bce7bce793985a1cde7791acbbeb16037d7b86b967df4213329b2e3cc45995fe";
-        assertThat(txApi.getTransactionReceipt(yggdrashBranch, unValidTxhash).txId)
+        String invalidTxHash = "bce7bce793985a1cde7791acbbeb16037d7b86b967df4213329b2e3cc45995fe";
+        assertThat(txApi.getTransactionReceipt(yggdrashBranch, invalidTxHash).txId)
                 .isNull();
     }
 
