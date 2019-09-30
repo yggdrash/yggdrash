@@ -22,15 +22,14 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.contract.ContractVersion;
-import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;
-import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.core.blockchain.osgi.ContractConstants;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.gateway.dto.BlockDto;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionResponseDto;
 import org.apache.commons.codec.binary.Hex;
@@ -40,14 +39,11 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 
 import static io.yggdrash.node.api.JsonRpcConfig.BLOCK_API;
 import static io.yggdrash.node.api.JsonRpcConfig.TX_API;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -62,10 +58,17 @@ public class TransactionApiImplTest {
     private final String yggdrashBranch = TestConstants.yggdrash().toString();
     private final BranchGroup branchGroup = BlockChainTestUtils.createBranchGroup();
     private final TransactionApiImpl txApi = new TransactionApiImpl(branchGroup);
+    private final BlockApiImpl blockApi = new BlockApiImpl(branchGroup);
+    private String testTransactionHash = null;
+    private String testBlockHash = null;
 
     @Before
     public void setUp() {
-        sendTransactionTest();
+        // TODO check TX_API is READY
+        //sendTransactionTest();
+        BlockDto genesisBlock = blockApi.getBlockByNumber(yggdrashBranch, 0, true);
+        testBlockHash = genesisBlock.blockId;
+        testTransactionHash = genesisBlock.body.get(0).txId; // exist tx
     }
 
     @Test
@@ -80,63 +83,42 @@ public class TransactionApiImplTest {
 
     @Test
     public void getBlockTransactionCountByHashTest() {
-        try {
-            assertThat(TX_API.getTransactionCountByBlockHash(yggdrashBranch,
-                    "d52fffa14f5b88b141d05d8e28c90d8131db1aa63e076bfea9c28c3060049e12"))
-                    .isNotZero();
-        } catch (Exception exception) {
-            log.debug("\n\ngetBlockTransactionCountByHashTest :: exception => " + exception);
-        }
+        assertThat(txApi.getTransactionCountByBlockHash(yggdrashBranch, testBlockHash))
+                .isNotZero();
     }
 
     @Test
     public void getBlockTransactionCountByNumberTest() {
-        try {
-            assertThat(TX_API.getTransactionCountByBlockNumber(yggdrashBranch, blockNumber))
-                    .isNotZero();
-        } catch (Throwable exception) {
-            log.debug("\n\ngetBlockTransactionCountByNumberTest :: exception => " + exception);
-        }
+        // Genesis Block Transaction
+        assertThat(txApi.getTransactionCountByBlockNumber(yggdrashBranch, 0))
+                .isNotZero();
     }
 
     @Test
     public void getTransactionByHashTest() {
-        try {
-            assertThat(TX_API.getTransactionByHash(yggdrashBranch,
-                    "f5912fde84c6a3a44b4e529077ca9bf28feccd847137e44a77cd17e9fb9c1353"))
-                    .isNotNull();
-        } catch (Exception exception) {
-            log.debug("\n\ngetTransactionByHashTest :: exception => " + exception);
-        }
+        assertThat(txApi.getTransactionByHash(yggdrashBranch, testTransactionHash))
+                .isNotNull();
     }
 
     @Test
     public void getTransactionByBlockHashTest() {
-        try {
-            assertThat(TX_API.getTransactionByBlockHash(yggdrashBranch,
-                    "5ef71a90c6d99c7bc13bfbcaffb50cb89210678e99ed6626c9d2f378700b392c",
-                    2)).isNotNull();
-        } catch (Exception exception) {
-            log.debug("\n\ngetTransactionByBlockHashTest :: exception => " + exception);
-        }
+        // Get genesis Block and check Hash
+        assertThat(txApi.getTransactionByBlockHash(yggdrashBranch,
+                testBlockHash,
+                0)).isNotNull();
     }
 
     @Test
     public void getTransactionByBlockNumberTest() {
-        try {
-            assertThat(TX_API.getTransactionByBlockNumber(
-                    yggdrashBranch, blockNumber, txIndexPosition))
-                    .isNotNull();
-        } catch (Exception e) {
-            log.debug("\n\ngetTransactionByBlockNumberTest :: exception => " + e);
-        }
+        assertThat(txApi.getTransactionByBlockNumber(yggdrashBranch, 0, 0))
+                .isNotNull();
     }
 
     @Test
     public void getTransactionByBlockNumberWithTagTest() {
         try {
             String tag = "latest";
-            Assert.assertNotNull(TX_API.getTransactionByBlockNumber(yggdrashBranch, tag, txIndexPosition));
+            Assert.assertNotNull(txApi.getTransactionByBlockNumber(yggdrashBranch, tag, 0));
         } catch (Exception e) {
             log.debug("\n\ngetTransactionByBlockNumberWithTagTest :: exception => " + e);
         }
@@ -178,6 +160,7 @@ public class TransactionApiImplTest {
 
     @Test
     public void sendRawTransactionTest() {
+        // TODO remove
         // Request Transaction with byteArr
         //success tx
         try {
@@ -194,6 +177,7 @@ public class TransactionApiImplTest {
 
     @Test
     public void newPendingTransactionFilterTest() {
+        // TODO remove
         try {
             assertThat(TX_API.newPendingTransactionFilter(yggdrashBranch))
                     .isGreaterThanOrEqualTo(0);
@@ -204,6 +188,7 @@ public class TransactionApiImplTest {
 
     @Test
     public void getPendingTransactionListTest() {
+        // TODO remove
         try {
             TX_API.getPendingTransactionList(yggdrashBranch);
         } catch (Exception e) {
@@ -232,35 +217,29 @@ public class TransactionApiImplTest {
 
     @Test
     public void getTransactionReceiptTest() {
-        try {
-            assertThat(TX_API.getTransactionReceipt(yggdrashBranch,
-                    "bce793985a1cde7791acbbeb16037d7b86b967df4213329b2e3cc45995fecd68"))
-                    .isNotNull();
-        } catch (Exception exception) {
-            log.debug("\n\ngetTransactionReceiptTest :: exception => " + exception);
-        }
+        assertThat(txApi.getTransactionReceipt(yggdrashBranch,
+                testTransactionHash))
+                .isNotNull();
     }
 
     @Test
+    public void getNullTransactionReceiptTest() {
+        String unValidTxhash = "bce7bce793985a1cde7791acbbeb16037d7b86b967df4213329b2e3cc45995fe";
+        assertThat(txApi.getTransactionReceipt(yggdrashBranch, unValidTxhash).txId)
+                .isNull();
+    }
+
+
+    @Test
     public void getRawTransactionTest() {
-        try {
-            assertThat(TX_API.getRawTransaction(yggdrashBranch,
-                    "bce793985a1cde7791acbbeb16037d7b86b967df4213329b2e3cc45995fecd68"))
+        assertThat(txApi.getRawTransaction(yggdrashBranch, testTransactionHash))
                     .isNotNull();
-        } catch (Exception exception) {
-            log.debug("\n\ngetRawTransactionTest :: exception => " + exception);
-        }
     }
 
     @Test
     public void getRawTransactionHeaderTest() {
-        try {
-            assertThat(TX_API.getRawTransactionHeader(yggdrashBranch,
-                    "bce793985a1cde7791acbbeb16037d7b86b967df4213329b2e3cc45995fecd68"))
-                    .isNotNull();
-        } catch (Exception exception) {
-            log.debug("\n\ngetRawTransactionHeaderTest :: exception => " + exception);
-        }
+        assertThat(txApi.getRawTransactionHeader(yggdrashBranch, testTransactionHash))
+                .isNotNull();
     }
 
     @Ignore
