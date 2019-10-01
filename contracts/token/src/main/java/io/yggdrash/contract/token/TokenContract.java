@@ -684,7 +684,6 @@ public class TokenContract implements BundleActivator, ServiceListener {
             String from = params.get("from").getAsString().toLowerCase();
             String to = params.get("to").getAsString().toLowerCase();
             BigInteger transferAmount = params.get(AMOUNT).getAsBigInteger();
-
             if (transferAmount.compareTo(BigInteger.ZERO) <= 0) {
                 setErrorTxReceipt("Transfer amount must be greater than ZERO!");
                 return txReceipt;
@@ -693,9 +692,14 @@ public class TokenContract implements BundleActivator, ServiceListener {
             String sender = txReceipt.getIssuer();
             String approveKey = approveKey(from, sender);
             BigInteger approveBalance = getBalance(tokenId, approveKey);
-
             if (transferAmount.compareTo(approveBalance) > 0) {
                 setErrorTxReceipt("Insufficient approved balance to transferFrom!");
+                return txReceipt;
+            }
+
+            BigInteger fromBalance = getBalance(tokenId, from);
+            if (transferAmount.compareTo(fromBalance) > 0) {
+                setErrorTxReceipt("Insufficient balance of from account to transferFrom!");
                 return txReceipt;
             }
 

@@ -857,6 +857,26 @@ public class TokenContractTest {
         params.addProperty(SPENDER, account1);
         BigInteger result = tokenContract.allowance(params);
         Assert.assertEquals("Allowance should be 50", 0, result.compareTo(getBigInt18(50)));
+
+        // INSUFFICIENT OWNER BALANCE TO TRANSFER FROM
+        JsonObject paramsTransfer = new JsonObject();
+        paramsTransfer.addProperty(TOKEN_ID, "TEST_TOKEN");
+        paramsTransfer.addProperty(ADDRESS, owner);
+        BigInteger ownerBalance = tokenContract.balanceOf(paramsTransfer);
+
+        tx = new ReceiptImpl("0x09", 300L, owner);
+        this.adapter.setReceipt(tx);
+        paramsTransfer.addProperty("to", account1);
+        paramsTransfer.addProperty(AMOUNT, ownerBalance);
+        tokenContract.transfer(paramsTransfer);
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Transfer is failed", tx.isSuccess());
+
+        tx = new ReceiptImpl("0x10", 300L, account1);
+        this.adapter.setReceipt(tx);
+        tokenContract.transferFrom(params);
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Transfer from approved should be failed", tx.isSuccess());
     }
 
     @Test
