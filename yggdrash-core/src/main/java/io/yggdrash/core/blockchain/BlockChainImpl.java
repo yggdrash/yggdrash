@@ -148,7 +148,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             lock.lock();
             int verificationCode = blockChainManager.verify(nextBlock);
             if (verificationCode != BusinessError.VALID.toValue()) {
-                log.debug("addBlock is failed. Index({}) {}",
+                log.trace("addBlock is failed. Index({}) {}",
                         nextBlock.getIndex(), BusinessError.getErrorLogsMap(verificationCode).values());
                 return BusinessError.getErrorLogsMap(verificationCode);
             }
@@ -238,7 +238,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         lock2.lock();
         try {
             Sha3Hash curStateRootHash = contractManager.executePendingTxWithStateRoot(tx);
-            log.debug("executeAndAddToPendingPool : curStateRootHash {}", curStateRootHash);
+            log.trace("executeAndAddToPendingPool : curStateRootHash {}", curStateRootHash);
             if (curStateRootHash != null) {
                 blockChainManager.addTransaction(tx, curStateRootHash);
             }
