@@ -122,7 +122,7 @@ public class TransactionApiImpl implements TransactionApi {
                         BusinessError.getErrorLogsMap(BusinessError.UNDEFINED_ERROR.toValue()
                         ));
             } else {
-                log.debug("SendRawTransaction is failed. Not yet fullSynced.");
+                log.debug("SendRawTransaction is failed. Not yet fullSynced. {}", transaction.getBranchId().toString());
             }
         } catch (Exception e) {
             log.debug("SendRawTransaction failed. {}", e.getMessage());
