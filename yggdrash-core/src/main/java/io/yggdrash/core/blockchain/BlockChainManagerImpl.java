@@ -230,7 +230,6 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
 
     @Override
     public void updateTxCache(Block block) {
-        //transactionStore.updateCache(block.getBody().getTransactionList());
         transactionStore.updateCache(block);
     }
 

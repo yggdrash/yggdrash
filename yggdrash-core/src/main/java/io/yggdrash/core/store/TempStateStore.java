@@ -33,13 +33,14 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class TempStateStore implements ReadWriterStore<String, JsonObject> {
     private static final Logger log = LoggerFactory.getLogger(TempStateStore.class);
+    private static final String STATE_ROOT = "stateRoot";
+    private static final String STATE_HASH = "stateHash";
 
-    private final ReadWriterStore<String, JsonObject> stateStore;
-    private final Map<String, JsonObject> tempStore = new LinkedHashMap<>();
     private final ReentrantLock lock = new ReentrantLock();
 
-    private final String STATE_ROOT = "stateRoot";
-    private final String STATE_HASH = "stateHash";
+    // Shared Resources(stateStore, tempStore, stateRootHash, stateRootHashBak)
+    private final ReadWriterStore<String, JsonObject> stateStore;
+    private final Map<String, JsonObject> tempStore = new LinkedHashMap<>();
     private Sha3Hash stateRootHash;
     private Sha3Hash stateRootHashBak;
 
