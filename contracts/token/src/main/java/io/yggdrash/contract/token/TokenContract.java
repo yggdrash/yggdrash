@@ -245,6 +245,10 @@ public class TokenContract implements BundleActivator, ServiceListener {
 
             String ownerAccount = txReceipt.getIssuer();
             token = makeTokenObject(ownerAccount, params);
+            if (token == null) {
+                setErrorTxReceipt("Token creation is failed. Check parameters!");
+                return txReceipt;
+            }
 
             BigInteger initMintAmount = token.get(TOKEN_INIT_MINT_AMOUNT).getAsBigInteger();
             putBalance(tokenId, ownerAccount, initMintAmount);
@@ -271,6 +275,11 @@ public class TokenContract implements BundleActivator, ServiceListener {
         }
 
         private JsonObject makeTokenObject(String ownerAccount, JsonObject params) {
+            if (!checkParamsNotNull(params, new String[] {
+                    TOKEN_ID, TOKEN_NAME, TOKEN_INIT_YEED_STAKE_AMOUNT, TOKEN_INIT_MINT_AMOUNT,
+                    TOKEN_MINTABLE, TOKEN_BURNABLE, TOKEN_EX_T2Y_ENABLED})) {
+                return null;
+            }
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
 
             JsonObject token = new JsonObject();
@@ -283,8 +292,20 @@ public class TokenContract implements BundleActivator, ServiceListener {
             token.addProperty(TOKEN_MINTABLE, params.get(TOKEN_MINTABLE).getAsBoolean());
             token.addProperty(TOKEN_BURNABLE, params.get(TOKEN_BURNABLE).getAsBoolean());
             token.addProperty(TOKEN_EX_T2Y_ENABLED, params.get(TOKEN_EX_T2Y_ENABLED).getAsBoolean());
-            token.addProperty(TOKEN_EX_T2Y_TYPE, params.get(TOKEN_EX_T2Y_TYPE).getAsString());
-            token.addProperty(TOKEN_EX_T2Y_RATE, params.get(TOKEN_EX_T2Y_RATE).getAsBigDecimal());
+
+            if (params.get(TOKEN_EX_T2Y_ENABLED).getAsBoolean()) {
+                if (params.get(TOKEN_EX_T2Y_TYPE) == null) {
+                    return null;
+                }
+                token.addProperty(TOKEN_EX_T2Y_TYPE, params.get(TOKEN_EX_T2Y_TYPE).getAsString());
+                if (TOKEN_EX_T2Y_TYPE_FIXED.equals(params.get(TOKEN_EX_T2Y_TYPE).getAsString())) {
+                    BigDecimal exT2YRate = params.get(TOKEN_EX_T2Y_RATE).getAsBigDecimal();
+                    if (exT2YRate.compareTo(BigDecimal.ZERO) <= 0) {
+                        return null;
+                    }
+                    token.addProperty(TOKEN_EX_T2Y_RATE, exT2YRate);
+                }
+            }
 
             saveTokenPhase(tokenId, TOKEN_PHASE_INIT);
             putBalance(
@@ -293,6 +314,16 @@ public class TokenContract implements BundleActivator, ServiceListener {
                     params.get(TOKEN_INIT_YEED_STAKE_AMOUNT).getAsBigInteger());
 
             return token;
+        }
+
+        private boolean checkParamsNotNull(JsonObject params, String[] notNullKeys) {
+            for (String key : notNullKeys) {
+                if (params.get(key) == null) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
 
@@ -684,7 +715,6 @@ public class TokenContract implements BundleActivator, ServiceListener {
             String from = params.get("from").getAsString().toLowerCase();
             String to = params.get("to").getAsString().toLowerCase();
             BigInteger transferAmount = params.get(AMOUNT).getAsBigInteger();
-
             if (transferAmount.compareTo(BigInteger.ZERO) <= 0) {
                 setErrorTxReceipt("Transfer amount must be greater than ZERO!");
                 return txReceipt;
@@ -693,9 +723,14 @@ public class TokenContract implements BundleActivator, ServiceListener {
             String sender = txReceipt.getIssuer();
             String approveKey = approveKey(from, sender);
             BigInteger approveBalance = getBalance(tokenId, approveKey);
-
             if (transferAmount.compareTo(approveBalance) > 0) {
                 setErrorTxReceipt("Insufficient approved balance to transferFrom!");
+                return txReceipt;
+            }
+
+            BigInteger fromBalance = getBalance(tokenId, from);
+            if (transferAmount.compareTo(fromBalance) > 0) {
+                setErrorTxReceipt("Insufficient balance of from account to transferFrom!");
                 return txReceipt;
             }
 
@@ -900,8 +935,9 @@ public class TokenContract implements BundleActivator, ServiceListener {
                     break;
             }
 
-            BigInteger yeedAmount =
-                    tokenAmountDecimal.divide(exRate, 18, RoundingMode.HALF_EVEN).setScale(0, RoundingMode.HALF_EVEN).toBigInteger();
+            BigInteger yeedAmount = tokenAmountDecimal
+                    .divide(exRate, 18, RoundingMode.HALF_EVEN)
+                    .setScale(0, RoundingMode.HALF_EVEN).toBigInteger();
 
             BigInteger yeedStakeAmountOfToken = getBalance(tokenId, YEED_STAKE);
             if (yeedStakeAmountOfToken.compareTo(yeedAmount) < 0) {
@@ -1067,6 +1103,11 @@ public class TokenContract implements BundleActivator, ServiceListener {
             }
 
             BigDecimal exRateT2T = exRateT2TObj.getAsBigDecimal();
+            if (exRateT2T.compareTo(BigDecimal.ZERO) <= 0) {
+                setErrorTxReceipt("Exchange rate should be greater than ZERO!");
+                return txReceipt;
+            }
+
             saveExT2TRate(tokenId, targetTokenId, exRateT2T);
 
             String msg = String.format(
