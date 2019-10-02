@@ -173,6 +173,11 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
     }
 
     public void batch(Set<Sha3Hash> keys, Sha3Hash stateRoot) {
+        if (keys == null || stateRoot == null || stateRoot.getBytes() == null) {
+            log.debug("batch() is failed. keys or stateRoot is not valid.");
+            return;
+        }
+
         lock.lock();
         this.stateRoot = new Sha3Hash(stateRoot.getBytes(), true);
         try {
