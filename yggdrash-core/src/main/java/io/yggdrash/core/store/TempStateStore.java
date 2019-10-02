@@ -24,7 +24,6 @@ import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -64,16 +63,16 @@ public class TempStateStore implements ReadWriterStore<String, JsonObject> {
         }
     }
 
-    // TODO: delete logging for speed up
     private JsonObject stateRoot(String key, JsonObject value) {
         stateRootHashBak = stateRootHash;
         byte[] changedStateRootByte =  HashUtil.sha3(key.concat(value.toString()).getBytes());
-        log.trace("key={} value={} changedStateRoot={}",
-                key, value.toString(), stateRootHash.toString(), Hex.toHexString(changedStateRootByte));
-        log.trace("before stateRootHash={}", stateRootHash);
-        stateRootHash = new Sha3Hash(Bytes.concat(stateRootHash.getBytes(), changedStateRootByte));
-        log.trace("after stateRootHash={}", stateRootHash);
-        return stateRootObj(stateRootHash);
+
+        Sha3Hash newStateRootHash = new Sha3Hash(Bytes.concat(stateRootHash.getBytes(), changedStateRootByte));
+        log.trace("stateRoot() key({}) {} -> {}", key, stateRootHash, newStateRootHash);
+
+        this.stateRootHash = newStateRootHash;
+
+        return stateRootObj(newStateRootHash);
     }
 
     private JsonObject stateRootObj(Sha3Hash stateHash) {
@@ -84,51 +83,71 @@ public class TempStateStore implements ReadWriterStore<String, JsonObject> {
 
     @Override
     public JsonObject get(String key) {
-        if (tempStore.get(key) != null) {
+        try {
             return tempStore.get(key);
-        } else {
-            return stateStore.get(key);
+        } catch (Exception e1) {
+            log.trace("tempStore get() is failed() {}", e1.getMessage());
+            try {
+                return stateStore.get(key);
+            } catch (Exception e2) {
+                log.debug("stateStore get() is failed() {}", e2.getMessage());
+                return null;
+            }
         }
     }
 
     @Override
     public boolean contains(String key) {
-        if (tempStore.containsKey(key)) {
-            return true;
-        } else {
-            return stateStore.contains(key);
+        try {
+            return tempStore.containsKey(key);
+        } catch (Exception e1) {
+            log.trace("tempStore contains() is failed. {}", e1.getMessage());
+            try {
+                return stateStore.contains(key);
+            } catch (Exception e2) {
+                log.debug("stateStore contains() is failed. {}", e2.getMessage());
+                return false;
+            }
         }
     }
 
     @Override
     public void close() {
-        tempStore.clear();
-        setStateRootHash();
-    }
-
-    public void putAll(Set<Map.Entry<String, JsonObject>> values) {
         lock.lock();
         try {
-            values.forEach(entry -> tempStore.put(entry.getKey(), entry.getValue()));
+            tempStore.clear();
+            setStateRootHash();
         } finally {
             lock.unlock();
         }
     }
-
 
     public Set<Map.Entry<String, JsonObject>> changeValues() {
         return this.tempStore.entrySet();
     }
 
     public void revertStateRootHash() {
-        stateRootHash = stateRootHashBak;
+        lock.lock();
+        try {
+            stateRootHash = stateRootHashBak;
+        } finally {
+            lock.unlock();
+        }
     }
 
     private void setStateRootHash() {
-        if (stateStore.contains(STATE_ROOT)) {
-            stateRootHash = new Sha3Hash(stateStore.get(STATE_ROOT).get(STATE_HASH).getAsString());
-        } else {
+        lock.lock();
+        try {
+            if (stateStore.contains(STATE_ROOT)) {
+                stateRootHash = new Sha3Hash(stateStore.get(STATE_ROOT).get(STATE_HASH).getAsString());
+            } else {
+                stateRootHash = new Sha3Hash(Constants.EMPTY_HASH);
+            }
+        } catch (Exception e) {
+            log.debug("setStateRootHash() is failed. {}", e.getMessage());
             stateRootHash = new Sha3Hash(Constants.EMPTY_HASH);
+        } finally {
+            lock.unlock();
         }
     }
 
