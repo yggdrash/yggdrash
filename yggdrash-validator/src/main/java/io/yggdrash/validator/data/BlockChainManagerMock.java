@@ -91,6 +91,11 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
         blockChainManager.flushUnconfirmedTx(key);
     }
 
+    @Override
+    public int getUnconfirmedTxsSize() {
+        return blockChainManager.getUnconfirmedTxsSize();
+    }
+
     /*
     @Override
     public void setPendingStateRoot(Sha3Hash stateRootHash) {

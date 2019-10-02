@@ -201,7 +201,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             if (!listenerList.isEmpty() && broadcast) {
                 listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
             }
-            nextBlock.loggingBlock();
+            nextBlock.loggingBlock(this.blockChainManager.getUnconfirmedTxsSize());
         } catch (Exception e) {
             log.debug("Add block failed. {}", e.getMessage()); //TODO Exception handling
         } finally {

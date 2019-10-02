@@ -65,6 +65,8 @@ public interface BlockChainManager<T> {
 
     List<Transaction> getUnconfirmedTxsWithLimit(long limit);
 
+    int getUnconfirmedTxsSize();
+
     Receipt getReceipt(String txId);
 
     Sha3Hash getLastHash();

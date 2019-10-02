@@ -34,15 +34,12 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> {
     private static final Logger log = LoggerFactory.getLogger(TransactionStore.class);
@@ -212,6 +209,10 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
             lock.unlock();
         }
         return unconfirmedTxs;
+    }
+
+    public int getUnconfirmedTxsSize() {
+        return this.pendingKeys.size();
     }
 
     private List<Transaction> getTransactionList() {

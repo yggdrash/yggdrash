@@ -95,9 +95,9 @@ public class PbftBlock extends AbstractConsensusBlock<PbftProto.PbftBlock> {
     }
 
     @Override
-    public void loggingBlock() {
+    public void loggingBlock(int unConfirmedTxs) {
         try {
-            log.info("PbftBlock ({}) [{}] ({}) ({}) ({}) ({}) ({}) tx({})",
+            log.info("PbftBlock ({}) [{}] ({}) ({}) ({}) ({}) ({}) tx({}) uTx({})",
                     this.getConsensusMessages().getPrePrepare().getViewNumber(),
                     this.getIndex(),
                     this.getHash(),
@@ -105,7 +105,8 @@ public class PbftBlock extends AbstractConsensusBlock<PbftProto.PbftBlock> {
                     this.getConsensusMessages().getCommitMap().size(),
                     this.getConsensusMessages().getViewChangeMap().size(),
                     this.getBlock().getAddress(),
-                    this.getBlock().getBody().getCount()
+                    this.getBlock().getBody().getCount(),
+                    unConfirmedTxs
             );
         } catch (Exception e) {
             log.debug(e.getMessage());

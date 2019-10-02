@@ -16,5 +16,5 @@ public interface ConsensusBlock<T> extends Block, ProtoObject<T> {
 
     int getSerializedSize();
 
-    void loggingBlock();
+    void loggingBlock(int unConfirmedTxs);
 }

@@ -302,6 +302,11 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     }
 
     @Override
+    public int getUnconfirmedTxsSize() {
+        return transactionStore.getUnconfirmedTxsSize();
+    }
+
+    @Override
     public Receipt getReceipt(String key) {
         return receiptStore.get(key);
     }
