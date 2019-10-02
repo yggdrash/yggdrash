@@ -120,13 +120,15 @@ public class EbftBlock extends AbstractConsensusBlock<EbftProto.EbftBlock> {
     }
 
     @Override
-    public void loggingBlock() {
+    public void loggingBlock(int unConfirmedTxs) {
         try {
-            log.info("EbftBlock [{}] {} ({}) ({})",
+            log.info("EbftBlock [{}] {} ({}) ({}) tx({}) uTx({})",
                     this.getIndex(),
                     this.getHash(),
                     this.getBlock().getAddress(),
-                    this.getConsensusMessages().size()
+                    this.getConsensusMessages().size(),
+                    this.getBlock().getBody().getCount(),
+                    unConfirmedTxs
             );
         } catch (Exception e) {
             log.debug(e.getMessage());
