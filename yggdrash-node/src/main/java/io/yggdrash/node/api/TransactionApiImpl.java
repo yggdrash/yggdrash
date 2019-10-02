@@ -119,11 +119,10 @@ public class TransactionApiImpl implements TransactionApi {
         Transaction transaction = TransactionImpl.parseFromRaw(bytes);
         try {
             if (!branchGroup.getBranch(transaction.getBranchId()).isFullSynced()) {
+                log.debug("SendRawTransaction is failed. Not yet fullSynced. {}", transaction.getBranchId().toString());
                 return TransactionResponseDto.createBy(transaction.getHash().toString(), false,
                         BusinessError.getErrorLogsMap(BusinessError.UNDEFINED_ERROR.toValue()
                         ));
-            } else {
-                log.debug("SendRawTransaction is failed. Not yet fullSynced.");
             }
         } catch (Exception e) {
             log.debug("SendRawTransaction failed. {}", e.getMessage());
@@ -132,7 +131,6 @@ public class TransactionApiImpl implements TransactionApi {
         }
 
         Map<String, List<String>> errorLogs = branchGroup.addTransaction(transaction);
-
         if (errorLogs.size() > 0) {
             log.warn("SendRawTransaction Error : {}", errorLogs);
         } else {

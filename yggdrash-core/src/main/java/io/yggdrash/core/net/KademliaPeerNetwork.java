@@ -176,7 +176,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
                 try {
                     if (peerTableGroup.getSeedPeerList().contains(peerHandler.getPeer().getYnodeUri())
                             || peerHandler.getPeer().equals(peerTableGroup.getOwner())) {
-                        log.debug("broadcastBlock() is failed. peer: {}", peerHandler.getPeer().getYnodeUri());
+                        log.trace("broadcastBlock() is failed. peer: {}", peerHandler.getPeer().getYnodeUri());
                         continue;
                     }
                     peerHandler.broadcastBlock(block);
