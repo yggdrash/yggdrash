@@ -76,7 +76,7 @@ public class TransactionServiceStub extends TransactionServiceGrpc.TransactionSe
                     blockChain.executeAndAddToPendingPool(tx);
                     multicastTransaction(protoTx);
                 } else {
-                    log.debug("broadcastTx() is failed. receivedTx={}", tx.getHash().toString());
+                    log.debug("broadcastTx() is failed. receivedTx={}", tx);
                 }
             }
 

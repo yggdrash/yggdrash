@@ -272,7 +272,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         int verifyResult = blockChainManager.verify(tx);
         if (verifyResult == BusinessError.VALID.toValue()) {
             TransactionRuntimeResult txResult = contractManager.executeTx(tx); //checkTx
-            log.debug("executeTx() tx={} {}", tx.getHash().toString(), txResult.toString());
+            log.debug("executeTx() tx={} {}", tx, txResult.toString());
             if (txResult.getReceipt().getStatus() != ExecuteStatus.ERROR) {
                 // Execute tx before adding tx to pending pool. Err tx would not be added.
                 executeAndAddToPendingPool(tx);
@@ -284,14 +284,14 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                 return new HashMap<>();
             } else {
                 log.debug("addTransaction() is failed. tx={} {}",
-                        tx.getHash().toString(), txResult.getReceipt().getLog());
+                        tx, txResult.getReceipt().getLog());
                 Map<String, List<String>> applicationError = new HashMap<>();
                 applicationError.put("SystemError", txResult.getReceipt().getLog());
                 return applicationError;
             }
         } else {
             log.debug("addTransaction() is failed. tx={} {}",
-                    tx.getHash().toString(), BusinessError.getErrorLogsMap(verifyResult));
+                    tx, BusinessError.getErrorLogsMap(verifyResult));
             return BusinessError.getErrorLogsMap(verifyResult);
         }
     }
@@ -303,12 +303,11 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             // return pendingTx stateRootHash
             if (!blockChainManager.contains(tx)) {
                 Sha3Hash stateRoot = addPendingTxs(tx);
-                log.debug("executeAndAddToPendingPool() tx={} stateRoot={}",
-                        tx.getHash().toString(), stateRoot.toString());
+                log.debug("executeAndAddToPendingPool() tx={} stateRoot={}", tx, stateRoot);
                 return stateRoot;
             }
 
-            log.debug("executeAndAddToPendingPool() is failed. tx={} ", tx.getHash().toString());
+            log.debug("executeAndAddToPendingPool() is failed. tx={} ", tx);
             return null;
         } finally {
             lock2.unlock();

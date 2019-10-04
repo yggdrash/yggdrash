@@ -117,7 +117,7 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
             public void onNext(Proto.Transaction protoTx) {
                 try {
                     Transaction tx = new TransactionImpl(protoTx);
-                    log.debug("broadcastTx() received tx={}", tx.getHash().toString());
+                    log.debug("broadcastTx() received tx={}", tx);
                     if (branchGroup.getBranch(tx.getBranchId()).isFullSynced()) {
                         branchGroup.addTransaction(tx);
                     } else {
