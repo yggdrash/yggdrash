@@ -18,6 +18,7 @@ package io.yggdrash.core.store;
 
 import com.google.common.collect.EvictingQueue;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.contract.core.store.ReadWriterStore;
@@ -51,7 +52,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
     // Shared resources(pendingPool, pendingKesy, stateRoot) must be synchoronized.
     private final Cache<Sha3Hash, Transaction> pendingPool;
     private final List<Sha3Hash> pendingKeys = new ArrayList<>();
-    private Sha3Hash stateRoot;
+    private Sha3Hash stateRoot = new Sha3Hash(Constants.EMPTY_HASH, true);
 
     private Queue<Transaction> readCache;
 
@@ -117,6 +118,8 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
     public void put(Sha3Hash key, Transaction tx) {
         lock.lock();
         try {
+            log.debug("put() before() txId={} stateRoot={}", tx.getBranchId().toString(), this.stateRoot.toString());
+
             if (!containsUnlock(key)) {
                 pendingPool.put(key, tx);
                 if (pendingPool.containsKey(key)) {
@@ -128,11 +131,13 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
         } catch (Exception e) {
             log.warn("put() is failed. {} {}", e.getMessage(), key.toString());
         } finally {
+            log.debug("put() after() txId={} stateRoot={}", tx.getBranchId().toString(), this.stateRoot.toString());
             lock.unlock();
         }
     }
 
     private void putUnlock(Sha3Hash key, Transaction tx) {
+        log.debug("putUnlock() before() txId={} stateRoot={}", tx.getBranchId().toString(), this.stateRoot.toString());
         if (!containsUnlock(key)) {
             pendingPool.put(key, tx);
             if (pendingPool.containsKey(key)) {
@@ -141,6 +146,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
                 log.debug("unconfirmedTxs size={}, ignore key={}", pendingKeys.size(), key);
             }
         }
+        log.debug("putUnlock() after() txId={} stateRoot={}", tx.getBranchId().toString(), this.stateRoot.toString());
     }
 
     public void addTransaction(Transaction tx) {
