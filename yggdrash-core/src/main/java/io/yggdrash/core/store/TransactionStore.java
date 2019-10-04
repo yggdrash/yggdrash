@@ -161,7 +161,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
                 this.stateRoot = new Sha3Hash(stateRoot.getBytes(), true);
             }
         } catch (Exception e) {
-            log.warn("addTransaction() is failed. tx={} {}", tx, e.getMessage());
+            log.warn("addTransaction() is failed. tx={} {}", tx.getHash().toString(), e.getMessage());
         } finally {
             lock.unlock();
         }
