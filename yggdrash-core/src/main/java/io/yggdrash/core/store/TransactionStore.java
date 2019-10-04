@@ -118,7 +118,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
     public void put(Sha3Hash key, Transaction tx) {
         lock.lock();
         try {
-            log.debug("put() before() txId={} stateRoot={}", tx.getBranchId().toString(), this.stateRoot.toString());
+            log.trace("put() before() txId={} stateRoot={}", tx.getBranchId().toString(), this.stateRoot.toString());
 
             if (!containsUnlock(key)) {
                 pendingPool.put(key, tx);
@@ -131,7 +131,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
         } catch (Exception e) {
             log.warn("put() is failed. {} {}", e.getMessage(), key.toString());
         } finally {
-            log.debug("put() after() txId={} stateRoot={}", tx.getBranchId().toString(), this.stateRoot.toString());
+            log.trace("put() after() txId={} stateRoot={}", tx.getBranchId().toString(), this.stateRoot.toString());
             lock.unlock();
         }
     }

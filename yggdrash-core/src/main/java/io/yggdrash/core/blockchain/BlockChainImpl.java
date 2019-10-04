@@ -48,7 +48,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
     private boolean isFullSynced = false;
 
-    public ReentrantLock lock2 = new ReentrantLock();
+    private ReentrantLock lock2 = new ReentrantLock();
 
     public BlockChainImpl(Branch branch,
                           ConsensusBlock<T> genesisBlock,
@@ -187,16 +187,19 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                     .forEach(event -> contractEventListenerList.forEach(l -> l.endBlock(event)));
 
             lock2.lock();
-            blockChainManager.batchTxs(nextBlock, contractManager.getOriginStateRoot());
+            try {
+                blockChainManager.batchTxs(nextBlock, contractManager.getOriginStateRoot());
 
-            // PendingStateStore is still running without reset.
-            Sha3Hash curStateRoot = reExecuteAndRemoveFromPendingPool(blockChainManager.getUnconfirmedTxs());
+                // PendingStateStore is still running without reset.
+                Sha3Hash curStateRoot = reExecuteAndRemoveFromPendingPool(blockChainManager.getUnconfirmedTxs());
 
-            // BlockChainManager add nextBlock to the blockStore, set the lastConfirmedBlock to nextBlock,
-            // and then batch the transactions.
-            blockChainManager.addBlock(nextBlock);
-            blockChainManager.batchTxs(nextBlock, curStateRoot);
-            lock2.unlock();
+                // BlockChainManager add nextBlock to the blockStore, set the lastConfirmedBlock to nextBlock,
+                // and then batch the transactions.
+                blockChainManager.addBlock(nextBlock);
+                blockChainManager.batchTxs(nextBlock, curStateRoot);
+            } finally {
+                lock2.unlock();
+            }
 
             if (!listenerList.isEmpty() && broadcast) {
                 listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
@@ -331,11 +334,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         } else {
             return this.branchStore.getBranchContacts();
         }
-    }
-
-    @Override
-    public ReentrantLock getLock() {
-        return lock;
     }
 
     @Override

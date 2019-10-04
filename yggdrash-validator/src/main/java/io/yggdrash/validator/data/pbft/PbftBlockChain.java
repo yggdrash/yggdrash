@@ -144,11 +144,6 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
     }
 
     @Override
-    public ReentrantLock getLock() {
-        return lock;
-    }
-
-    @Override
     public Map<String, List<String>> addBlock(ConsensusBlock<PbftProto.PbftBlock> block) {
         //blockChainManagerMock.addBlock(block, new Sha3Hash(block.getHeader().getStateRoot(), true)); // todo: check efficiency & change index
         blockChainManagerMock.addBlock(block);
