@@ -156,15 +156,20 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
     public void addTransaction(Transaction tx, Sha3Hash stateRoot) {
         lock.lock();
         try {
+            log.debug("addTransaction() tx={} stateRoot={}", tx.getHash().toString(), stateRoot);
             if (!containsUnlock(tx.getHash())) {
                 putUnlock(tx.getHash(), tx);
                 this.stateRoot = new Sha3Hash(stateRoot.getBytes(), true);
+                log.debug("addTransaction() is success tx={} stateRoot={}", tx.getHash().toString(), stateRoot);
+                return;
             }
         } catch (Exception e) {
-            log.warn("addTransaction() is failed. tx={} {}", tx.getHash().toString(), e.getMessage());
+            log.warn("addTransaction() is failed. tx={} stateRoot={} {}",
+                    tx.getHash().toString(), stateRoot, e.getMessage());
         } finally {
             lock.unlock();
         }
+        log.debug("addTransaction() is failed tx={} stateRoot={}", tx.getHash().toString(), stateRoot);
     }
 
     @Override
