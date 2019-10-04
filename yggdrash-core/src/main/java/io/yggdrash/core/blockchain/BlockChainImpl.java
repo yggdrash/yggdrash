@@ -284,11 +284,13 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
                 return new HashMap<>();
             } else {
+                log.debug("addTransaction() is failed. {}", txResult.getReceipt().getLog());
                 Map<String, List<String>> applicationError = new HashMap<>();
                 applicationError.put("SystemError", txResult.getReceipt().getLog());
                 return applicationError;
             }
         } else {
+            log.debug("addTransaction() is failed. {}", BusinessError.getErrorLogsMap(verifyResult));
             return BusinessError.getErrorLogsMap(verifyResult);
         }
     }

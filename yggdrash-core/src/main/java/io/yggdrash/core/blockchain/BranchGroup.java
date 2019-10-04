@@ -26,6 +26,8 @@ import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.errorcode.SystemError;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -34,6 +36,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BranchGroup {
+    private static final Logger log = LoggerFactory.getLogger(BranchGroup.class);
 
     private final Map<BranchId, BlockChain> branches = new ConcurrentHashMap<>();
 
@@ -84,6 +87,8 @@ public class BranchGroup {
         if (verifyResult == SystemError.VALID.toValue()) {
             return branches.get(tx.getBranchId()).addTransaction(tx);
         }
+
+        log.debug("addTransaction() is failed. {}", SystemError.getErrorLogsMap(verifyResult));
         return SystemError.getErrorLogsMap(verifyResult);
     }
 

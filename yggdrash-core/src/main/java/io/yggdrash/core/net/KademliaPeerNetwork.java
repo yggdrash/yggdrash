@@ -99,6 +99,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
     @Override
     public void receivedTransaction(Transaction tx) {
         try {
+            log.debug("receivedTransaction() tx={}", tx.getHash().toString());
             txQueue.put(tx);
         } catch (Exception e) {
             log.debug("receivedTransaction() is failed. {}", e.getMessage());
