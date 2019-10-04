@@ -75,6 +75,8 @@ public class TransactionServiceStub extends TransactionServiceGrpc.TransactionSe
                         && blockChain.getBlockChainManager().verify(tx) == BusinessError.VALID.toValue()) {
                     blockChain.executeAndAddToPendingPool(tx);
                     multicastTransaction(protoTx);
+                } else {
+                    log.debug("broadcastTx() is failed. receivedTx={}", tx.getHash().toString());
                 }
             }
 
