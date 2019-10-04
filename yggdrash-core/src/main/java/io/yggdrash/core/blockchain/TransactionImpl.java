@@ -107,6 +107,10 @@ public class TransactionImpl implements Transaction {
                 new TransactionBody(jsonObject.getAsJsonObject(BODY)));
     }
 
+    public TransactionImpl(Transaction transaction) {
+        this(transaction.toBinary());
+    }
+
     @Override
     public TransactionHeader getHeader() {
         return header;

@@ -223,7 +223,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
             long bodySizeSum = 0;
             List<Transaction> unconfirmedTxs = new ArrayList<>(pendingKeys.size());
             for (Sha3Hash key : pendingKeys) {
-                Transaction tx = pendingPool.get(key);
+                Transaction tx = new TransactionImpl(pendingPool.get(key));
                 if (tx != null) {
                     bodySizeSum += tx.getLength();
                     if (bodySizeSum > limit) {
@@ -258,7 +258,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
     private List<Transaction> getTransactionList() {
         List<Transaction> unconfirmedTxs = new ArrayList<>();
         for (Sha3Hash key : pendingKeys) {
-            unconfirmedTxs.add(pendingPool.get(key));
+            unconfirmedTxs.add(new TransactionImpl(pendingPool.get(key)));
         }
         return unconfirmedTxs;
     }
