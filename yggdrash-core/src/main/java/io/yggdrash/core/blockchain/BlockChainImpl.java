@@ -310,7 +310,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                 return stateRoot;
             }
 
-            log.debug("executeAndAddToPendingPool() is failed. tx={} ", tx);
+            log.debug("executeAndAddToPendingPool() is failed. tx={} ", tx.getHash().toString());
             return null;
         } finally {
             lock2.unlock();
