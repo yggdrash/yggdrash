@@ -118,7 +118,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
     public void put(Sha3Hash key, Transaction tx) {
         lock.lock();
         try {
-            log.trace("put() before() txId={} stateRoot={}", tx.getBranchId().toString(), this.stateRoot.toString());
+            log.trace("put() before() txId={} stateRoot={}", tx.getHash().toString(), this.stateRoot.toString());
 
             if (!containsUnlock(key)) {
                 pendingPool.put(key, tx);
@@ -131,13 +131,13 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
         } catch (Exception e) {
             log.warn("put() is failed. {} {}", e.getMessage(), key.toString());
         } finally {
-            log.trace("put() after() txId={} stateRoot={}", tx.getBranchId().toString(), this.stateRoot.toString());
+            log.trace("put() after() txId={} stateRoot={}", tx.getHash().toString(), this.stateRoot.toString());
             lock.unlock();
         }
     }
 
     private void putUnlock(Sha3Hash key, Transaction tx) {
-        log.debug("putUnlock() before() txId={} stateRoot={}", tx.getBranchId().toString(), this.stateRoot.toString());
+        log.debug("putUnlock() before() txId={} stateRoot={}", tx.getHash().toString(), this.stateRoot.toString());
         if (!containsUnlock(key)) {
             pendingPool.put(key, tx);
             if (pendingPool.containsKey(key)) {
@@ -146,7 +146,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
                 log.debug("unconfirmedTxs size={}, ignore key={}", pendingKeys.size(), key);
             }
         }
-        log.debug("putUnlock() after() txId={} stateRoot={}", tx.getBranchId().toString(), this.stateRoot.toString());
+        log.debug("putUnlock() after() txId={} stateRoot={}", tx.getHash().toString(), this.stateRoot.toString());
     }
 
     public void addTransaction(Transaction tx) {
