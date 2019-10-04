@@ -72,7 +72,7 @@ public class TempStateStore implements ReadWriterStore<String, JsonObject> {
 
         this.stateRootHash = newStateRootHash;
 
-        return stateRootObj(newStateRootHash);
+        return stateRootObj(this.stateRootHash);
     }
 
     private JsonObject stateRootObj(Sha3Hash stateHash) {
@@ -84,7 +84,11 @@ public class TempStateStore implements ReadWriterStore<String, JsonObject> {
     @Override
     public JsonObject get(String key) {
         try {
-            return tempStore.get(key);
+            if (tempStore.get(key) != null) {
+                return tempStore.get(key);
+            } else {
+                return stateStore.get(key);
+            }
         } catch (Exception e1) {
             log.trace("tempStore get() is failed() {}", e1.getMessage());
             try {
@@ -99,7 +103,11 @@ public class TempStateStore implements ReadWriterStore<String, JsonObject> {
     @Override
     public boolean contains(String key) {
         try {
-            return tempStore.containsKey(key);
+            if (tempStore.containsKey(key)) {
+                return true;
+            } else {
+                return stateStore.contains(key);
+            }
         } catch (Exception e1) {
             log.trace("tempStore contains() is failed. {}", e1.getMessage());
             try {

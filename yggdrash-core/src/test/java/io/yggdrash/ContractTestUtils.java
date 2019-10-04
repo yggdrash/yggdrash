@@ -98,12 +98,15 @@ public class ContractTestUtils {
     }
 
     public static Sha3Hash calStateRoot(ContractManager contractManager, List<Transaction> txs) {
-        if (txs.size() > 0) {
-            BlockRuntimeResult executePendingTxs = contractManager.executePendingTxs(txs);
-            return new Sha3Hash(executePendingTxs.getBlockResult().get("stateRoot").get("stateHash").getAsString());
-        } else {
-            return contractManager.getOriginStateRoot();
+        try {
+            if (txs.size() > 0) {
+                BlockRuntimeResult executePendingTxs = contractManager.executePendingTxs(txs);
+                return new Sha3Hash(executePendingTxs.getBlockResult().get("stateRoot").get("stateHash").getAsString());
+            }
+        } catch (Exception e) {
         }
+
+        return contractManager.getOriginStateRoot();
     }
 
     public static Sha3Hash calStateRoot(ConsensusBlock prevBlock, List<Transaction> txs) {
