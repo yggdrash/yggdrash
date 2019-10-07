@@ -276,7 +276,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         if (verifyResult == BusinessError.VALID.toValue()) {
             TransactionRuntimeResult txResult = contractManager.executeTx(tx); //checkTx
             log.debug("executeTx() tx={} {}", tx.getHash().toString(), txResult.toString());
-            if (txResult.getReceipt().getStatus() == ExecuteStatus.SUCCESS) {
+            if (txResult.getReceipt().getStatus() != ExecuteStatus.ERROR) {
                 // Execute tx before adding tx to pending pool. Err tx would not be added.
                 executeAndAddToPendingPool(tx);
 
