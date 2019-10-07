@@ -126,7 +126,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
         log.debug("putUnlock() before() txId={} stateRoot={}", tx.getHash().toString(), this.stateRoot.toString());
         if (!containsUnlock(key)) {
             pendingPool.put(key, tx);
-            log.debug("Added pendingPool tx={}", key.toString());
+            log.debug("Added pendingPool tx={} pendingKeySize={}", key.toString(), this.pendingKeys.size());
             if (pendingPool.containsKey(key)) {
                 pendingKeys.add(key);
             } else {
