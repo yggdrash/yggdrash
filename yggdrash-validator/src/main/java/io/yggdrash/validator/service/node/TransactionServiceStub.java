@@ -69,14 +69,22 @@ public class TransactionServiceStub extends TransactionServiceGrpc.TransactionSe
         return new StreamObserver<Proto.Transaction>() {
             @Override
             public void onNext(Proto.Transaction protoTx) {
-                Transaction tx = new TransactionImpl(protoTx);
-                log.trace("Received transaction: hash={}", tx.getHash());
-                if (tx.getBranchId().equals(blockChain.getBranchId())
-                        && blockChain.getBlockChainManager().verify(tx) == BusinessError.VALID.toValue()) {
-                    blockChain.executeAndAddToPendingPool(tx);
-                    multicastTransaction(protoTx);
-                } else {
-                    log.debug("broadcastTx() is failed. receivedTx={}", tx.getHash().toString());
+                try {
+                    Transaction tx = new TransactionImpl(protoTx);
+                    int verifyResult = blockChain.getBlockChainManager().verify(tx);
+                    log.trace("Received transaction: hash={}", tx.getHash());
+                    if (tx.getBranchId().equals(blockChain.getBranchId())
+                            && verifyResult == BusinessError.VALID.toValue()) {
+                        blockChain.executeAndAddToPendingPool(tx);
+                        multicastTransaction(protoTx);
+                    } else {
+                        log.debug("broadcastTx() is failed. branch={} receivedTx={} verifyResult={}",
+                                tx.getBranchId().toString(),
+                                tx.getHash().toString(),
+                                BusinessError.getErrorLogsMap(verifyResult));
+                    }
+                } catch (Exception e) {
+                    log.debug("broadcastTx() is failed. tx={} {}", protoTx.toString(), e.getMessage());
                 }
             }
 

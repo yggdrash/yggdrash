@@ -106,7 +106,7 @@ public abstract class AbstractBlockChainHandler<T> extends DiscoveryHandler<T> {
 
     @Override
     public void broadcastTx(Transaction tx) {
-        log.trace("Broadcasting txs -> {}", getPeer().getYnodeUri());
+        log.debug("broadcastTx() tx={} to={}", tx.getHash().toString(), getPeer().getYnodeUri());
 
         if (!alive) {
             alive = true;
