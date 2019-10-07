@@ -184,7 +184,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
     }
 
     public void batch(Set<Sha3Hash> keys, Sha3Hash stateRoot) {
-        if (keys == null || stateRoot == null || stateRoot.getBytes() == null) {
+        if (keys == null || keys.isEmpty() || stateRoot == null || stateRoot.getBytes() == null) {
             log.debug("batch() is failed. keys or stateRoot is not valid.");
             return;
         }
@@ -192,10 +192,6 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
         lock.lock();
         this.stateRoot = new Sha3Hash(stateRoot.getBytes(), true);
         try {
-            if (keys.isEmpty()) {
-                return;
-            }
-
             Map<Sha3Hash, Transaction> map = pendingPool.getAll(keys);
             int countOfBatchedTxs = map.size();
             for (Map.Entry<Sha3Hash, Transaction> entry : map.entrySet()) {
