@@ -180,6 +180,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
         this.stateRoot = new Sha3Hash(stateRoot.getBytes(), true);
         try {
             Map<Sha3Hash, Transaction> map = pendingPool.getAll(keys);
+            log.debug("pendingPoolSize={}", map.size());
             int countOfBatchedTxs = map.size();
             for (Map.Entry<Sha3Hash, Transaction> entry : map.entrySet()) {
                 Transaction foundTx = entry.getValue();
