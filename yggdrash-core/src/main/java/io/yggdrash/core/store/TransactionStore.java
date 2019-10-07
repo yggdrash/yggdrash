@@ -79,14 +79,9 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
 
     @Override
     public boolean contains(Sha3Hash key) {
-        if (key == null || key.getBytes() == null) {
-            log.warn("contains() is failed. key is not valid.");
-            return false;
-        }
-
         lock.lock();
         try {
-            return pendingPool.containsKey(key) || db.get(key.getBytes()) != null;
+            return containsUnlock(key);
         } catch (Exception e) {
             log.warn("contains() is failed. {} {}", e.getMessage(), key.toString());
             return false;
@@ -118,16 +113,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
     public void put(Sha3Hash key, Transaction tx) {
         lock.lock();
         try {
-            log.trace("put() before() txId={} stateRoot={}", tx.getHash().toString(), this.stateRoot.toString());
-
-            if (!containsUnlock(key)) {
-                pendingPool.put(key, tx);
-                if (pendingPool.containsKey(key)) {
-                    pendingKeys.add(key);
-                } else {
-                    log.debug("unconfirmedTxs size={}, ignore key={}", pendingKeys.size(), key);
-                }
-            }
+            putUnlock(key, tx);
         } catch (Exception e) {
             log.warn("put() is failed. {} {}", e.getMessage(), key.toString());
         } finally {
@@ -282,9 +268,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
     public void flush(Set<Sha3Hash> keys) {
         lock.lock();
         try {
-            pendingPool.removeAll(keys);
-            pendingKeys.removeAll(keys);
-            log.trace("flushSize={} remainPendingSize={}", keys.size(), pendingKeys.size());
+            flushUnlock(keys);
         } finally {
             lock.unlock();
         }
