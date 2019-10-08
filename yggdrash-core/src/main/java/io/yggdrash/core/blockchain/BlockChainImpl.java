@@ -98,7 +98,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         // After executing the transactions of GenesisBlock,
         // put them in the txStore with the stateRootHash of pendingStateStore.
         blockChainManager.initGenesis(genesisBlock);
-        System.out.println("InitGenesis : stateRoot => " + new Sha3Hash(genesisBlock.getHeader().getStateRoot(), true));
         addBlock(genesisBlock, false);
 
         // Add Meta Information
@@ -162,7 +161,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                         ? new Sha3Hash(blockResult.getBlockResult().get("stateRoot").get("stateHash").getAsString())
                         : contractManager.getOriginStateRoot();
                 Sha3Hash nextBlockStateRoot = new Sha3Hash(nextBlock.getHeader().getStateRoot(), true);
-                System.out.println("AddBlock : Index => " + nextBlock.getIndex() + ", StateRoot => " +  new Sha3Hash(nextBlock.getHeader().getStateRoot(), true) + ", BlockResultStateRoot => " + blockResultStateRoot);
                 if (!nextBlockStateRoot.equals(blockResultStateRoot)) {
                     log.warn("Add block failed. Invalid stateRoot. BlockStateRoot : {}, CurStateRoot : {}"
                             , nextBlockStateRoot, blockResultStateRoot);
