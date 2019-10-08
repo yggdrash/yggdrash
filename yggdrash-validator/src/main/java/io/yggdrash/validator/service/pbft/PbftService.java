@@ -343,10 +343,15 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
         List<Transaction> txList = new ArrayList<>(blockChain.getBlockChainManager().getUnconfirmedTxs());
-        Sha3Hash curStateRootHash;
+        Sha3Hash curStateRootHash = blockChain.getContractManager().getOriginStateRoot();;
+
         if (txList.size() > 0) {
             BlockRuntimeResult result = blockChain.getContractManager().executeTxs(txList);
-            curStateRootHash = new Sha3Hash(result.getBlockResult().get("stateRoot").get("stateHash").getAsString());
+            if (result.getBlockResult().containsKey("stateRoot")) {
+                curStateRootHash = new Sha3Hash(
+                        result.getBlockResult().get("stateRoot").get("stateHash").getAsString());
+            }
+
             // Remove err txs from txList and flush from pendingPool
             result.getReceipts().stream()
                     .filter(receipt -> receipt.getStatus().equals(ExecuteStatus.ERROR))
@@ -355,8 +360,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
                         txList.stream().filter(tx -> tx.getHash().equals(errTxId)).forEach(txList::remove);
                         blockChain.getBlockChainManager().flushUnconfirmedTx(errTxId);
                     });
-        } else {
-            curStateRootHash = blockChain.getContractManager().getOriginStateRoot();
         }
         log.debug("makeNextBlock : stateRootHash {}, txList size {}", curStateRootHash, txList.size());
 
