@@ -347,11 +347,14 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         if (txList.size() > 0) {
             BlockRuntimeResult result = blockChain.getContractManager().executeTxs(txList);
             curStateRootHash = new Sha3Hash(result.getBlockResult().get("stateRoot").get("stateHash").getAsString());
-            // Flush error txs from pendingPool
+            // Remove err txs from txList and flush from pendingPool
             result.getReceipts().stream()
                     .filter(receipt -> receipt.getStatus().equals(ExecuteStatus.ERROR))
-                    .forEach(receipt -> blockChain.getBlockChainManager()
-                            .flushUnconfirmedTx(new Sha3Hash(receipt.getTxId())));
+                    .map(receipt -> new Sha3Hash(receipt.getTxId()))
+                    .forEach(errTxId -> {
+                        txList.stream().filter(tx -> tx.getHash().equals(errTxId)).forEach(txList::remove);
+                        blockChain.getBlockChainManager().flushUnconfirmedTx(errTxId);
+                    });
         } else {
             curStateRootHash = blockChain.getContractManager().getOriginStateRoot();
         }
