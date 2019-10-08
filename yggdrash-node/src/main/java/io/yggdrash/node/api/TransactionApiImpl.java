@@ -155,6 +155,11 @@ public class TransactionApiImpl implements TransactionApi {
     }
 
     @Override
+    public int getPendingTransactionCount(String branchId) {
+        return branchGroup.getUnconfirmedTxs((BranchId.of(branchId))).size();
+    }
+
+    @Override
     public TransactionReceiptDto getTransactionReceipt(String branchId, String txId) {
         Receipt receipt;
         try {
