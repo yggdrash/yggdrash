@@ -100,7 +100,8 @@ public class LogApiImplTest {
         assertEquals("Tx Count", contractSize, mgr.countOfTxs());
 
         int generateTx = 33;
-        ConsensusBlock<PbftProto.PbftBlock> block = BlockChainTestUtils.createBlockListFilledWithTx(1, generateTx).get(0);
+        ConsensusBlock<PbftProto.PbftBlock> block = BlockChainTestUtils.createBlockListWithTxs(
+                1, generateTx, bc.getContractManager()).get(0);
         bc.addBlock(block);
 
         Log log = logApi.getLog(branchId, 33);

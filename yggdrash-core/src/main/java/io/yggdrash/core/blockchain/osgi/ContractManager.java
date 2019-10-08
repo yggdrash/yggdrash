@@ -368,27 +368,12 @@ public class ContractManager implements ContractEventListener {
         return contractExecutor.executeTxs(serviceMap, nextBlock);
     }
 
-    public BlockRuntimeResult executePendingTxs(List<Transaction> txs) {
-        resetPendingStateStore();
-        return contractExecutor.executePendingTxs(serviceMap, txs);
+    public BlockRuntimeResult executeTxs(List<Transaction> txs) {
+        return contractExecutor.executeTxs(serviceMap, txs);
     }
 
     public TransactionRuntimeResult executeTx(Transaction tx) {
         return contractExecutor.executeTx(serviceMap, tx);
-    }
-
-    public Sha3Hash executePendingTxWithStateRoot(Transaction tx) {
-        return contractExecutor.executePendingTxWithStateRoot(serviceMap, tx);
-    }
-
-    /*
-    private void resetPendingStateStore() {
-        contractStore.getPendingStateStore().close();
-    }
-    */
-
-    public void resetPendingStateStore() {
-        contractStore.getPendingStateStore().close();
     }
 
     // file actions.

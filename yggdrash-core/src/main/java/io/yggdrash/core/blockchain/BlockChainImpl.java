@@ -48,8 +48,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
     private boolean isFullSynced = false;
 
-    public ReentrantLock lock2 = new ReentrantLock();
-
     public BlockChainImpl(Branch branch,
                           ConsensusBlock<T> genesisBlock,
                           BranchStore branchStore,
@@ -93,8 +91,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             log.debug("BlockChain Load in Storage");
             // Load Block Chain Information
             blockChainManager.loadTransaction(); // load stateRoot when updateTxCache!
-            // Load StateRoot
-            //blockChainManager.setPendingStateRoot(contractManager.getOriginStateRoot());
         }
     }
 
@@ -154,7 +150,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             }
             // Add best Block
             branchStore.setBestBlock(nextBlock);
-
             // Run Block Transactions
             // TODO run block execute move to other process (or thread)
             // TODO last execute block will invoke
@@ -175,28 +170,16 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                 branchStore.setLastExecuteBlock(nextBlock);
             }
 
+            // BlockChainManager add nextBlock to the blockStore, set the lastConfirmedBlock to nextBlock,
+            // and then batch the transactions.
+            blockChainManager.addBlock(nextBlock);
+
             BlockRuntimeResult endBlockResult = contractManager.endBlock(nextBlock);
-            if (endBlockResult.getBlockResult().size() > 0) {
-                String endBlockStateRoot = endBlockResult.getBlockResult().get("stateRoot").get("stateHash").getAsString();
-                log.debug("endBlockStateRoot : {} ", endBlockStateRoot);
-            }
 
             // Fire contract event
             getContractEventList(endBlockResult).stream()
                     .filter(event -> !contractEventListenerList.isEmpty())
                     .forEach(event -> contractEventListenerList.forEach(l -> l.endBlock(event)));
-
-            lock2.lock();
-            blockChainManager.batchTxs(nextBlock, contractManager.getOriginStateRoot());
-
-            // PendingStateStore is still running without reset.
-            Sha3Hash curStateRoot = reExecuteAndRemoveFromPendingPool(blockChainManager.getUnconfirmedTxs());
-
-            // BlockChainManager add nextBlock to the blockStore, set the lastConfirmedBlock to nextBlock,
-            // and then batch the transactions.
-            blockChainManager.addBlock(nextBlock);
-            blockChainManager.batchTxs(nextBlock, curStateRoot);
-            lock2.unlock();
 
             if (!listenerList.isEmpty() && broadcast) {
                 listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
@@ -218,34 +201,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                 .map(Receipt::getEvents)
                 .forEach(contractEventList::addAll);
         return contractEventList;
-    }
-
-    private Sha3Hash reExecuteAndRemoveFromPendingPool(List<Transaction> txs) {
-        // PendingStateStore is still running without reset.
-        contractManager.resetPendingStateStore();
-        Sha3Hash curStateRoot = contractManager.getOriginStateRoot();
-        for (Transaction tx : txs) {
-            curStateRoot = addPendingTxs(tx);
-            if (curStateRoot == null) { // Err tx in pendingPool
-                blockChainManager.flushUnconfirmedTx(tx.getHash());
-            }
-        }
-
-        return curStateRoot;
-    }
-
-    private Sha3Hash addPendingTxs(Transaction tx) {
-        lock2.lock();
-        try {
-            Sha3Hash curStateRootHash = contractManager.executePendingTxWithStateRoot(tx);
-            log.trace("executeAndAddToPendingPool : curStateRootHash {}", curStateRootHash);
-            if (curStateRootHash != null) {
-                blockChainManager.addTransaction(tx, curStateRootHash);
-            }
-            return curStateRootHash;
-        } finally {
-            lock2.unlock();
-        }
     }
 
     @Override
@@ -275,8 +230,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             TransactionRuntimeResult txResult = contractManager.executeTx(tx); //checkTx
             log.trace("contractManager.executeTx Result: {}", txResult.toString());
             if (txResult.getReceipt().getStatus() != ExecuteStatus.ERROR) {
-                // Execute tx before adding tx to pending pool. Err tx would not be added.
-                executeAndAddToPendingPool(tx);
+                blockChainManager.addTransaction(tx);
 
                 if (!listenerList.isEmpty() && broadcast) {
                     listenerList.forEach(listener -> listener.receivedTransaction(tx));
@@ -290,20 +244,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             }
         } else {
             return BusinessError.getErrorLogsMap(verifyResult);
-        }
-    }
-
-    @Override
-    public Sha3Hash executeAndAddToPendingPool(Transaction tx) {
-        lock2.lock();
-        try {
-            // return pendingTx stateRootHash
-            if (!blockChainManager.contains(tx)) {
-                return addPendingTxs(tx);
-            }
-            return null;
-        } finally {
-            lock2.unlock();
         }
     }
 

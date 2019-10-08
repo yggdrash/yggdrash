@@ -104,7 +104,7 @@ public class PeerHandlerMock implements BlockChainHandler {
         List<ConsensusBlock> tmp = new ArrayList<>();
         if (offset < 33) {
             for (int i = (int) offset; i < (int) offset + 33; i++) {
-                tmp.add(BlockChainTestUtils.getSampleBlockList().get(i));
+                tmp.add(BlockChainTestUtils.getSampleBlockList().get(i - 1));
             }
         }
         future.complete(tmp);

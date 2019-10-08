@@ -18,7 +18,6 @@ import io.yggdrash.core.consensus.ConsensusBlock;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public interface BlockChainManager<T> {
@@ -33,21 +32,13 @@ public interface BlockChainManager<T> {
 
     void addBlock(ConsensusBlock<T> nextBlock);
 
-    //void addBlock(ConsensusBlock<T> nextBlock, Sha3Hash stateRoot);
-
-    void batchTxs(ConsensusBlock<T> block, Sha3Hash stateRoot);
+    void batchTxs(ConsensusBlock<T> block);
 
     void addTransaction(Transaction tx);
 
-    void addTransaction(Transaction tx, Sha3Hash stateRootHash);
-
     void flushUnconfirmedTxs(Set<Sha3Hash> keys);
 
-    void flushUnconfirmedTx(Sha3Hash key);
-
     void updateTxCache(Block block);
-
-    //void setPendingStateRoot(Sha3Hash stateRootHash);
 
     ConsensusBlock<T> getLastConfirmedBlock();
 
@@ -60,8 +51,6 @@ public interface BlockChainManager<T> {
     Collection<Transaction> getRecentTxs();
 
     List<Transaction> getUnconfirmedTxs();
-
-    Map<Sha3Hash, List<Transaction>> getUnconfirmedTxsWithStateRoot();
 
     List<Transaction> getUnconfirmedTxsWithLimit(long limit);
 

@@ -86,7 +86,7 @@ public class BlockChainManagerImplTest {
         ConsensusBlock<PbftProto.PbftBlock> block = generateBlockWithTxs(true);
         assertEquals(32000, blockChainManager.verify(block));
         blockChainManager.addBlock(block);
-        blockChainManager.batchTxs(block, new Sha3Hash(block.getHeader().getStateRoot(), true));
+
         assertTrue(blockChainManager.contains(block));
         assertEquals(block, blockChainManager.getBlockByHash(block.getHash()));
         assertEquals(block, blockChainManager.getBlockByIndex(1));
@@ -104,7 +104,7 @@ public class BlockChainManagerImplTest {
         ConsensusBlock<PbftProto.PbftBlock> blockWithInvalidTx = generateBlockWithTxs(false);
         assertEquals(32000, blockChainManager.verify(blockWithInvalidTx));
         blockChainManager.addBlock(blockWithInvalidTx);
-        blockChainManager.batchTxs(blockWithInvalidTx, new Sha3Hash(blockWithInvalidTx.getHeader().getStateRoot(), true));
+
         assertEquals(3, blockChainManager.countOfBlocks());
         assertEquals(20, blockChainManager.countOfTxs());
         assertEquals(20, blockChainManager.getRecentTxs().size()); //invalid tx was excluded
@@ -119,7 +119,7 @@ public class BlockChainManagerImplTest {
         if (!valid) {
             txs.add(BlockChainTestUtils.createInvalidTransferTx());
         }
-        return BlockChainTestUtils.createNextBlock(txs, blockChainManager.getLastConfirmedBlock());
+        return BlockChainTestUtils.createNextBlock(txs, blockChainManager.getLastConfirmedBlock(), null);
     }
 
 }

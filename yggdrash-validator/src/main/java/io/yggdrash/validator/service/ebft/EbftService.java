@@ -14,6 +14,7 @@ import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.core.consensus.ConsensusService;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.EbftProto;
 import io.yggdrash.validator.data.ebft.EbftBlock;
@@ -300,10 +301,10 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
     }
 
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
-        Map<Sha3Hash, List<Transaction>> unconfirmedTxsWithStateRoot
-                = blockChain.getBlockChainManager().getUnconfirmedTxsWithStateRoot();
-        Sha3Hash curStateRootHash = unconfirmedTxsWithStateRoot.keySet().iterator().next();
-        List<Transaction> txList = unconfirmedTxsWithStateRoot.get(curStateRootHash);
+        List<Transaction> txList = new ArrayList<>(blockChain.getBlockChainManager().getUnconfirmedTxs());
+        BlockRuntimeResult result = blockChain.getContractManager().executeTxs(txList);
+        Sha3Hash curStateRootHash = new Sha3Hash(result.getBlockResult().get("stateRoot").get("stateHash").getAsString());
+        log.debug("makeNextBlock : stateRootHash {}, txList size {}", curStateRootHash, txList.size());
 
         BlockBody newBlockBody = new BlockBody(txList);
         BlockHeader newBlockHeader = new BlockHeader(
