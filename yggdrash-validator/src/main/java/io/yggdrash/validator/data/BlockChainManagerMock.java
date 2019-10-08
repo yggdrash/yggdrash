@@ -23,8 +23,6 @@ import io.yggdrash.core.store.BlockChainStore;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class BlockChainManagerMock<T> implements BlockChainManager<T> {
 
@@ -60,30 +58,13 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     }
 
     @Override
-    public void batchTxs(ConsensusBlock<T> block, Sha3Hash stateRoot) {
-        blockChainManager.batchTxs(block, stateRoot);
+    public void batchTxs(ConsensusBlock<T> block) {
+        blockChainManager.batchTxs(block);
     }
-
-    /*
-    @Override
-    public void addBlock(ConsensusBlock<T> nextBlock, Sha3Hash stateRoot) {
-        blockChainManager.addBlock(nextBlock, stateRoot);
-    }
-    */
 
     @Override
     public void addTransaction(Transaction tx) {
         blockChainManager.addTransaction(tx);
-    }
-
-    @Override
-    public void addTransaction(Transaction tx, Sha3Hash stateRootHash) {
-        blockChainManager.addTransaction(tx, stateRootHash);
-    }
-
-    @Override
-    public void flushUnconfirmedTxs(Set<Sha3Hash> keys) {
-        blockChainManager.flushUnconfirmedTxs(keys);
     }
 
     @Override
@@ -95,13 +76,6 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     public int getUnconfirmedTxsSize() {
         return blockChainManager.getUnconfirmedTxsSize();
     }
-
-    /*
-    @Override
-    public void setPendingStateRoot(Sha3Hash stateRootHash) {
-        blockChainManager.setPendingStateRoot(stateRootHash);
-    }
-    */
 
     @Override
     public void updateTxCache(Block block) {
@@ -141,11 +115,6 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     @Override
     public List<Transaction> getUnconfirmedTxs() {
         return blockChainManager.getUnconfirmedTxs();
-    }
-
-    @Override
-    public Map<Sha3Hash, List<Transaction>> getUnconfirmedTxsWithStateRoot() {
-        return blockChainManager.getUnconfirmedTxsWithStateRoot();
     }
 
     @Override

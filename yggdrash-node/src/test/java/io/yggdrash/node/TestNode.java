@@ -167,7 +167,8 @@ public class TestNode extends BootStrapNode {
             BlockChainManager blockChainManager = branch.getBlockChainManager();
             List<Transaction> txs =
                     blockChainManager.getUnconfirmedTxsWithLimit(Constants.Limit.BLOCK_SYNC_SIZE);
-            ConsensusBlock block = BlockChainTestUtils.createNextBlock(txs, blockChainManager.getLastConfirmedBlock());
+            ConsensusBlock block = BlockChainTestUtils.createNextBlock(
+                    txs, blockChainManager.getLastConfirmedBlock(), branch.getContractManager());
 
             PbftBlock newBlock = new PbftBlock(PbftProto.PbftBlock.newBuilder()
                     .setBlock(block.getBlock().getProtoBlock()).build());

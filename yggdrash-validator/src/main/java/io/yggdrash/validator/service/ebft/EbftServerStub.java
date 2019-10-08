@@ -45,7 +45,7 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
         log.trace("Received transaction: hash={}", tx.getHash());
         if (tx.getBranchId().equals(blockChain.getBranchId())
                 && blockChain.getBlockChainManager().verify(tx) == BusinessError.VALID.toValue()) {
-            blockChain.executeAndAddToPendingPool(tx);;
+            blockChain.getBlockChainManager().addTransaction(tx);
         }
         responseObserver.onNext(EMPTY);
         responseObserver.onCompleted();

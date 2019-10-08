@@ -6,6 +6,7 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.vo.dpoa.Validator;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
@@ -15,6 +16,7 @@ import io.yggdrash.core.consensus.ConsensusBlockChain;
 import io.yggdrash.core.consensus.ConsensusService;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.validator.data.pbft.PbftBlock;
@@ -24,6 +26,7 @@ import io.yggdrash.validator.data.pbft.PbftStatus;
 import io.yggdrash.validator.data.pbft.PbftVerifier;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -339,10 +342,19 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     }
 
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
-        Map<Sha3Hash, List<Transaction>> unconfirmedTxsWithStateRoot
-                = blockChain.getBlockChainManager().getUnconfirmedTxsWithStateRoot();
-        Sha3Hash curStateRootHash = unconfirmedTxsWithStateRoot.keySet().iterator().next();
-        List<Transaction> txList = unconfirmedTxsWithStateRoot.get(curStateRootHash);
+        List<Transaction> txList = new ArrayList<>(blockChain.getBlockChainManager().getUnconfirmedTxs());
+        Sha3Hash curStateRootHash;
+        if (txList.size() > 0) {
+            BlockRuntimeResult result = blockChain.getContractManager().executeTxs(txList);
+            curStateRootHash = new Sha3Hash(result.getBlockResult().get("stateRoot").get("stateHash").getAsString());
+            // Flush error txs from pendingPool
+            result.getReceipts().stream()
+                    .filter(receipt -> receipt.getStatus().equals(ExecuteStatus.ERROR))
+                    .forEach(receipt -> blockChain.getBlockChainManager()
+                            .flushUnconfirmedTx(new Sha3Hash(receipt.getTxId())));
+        } else {
+            curStateRootHash = blockChain.getContractManager().getOriginStateRoot();
+        }
         log.debug("makeNextBlock : stateRootHash {}, txList size {}", curStateRootHash, txList.size());
 
         BlockBody newBlockBody = new BlockBody(txList);

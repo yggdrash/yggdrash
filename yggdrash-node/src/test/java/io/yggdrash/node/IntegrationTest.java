@@ -261,7 +261,8 @@ public class IntegrationTest extends TcpNodeTesting {
     }
 
     private static void broadcastBlocks(PeerHandlerProvider.PbftPeerHandler t, int cnt, int txSize) {
-        BlockChainTestUtils.createBlockListFilledWithTx(cnt, txSize).forEach(t::broadcastBlock);
+        // contractManager is null
+        BlockChainTestUtils.createBlockListWithTxs(cnt, txSize, null).forEach(t::broadcastBlock);
     }
 
     private static void broadcastBlock(PeerHandlerProvider.PbftPeerHandler t,

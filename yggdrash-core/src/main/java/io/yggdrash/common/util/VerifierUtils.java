@@ -113,9 +113,9 @@ public class VerifierUtils {
      * @return boolean
      */
     private static boolean verifyTimestamp(Long timeStamp) {
-        long hour = (1000 * 60 * 60);
+        long twoHour = (1000 * 60 * 60) * 2;
         long curTime = System.currentTimeMillis();
-        return timeStamp.compareTo(curTime + hour) < 0 && timeStamp.compareTo(curTime - hour) > 0;
+        return timeStamp.compareTo(curTime + twoHour) < 0 && timeStamp.compareTo(curTime - twoHour) > 0;
     }
 
     public static boolean verifySignature(Transaction tx) {

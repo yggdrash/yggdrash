@@ -140,6 +140,6 @@ public class TransactionStoreTest {
 
     private void batch() {
         Set<Sha3Hash> keys = ts.getUnconfirmedTxs().stream().map(Transaction::getHash).collect(Collectors.toSet());
-        ts.batch(keys, new Sha3Hash(""));
+        ts.batch(keys);
     }
 }

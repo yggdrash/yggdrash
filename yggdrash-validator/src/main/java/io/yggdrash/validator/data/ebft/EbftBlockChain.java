@@ -7,7 +7,7 @@ import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
@@ -137,6 +137,11 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
     }
 
     @Override
+    public ContractManager getContractManager() {
+        return null;
+    }
+
+    @Override
     public EbftBlock getGenesisBlock() {
         return genesisBlock;
     }
@@ -177,11 +182,6 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
             this.lock.unlock();
         }
         return new HashMap<>();
-    }
-
-    @Override
-    public Sha3Hash executeAndAddToPendingPool(Transaction tx) {
-        return null;
     }
 
     @Override

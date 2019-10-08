@@ -99,8 +99,10 @@ public class ContractTestUtils {
 
     public static Sha3Hash calStateRoot(ContractManager contractManager, List<Transaction> txs) {
         if (txs.size() > 0) {
-            BlockRuntimeResult executePendingTxs = contractManager.executePendingTxs(txs);
-            return new Sha3Hash(executePendingTxs.getBlockResult().get("stateRoot").get("stateHash").getAsString());
+            BlockRuntimeResult executePendingTxs = contractManager.executeTxs(txs);
+            return executePendingTxs.getBlockResult().containsKey("stateRoot")
+                    ? new Sha3Hash(executePendingTxs.getBlockResult().get("stateRoot").get("stateHash").getAsString())
+                    : contractManager.getOriginStateRoot();
         } else {
             return contractManager.getOriginStateRoot();
         }
@@ -126,13 +128,12 @@ public class ContractTestUtils {
         if (prevBlock.getHeader().getIndex() != 0L) {
             byte[] prevStateRoot = prevBlock.getHeader().getStateRoot();
             contractStore.getStateStore().put("stateRoot", createStateHashObj(prevStateRoot));
-            contractManager.executeTxs(prevBlock);
         }
 
         contractManager.endBlock(prevBlock);
-        contractManager.executePendingTxs(txs);
 
-        return contractStore.getPendingStateStore().getStateRoot();
+        BlockRuntimeResult result = contractManager.executeTxs(txs);
+        return new Sha3Hash(result.getBlockResult().get("stateRoot").get("stateHash").getAsString());
     }
 
     private static JsonObject createStateHashObj(byte[] stateRootBytes) {

@@ -33,7 +33,6 @@ import io.yggdrash.gateway.dto.TransactionReceiptDto;
 import io.yggdrash.gateway.dto.TransactionResponseDto;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -72,7 +71,7 @@ public class TransactionMockitoTest {
         txReceiptStore = new HashMap<>();
         txApiImpl = new TransactionApiImpl(branchGroupMock);
 
-        tx = BlockChainTestUtils.createBranchTx();
+        tx = BlockChainTestUtils.createTransferTx();
         branchId = tx.getBranchId();
         txId = tx.getHash().toString();
         List<Transaction> txList = new ArrayList<>();
@@ -83,7 +82,7 @@ public class TransactionMockitoTest {
         txReceipt.setTxId(txId);
         txReceiptStore.put(txId, txReceipt);
         ConsensusBlock genesis = BlockChainTestUtils.genesisBlock();
-        block = BlockChainTestUtils.createNextBlock(txList, genesis);
+        block = BlockChainTestUtils.createNextBlock(txList, genesis, null); // contractManager is null
         blockId = block.getHash().toString();
     }
 

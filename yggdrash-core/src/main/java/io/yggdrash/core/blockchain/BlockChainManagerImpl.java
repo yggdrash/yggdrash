@@ -173,7 +173,7 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
                     addTransaction(tx);
                 }
             }
-            //batchTxs(nextBlock);
+            batchTxs(nextBlock);
 
             // Store Block Index and Block Data
             this.blockStore.addBlock(nextBlock);
@@ -185,7 +185,7 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     }
 
     @Override
-    public void batchTxs(ConsensusBlock<T> block, Sha3Hash stateRoot) {
+    public void batchTxs(ConsensusBlock<T> block) {
         try {
             lock.lock();
             if (block == null || block.getBlock() == null || block.getBody().getTransactionList() == null) {
@@ -194,7 +194,7 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
 
             Set<Sha3Hash> keys = block.getBlock().getBody().getTransactionList().stream()
                     .map(Transaction::getHash).collect(Collectors.toSet());
-            transactionStore.batch(keys, stateRoot);
+            transactionStore.batch(keys);
         } finally {
             lock.unlock();
         }
@@ -207,20 +207,6 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }
-    }
-
-    @Override
-    public void addTransaction(Transaction tx, Sha3Hash stateRootHash) {
-        try {
-            transactionStore.addTransaction(tx, stateRootHash);
-        } catch (Exception e) {
-            throw new FailedOperationException(e);
-        }
-    }
-
-    @Override
-    public void flushUnconfirmedTxs(Set<Sha3Hash> keys) {
-        transactionStore.flush(keys);
     }
 
     @Override
@@ -288,11 +274,6 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     @Override
     public List<Transaction> getUnconfirmedTxs() {
         return new ArrayList<>(transactionStore.getUnconfirmedTxs());
-    }
-
-    @Override
-    public Map<Sha3Hash, List<Transaction>> getUnconfirmedTxsWithStateRoot() {
-        return transactionStore.getUnconfirmedTxsWithStateRoot();
     }
 
     @Override
