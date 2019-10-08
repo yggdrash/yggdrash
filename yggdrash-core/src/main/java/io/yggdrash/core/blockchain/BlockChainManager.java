@@ -18,6 +18,7 @@ import io.yggdrash.core.consensus.ConsensusBlock;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public interface BlockChainManager<T> {
 
@@ -35,7 +36,7 @@ public interface BlockChainManager<T> {
 
     void addTransaction(Transaction tx);
 
-    void flushUnconfirmedTx(Sha3Hash key);
+    void flushUnconfirmedTxs(Set<Sha3Hash> keys);
 
     void updateTxCache(Block block);
 

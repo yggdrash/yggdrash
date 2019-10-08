@@ -210,8 +210,8 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     }
 
     @Override
-    public void flushUnconfirmedTx(Sha3Hash key) {
-        transactionStore.flush(key);
+    public void flushUnconfirmedTxs(Set<Sha3Hash> keys) {
+        transactionStore.flush(keys);
     }
 
     @Override

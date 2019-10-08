@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -226,21 +225,10 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
         return unconfirmedTxs;
     }
 
-    private void flush(Set<Sha3Hash> keys) {
+    public void flush(Set<Sha3Hash> keys) {
         pendingPool.removeAll(keys);
         pendingKeys.removeAll(keys);
         log.trace("flushSize={} remainPendingSize={}", keys.size(), pendingKeys.size());
-    }
-
-    public void flush(Sha3Hash key) {
-        lock.lock();
-        try {
-            pendingPool.remove(key);
-            pendingKeys.remove(key);
-            log.trace("remainPendingSize={}", pendingKeys.size());
-        } finally {
-            lock.unlock();
-        }
     }
 
     public void updateCache(Block block) {

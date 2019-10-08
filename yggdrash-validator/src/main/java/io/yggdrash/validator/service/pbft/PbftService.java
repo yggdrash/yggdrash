@@ -28,8 +28,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -345,21 +347,26 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         List<Transaction> txList = new ArrayList<>(blockChain.getBlockChainManager().getUnconfirmedTxs());
         Sha3Hash curStateRootHash = blockChain.getContractManager().getOriginStateRoot();;
 
+        List<Transaction> errTxList = new ArrayList<>();
+        Set<Sha3Hash> errTxHashes = new HashSet<>();
         if (txList.size() > 0) {
             BlockRuntimeResult result = blockChain.getContractManager().executeTxs(txList);
+
             if (result.getBlockResult().containsKey("stateRoot")) {
                 curStateRootHash = new Sha3Hash(
                         result.getBlockResult().get("stateRoot").get("stateHash").getAsString());
             }
 
-            // Remove err txs from txList and flush from pendingPool
             result.getReceipts().stream()
-                    .filter(receipt -> receipt.getStatus().equals(ExecuteStatus.ERROR))
-                    .map(receipt -> new Sha3Hash(receipt.getTxId()))
-                    .forEach(errTxId -> {
-                        txList.stream().filter(tx -> tx.getHash().equals(errTxId)).forEach(txList::remove);
-                        blockChain.getBlockChainManager().flushUnconfirmedTx(errTxId);
-                    });
+                    .filter(r -> r.getStatus().equals(ExecuteStatus.ERROR))
+                    .forEach(r -> {
+                        errTxHashes.add(new Sha3Hash(r.getTxId()));
+                        errTxList.add(blockChain.getBlockChainManager().getTxByHash(new Sha3Hash(r.getTxId())));
+            });
+
+            // Remove err txs from txList and flush from pendingPool
+            txList.removeAll(errTxList);
+            blockChain.getBlockChainManager().flushUnconfirmedTxs(errTxHashes);
         }
         log.debug("makeNextBlock : stateRootHash {}, txList size {}", curStateRootHash, txList.size());
 
