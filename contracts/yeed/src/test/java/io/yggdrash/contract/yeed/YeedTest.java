@@ -16,13 +16,13 @@
 
 package io.yggdrash.contract.yeed;
 
+import com.google.common.collect.Iterables;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.vo.dpoa.Validator;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
-import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
@@ -31,10 +31,6 @@ import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.contract.core.ReceiptAdapter;
 import io.yggdrash.contract.core.ReceiptImpl;
-import io.yggdrash.contract.yeed.ehtereum.EthTransaction;
-import io.yggdrash.contract.yeed.intertransfer.TxConfirmStatus;
-import io.yggdrash.contract.yeed.propose.ProposeStatus;
-import io.yggdrash.contract.yeed.propose.ProposeType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -47,9 +43,6 @@ import org.slf4j.LoggerFactory;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -65,9 +58,9 @@ public class YeedTest {
     private static final String BRANCH_ID = "0x00";
     private ReceiptAdapter adapter;
 
-    private static BigInteger BASE_CURRENCY = BigInteger.TEN.pow(18);
+    private static BigInteger BASE_CURRENCY = BigInteger.TEN.pow(17);
     // 0.01 YEED
-    private static BigInteger DEFAULT_FEE = BASE_CURRENCY.divide(BigInteger.valueOf(100L));
+    private static BigInteger DEFAULT_FEE = BASE_CURRENCY.divide(BigInteger.valueOf(10L));
 
     private JsonObject genesisParams = JsonUtil.parseJsonObject("{\"alloc\": "
             + "{\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\":{\"balance\": \"1000000000\"},"
@@ -129,6 +122,36 @@ public class YeedTest {
 
         assertEquals(BASE_CURRENCY.multiply(BigInteger.valueOf(1000000000)), res);
         assertEquals(res2, res);
+
+        // Invalid Parameter Check
+        String anyStr = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut"
+                + "labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris"
+                + "nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit"
+                + "esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt"
+                + "in culpa qui officia deserunt mollit anim id est laborum.";
+        JsonObject obj = new JsonObject(); // No Length Check
+        obj.addProperty("address", anyStr);
+        assertEquals(BigInteger.ZERO, yeedContract.balanceOf(obj));
+
+        obj.addProperty("address", ""); // Empty String
+        yeedContract.balanceOf(obj);
+
+        obj.add("address", null); // Null check
+        yeedContract.balanceOf(obj);
+
+        JsonObject obj2 = new JsonObject(); // Parameter non-existence check
+        obj2.addProperty("Address", anyStr);
+        assertEquals(BigInteger.ZERO, yeedContract.balanceOf(obj2));
+    }
+
+    @Test
+    public void getContractBalanceOf() {
+        JsonObject param = new JsonObject();
+        param.addProperty("ContractName", "contractName");
+        assertEquals(BigInteger.ZERO, yeedContract.getContractBalanceOf(param));
+
+        param.add("contractName", null);
+        assertEquals(BigInteger.ZERO, yeedContract.getContractBalanceOf(param));
     }
 
     @Test
@@ -138,15 +161,45 @@ public class YeedTest {
 
         assertEquals(BigInteger.ZERO, res);
         assertEquals(res2, res);
+
+        JsonObject obj = new JsonObject();
+        obj.addProperty("owner", ADDRESS_1);
+        assertEquals(BigInteger.ZERO, yeedContract.allowance(obj));
+        obj.add("owner", null);
+        obj.addProperty("spender", ADDRESS_2);
+        assertEquals(BigInteger.ZERO, yeedContract.allowance(obj));
+        obj.remove("owner");
+        assertEquals(BigInteger.ZERO, yeedContract.allowance(obj));
+    }
+
+    @Test
+    public void queryPropose() {
+        JsonObject obj = new JsonObject();
+        obj.addProperty("ProposeId", "proposeId");
+        assertEquals(0, yeedContract.queryPropose(obj).size());
+
+        obj.add("proposeId", null);
+        assertEquals(0, yeedContract.queryPropose(obj).size());
+
+        obj.addProperty("proposeId", "proposeId");
+        assertEquals(0, yeedContract.queryPropose(obj).size());
+    }
+
+    @Test
+    public void queryTransactionConfirm() {
+        JsonObject obj = new JsonObject();
+        assertEquals(0, yeedContract.queryTransactionConfirm(obj).size());
+
+        obj.addProperty("txConfirmId", "txConfirmId");
+        assertEquals(0, yeedContract.queryTransactionConfirm(obj).size());
     }
 
     @Test
     public void transfer() {
-
         BigInteger sendAmount = BASE_CURRENCY; // 1 YEED
         final BigInteger sendAddress = getBalance(ADDRESS_1);
         final BigInteger receiveAmount = getBalance(ADDRESS_2);
-        BigInteger feeAmount = DEFAULT_FEE;
+        BigInteger feeAmount = DEFAULT_FEE; // 0.1 YEED
 
         JsonObject paramObj = new JsonObject();
         paramObj.addProperty("to", ADDRESS_2);
@@ -164,10 +217,10 @@ public class YeedTest {
         assertTrue(receipt.isSuccess());
 
         BigInteger senderRemainAmount = sendAddress.subtract(feeAmount).subtract(sendAmount);
-        BigInteger receverRemainAmount = receiveAmount.add(sendAmount);
+        BigInteger receiverRemainAmount = receiveAmount.add(sendAmount);
 
         assertEquals(senderRemainAmount, getBalance(ADDRESS_1));
-        assertEquals(receverRemainAmount, getBalance(ADDRESS_2));
+        assertEquals(receiverRemainAmount, getBalance(ADDRESS_2));
 
         // To much amount
         addAmount(paramObj, BigInteger.valueOf(1).add(senderRemainAmount));
@@ -180,21 +233,274 @@ public class YeedTest {
         receipt = yeedContract.transfer(paramObj);
 
         assertTrue(receipt.isSuccess());
-        assertTrue(getBalance(ADDRESS_1).compareTo(BigInteger.ZERO) == 0);
+        assertEquals(0, getBalance(ADDRESS_1).compareTo(BigInteger.ZERO));
     }
 
     @Test
-    public void failTransfer() {
-        JsonObject paramObj = new JsonObject();
-        paramObj.addProperty("to", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");
-        paramObj.addProperty("amount", -1000000);
-        paramObj.addProperty("fee", -1000);
-
+    public void paramCheckOfTransfer() { // This test also applied to the other @InvokeTransaction methods.
         Receipt receipt = setUpReceipt(ADDRESS_1);
+
+        // non-existence check
+        JsonObject obj = new JsonObject();
+        receipt = yeedContract.transfer(obj);
+        String invalidParamsLog = Iterables.getLast(receipt.getLog());
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        obj.addProperty("to", "to");
+        receipt = yeedContract.transfer(obj);
+        assertEquals(invalidParamsLog, Iterables.getLast(receipt.getLog()));
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        // invalid type check
+        obj.addProperty("amount", 0.00001);
+        receipt = yeedContract.transfer(obj);
+        assertEquals(invalidParamsLog, Iterables.getLast(receipt.getLog()));
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        obj.addProperty("amount", "amount!");
+        receipt = yeedContract.transfer(obj);
+        assertEquals(invalidParamsLog, Iterables.getLast(receipt.getLog()));
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        // Invalid amount check
+        obj.addProperty("amount", 0);
+        receipt = yeedContract.transfer(obj);
+        String invalidAmountLog = Iterables.getLast(receipt.getLog());
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        obj.addProperty("amount", -100);
+        receipt = yeedContract.transfer(obj);
+        assertEquals(invalidAmountLog, Iterables.getLast(receipt.getLog()));
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        obj.addProperty("amount", -0);
+        receipt = yeedContract.transfer(obj);
+        assertEquals(invalidAmountLog, Iterables.getLast(receipt.getLog()));
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        obj.addProperty("amount", 100L);
+        receipt = yeedContract.transfer(obj);
+        assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
+        assertTrue(Iterables.getLast(receipt.getLog()).contains(String.valueOf(DEFAULT_FEE)));
+
+        /*
+        //No limited amount
+        obj.addProperty("amount", BigInteger.TEN.pow(1000000000));
+        receipt = yeedContract.transfer(obj);
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        */
+
+        // Low Transaction Fee check
+        obj.addProperty("fee", 1);
+
+        receipt = yeedContract.transfer(obj);
+        String lowTxFee = Iterables.getLast(receipt.getLog());
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        obj.addProperty("fee", -100);
+
+        receipt = yeedContract.transfer(obj);
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(lowTxFee, Iterables.getLast(receipt.getLog()));
+
+        obj.addProperty("fee", DEFAULT_FEE);
+
+        receipt = yeedContract.transfer(obj);
+        assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
+
+        // Null check
+        obj.add("to", null);
+        receipt = yeedContract.transfer(obj);
+        assertEquals(invalidParamsLog, Iterables.getLast(receipt.getLog()));
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+    }
+
+    @Test
+    public void transferToSelfAccount() {
+        Receipt receipt = setUpReceipt(ADDRESS_1);
+
+        BigInteger balanceBeforeTransfer = getBalance(ADDRESS_1);
+        BigInteger balanceAfterTransfer = balanceBeforeTransfer.subtract(DEFAULT_FEE);
+
+        JsonObject paramObj = new JsonObject();
+        paramObj.addProperty("to", ADDRESS_1);
+        paramObj.addProperty("amount", BASE_CURRENCY);
+        paramObj.addProperty("fee", DEFAULT_FEE);
 
         receipt = yeedContract.transfer(paramObj);
 
-        assertFalse(receipt.isSuccess());
+        assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
+        assertEquals(balanceAfterTransfer, getBalance(ADDRESS_1));
+        assertEquals(DEFAULT_FEE, getBalance(receipt.getBranchId()));
+    }
+
+    @Test
+    public void approveToSelfAccount() {
+        Receipt receipt = setUpReceipt(ADDRESS_1);
+
+        BigInteger balanceBeforeApprove = getBalance(ADDRESS_1);
+        BigInteger balanceAfterApprove = balanceBeforeApprove.subtract(DEFAULT_FEE);
+        BigInteger approveAmount = getBalance(ADDRESS_1).add(BigInteger.TEN);
+
+        JsonObject paramObj = new JsonObject();
+        paramObj.addProperty("spender", ADDRESS_1);
+        paramObj.addProperty("amount", approveAmount);
+
+        receipt = yeedContract.approve(paramObj);
+
+        assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
+        assertEquals(balanceAfterApprove, getBalance(ADDRESS_1));
+        assertEquals(approveAmount, getAllowance(ADDRESS_1, ADDRESS_1));
+
+        BigInteger changedApproveAmount = BigInteger.TEN;
+        paramObj.addProperty("amount", changedApproveAmount);
+
+        receipt = yeedContract.approve(paramObj);
+
+        assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
+        assertEquals(balanceAfterApprove.subtract(DEFAULT_FEE), getBalance(ADDRESS_1));
+        assertEquals(changedApproveAmount, getAllowance(ADDRESS_1, ADDRESS_1));
+    }
+
+    @Test
+    public void transferFromToSelfAccount() {
+        Receipt receipt = setUpReceipt(ADDRESS_1);
+
+        BigInteger approveAmount = DEFAULT_FEE.add(BigInteger.valueOf(10000));
+
+        JsonObject approveParam = new JsonObject();
+        approveParam.addProperty("spender", ADDRESS_1);
+        approveParam.addProperty("amount", approveAmount);
+        yeedContract.approve(approveParam);
+
+        BigInteger balanceBeforeTransferFrom = getBalance(ADDRESS_1);
+        BigInteger balanceAfterTransferFrom = balanceBeforeTransferFrom.subtract(DEFAULT_FEE);
+        BigInteger transferAmount = BigInteger.valueOf(100);
+
+        JsonObject paramObj = new JsonObject();
+        paramObj.addProperty("from", ADDRESS_1);
+        paramObj.addProperty("to", ADDRESS_1);
+        paramObj.addProperty("amount", transferAmount);
+
+        receipt = yeedContract.transferFrom(paramObj);
+        assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
+        assertEquals(balanceAfterTransferFrom, getBalance(ADDRESS_1));
+        assertEquals(approveAmount.subtract(transferAmount).subtract(DEFAULT_FEE), getAllowance(ADDRESS_1, ADDRESS_1));
+    }
+
+    @Test
+    public void paramCheckOfApprove() {
+        Receipt receipt = setUpReceipt(ADDRESS_1);
+
+        // non-existence check
+        JsonObject obj = new JsonObject();
+        receipt = yeedContract.approve(obj);
+        String invalidParamsLog = Iterables.getLast(receipt.getLog());
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        obj.addProperty("spender", "spender");
+        receipt = yeedContract.approve(obj);
+        assertEquals(invalidParamsLog, Iterables.getLast(receipt.getLog()));
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        // invalid type check
+        obj.addProperty("amount", 0.00001);
+        receipt = yeedContract.approve(obj);
+        assertEquals(invalidParamsLog, Iterables.getLast(receipt.getLog()));
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        obj.addProperty("amount", -100);
+        receipt = yeedContract.approve(obj);
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        obj.addProperty("amount", 0);
+        receipt = yeedContract.approve(obj);
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        obj.addProperty("amount", "amount!");
+        receipt = yeedContract.approve(obj);
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        /*
+        //FIXME No limited amount -> SerializationUtil.serializeJson(value) -> The progress of serialization would be freeze.
+        obj.addProperty("amount", BigInteger.TEN.pow(10000000));
+        receipt = yeedContract.approve(obj);
+        assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
+        assertTrue(Iterables.getLast(receipt.getLog()).contains(String.valueOf(DEFAULT_FEE)));
+        */
+
+        obj.addProperty("amount", 100);
+        receipt = yeedContract.approve(obj);
+        assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
+
+        obj.addProperty("fee", 1);
+
+        receipt = yeedContract.approve(obj);
+        String lowTxFee = Iterables.getLast(receipt.getLog());
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        obj.addProperty("fee", -100);
+
+        receipt = yeedContract.approve(obj);
+        assertEquals(lowTxFee, Iterables.getLast(receipt.getLog()));
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        obj.addProperty("fee", DEFAULT_FEE);
+
+        receipt = yeedContract.approve(obj);
+        assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
+    }
+
+    @Test
+    public void paramCheckOfTransferFrom() {
+        Receipt receipt = setUpReceipt(ADDRESS_1);
+
+        // non-existence check
+        JsonObject obj = new JsonObject();
+        receipt = yeedContract.transferFrom(obj);
+        String invalidParamsLog = Iterables.getLast(receipt.getLog());
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        obj.addProperty("from", ADDRESS_1);
+        obj.addProperty("to", ADDRESS_2);
+        receipt = yeedContract.transferFrom(obj);
+        assertEquals(invalidParamsLog, Iterables.getLast(receipt.getLog()));
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        // invalid type check
+        obj.addProperty("amount", 0.00001);
+        receipt = yeedContract.transferFrom(obj);
+        assertEquals(invalidParamsLog, Iterables.getLast(receipt.getLog()));
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        obj.addProperty("amount", -100);
+        receipt = yeedContract.transferFrom(obj);
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        obj.addProperty("amount", 0);
+        receipt = yeedContract.transferFrom(obj);
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        obj.addProperty("amount", "amount!");
+        receipt = yeedContract.transferFrom(obj);
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+
+        obj.addProperty("amount", 100);
+        receipt = yeedContract.transferFrom(obj);
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus()); // Insufficient funds
+
+        obj.addProperty("fee", 1);
+
+        receipt = yeedContract.transferFrom(obj);
+        String lowTxFee = Iterables.getLast(receipt.getLog());
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+
+        obj.addProperty("fee", -100);
+
+        receipt = yeedContract.transferFrom(obj);
+        assertEquals(lowTxFee, Iterables.getLast(receipt.getLog()));
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
     }
 
     @Test
@@ -209,15 +515,13 @@ public class YeedTest {
         // APPROVE
         approveByOwner(owner, spender, approveBalance.toString());
 
-        // CHECK allowence
+        // CHECK allowance
         JsonObject param = new JsonObject();
         param.addProperty("owner", owner);
         param.addProperty("spender", spender);
         BigInteger allowanceBalance = yeedContract.allowance(param);
 
-        Assert.assertTrue("allowanceBalance : ",
-                allowanceBalance.compareTo(approveBalance) == 0);
-
+        assertEquals("allowanceBalance : ", 0, allowanceBalance.compareTo(approveBalance));
 
         JsonObject transferFromObject = new JsonObject();
         transferFromObject.addProperty("from", owner);
@@ -309,22 +613,6 @@ public class YeedTest {
 
         yeedContract.transfer(testTransfer);
         assertSame(ExecuteStatus.SUCCESS, yeedContract.receipt.getStatus());
-    }
-
-    @Test
-    public void sendSameAccount() {
-        String issuer = "4d01e237570022440aa126ca0b63065d7f5fd589";
-        final BigInteger balance = yeedContract.getBalance(issuer);
-        setUpReceipt("0x00", issuer, BRANCH_ID, 1);
-
-        JsonObject testTransfer = new JsonObject();
-        testTransfer.addProperty("to","4d01e237570022440aa126ca0b63065d7f5fd589");
-        testTransfer.addProperty("amount", BigInteger.valueOf(100L));
-        yeedContract.transfer(testTransfer);
-
-        BigInteger after = yeedContract.getBalance(issuer);
-
-        assertTrue(balance.compareTo(after) == 0);
     }
 
     @Test

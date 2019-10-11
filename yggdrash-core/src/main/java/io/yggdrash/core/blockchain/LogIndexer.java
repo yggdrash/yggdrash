@@ -60,7 +60,7 @@ public class LogIndexer {
 
     public List<Log> getLogs(long from, long offset) {
         long start = from < 0 ? 0 : from;
-        long end = offset > curIndex() ? curIndex() : offset;
+        long end = start + offset > curIndex() ? curIndex() : start + offset;
         return LongStream.rangeClosed(start, end).mapToObj(this::getLog).collect(Collectors.toList());
     }
 

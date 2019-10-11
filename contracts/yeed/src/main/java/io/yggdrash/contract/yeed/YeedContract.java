@@ -52,6 +52,7 @@ import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -60,10 +61,62 @@ import java.util.List;
 import java.util.Map;
 
 public class YeedContract implements BundleActivator, ServiceListener {
-    private static final Logger log = LoggerFactory.getLogger(YeedContract.class);
+
+    // Param properties
+    private static final String TOTAL_SUPPLY = "TOTAL_SUPPLY";
+    private static final String ALLOC = "alloc";
+    private static final String ADDRESS = "address";
     private static final String AMOUNT = "amount";
+    private static final String ISSUER = "issuer";
     private static final String BALANCE = "balance";
+    private static final String RAW_TX = "rawTransaction";
+    private static final String TX_ID = "transactionId";
+    private static final String TX_CONFIRM_ID = "txConfirmId";
     private static final String FEE = "fee";
+    private static final String SERVICE_FEE = "serviceFee";
+    private static final String STAKE_YEED = "stakeYeed";
+    private static final String OWNER = "owner";
+    private static final String SPENDER = "spender";
+    private static final String STATUS = "status";
+    private static final String TO = "to";
+    private static final String FROM = "from";
+    private static final String PROPOSE_ID = "proposeId";
+    private static final String BLOCK_HEIGHT = "blockHeight";
+    private static final String INDEX = "index";
+    private static final String LAST_BLOCK_HEIGHT = "lastBlockHeight";
+    private static final String CONTRACT_NAME = "contractName";
+
+    // Log messages
+    private static final String INSUFFICIENT_FUNDS = "Insufficient funds";
+    private static final String INVALID_PARAMS = "Invalid parameters";
+    private static final String LOW_TX_FEE = "Low transaction fee";
+    private static final String INVALID_AMOUNT = "Invalid amount";
+    private static final String INVALID_AMOUNT_OF_STAKE_YEED = "Invalid amount of stakeYeed";
+    private static final String INIT_SUCCESS = "Initialization completed successfully. Total Supply is %s";
+    private static final String INIT_FAIL = "Initialization failed";
+    private static final String APPROVE_SUCCESS = "Approve %s to %s from %s";
+    private static final String FEE_TRANSFER_FAIL = "Fee transfer failed";
+    private static final String TRANSFER_SUCCESS = "Transfer %s from %s to %s fee %s";
+    private static final String TRANSFER_FAIL = "Transfer failed";
+    private static final String BALANCE_EMPTY = "Balance empty";
+    private static final String TRANSFER_FROM_SUCCESS = "TransferFrom %s from %s to %s fee %s by %s";
+    private static final String TRANSFER_CHANNEL_FAILED = "Transfer channel failed";
+    private static final String BURN_YEED = "Burn %s Yeed";
+    private static final String PROPOSAL_NOT_EXPIRED = "The proposal has not expired";
+    private static final String PROPOSAL_ALREADY_CLOSED = "The proposal already CLOSED";
+    private static final String TX_ISSUER_IS_NOT_PROPOSAL_ISSUER = "Transaction issuer is not the proposal issuer";
+    private static final String TX_CONFIRM_REQUIRE_VALIDATOR = "Transaction confirm is required for validator";
+    private static final String TX_CONFIRM_FAIL = "%s is FAIL";
+    private static final String TX_CONFIRM_DONE = "%s is DONE";
+    private static final String TX_CONFIRM_EXIST = "Propose %s transaction %s exist";
+    private static final String TX_CONFIRM_PROCESS_SUCCESS = "Propose %s check %s network %s transaction %s confirm ID %s";
+    private static final String PROCESS_YEED_TO_ETH_TOKEN_SUCCESS = "Yeed to EthToken Proposal completed successfully";
+    private static final String PROCESS_YEED_TO_ETH_SUCCESS = "Yeed to Eth Proposal completed successfully";
+    private static final String PROCESS_PROPOSE_FAIL = "Propose cannot proceed (ProposeStatus=%s)";
+    private static final String PROPOSE_NOT_EXISTS = "Propose not exists";
+    private static final String PROPOSE_STATUS_NOT_EXISTS = "Propose status not exists";
+
+    private static final Logger log = LoggerFactory.getLogger(YeedContract.class);
 
     @Override
     public void start(BundleContext context) {
@@ -90,10 +143,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
         // TODO Base Fee is Network Fee - Governance Change this value
         // BASE FEE = 5*10^13
         private static BigInteger BASE_FEE = BigInteger.valueOf(50000000000000L);
-        // 1 YEED = 1000000000000000000
-        private static BigInteger BASE_CURRENCY = BigInteger.TEN.pow(18);
-
-        private static final String TOTAL_SUPPLY = "TOTAL_SUPPLY";
+        // 0.1 YEED = 100000000000000000
+        private static BigInteger BASE_CURRENCY = BigInteger.TEN.pow(17);
 
         @ContractReceipt
         Receipt receipt;
@@ -125,8 +176,12 @@ public class YeedContract implements BundleActivator, ServiceListener {
         @ContractQuery
         @Override
         public BigInteger balanceOf(JsonObject params) {
-            String address = params.get("address").getAsString().toLowerCase();
-            return getBalance(address);
+            try {
+                String address = params.get(ADDRESS).getAsString().toLowerCase();
+                return getBalance(address);
+            } catch (Exception e) {
+                return BigInteger.ZERO;
+            }
         }
 
         /**
@@ -138,9 +193,12 @@ public class YeedContract implements BundleActivator, ServiceListener {
         @ContractQuery
         @ContractChannelMethod
         public BigInteger getContractBalanceOf(JsonObject params) {
-            String contractAccount
-                    = String.format("%s%s", PrefixKeyEnum.CONTRACT_ACCOUNT, params.get("contractName").getAsString());
-            return getBalance(contractAccount);
+            try {
+                String contractName = params.get(CONTRACT_NAME).getAsString();
+                return getBalance(contractAccountKey(contractName));
+            } catch (Exception e) {
+                return BigInteger.ZERO;
+            }
         }
 
         /**
@@ -153,11 +211,14 @@ public class YeedContract implements BundleActivator, ServiceListener {
         @ContractQuery
         @Override
         public BigInteger allowance(JsonObject params) {
-            String owner = params.get("owner").getAsString().toLowerCase();
-            String spender = params.get("spender").getAsString().toLowerCase();
-            String approveKey = approveKey(owner, spender);
-
-            return getBalance(approveKey);
+            try {
+                String owner = params.get(OWNER).getAsString().toLowerCase();
+                String spender = params.get(SPENDER).getAsString().toLowerCase();
+                String approveKey = approveKey(owner, spender);
+                return getBalance(approveKey);
+            } catch (Exception e) {
+                return BigInteger.ZERO;
+            }
         }
 
         /**
@@ -172,36 +233,38 @@ public class YeedContract implements BundleActivator, ServiceListener {
         public Receipt init(JsonObject params) {
             // Set totalSupply to the sum of all balances of alloc
             BigInteger totalSupply = BigInteger.ZERO;
+            try {
+                JsonObject alloc = params.getAsJsonObject(ALLOC);
+                for (Map.Entry<String, JsonElement> entry : alloc.entrySet()) {
+                    String frontier;
+                    BigInteger balance;
+                    try {
+                        frontier = entry.getKey();
+                        JsonObject value = entry.getValue().getAsJsonObject();
+                        balance = value.get(BALANCE).getAsBigInteger();
+                    } catch (Exception e) {
+                       setErrorTxReceipt(INVALID_PARAMS);
+                       return receipt;
+                    }
 
-            JsonObject alloc = params.getAsJsonObject("alloc");
-            for (Map.Entry<String, JsonElement> entry : alloc.entrySet()) {
-                String frontier = entry.getKey();
-                JsonObject value = entry.getValue().getAsJsonObject();
-                BigInteger balance = value.get(BALANCE).getAsBigInteger();
-                // apply BASE_CURRENCY
-                balance = balance.multiply(BASE_CURRENCY);
+                    // Apply BASE_CURRENCY
+                    balance = balance.multiply(BASE_CURRENCY);
+                    totalSupply = totalSupply.add(balance);
+                    addBalanceTo(frontier, balance);
 
-                totalSupply = totalSupply.add(balance);
-                addBalanceTo(frontier, balance);
-                //putBalance(frontier, balance);
+                    JsonObject mintLog = new JsonObject();
+                    mintLog.addProperty(TO, frontier);
+                    mintLog.addProperty(BALANCE, balance.toString());
+                    receipt.addLog(mintLog.toString());
+                    log.debug("Address of Frontier : {}"
+                            + "Balance of Frontier : {}", frontier, getBalance(frontier));
+                }
+                putBalance(TOTAL_SUPPLY, totalSupply);
 
-                JsonObject mintLog = new JsonObject();
-                mintLog.addProperty("to", frontier);
-                mintLog.addProperty(BALANCE, balance.toString());
-                receipt.addLog(mintLog.toString());
-                log.debug("Address of Frontier : {}"
-                        + "Balance of Frontier : {}", frontier, getBalance(frontier));
-            }
-            putBalance(TOTAL_SUPPLY, totalSupply);
-
-            // TODO Validator will call by contract channel
-            // boolean isSuccess = saveInitValidator(params.getAsJsonArray("validator"));
-            boolean isSuccess = true;
-            if (isSuccess) {
-                setSuccessTxReceipt(
-                        String.format("Initialization completed successfully. Total Supply is %s", totalSupply));
-            } else {
-                setErrorTxReceipt("Initialization failed");
+                setSuccessTxReceipt(String.format(INIT_SUCCESS, totalSupply));
+            } catch (Exception e) {
+                setErrorTxReceipt(e.getMessage());
+                log.debug("Init Exception : {}", e.getMessage());
             }
 
             return receipt;
@@ -218,37 +281,36 @@ public class YeedContract implements BundleActivator, ServiceListener {
         @Override
         public Receipt approve(JsonObject params) {
             String sender = receipt.getIssuer();
-            BigInteger amount = params.get(AMOUNT).getAsBigInteger();
-            BigInteger senderBalance = getBalance(sender);
-
-            BigInteger fee = params.has(FEE) ? params.get(FEE).getAsBigInteger() : BigInteger.ZERO;
-            BigInteger networkFee = calculateFee();
-            // Check Fee
-            if (networkFee.compareTo(fee) > 0) {
-                setErrorTxReceipt("Low transaction fee");
+            if (checkBalanceEmpty(sender)) {
                 return receipt;
             }
 
-            if (!isTransferable(senderBalance, amount)) {
-                setErrorTxReceipt("Insufficient funds");
+            try {
+                BigInteger amount = params.get(AMOUNT).getAsBigInteger();
+                String spender = params.get(SPENDER).getAsString().toLowerCase();
+                BigInteger fee = params.has(FEE) ? params.get(FEE).getAsBigInteger() : calculateFee();
+
+                try {
+                    if (checkNetworkFee(fee) && checkAmount(amount) && transferFee(sender, fee)) {
+                        String approveKey = approveKey(sender, spender);
+                        putBalance(approveKey, amount);
+                        setSuccessTxReceipt(String.format(APPROVE_SUCCESS, spender, getBalance(approveKey), sender));
+
+                        if (log.isDebugEnabled()) {
+                            log.debug("[Approved] Approve {} to {} from {}. ApproveKey : {}",
+                                    spender, getBalance(approveKey), sender, approveKey);
+                        }
+                    }
+                } catch (Exception e) {
+                    setErrorTxReceipt(e.getMessage());
+                    log.debug("Approve Exception : {}", e.getMessage());
+                }
+
+            } catch (Exception e) {
+                setErrorTxReceipt(INVALID_PARAMS);
+                log.debug("{} : {}",INVALID_PARAMS, e.getMessage());
                 return receipt;
             }
-
-
-            boolean transferFee = transferFee(sender, fee);
-            if (!transferFee) {
-                setErrorTxReceipt("Invalid fee");
-                return receipt;
-            }
-
-            String spender = params.get("spender").getAsString().toLowerCase();
-            String approveKey = approveKey(sender, spender);
-            putBalance(approveKey, amount);
-
-            setSuccessTxReceipt(
-                    String.format("[Approved] Approve %s to %s from %s", spender, getBalance(approveKey), sender));
-            log.debug("[Approved] Approve {} to {} from {}. ApproveKey : {}",
-                    spender, getBalance(approveKey), sender, approveKey);
 
             return receipt;
         }
@@ -265,37 +327,35 @@ public class YeedContract implements BundleActivator, ServiceListener {
         @Override
         public Receipt transfer(JsonObject params) {
             String from = this.receipt.getIssuer();
-            if (isAccountEmpty(from)) {
-                setErrorTxReceipt("Insufficient funds");
+            if (checkBalanceEmpty(from)) {
                 return receipt;
             }
 
-            String to = params.get("to").getAsString().toLowerCase();
-            BigInteger amount = params.get(AMOUNT).getAsBigInteger();
+            try {
+                String to = params.get(TO).getAsString().toLowerCase();
+                BigInteger amount = params.get(AMOUNT).getAsBigInteger();
+                // Fee is optional. Instead, the calculated networkFee is paid as a fee.
+                BigInteger fee = params.has(FEE) ? params.get(FEE).getAsBigInteger() : calculateFee();
 
-            // Check amount and fee. The amount and fee must be greater than zero. (No fee is allowed currently)
-            BigInteger fee = params.has(FEE) ? params.get(FEE).getAsBigInteger() : BigInteger.ZERO;
+                try {
+                    if (checkNetworkFee(fee) && checkAmount(amount) && transfer(from, to, amount, fee)) {
+                        setSuccessTxReceipt(String.format(TRANSFER_SUCCESS, amount, from, to, fee));
+                        if (log.isDebugEnabled()) {
+                            log.debug("[Transferred] Transfer {} from {} to {}", amount, from, to);
+                            log.trace("Balance of From ({}) : {} To ({}) : {}", from, getBalance(from), to, getBalance(to));
+                        }
+                    }
+                } catch (Exception e) {
+                    setErrorTxReceipt(e.getMessage());
+                    log.debug("Transfer Exception : {}", e.getMessage());
+                }
 
-            BigInteger networkFee = calculateFee();
-            // Check Fee
-            if (networkFee.compareTo(fee) > 0) {
-                setErrorTxReceipt("Low transaction fee");
+            } catch (Exception e) {
+                setErrorTxReceipt(INVALID_PARAMS);
+                log.debug("{} : {}",INVALID_PARAMS, e.getMessage());
                 return receipt;
             }
 
-            if (!isPositive(amount)) { // amount > 0
-                setErrorTxReceipt("Invalid amount");
-                return receipt;
-            }
-
-            boolean isTransfer = transfer(from, to, amount, fee);
-            // Set Transfer Result
-            setTransferExecute(isTransfer, from, to, amount, fee);
-
-            if (log.isDebugEnabled() && isTransfer) {
-                log.debug("[Transferred] Transfer {} from {} to {}", amount, from, to);
-                log.trace("Balance of From ({}) : {} To ({}) : {}", from, getBalance(from), to, getBalance(to));
-            }
             return receipt;
         }
 
@@ -313,20 +373,21 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
             // Check from account balance
             if (isTransferable(fromBalance, feeAmount)) {
+                subtractBalanceFrom(from, feeAmount);
                 addBalanceTo(to, amount);
-                fromBalance = getBalance(from).subtract(feeAmount);
-                putBalance(from, fromBalance);
-                // Stores fee for each branchId to reward to the validators <branchId : fee>
+                // Stores fee for each branchId to reward to the validators {branchId : fee}
                 addBalanceTo(receipt.getBranchId(), fee);
+                setSuccessTxReceipt(String.format(TRANSFER_SUCCESS, amount, from, to, fee));
                 return true;
             } else {
-                log.debug("Insufficient funds");
+                setErrorTxReceipt(INSUFFICIENT_FUNDS);
+                if (amount.equals(BigInteger.ZERO)) {
+                    setErrorTxReceipt(FEE_TRANSFER_FAIL);
+                } else {
+                    setErrorTxReceipt(TRANSFER_FAIL);
+                }
                 return false;
             }
-        }
-
-        private boolean isNegative(BigInteger amount) {
-            return amount.compareTo(BigInteger.ZERO) < 0; // -1
         }
 
         /***
@@ -355,8 +416,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
         @ContractChannelMethod
         public boolean isTransferable(JsonObject params) { // Verify insufficient funds
-            String address = params.get("address").getAsString();
-            BigInteger fee = params.get("amount").getAsBigInteger();
+            String address = params.get(ADDRESS).getAsString();
+            BigInteger fee = params.get(AMOUNT).getAsBigInteger();
             return isTransferable(getBalance(address), fee);
         }
 
@@ -371,56 +432,41 @@ public class YeedContract implements BundleActivator, ServiceListener {
         @InvokeTransaction
         @Override
         public Receipt transferFrom(JsonObject params) {
-            final String to = params.get("to").getAsString().toLowerCase();
-            final String from = params.get("from").getAsString().toLowerCase();
-            final String sender = receipt.getIssuer();
-            final String approveKey = approveKey(from, sender);
+            try {
+                String to = params.get(TO).getAsString().toLowerCase();
+                String from = params.get(FROM).getAsString().toLowerCase();
+                BigInteger amount = params.get(AMOUNT).getAsBigInteger();
+                // Fee is optional. Instead, the calculated networkFee is paid as a fee.
+                BigInteger fee = params.has(FEE) ? params.get(FEE).getAsBigInteger() : calculateFee();
 
-            // Check approved amount empty
-            if (isAccountEmpty(approveKey)) {
-                setErrorTxReceipt("Insufficient funds");
+                try {
+                    final String sender = receipt.getIssuer();
+                    final String approveKey = approveKey(from, sender);
+
+                    BigInteger amountFee = amount.add(fee);
+                    if (!checkBalanceEmpty(approveKey) && checkNetworkFee(fee) && checkAmount(amount)
+                            && checkBalance(approveKey, amountFee) && transfer(from, to, amount, fee)) {
+                        subtractBalanceFrom(approveKey, amountFee);
+                        setSuccessTxReceipt(String.format(TRANSFER_FROM_SUCCESS, amount, from, to, fee, sender));
+                        //approveValue = approveValue.subtract(amountFee);
+                        //putBalance(approveKey, approveValue);
+                        if (log.isDebugEnabled()) {
+                            log.debug("[Transferred] Transfer {} from {} to {}", amount, from, to);
+                            log.debug("Allowed amount of Sender ({}) : {}", sender, getBalance(approveKey));
+                            log.debug("Balance of From ({}) : {} Balance of To   ({}) : {}", from, getBalance(from),
+                                    to, amount);
+                        }
+                    }
+                } catch (Exception e) {
+                    setErrorTxReceipt(e.getMessage());
+                    log.debug("TransferFrom Exception : {}", e.getMessage());
+                }
+
+            } catch (Exception e) {
+                setErrorTxReceipt(INVALID_PARAMS);
+                log.debug("{} : {}",INVALID_PARAMS, e.getMessage());
                 return receipt;
             }
-
-            BigInteger fee = params.has(FEE) ? params.get(FEE).getAsBigInteger() : BigInteger.ZERO;
-            BigInteger networkFee = calculateFee();
-            // Check Fee
-            if (networkFee.compareTo(fee) > 0) {
-                setErrorTxReceipt("Low transaction fee");
-                return receipt;
-            }
-
-            BigInteger approveValue = getBalance(approveKey);
-            BigInteger amount = params.get(AMOUNT).getAsBigInteger();
-            BigInteger amountFee = amount.add(fee);
-
-            // The fee is transferred from the approved amount. Sender can transfer yeed without any fee.
-            if (!isTransferable(approveValue, amountFee)) {
-                setErrorTxReceipt("Insufficient funds");
-                return receipt;
-            }
-
-            boolean isTransfer = transfer(from, to, amount, fee);
-            setTransferExecute(isTransfer, from, to, amount, fee);
-
-            if (isTransfer) {
-                receipt.addLog(
-                        String.format("transferFrom %s from %s to %s fee %s by %s", amount, from, to, fee, sender));
-            } else {
-                // Transfer Error
-                return receipt;
-            }
-
-            approveValue = approveValue.subtract(amountFee);
-            putBalance(approveKey, approveValue);
-
-            if (log.isDebugEnabled()) {
-                log.debug("[Transferred] Transfer {} from {} to {}", amount, from, to);
-                log.debug("Allowed amount of Sender ({}) : {}", sender, approveValue);
-                log.debug("Balance of From ({}) : {} Balance of To   ({}) : {}", from, getBalance(from),
-                        to, amount);
-            }
-
             return receipt;
         }
 
@@ -440,31 +486,36 @@ public class YeedContract implements BundleActivator, ServiceListener {
             String otherContract = this.receipt.getContractVersion();
             String contractName = this.branchStateStore.getContractName(otherContract);
             String contractAccount = String.format("%s%s", PrefixKeyEnum.CONTRACT_ACCOUNT, contractName);
+            try {
+                String issuer = this.receipt.getIssuer();
+                String fromAccount = params.get(FROM).getAsString();
+                String toAccount = params.get(TO).getAsString();
+                BigInteger amount = params.get(AMOUNT).getAsBigInteger();
+                BigInteger serviceFee = params.has(SERVICE_FEE)
+                        ? params.get(SERVICE_FEE).getAsBigInteger() : BigInteger.ZERO;
 
-            String issuer = this.receipt.getIssuer();
-            String fromAccount = params.get("from").getAsString();
-            String toAccount = params.get("to").getAsString();
-            BigInteger amount = params.get("amount").getAsBigInteger();
-            BigInteger serviceFee = params.has("serviceFee")
-                    ? params.get("serviceFee").getAsBigInteger() : BigInteger.ZERO;
+                if (!checkAmount(amount)) {
+                    return false;
+                }
 
-            if (!isPositive(amount)) {
+                if (toAccount.equalsIgnoreCase(contractName)
+                        && fromAccount.equalsIgnoreCase(issuer)) {
+                    // deposit
+                    return transfer(fromAccount, contractAccount, amount, serviceFee);
+                } else if (fromAccount.equalsIgnoreCase(contractName)) { // withdraw
+                    // withdraw service fee is used contract Account
+                    return transfer(contractAccount, toAccount, amount, serviceFee);
+                }
+
+                setFalseTxReceipt(TRANSFER_CHANNEL_FAILED);
+                return false; // If neither deposit nor withdraw
+            } catch (Exception e) {
+                setErrorTxReceipt(INVALID_PARAMS);
+                log.debug("{} : {}", INVALID_PARAMS, e.getMessage());
                 return false;
             }
 
-            if (toAccount.equalsIgnoreCase(contractName)
-                    && fromAccount.equalsIgnoreCase(issuer)) {
-                // deposit
-                return transfer(fromAccount, contractAccount, amount, serviceFee);
-            } else if (fromAccount.equalsIgnoreCase(contractName)) { // withdraw
-                // withdraw service fee is used contract Account
-                return transfer(contractAccount, toAccount, amount, serviceFee);
-
-            }
-            this.receipt.addLog("Transfer channel fail");
-            return false; // If neither deposit nor withdraw
         }
-
 
         protected boolean transferFee(String from, BigInteger fee) {
             if (fee.compareTo(BigInteger.ZERO) > 0) {
@@ -475,10 +526,21 @@ public class YeedContract implements BundleActivator, ServiceListener {
         }
 
         private void addBalanceTo(String to, BigInteger amount) {
-            if (amount.compareTo(BigInteger.ZERO) > 0) {
-                BigInteger balance = getBalance(to);
-                putBalance(to, balance.add(amount));
-            }
+            BigInteger balance = getBalance(to);
+            putBalance(to, balance.add(amount));
+        }
+
+        private void subtractBalanceFrom(String from, BigInteger amount) {
+            BigInteger balance = getBalance(from);
+            putBalance(from, balance.subtract(amount));
+        }
+
+        private void putBalance(String address, BigInteger value) {
+            // TODO Store Base64 Encoding
+            JsonObject storeValue = new JsonObject();
+            storeValue.addProperty(BALANCE, value);
+            address = PrefixKeyEnum.getAccountKey(address);
+            store.put(address, storeValue);
         }
 
         public BigInteger getBalance(String address) {
@@ -493,21 +555,6 @@ public class YeedContract implements BundleActivator, ServiceListener {
                     ? storeValue.get(BALANCE).getAsBigInteger() : BigInteger.ZERO;
         }
 
-        private void putBalance(String address, BigInteger value) {
-            // TODO Store Base64 Encoding
-            JsonObject storeValue = new JsonObject();
-            storeValue.addProperty(BALANCE, value);
-            address = PrefixKeyEnum.getAccountKey(address);
-            store.put(address, storeValue);
-        }
-
-        private String approveKey(String sender, String spender) {
-            byte[] approveKeyByteArray = ByteUtil.merge(sender.getBytes(), spender.getBytes());
-            byte[] approveKey = HashUtil.sha3(approveKeyByteArray);
-            return String.format("%s%s", PrefixKeyEnum.APPROVE.toValue(), HexUtil.toHexString(approveKey));
-        }
-
-
         /***
          * BASE FEE Model
          * Transaction Byte length multiplex BASE_FEE (0.0005 YEED)
@@ -517,109 +564,96 @@ public class YeedContract implements BundleActivator, ServiceListener {
             return BASE_FEE.multiply(BigInteger.valueOf(this.receipt.getTxSize()));
         }
 
-
-        private void setTransferExecute(boolean isTransfer, String from, String to, BigInteger amount, BigInteger fee) {
-            if (isTransfer) {
-                setSuccessTxReceipt(
-                        String.format("Transfer %s from %s to %s fee %s", amount, from, to, fee));
-            } else {
-                setErrorTxReceipt("Transfer error");
-            }
-        }
-
-
         @InvokeTransaction
         public void issuePropose(JsonObject params) {
-            BigInteger stakeYeed = params.get("stakeYeed").getAsBigInteger();
-            BigInteger fee = params.get(FEE).getAsBigInteger();
-            String issuer = this.receipt.getIssuer();
+            try {
+                String issuer = this.receipt.getIssuer();
+                BigInteger stakeYeed = params.get(STAKE_YEED).getAsBigInteger();
+                BigInteger fee = params.has(FEE) ? params.get(FEE).getAsBigInteger() : calculateFee();
+                BigInteger stakeFee = stakeYeed.add(fee);
 
-            //TODO Check whether status is false or error
+                //TODO Check whether status is false or error
+                if (checkBalance(issuer, stakeFee) && checkNetworkFee(fee) && checkYeedStakeAmount(stakeYeed)) {
+                    String txId = this.receipt.getTxId();
+                    // Add Transaction Id and Issuer
+                    params.addProperty(TX_ID, txId);
+                    params.addProperty(ISSUER, issuer);
 
-            // Check Issuer FEE and network FEE
-            if (!isPositive(stakeYeed)) {
-                setFalseTxReceipt("Invalid amount of stakeYeed");
-                return;
+                    ProposeInterChain propose = new ProposeInterChain(params);
+                    String proposeId = propose.getProposeId();
+
+                    try {
+                        if (transfer(issuer, proposeId, stakeFee, BigInteger.ZERO)) {
+                            String proposeIdKey = proposeKey(proposeId);
+                            log.debug("Propose Id Key : {} ", proposeIdKey);
+                            // Save propose and set its status
+                            this.store.put(proposeIdKey, propose.toJsonObject());
+                            setProposeStatus(proposeId, ProposeStatus.ISSUED);
+                            setSuccessTxReceipt(String.format("Propose %s ISSUED", proposeId));
+                        } else {
+                            setFalseTxReceipt(String.format("Propose %s ISSUE Fail", proposeId));
+                        }
+                    } catch (Exception e) {
+                        setErrorTxReceipt(e.getMessage());
+                        log.debug("IssuePropose Exception : {}", e.getMessage());
+                    }
+                }
+
+            } catch (Exception e) {
+                setErrorTxReceipt(INVALID_PARAMS);
+                log.debug("{} : {}", INVALID_PARAMS, e.getMessage());
             }
-
-            BigInteger networkFee = calculateFee();
-            // Check Fee
-            if (networkFee.compareTo(fee) > 0) {
-                setErrorTxReceipt("Low transaction fee");
-                return;
-            }
-
-            // Check issuer balance
-            BigInteger stakeFee = stakeYeed.add(fee);
-            BigInteger balance = getBalance(issuer);
-            if (!isTransferable(balance, stakeFee)) {
-                setErrorTxReceipt("Insufficient funds");
-                return;
-            }
-
-            // Issue Proposal
-            String txId = this.receipt.getTxId();
-            // Add Transaction Id
-            params.addProperty("transactionId", txId);
-            params.addProperty("issuer", this.receipt.getIssuer());
-
-            ProposeInterChain propose = new ProposeInterChain(params);
-
-            String proposeIdKey = String.format("%s%s", PrefixKeyEnum.PROPOSE_INTER_CHAIN.toValue(),
-                    propose.getProposeId());
-            log.debug("Propose Id Key : {} ", proposeIdKey);
-            // The fee is transferred at the end (Issue closed or done)
-            boolean isTransfer = transfer(issuer, propose.getProposeId(), stakeFee, BigInteger.ZERO);
-
-            setTransferExecute(isTransfer, issuer, propose.getProposeId(), stakeFee, BigInteger.ZERO);
-            if (!isTransfer) {
-                receipt.addLog(String.format("Propose %s ISSUE Fail", propose.getProposeId()));
-            }
-
-            // Save propose and set its status
-            this.store.put(proposeIdKey, propose.toJsonObject());
-            setProposeStatus(propose.getProposeId(), ProposeStatus.ISSUED);
-            setSuccessTxReceipt(String.format("Propose %s ISSUED", propose.getProposeId()));
         }
 
         @ContractQuery
         public JsonObject queryPropose(JsonObject param) {
-            String proposeIdParam = param.get("proposeId").getAsString();
-            ProposeInterChain propose = getPropose(proposeIdParam);
-            JsonObject proposeJson = propose.toJsonObject();
-            proposeJson.addProperty("status", getProposeStatus(proposeIdParam).toString());
-            return proposeJson;
+            try {
+                String proposeId = param.get(PROPOSE_ID).getAsString();  // TODO toLowerCase
+                ProposeInterChain propose = getPropose(proposeId);
+                ProposeStatus proposeStatus = getProposeStatus(proposeId);
+                JsonObject proposeJson = propose.toJsonObject();
+                proposeJson.addProperty(STATUS, proposeStatus.toString());
+                return proposeJson;
+            } catch (Exception e) {
+                setErrorTxReceipt(e.getMessage());
+                return new JsonObject();
+            }
         }
 
-        public ProposeInterChain getPropose(String proposeId) {
-            String proposeIdKey = String.format("%s%s", PrefixKeyEnum.PROPOSE_INTER_CHAIN.toValue(), proposeId);
-            JsonObject proposal = this.store.get(proposeIdKey);
-            return new ProposeInterChain(proposal);
+        private boolean isProposeExist(String proposeId) {
+            return this.store.contains(proposeKey(proposeId));
         }
 
-        private ProposeStatus getProposeStatus(String proposeId) {
-            String proposeKey = String.format("%s%s", PrefixKeyEnum.PROPOSE_INTER_CHAIN_STATUS.toValue(), proposeId);
-            JsonObject proposeStatus = this.store.get(proposeKey);
-            return ProposeStatus.fromValue(proposeStatus.get("status").getAsInt());
+        private boolean isProposeStatusExist(String proposeId) {
+            return this.store.contains(proposeStatusKey(proposeId));
+        }
+
+        public ProposeInterChain getPropose(String proposeId) throws RuntimeException {
+            if (!isProposeExist(proposeId)) {
+                throw new RuntimeException(PROPOSE_NOT_EXISTS);
+            }
+
+            return new ProposeInterChain(this.store.get(proposeKey(proposeId)));
+        }
+
+        private ProposeStatus getProposeStatus(String proposeId) throws RuntimeException {
+            if (!isProposeStatusExist(proposeId)) {
+                throw new RuntimeException(PROPOSE_STATUS_NOT_EXISTS);
+            }
+
+            return ProposeStatus.fromValue(this.store.get(proposeStatusKey(proposeId)).get(STATUS).getAsInt());
         }
 
         private void setProposeStatus(String proposeId, ProposeStatus status) {
-            String proposeKey = String.format("%s%s",PrefixKeyEnum.PROPOSE_INTER_CHAIN_STATUS.toValue(), proposeId);
             JsonObject statusValue = new JsonObject();
-            statusValue.addProperty("status", status.toValue());
-            log.debug("ProposeId : {} (ProposeKey={}) is {}", proposeId, proposeKey, status);
+            statusValue.addProperty(STATUS, status.toValue());
+            String proposeKey = proposeStatusKey(proposeId);
             this.store.put(proposeKey, statusValue);
+            log.debug("ProposeId : {} (ProposeKey={}) is {}", proposeId, proposeKey, status);
         }
 
         @InvokeTransaction
         public void processPropose(JsonObject param) { // Issue interTransfer Eth(or Token) To YEED
-            String issuer = this.receipt.getIssuer();
-            String rawTransaction = param.get("rawTransaction").getAsString();
-            BigInteger fee = param.get("fee").getAsBigInteger();
-            String proposeIdParam = param.get("proposeId").getAsString();
-
-            ProposeInterChain propose = getPropose(proposeIdParam);
-
             /*
             // TODO Check issuer (Can any other address process propose?)
             if (!propose.getIssuer().equals(this.receipt.getIssuer())) {
@@ -627,37 +661,44 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 return;
             }
             */
+            try {
+                String issuer = this.receipt.getIssuer();
+                String rawTransaction = param.get(RAW_TX).getAsString();
+                BigInteger fee = param.has(FEE) ? param.get(FEE).getAsBigInteger() : calculateFee();
+                String proposeIdParam = param.get(PROPOSE_ID).getAsString();
 
-            BigInteger networkFee = calculateFee();
-            // Check Fee
-            if (networkFee.compareTo(fee) > 0) {
-                setErrorTxReceipt("Low transaction fee");
-                return;
+                try {
+                    ProposeInterChain propose = getPropose(proposeIdParam);
+                    ProposeStatus proposeStatus = getProposeStatus(propose.getProposeId());
+
+                    if (ProposeStatus.ISSUED != proposeStatus && ProposeStatus.PROCESSING != proposeStatus) {
+                        transferFee(this.receipt.getIssuer(), fee);
+                        setFalseTxReceipt(String.format(PROCESS_PROPOSE_FAIL, proposeStatus));
+                        return;
+                    }
+
+                    if (checkNetworkFee(fee) && checkBalance(issuer, fee)) {
+                        switch (propose.getProposeType()) {
+                            case YEED_TO_ETHER:
+                                processYeedToEth(propose, rawTransaction, fee);
+                                break;
+                            case YEED_TO_ETHER_TOKEN:
+                                processYeedToEthToken(propose, rawTransaction, fee);
+                                break;
+                            default:
+                                throw new RuntimeException("Not Supported Yet");
+                        }
+                    }
+                } catch (Exception e) {
+                    setErrorTxReceipt(e.getMessage());
+                    log.debug("ProcessPropose Exception : {}", e.getMessage());
+                }
+
+            } catch (Exception e) {
+                setErrorTxReceipt(INVALID_PARAMS);
+                log.debug("{} : {}", INVALID_PARAMS, e.getMessage());
             }
 
-            // Check issuer balance
-            if (!isTransferable(getBalance(issuer), fee)) {
-                setErrorTxReceipt("Insufficient funds");
-                return;
-            }
-
-            ProposeStatus proposeStatus = getProposeStatus(propose.getProposeId());
-            // Check propose status
-            if (ProposeStatus.ISSUED != proposeStatus && ProposeStatus.PROCESSING != proposeStatus) {
-                setFalseTxReceipt(String.format("Propose cannot proceed (ProposeStatus=%s)", proposeStatus));
-                transferFee(this.receipt.getIssuer(), fee);
-                return;
-            }
-            switch (propose.getProposeType()) {
-                case YEED_TO_ETHER:
-                    processYeedToEth(propose, rawTransaction, fee);
-                    break;
-                case YEED_TO_ETHER_TOKEN:
-                    processYeedToEthToken(propose, rawTransaction, fee);
-                    break;
-                default:
-                    throw new RuntimeException("Not Supported Yet");
-            }
         }
 
         public void processYeedToEth(ProposeInterChain propose, String rawTransaction, BigInteger fee) {
@@ -679,7 +720,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
             int checkPropose = propose.verificationProposeProcess(pt);
             if (checkPropose == 0) {
                 processProposeTransaction(propose, pt);
-                setSuccessTxReceipt("Yeed to Eth Proposal completed successfully");
+                setSuccessTxReceipt(PROCESS_YEED_TO_ETH_SUCCESS);
             } else {
                 log.error("[Yeed -> Eth] Error Code", checkPropose);
                 List<String> errors = ProposeErrorCode.errorLogs(checkPropose);
@@ -715,7 +756,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
             int checkPropose = propose.verificationProposeProcess(pt);
             if (checkPropose == 0) {
                 processProposeTransaction(propose, pt);
-                setSuccessTxReceipt("Yeed to EthToken Proposal completed successfully");
+                setSuccessTxReceipt(PROCESS_YEED_TO_ETH_TOKEN_SUCCESS);
             } else {
                 log.error("[Yeed -> EthToken] Error Code {}", checkPropose);
                 List<String> errors = ProposeErrorCode.errorLogs(checkPropose);
@@ -792,14 +833,13 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
         private boolean processConfirmTx(ProposeInterChain propose, TxConfirm confirm) {
             // Check confirmTx already exists
-            if (isExistTxConfirm(confirm.getTxConfirmId())) {
-                setFalseTxReceipt(String.format("Propose %s transaction %s exist",
-                        propose.getProposeId(), confirm.getTxConfirmId()));
+            if (isTxConfirmExist(confirm.getTxConfirmId())) {
+                setFalseTxReceipt(String.format(TX_CONFIRM_EXIST, propose.getProposeId(), confirm.getTxConfirmId()));
                 return false;
             } else {
                 // Save TxConfirm
                 setTxConfirm(confirm);
-                setSuccessTxReceipt(String.format("Propose %s check %s network %s transaction %s confirm ID %s",
+                setSuccessTxReceipt(String.format(TX_CONFIRM_PROCESS_SUCCESS,
                         propose.getProposeId(), propose.getProposeType(), propose.getReceiveChainId(),
                         confirm.getTxId(), confirm.getTxConfirmId()));
                 return true;
@@ -808,149 +848,162 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
         @InvokeTransaction
         public void closePropose(JsonObject param) { // Close the proposal if it is issued by the proposal issuer
-            String proposeIdParam = param.get("proposeId").getAsString();
-            ProposeInterChain propose = getPropose(proposeIdParam);
-            ProposeStatus proposeStatus = getProposeStatus(proposeIdParam);
-            // Check block height
-            if (this.receipt.getBlockHeight() < propose.getBlockHeight()) {
-                throw new RuntimeException("The proposal has not expired");
+            try {
+                String proposeIdParam = param.get(PROPOSE_ID).getAsString();
+
+                try {
+                    ProposeInterChain propose = getPropose(proposeIdParam);
+                    ProposeStatus proposeStatus = getProposeStatus(proposeIdParam);
+                    // Check block height
+                    if (this.receipt.getBlockHeight() < propose.getBlockHeight()) {
+                        throw new RuntimeException(PROPOSAL_NOT_EXPIRED);
+                    }
+                    // Check propose status
+                    if (proposeStatus == ProposeStatus.CLOSED) {
+                        throw new RuntimeException(PROPOSAL_ALREADY_CLOSED);
+                    }
+                    // Check issuer or validator
+                    if (!propose.getIssuer().equals(this.receipt.getIssuer())) {
+                        throw new RuntimeException(TX_ISSUER_IS_NOT_PROPOSAL_ISSUER);
+                    }
+                    proposeProcessDone(propose, ProposeStatus.CLOSED, BigInteger.ZERO);
+                } catch (Exception e) {
+                    setErrorTxReceipt(e.getMessage());
+                    log.debug("ClosePropose Exception : {}", e.getMessage());
+                }
+            } catch (Exception e) {
+                setErrorTxReceipt(INVALID_PARAMS);
+                log.debug("{} : {}", INVALID_PARAMS, e.getMessage());
             }
-            // Check propose status
-            if (proposeStatus == ProposeStatus.CLOSED) {
-                throw new RuntimeException("The proposal already CLOSED");
-            }
-            // Check issuer or validator
-            if (!propose.getIssuer().equals(this.receipt.getIssuer())) {
-                throw new RuntimeException("Transaction issuer is not the proposal issuer");
-            }
-            proposeProcessDone(propose, ProposeStatus.CLOSED, BigInteger.ZERO);
         }
 
         @InvokeTransaction
         public void transactionConfirm(JsonObject param) { // Validator can validate other network transaction
             // TODO validator or truth node can validate transaction confirm
-
             // Validator is required for transaction confirmation
             if (!this.branchStateStore.isValidator(this.receipt.getIssuer())) {
-                throw new RuntimeException("Transaction Confirm is require Validator");
+                throw new RuntimeException(TX_CONFIRM_REQUIRE_VALIDATOR);
             }
 
-            // Get Transaction Confirm by id
-            String txConfirmId = param.get("txConfirmId").getAsString();
-            TxConfirmStatus status = TxConfirmStatus.fromValue(param.get("status").getAsInt());
+            try {
+                // Get Transaction Confirm by id
+                String txConfirmId = param.get(TX_CONFIRM_ID).getAsString();
+                TxConfirmStatus status = TxConfirmStatus.fromValue(param.get(STATUS).getAsInt());
+                long blockHeight = param.get(BLOCK_HEIGHT).getAsLong();
+                int index = param.get(INDEX).getAsInt();
+                long lastBlockHeight = param.get(LAST_BLOCK_HEIGHT).getAsLong();
 
-            long blockHeight = param.get("blockHeight").getAsLong();
-            int index = param.get("index").getAsInt();
-            long lastBlockHeight = param.get("lastBlockHeight").getAsLong();
+                try {
+                    TxConfirm txConfirm = getTxConfirm(txConfirmId);
+                    TxConfirmStatus curStatus = txConfirm.getStatus();
+                    log.debug("TxConfirm ProposeId :  {}", txConfirm.getProposeId());
+                    log.debug("TxConfirm Status : {}", txConfirm.getStatus());
 
-            TxConfirm txConfirm = getTxConfirm(txConfirmId);
+                    // Get confirm
+                    if (curStatus == TxConfirmStatus.VALIDATE_REQUIRE || curStatus == TxConfirmStatus.NOT_EXIST) {
 
-            log.debug("TxConfirm ProposeId :  {}", txConfirm.getProposeId());
-            log.debug("TxConfirm Status : {}", txConfirm.getStatus());
-
-            // Get confirm
-            if (txConfirm.getStatus() == TxConfirmStatus.VALIDATE_REQUIRE
-                    || txConfirm.getStatus() == TxConfirmStatus.NOT_EXIST) {
-
-                txConfirm.setBlockHeight(blockHeight);
-                txConfirm.setIndex(index);
-                txConfirm.setLastBlockHeight(lastBlockHeight);
-
-                ProposeInterChain pi = getPropose(txConfirm.getProposeId());
-                ProposeStatus pis = getProposeStatus(txConfirm.getProposeId());
-                if (pis == ProposeStatus.PROCESSING) {
-                    //  processing propose
-                    if (status == TxConfirmStatus.DONE) {
-                        txConfirm.setStatus(TxConfirmStatus.DONE);
-                        txConfirm.setIndex(index);
                         txConfirm.setBlockHeight(blockHeight);
+                        txConfirm.setIndex(index);
+                        txConfirm.setLastBlockHeight(lastBlockHeight);
 
-                        // Check block height
-                        // Propose Issuer set network block height
-                        log.debug("Propose require block height : {} ", pi.getNetworkBlockHeight());
-                        log.debug("TxConfirm block height : {} ", txConfirm.getBlockHeight());
-                        boolean checkBlockHeight = false;
-                        if (pi.getNetworkBlockHeight() <= txConfirm.getBlockHeight()) {
-                            checkBlockHeight = true;
-                        } else if (pi.getNetworkBlockHeight() >= txConfirm.getLastBlockHeight()) {
-                            checkBlockHeight = true;
-                        }
-
-                        log.debug("checkBlockHeight : {}", checkBlockHeight);
-                        if (checkBlockHeight) {
-                            BigInteger fee = pi.getFee();
-                            BigInteger stakeYeed = getBalance(pi.getProposeId());
-                            stakeYeed = stakeYeed.subtract(fee);
-                            // find last
-                            BigInteger transferYeed = txConfirm.getTransferYeed();
-                            // If stake Yeed is
-                            if (stakeYeed.compareTo(transferYeed) <= 0) {
-                                transferYeed = stakeYeed;
-                            }
-                            log.debug("stake YEED {}", stakeYeed);
-                            log.debug("TransferYeed YEED {}", transferYeed);
-                            log.debug("PI Fee {}", fee);
-                            // Send transaction confirm
-                            boolean transfer = transfer(pi.getProposeId(), txConfirm.getSenderAddress(),
-                                    transferYeed, BigInteger.ZERO);
-                            if (transfer) {
-                                this.receipt.addLog(String.format("%s is DONE",txConfirm.getTxConfirmId()));
-                                // check propose
-                                this.receipt.setStatus(ExecuteStatus.SUCCESS);
-                                // Save Tx Confirm
+                        ProposeInterChain pi = getPropose(txConfirm.getProposeId());
+                        ProposeStatus pis = getProposeStatus(txConfirm.getProposeId());
+                        if (pis == ProposeStatus.PROCESSING) {
+                            //  processing propose
+                            if (status == TxConfirmStatus.DONE) {
                                 txConfirm.setStatus(TxConfirmStatus.DONE);
-                                // Save TxConfirm
-                                setTxConfirm(txConfirm);
+                                txConfirm.setIndex(index);
+                                txConfirm.setBlockHeight(blockHeight);
 
-                                // propose is done
-                                stakeYeed = stakeYeed.subtract(transferYeed);
-                                if (stakeYeed.compareTo(BigInteger.ZERO) == 0) {
-                                    proposeProcessDone(pi, ProposeStatus.DONE, BigInteger.ZERO);
+                                // Check block height
+                                // Propose Issuer set network block height
+                                log.debug("Propose require block height : {} ", pi.getNetworkBlockHeight());
+                                log.debug("TxConfirm block height : {} ", txConfirm.getBlockHeight());
+                                boolean checkBlockHeight = false;
+                                if (pi.getNetworkBlockHeight() <= txConfirm.getBlockHeight()) {
+                                    checkBlockHeight = true;
+                                } else if (pi.getNetworkBlockHeight() >= txConfirm.getLastBlockHeight()) {
+                                    checkBlockHeight = true;
                                 }
-                            } else {
-                                this.receipt.addLog(String.format("%s is FAIL",txConfirm.getTxConfirmId()));
-                                this.receipt.setStatus(ExecuteStatus.FALSE);
-                            }
 
+                                log.debug("CheckBlockHeight : {}", checkBlockHeight);
+                                if (checkBlockHeight) {
+                                    BigInteger fee = pi.getFee();
+                                    BigInteger stakeYeed = getBalance(pi.getProposeId());
+                                    stakeYeed = stakeYeed.subtract(fee);
+                                    // find last
+                                    BigInteger transferYeed = txConfirm.getTransferYeed();
+                                    // If stake Yeed is
+                                    if (stakeYeed.compareTo(transferYeed) <= 0) {
+                                        transferYeed = stakeYeed;
+                                    }
+                                    log.debug("Stake YEED {}", stakeYeed);
+                                    log.debug("TransferYeed YEED {}", transferYeed);
+                                    log.debug("PI Fee {}", fee);
+                                    // Send transaction confirm
+                                    boolean transfer = transfer(pi.getProposeId(), txConfirm.getSenderAddress(),
+                                            transferYeed, BigInteger.ZERO);
+                                    if (transfer) {
+                                        setSuccessTxReceipt(String.format(TX_CONFIRM_DONE, txConfirmId));
+                                        txConfirm.setStatus(TxConfirmStatus.DONE);
+                                        setTxConfirm(txConfirm);
+
+                                        // Propose is done
+                                        stakeYeed = stakeYeed.subtract(transferYeed);
+                                        if (stakeYeed.compareTo(BigInteger.ZERO) == 0) {
+                                            proposeProcessDone(pi, ProposeStatus.DONE, BigInteger.ZERO);
+                                        }
+                                    } else {
+                                        setFalseTxReceipt(String.format(TX_CONFIRM_FAIL, txConfirmId));
+                                    }
+
+                                }
+                            }
+                        } else {
+                            // Propose Status is not processing
+                            setFalseTxReceipt(String.format("%s is %s", pi.getProposeId(), pis.toString()));
                         }
+                    } else {
+                        setFalseTxReceipt(String.format("%s is %s", txConfirmId, txConfirm.getStatus().toString()));
                     }
-                } else {
-                    // Propose Status is not processing
-                    setFalseTxReceipt(String.format("%s is %s", pi.getProposeId(), pis.toString()));
+
+                } catch (Exception e) {
+                    setErrorTxReceipt(e.getMessage());
+                    log.debug("TransactionConfirm Exception : {}", e.getMessage());
                 }
-            } else {
-                setFalseTxReceipt(String.format("%s is %s", txConfirm.getTxConfirmId(),
-                        txConfirm.getStatus().toString()));
+
+            } catch (Exception e) {
+                setErrorTxReceipt(INVALID_PARAMS);
+                log.debug("{} : {}", INVALID_PARAMS, e.getMessage());
             }
         }
 
         @ContractQuery
         public JsonObject queryTransactionConfirm(JsonObject param) {
-            String transactionConfirmId = param.get("txConfirmId").getAsString();
-            TxConfirm confirm = getTxConfirm(transactionConfirmId);
-            return confirm.toJsonObject();
+            try {
+                String txConfirmId = param.get(TX_CONFIRM_ID).getAsString(); //TODO to lowerCase
+                TxConfirm confirm = getTxConfirm(txConfirmId);
+                return confirm.toJsonObject();
+            } catch (Exception e) {
+                return new JsonObject();
+            }
         }
 
-        public TxConfirm getTxConfirm(String txConfirmId) {
-            String txConfirmKey = String.format("%s%s", PrefixKeyEnum.TRANSACTION_CONFIRM.toValue(),
-                    txConfirmId
-            );
-            JsonObject txConfirm = this.store.get(txConfirmKey);
-            return new TxConfirm(txConfirm);
+        public boolean isTxConfirmExist(String txConfirmId) {
+            return this.store.contains(txConfirmKey(txConfirmId));
         }
 
-        public boolean isExistTxConfirm(String txConfirmId) {
-            String txConfirmKey = String.format("%s%s", PrefixKeyEnum.TRANSACTION_CONFIRM.toValue(),
-                    txConfirmId
-            );
-            return this.store.contains(txConfirmKey);
+        public TxConfirm getTxConfirm(String txConfirmId) throws RuntimeException {
+            if (!isTxConfirmExist(txConfirmId)) {
+                throw new RuntimeException("Transaction Confirm not exists");
+            }
+
+            JsonObject txConfirmObj = this.store.get(txConfirmKey(txConfirmId));
+            return new TxConfirm(txConfirmObj);
         }
 
         private void setTxConfirm(TxConfirm txConfirm) {
-            String txConfirmKey = String.format("%s%s", PrefixKeyEnum.TRANSACTION_CONFIRM.toValue(),
-                    txConfirm.getTxConfirmId()
-            );
-            this.store.put(txConfirmKey, txConfirm.toJsonObject());
+            this.store.put(txConfirmKey(txConfirm.getTxConfirmId()), txConfirm.toJsonObject());
         }
 
         @InvokeTransaction
@@ -979,22 +1032,95 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
         @ContractEndBlock
         public void endBlock() {
-            // Network Fee Burn
-            BigInteger networkFee = getBalance(receipt.getBranchId());
-            if (networkFee.compareTo(BigInteger.ZERO) > 0) {
-                BigInteger totalSupply = totalSupply();
+            try {
+                // Network Fee Burn
+                BigInteger networkFee = getBalance(receipt.getBranchId());
+                if (networkFee.compareTo(BigInteger.ZERO) > 0) {
+                    BigInteger totalSupply = totalSupply();
 
-                // subtract networkFee
-                totalSupply = totalSupply.subtract(networkFee);
+                    // subtract networkFee
+                    totalSupply = totalSupply.subtract(networkFee);
 
-                // Set Total Supply
-                putBalance(TOTAL_SUPPLY, totalSupply);
-                this.receipt.addLog(String.format("Burn %s Yeed", networkFee));
+                    // Set Total Supply
+                    putBalance(TOTAL_SUPPLY, totalSupply);
+                    this.receipt.addLog(String.format(BURN_YEED, networkFee));
 
-                // Network Fee is Zero
-                putBalance(receipt.getBranchId(), BigInteger.ZERO);
+                    // Network Fee is Zero
+                    putBalance(receipt.getBranchId(), BigInteger.ZERO);
+                }
+                receipt.setStatus(ExecuteStatus.SUCCESS);
+            } catch (Exception e) {
+                this.receipt.addLog(e.getMessage());
+                log.debug("EndBlock Exception : {}", e.getMessage());
             }
-            receipt.setStatus(ExecuteStatus.SUCCESS);
+        }
+
+        private boolean checkYeedStakeAmount(BigInteger amount) {
+            if (!isPositive(amount)) { // Amount must be greater than zero
+                setFalseTxReceipt(INVALID_AMOUNT_OF_STAKE_YEED);
+                log.debug(INVALID_AMOUNT_OF_STAKE_YEED);
+                return false;
+            }
+            return true;
+        }
+
+        private boolean checkNetworkFee(BigInteger fee) {
+            BigInteger networkFee = calculateFee();
+            if (networkFee.compareTo(fee) > 0) { // Fee must be greater or equal to network fee
+                setErrorTxReceipt(LOW_TX_FEE);
+                log.debug(LOW_TX_FEE);
+                return false;
+            }
+            return true;
+        }
+
+        private boolean checkBalanceEmpty(String account) {
+            if (isAccountEmpty(account)) { // Balance must not be empty
+                setErrorTxReceipt(BALANCE_EMPTY);
+                log.debug(BALANCE_EMPTY);
+                return true;
+            }
+            return false;
+        }
+
+        private boolean checkBalance(String account, BigInteger amount) {
+            if (!isTransferable(getBalance(account), amount)) {
+                setErrorTxReceipt(INSUFFICIENT_FUNDS);
+                log.debug(INSUFFICIENT_FUNDS);
+                return false;
+            }
+            return true;
+        }
+
+        private boolean checkAmount(BigInteger amount) {
+            if (!isPositive(amount)) { // Amount must be greater than zero
+                setErrorTxReceipt(INVALID_AMOUNT);
+                log.debug(INVALID_AMOUNT);
+                return false;
+            }
+            return true;
+        }
+
+        private String approveKey(String sender, String spender) {
+            byte[] approveKeyByteArray = ByteUtil.merge(sender.getBytes(), spender.getBytes());
+            byte[] approveKey = HashUtil.sha3(approveKeyByteArray);
+            return String.format("%s%s", PrefixKeyEnum.APPROVE.toValue(), HexUtil.toHexString(approveKey));
+        }
+
+        private String contractAccountKey(String contractName) {
+            return  String.format("%s%s", PrefixKeyEnum.CONTRACT_ACCOUNT, contractName);
+        }
+
+        private String txConfirmKey(String txConfirmId) {
+            return String.format("%s%s", PrefixKeyEnum.TRANSACTION_CONFIRM.toValue(), txConfirmId);
+        }
+
+        private String proposeKey(String proposeId) {
+            return String.format("%s%s", PrefixKeyEnum.PROPOSE_INTER_CHAIN.toValue(), proposeId);
+        }
+
+        private String proposeStatusKey(String proposeId) {
+            return String.format("%s%s", PrefixKeyEnum.PROPOSE_INTER_CHAIN_STATUS.toValue(), proposeId);
         }
 
         private void setErrorTxReceipt(String msg) {
