@@ -144,7 +144,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
         // BASE FEE = 5*10^13
         private static BigInteger BASE_FEE = BigInteger.valueOf(50000000000000L);
         // 0.1 YEED = 100000000000000000
-        private static BigInteger BASE_CURRENCY = BigInteger.TEN.pow(17);
+        private static BigInteger BASE_CURRENCY = BigInteger.TEN.pow(18);
 
         @ContractReceipt
         Receipt receipt;

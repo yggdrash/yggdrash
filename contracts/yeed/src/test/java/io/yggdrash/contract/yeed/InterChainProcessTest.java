@@ -49,9 +49,9 @@ public class InterChainProcessTest {
     private static final String VALIDATOR = "81b7e08f65bdf5648606c89998a9cc8164397647";
     private ReceiptAdapter adapter;
 
-    private static BigInteger BASE_CURRENCY = BigInteger.TEN.pow(17);
+    private static BigInteger BASE_CURRENCY = BigInteger.TEN.pow(18);
     // 0.01 YEED
-    private static BigInteger DEFAULT_FEE = BASE_CURRENCY.divide(BigInteger.valueOf(10L));
+    private static BigInteger DEFAULT_FEE = BASE_CURRENCY.divide(BigInteger.valueOf(100L));
 
     private static String proposeIssueIdPatten = "Propose [a-f0-9]{64} ISSUED";
 

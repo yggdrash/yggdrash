@@ -340,7 +340,7 @@ public class ContractExecutor {
             receipt.setBlockId(block.getHash().toString());
             receipt.setBlockHeight(block.getIndex());
         } else {
-            receipt.setBlockHeight(contractStore.getBranchStore().getLastExecuteBlockIndex());
+            receipt.setBlockHeight(contractStore.getBranchStore().getLastExecuteBlockIndex() + 1);
         }
 
         receipt.setBranchId(tx.getBranchId().toString());

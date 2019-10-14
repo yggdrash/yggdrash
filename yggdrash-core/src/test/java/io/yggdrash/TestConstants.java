@@ -41,7 +41,7 @@ public class TestConstants {
     private static BranchId YGGDRASH_BRANCH_ID;
 
     public static Sha3Hash GENESIS_STATE_ROOT_HASH
-            = new Sha3Hash("a5a6556248d8f34419bd1af766db3d44d823efb6829198b1425a306c66da9c63"); // FIXME
+            = new Sha3Hash("6a4196162d67c6ef00cf641658910505cabee14002f36429042676dd5da60446");
     public static ContractVersion STEM_CONTRACT;
     public static ContractVersion YEED_CONTRACT;
     public static final ContractVersion VERSIONING_CONTRACT

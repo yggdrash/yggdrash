@@ -58,9 +58,9 @@ public class YeedTest {
     private static final String BRANCH_ID = "0x00";
     private ReceiptAdapter adapter;
 
-    private static BigInteger BASE_CURRENCY = BigInteger.TEN.pow(17);
+    private static BigInteger BASE_CURRENCY = BigInteger.TEN.pow(18);
     // 0.01 YEED
-    private static BigInteger DEFAULT_FEE = BASE_CURRENCY.divide(BigInteger.valueOf(10L));
+    private static BigInteger DEFAULT_FEE = BASE_CURRENCY.divide(BigInteger.valueOf(100L));
 
     private JsonObject genesisParams = JsonUtil.parseJsonObject("{\"alloc\": "
             + "{\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\":{\"balance\": \"1000000000\"},"
