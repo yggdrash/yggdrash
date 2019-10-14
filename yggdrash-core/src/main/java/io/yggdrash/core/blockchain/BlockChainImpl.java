@@ -90,7 +90,8 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         } else {
             log.debug("BlockChain Load in Storage");
             // Load Block Chain Information
-            blockChainManager.loadTransaction(); // load stateRoot when updateTxCache!
+            blockChainManager.loadTransaction();
+            contractManager.revertBestBlockStateRoot(blockChainManager.getLastConfirmedBlock());
         }
     }
 
