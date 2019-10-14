@@ -406,8 +406,8 @@ public class BlockChainTestUtils {
     private static Transaction createInvalidTx(BranchId branchId, byte[] txVersion, JsonObject txBody) {
         TransactionBody transactionBody = new TransactionBody(txBody);
         byte[] chain = branchId.getBytes();
-        long hour = (1000 * 60 * 60);
-        long timestamp = TimeUtils.time() + hour * 2;
+        long twoHour = (1000 * 60 * 60) * 2;
+        long timestamp = TimeUtils.time() + twoHour * 2;
         TransactionHeader txHeader = new TransactionHeader(
                 chain, txVersion, Constants.EMPTY_BYTE8, timestamp, transactionBody);
         byte[] sign = Constants.EMPTY_SIGNATURE;

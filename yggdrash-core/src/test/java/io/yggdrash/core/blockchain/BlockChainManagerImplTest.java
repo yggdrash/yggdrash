@@ -13,7 +13,6 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.store.BlockChainStore;
