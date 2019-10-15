@@ -582,6 +582,18 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
+            if (getYeedBalanceOfSub(tokenId).compareTo(DEFAULT_SERVICE_FEE) < 0) {
+                if (burnServiceFeeFromYeedStake(getYeedBalanceOfSub(tokenId))) {
+                    setErrorTxReceipt("Burning service fee in yeed stake failed!");
+                    return txReceipt;
+                }
+            }
+            else if (burnServiceFeeFromYeedStake() == false) {
+                setErrorTxReceipt("Insufficient service fee in yeed stake!");
+                return txReceipt;
+            }
+
+
             // TODO : kevin : 2019-10-08 : return yeed stake to owner account!
 
             return null;
@@ -644,7 +656,6 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 setErrorTxReceipt("Insufficient yeed stake of the token for service fee!");
                 return txReceipt;
             }
-
             if (burnServiceFeeFromYeedStake() == false) {
                 setErrorTxReceipt("Insufficient service fee in yeed stake!");
                 return txReceipt;
@@ -694,7 +705,6 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 setErrorTxReceipt("Insufficient yeed stake of the token for service fee!");
                 return txReceipt;
             }
-
             if (burnServiceFeeFromYeedStake() == false) {
                 setErrorTxReceipt("Insufficient service fee in yeed stake!");
                 return txReceipt;
@@ -895,7 +905,6 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 setErrorTxReceipt("Insufficient yeed stake of the token for service fee!");
                 return txReceipt;
             }
-
             if (burnServiceFeeFromYeedStake() == false) {
                 setErrorTxReceipt("Insufficient service fee in yeed stake!");
                 return txReceipt;
@@ -1395,11 +1404,15 @@ public class TokenContract implements BundleActivator, ServiceListener {
         }
 
         private boolean burnServiceFeeFromYeedStake() {
+            return burnServiceFeeFromYeedStake(DEFAULT_SERVICE_FEE);
+        }
+
+        private boolean burnServiceFeeFromYeedStake(BigInteger serviceFee) {
             JsonObject param = new JsonObject();
             param.addProperty("from", TOKEN_CONTRACT_NAME);
             param.addProperty("to", "0");
             param.addProperty(AMOUNT, BigInteger.ZERO);
-            param.addProperty(SERVICE_FEE, DEFAULT_SERVICE_FEE);
+            param.addProperty(SERVICE_FEE, serviceFee);
 
             String yeedContractVersion = this.branchStateStore.getContractVersion("YEED");
             log.debug("YEED Contract {}", yeedContractVersion);
