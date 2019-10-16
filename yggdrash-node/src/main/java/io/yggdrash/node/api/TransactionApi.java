@@ -137,6 +137,18 @@ public interface TransactionApi {
     List<String> getPendingTransactionList(@JsonRpcParam(value = BRANCH_ID) String branchId);
 
     /**
+     * Returns the list of pending transactions in the current blockChain
+     *
+     * @param branchId branchId
+     * @return The pending transaction size
+     */
+    @JsonRpcErrors({
+            @JsonRpcError(exception = NonExistObjectException.class,
+                    code = NonExistObjectException.CODE)})
+    int getPendingTransactionCount(@JsonRpcParam(value = BRANCH_ID) String branchId);
+
+
+    /**
      * Returns the Receipt of transaction hash
      *
      * @param txId  hash of transaction

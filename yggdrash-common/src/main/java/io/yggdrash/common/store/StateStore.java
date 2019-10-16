@@ -12,6 +12,8 @@ public class StateStore implements ReadWriterStore<String, JsonObject> {
     private final DbSource<byte[], byte[]> db;
     private long dbSize = 0L;
     private static final byte[] DATABASE_SIZE = "DATABASE_SIZE".getBytes();
+    private static final String STATE_ROOT = "stateRoot";
+    private static final String STATE_HASH = "stateHash";
 
 
     public StateStore(DbSource<byte[], byte[]> dbSource) {
@@ -24,6 +26,12 @@ public class StateStore implements ReadWriterStore<String, JsonObject> {
 
     public long getStateSize() {
         return dbSize;
+    }
+
+    public void setLastStateRootHash(String lastStateRootHash) {
+        JsonObject obj = new JsonObject();
+        obj.addProperty(STATE_HASH, lastStateRootHash);
+        put(STATE_ROOT, obj);
     }
     
     @Override

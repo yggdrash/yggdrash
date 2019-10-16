@@ -5,6 +5,9 @@ yggdrash.node:
 spring.output.ansi.enabled: always
 management.endpoint.health.show-details: always
 management.health.elasticsearch.enabled: false
+# API MAX REQUEST SIZE
+spring.servlet.multipart.maxRequestSize: 4MB
+
 
 ---
 

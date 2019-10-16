@@ -193,6 +193,11 @@ public class TransactionApiImplTest {
     }
 
     @Test
+    public void getPendingTransactionCountTest() {
+        assertTrue(txApi.getPendingTransactionCount(yggdrashBranch) > -1);
+    }
+
+    @Test
     public void txSigValidateTest() throws IOException {
         // Create Transaction
         Transaction tx = createTx();

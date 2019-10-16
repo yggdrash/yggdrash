@@ -260,7 +260,7 @@ public class InterChainProcessTest {
                 1000000L, DEFAULT_FEE
         );
 
-        log.debug("invalide proposal {}", proposal.toString());
+        log.debug("invalid proposal {}", proposal.toString());
 
 
         Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1); // 1 == current blockHeight
@@ -337,12 +337,10 @@ public class InterChainProcessTest {
         String proposeId = "ea79c0652a5c88db8a0f53d37a2944a56ff2eaf4185370191c98313843b35056";
         param.addProperty("proposeId", proposeId);
 
-        setUpReceipt(transactionId, issuer, BRANCH_ID, 1000000L);
-
-        thrown.expect(RuntimeException.class);
-        thrown.expectMessage("Transaction issuer is not the proposal issuer");
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1000000L);
 
         yeedContract.closePropose(param);
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
     }
 
     @Test
@@ -356,12 +354,10 @@ public class InterChainProcessTest {
         JsonObject param = new JsonObject();
         param.addProperty("proposeId", proposeId);
 
-        setUpReceipt(transactionId, issuer, BRANCH_ID, 100L);
-
-        thrown.expect(RuntimeException.class);
-        thrown.expectMessage("The proposal has not expired");
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 100L);
 
         yeedContract.closePropose(param);
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
     }
 
     @Test
@@ -374,12 +370,10 @@ public class InterChainProcessTest {
         String proposeId = "ea79c0652a5c88db8a0f53d37a2944a56ff2eaf4185370191c98313843b35056";
         param.addProperty("proposeId", proposeId);
 
-        setUpReceipt(transactionId, issuer, BRANCH_ID, 1000001L);
-
-        thrown.expect(RuntimeException.class);
-        thrown.expectMessage("The proposal already CLOSE");
+        Receipt receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 1000001L);
 
         yeedContract.closePropose(param);
+        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
     }
 
     @Test
@@ -423,7 +417,7 @@ public class InterChainProcessTest {
         String issuer = "c3cf7a283a4415ce3c41f5374934612389334780";
         long targetBlockHeight = 1000000L;
         BigInteger stakeYeed = new BigInteger("1000000000000000000");
-        BigInteger fee = new BigInteger("10000000000000000");
+        BigInteger fee = DEFAULT_FEE;
 
         JsonObject proposal = createProposal(receiverAddress, receiveAsset, receiveChainId, networkBlockHeight,
                 proposeType, senderAddress, inputData, stakeYeed, targetBlockHeight, fee);
@@ -460,12 +454,10 @@ public class InterChainProcessTest {
         log.debug("Receiver : {}", HexUtil.toHexString(ethTransaction.getReceiverAddress()));
         log.debug("{} WEI", ethTransaction.getValue());
 
-        BigInteger networkFee = BASE_CURRENCY.divide(BigInteger.valueOf(100L));
-
         JsonObject processJson = new JsonObject();
         processJson.addProperty("proposeId", proposeId);
         processJson.addProperty("rawTransaction", ethRawTransaction);
-        processJson.addProperty("fee", networkFee);
+        processJson.addProperty("fee", DEFAULT_FEE);
 
         receipt = setUpReceipt(transactionId, issuer, BRANCH_ID, 10); // 1 == current blockHeight
 
@@ -482,7 +474,7 @@ public class InterChainProcessTest {
         assertEquals("Transaction is Success", ExecuteStatus.SUCCESS, receipt.getStatus());
 
         // Issuer used network fee so subtract networkFee
-        issuerBalanceAfterProposalIssued = issuerBalanceAfterProposalIssued.subtract(networkFee);
+        issuerBalanceAfterProposalIssued = issuerBalanceAfterProposalIssued.subtract(DEFAULT_FEE);
 
         BigInteger remainIssuerBalance =
                 issuerBalanceAfterProposalDone.subtract(issuerBalanceAfterProposalIssued)
@@ -497,7 +489,6 @@ public class InterChainProcessTest {
         receipt = setUpReceipt("0x03", issuer, BRANCH_ID, 50);  // 1 == current blockHeight
 
         yeedContract.processPropose(processJson);
-
         assertSame(ExecuteStatus.FALSE, receipt.getStatus()); // Propose cannot proceed (ProposeStatus=DONE)
     }
 
@@ -987,13 +978,10 @@ public class InterChainProcessTest {
 
 
         // retry same processing
-        thrown.expect(RuntimeException.class);
+        //thrown.expect(RuntimeException.class);
         yeedContract.processPropose(processJson);
-        printTxLog();
+        printTxLog(); // ->  Propose Confirm duplicated
         Assert.assertEquals("Propose processing ERROR", ExecuteStatus.ERROR, proposeReceipt.getStatus());
-
-
-
     }
 
     @Test

@@ -90,33 +90,16 @@ public class TransactionApiImpl implements TransactionApi {
     @Override
     public TransactionResponseDto sendTransaction(TransactionDto tx) {
         Transaction transaction = TransactionDto.of(tx);
-        try {
-            if (!branchGroup.getBranch(transaction.getBranchId()).isFullSynced()) {
-                return TransactionResponseDto.createBy(transaction.getHash().toString(), false,
-                        BusinessError.getErrorLogsMap(BusinessError.UNDEFINED_ERROR.toValue()));
-            } else {
-                log.warn("SendTransaction failed. Not yet full synced.");
-            }
-        } catch (Exception e) {
-            log.debug("SendTransaction failed. {}", e.getMessage());
-            return TransactionResponseDto.createBy(transaction.getHash().toString(), false,
-                    BusinessError.getErrorLogsMap(BusinessError.UNDEFINED_ERROR.toValue()));
-        }
-
-        Map<String, List<String>> errorLogs = branchGroup.addTransaction(transaction);
-
-        if (errorLogs.size() > 0) {
-            log.warn("SendTransaction Error : {}", errorLogs);
-        }
-
-        return errorLogs.size() > 0
-                ? TransactionResponseDto.createBy(transaction.getHash().toString(), false, errorLogs)
-                : TransactionResponseDto.createBy(transaction.getHash().toString(), true, errorLogs);
+        return addTx(transaction);
     }
 
     @Override
     public TransactionResponseDto sendRawTransaction(byte[] bytes) {
         Transaction transaction = TransactionImpl.parseFromRaw(bytes);
+        return addTx(transaction);
+    }
+
+    private TransactionResponseDto addTx(Transaction transaction) {
         try {
             if (!branchGroup.getBranch(transaction.getBranchId()).isFullSynced()) {
                 log.debug("SendRawTransaction is failed. Not yet fullSynced. {}", transaction.getBranchId().toString());
@@ -125,16 +108,15 @@ public class TransactionApiImpl implements TransactionApi {
                         ));
             }
         } catch (Exception e) {
-            log.debug("SendRawTransaction failed. {}", e.getMessage());
+            log.debug("SendTx failed. {}", e.getMessage());
             return TransactionResponseDto.createBy(transaction.getHash().toString(), false,
                     BusinessError.getErrorLogsMap(BusinessError.UNDEFINED_ERROR.toValue()));
         }
 
         Map<String, List<String>> errorLogs = branchGroup.addTransaction(transaction);
+
         if (errorLogs.size() > 0) {
-            log.warn("SendRawTransaction Error : {}", errorLogs);
-        } else {
-            log.trace("SendRawTransaction Success : {}", transaction.getHash());
+            log.warn("AddTx Error : {}", errorLogs);
         }
 
         return errorLogs.size() > 0
@@ -152,6 +134,11 @@ public class TransactionApiImpl implements TransactionApi {
     public List<String> getPendingTransactionList(String branchId) {
         return branchGroup.getUnconfirmedTxs(BranchId.of(branchId))
                 .stream().map(tx -> tx.getHash().toString()).collect(Collectors.toList());
+    }
+
+    @Override
+    public int getPendingTransactionCount(String branchId) {
+        return branchGroup.getUnconfirmedTxs((BranchId.of(branchId))).size();
     }
 
     @Override

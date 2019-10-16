@@ -184,7 +184,8 @@ public class BranchGroupTest {
         while (blockChain.getBlockChainManager().getLastIndex() < 10) {
             log.debug("Last Index : {}", blockChain.getBlockChainManager().getLastIndex());
             branchGroup.addBlock(block);
-            ConsensusBlock nextBlock = BlockChainTestUtils.createNextBlock(Collections.emptyList(), block);
+            ConsensusBlock nextBlock = BlockChainTestUtils.createNextBlock(
+                    Collections.emptyList(), block, blockChain.getContractManager());
             addMultipleBlock(nextBlock);
         }
     }

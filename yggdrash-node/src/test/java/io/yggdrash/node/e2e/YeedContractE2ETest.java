@@ -115,7 +115,8 @@ public class YeedContractE2ETest extends TestConstants.SlowTest {
         assertEquals(genesis.getBody().getTransactionList().size(), mgr.countOfTxs());
         assertEquals(genesis.getBody().getTransactionList().size(), mgr.getRecentTxs().size());
 
-        ConsensusBlock<PbftProto.PbftBlock> block = BlockChainTestUtils.createNextBlock(createTxs(10), genesis);
+        ConsensusBlock<PbftProto.PbftBlock> block = BlockChainTestUtils.createNextBlock(
+                createTxs(10), genesis, bc.getContractManager());
 
         bc.addBlock(block, false);
 

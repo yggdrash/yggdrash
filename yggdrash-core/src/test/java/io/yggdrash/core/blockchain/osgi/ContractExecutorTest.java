@@ -160,7 +160,7 @@ public class ContractExecutorTest {
 
         // Create a block with the txList which should be added to blockChain.
         ConsensusBlock<PbftProto.PbftBlock> nextBlock = BlockChainTestUtils.createNextBlock(
-                wallet, txList, genesisBlock);
+                wallet, txList, genesisBlock, manager);
 
         // Execute the created block.
         BlockRuntimeResult res = manager.executeTxs(nextBlock);
@@ -196,7 +196,8 @@ public class ContractExecutorTest {
         // Block contains same success txs
         List<Transaction> txs = IntStream.range(0, 10)
                 .mapToObj(i -> generateTx(BigInteger.valueOf(100))).collect(Collectors.toList());
-        ConsensusBlock<PbftProto.PbftBlock> nextBlock = BlockChainTestUtils.createNextBlock(wallet, txs, genesisBlock);
+        ConsensusBlock<PbftProto.PbftBlock> nextBlock = BlockChainTestUtils.createNextBlock(
+                wallet, txs, genesisBlock, manager);
         BlockRuntimeResult res = manager.executeTxs(nextBlock); // executeTxs contains commitBlockResult
 
         res.getReceipts().forEach(r -> assertEquals(ExecuteStatus.SUCCESS, r.getStatus()));
@@ -239,7 +240,8 @@ public class ContractExecutorTest {
         txs.add(errTx2);
         txs.add(successTx2);
 
-        ConsensusBlock<PbftProto.PbftBlock> nextBlock = BlockChainTestUtils.createNextBlock(wallet, txs, genesisBlock);
+        ConsensusBlock<PbftProto.PbftBlock> nextBlock = BlockChainTestUtils.createNextBlock(
+                wallet, txs, genesisBlock, manager);
         BlockRuntimeResult res = manager.executeTxs(nextBlock);
 
         assertEquals(ExecuteStatus.SUCCESS, res.getReceipts().get(0).getStatus());
@@ -266,7 +268,7 @@ public class ContractExecutorTest {
         Transaction errTx = generateTx(BigInteger.valueOf(100), notExistedVersion);
 
         ConsensusBlock<PbftProto.PbftBlock> nextBlock = BlockChainTestUtils.createNextBlock(
-                wallet, Collections.singletonList(errTx), genesisBlock);
+                wallet, Collections.singletonList(errTx), genesisBlock, manager);
 
         String errLog = SystemError.CONTRACT_VERSION_NOT_FOUND.toString();
         BlockRuntimeResult res = manager.executeTxs(nextBlock);
@@ -291,7 +293,7 @@ public class ContractExecutorTest {
 
         //success tx
         Transaction tx = generateTx(BigInteger.valueOf(100)); //method => transfer
-        nextBlock = BlockChainTestUtils.createNextBlock(wallet, Collections.singletonList(tx), genesisBlock);
+        nextBlock = BlockChainTestUtils.createNextBlock(wallet, Collections.singletonList(tx), genesisBlock, manager);
         res = manager.executeTxs(nextBlock);
 
         assertEquals(10, manager.getCurLogIndex());
