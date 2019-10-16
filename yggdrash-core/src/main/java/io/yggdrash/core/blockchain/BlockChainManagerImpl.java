@@ -100,11 +100,17 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
 
     @Override
     public int verify(Transaction transaction) {
+        return verify(transaction, true);
+    }
+
+    private int verify(Transaction transaction, boolean isTxBroadcast) {
         int check = 0;
 
         check |= BusinessError.addCode(verifyDuplicated(transaction), BusinessError.DUPLICATED);
 
-        check |= BusinessError.addCode(VerifierUtils.verifyTimestamp(transaction), BusinessError.REQUEST_TIMEOUT);
+        if (isTxBroadcast) {
+            check |= BusinessError.addCode(VerifierUtils.verifyTimestamp(transaction), BusinessError.REQUEST_TIMEOUT);
+        }
 
         check |= BusinessError.addCode(VerifierUtils.verifyDataFormat(transaction), BusinessError.INVALID_DATA_FORMAT);
 
@@ -132,6 +138,8 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
 
         check |= BusinessError.addCode(
                 VerifierUtils.verifyBlockBodyHash(block), BusinessError.INVALID_MERKLE_ROOT_HASH);
+
+        //TODO Verify txs of block
 
         return check;
     }
