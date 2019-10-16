@@ -250,7 +250,7 @@ public class TokenContractTest {
         tx.getLog().stream().forEach(l -> log.debug(l));
         Assert.assertEquals(
                 "The result should match with initial YEED stake",
-                0, result.compareTo(BigInteger.TEN.pow(24)));
+                0, result.compareTo(new BigInteger("999999900000000000000000")));
     }
 
     @Test
@@ -372,10 +372,9 @@ public class TokenContractTest {
 
         // YEED BALANCE
         BigInteger result = tokenContract.getYeedBalanceOf(params);
-
         Assert.assertEquals(
                 "The result should match with current YEED stake",
-                0, result.compareTo(getBigInt18(1000100)));
+                0, result.compareTo(new BigInteger("1000099900000000000000000")));
     }
 
     @Test
@@ -424,10 +423,9 @@ public class TokenContractTest {
 
         // CHECK BALANCE
         BigInteger result = tokenContract.getYeedBalanceOf(params);
-
         Assert.assertEquals(
                 "The result should match with current YEED stake",
-                0, result.compareTo(getBigInt18(999900)));
+                0, result.compareTo(new BigInteger("999899900000000000000000")));
     }
 
     @Test
@@ -749,22 +747,11 @@ public class TokenContractTest {
         this.adapter.setReceipt(tx);
         tokenContract.movePhaseRun(params);
 
-        // INSUFFICIENT BALANCE
-        tx = new ReceiptImpl("0x06", 300L, TEST_OWNER);
-        this.adapter.setReceipt(tx);
-
-        params.addProperty(AMOUNT, BigInteger.TEN.pow(40));
-        params.addProperty(SPENDER, TEST_ACCOUNT0);
-
-        tokenContract.approve(params);
-
-        tx.getLog().stream().forEach(l -> log.debug(l));
-        Assert.assertFalse("Approve over balance should be failed", tx.isSuccess());
-
         // NORMAL
         tx = new ReceiptImpl("0x07", 300L, TEST_OWNER);
         this.adapter.setReceipt(tx);
 
+        params.addProperty(SPENDER, TEST_ACCOUNT0);
         params.addProperty(AMOUNT, getBigInt18(100000));
 
         tokenContract.approve(params);
@@ -1190,7 +1177,7 @@ public class TokenContractTest {
         BigInteger yeedBalance = tokenContract.getYeedBalanceOf(params);
         Assert.assertEquals(
                 "Yeed stake balance should be 600000",
-                0, yeedBalance.compareTo(getBigInt18(600000)));
+                0, yeedBalance.compareTo(new BigInteger("599999700000000000000000")));
     }
 
     @Test
@@ -1244,11 +1231,11 @@ public class TokenContractTest {
                 "Token balance should be 600000",
                 0, tokenBalance.compareTo(getBigInt18(600000)));
 
-        // CHECK YEED STAKE BALANCE (1,000,000 - 40,000 = 960,000)
+        // CHECK YEED STAKE BALANCE (not strict number for complex of fees & exchange)
         BigInteger yeedBalance = tokenContract.getYeedBalanceOf(params);
         Assert.assertEquals(
-                "Yeed stake balance should be 960000",
-                0, yeedBalance.compareTo(getBigInt18(960000)));
+                "Yeed stake balance should be 959999.7.....",
+                0, yeedBalance.compareTo(new BigInteger("959999707999999999999680")));
     }
 
     @Test
@@ -1328,8 +1315,8 @@ public class TokenContractTest {
         // CHECK YEED STAKE BALANCE (1000000 + 1000)
         BigInteger yeedBalance = tokenContract.getYeedBalanceOf(params);
         Assert.assertEquals(
-                "Yeed stake balance should be 1001000",
-                0, yeedBalance.compareTo(getBigInt18(1001000)));
+                "Yeed stake balance should be 1000999.9",
+                0, yeedBalance.compareTo(new BigInteger("1000999900000000000000000")));
     }
 
     @Test
@@ -1372,13 +1359,13 @@ public class TokenContractTest {
         BigInteger tokenBalance = tokenContract.balanceOf(params);
         Assert.assertEquals(
                 "Token balance should be 10,000",
-                0, tokenBalance.compareTo(getBigInt18(10000)));
+                0, tokenBalance.compareTo(new BigInteger("10000001000000100000000")));
 
         // CHECK YEED STAKE BALANCE (1,000,000 + 1,000 = 1,001,000)
         BigInteger yeedBalance = tokenContract.getYeedBalanceOf(params);
         Assert.assertEquals(
                 "Yeed stake balance should be 1,001,000",
-                0, yeedBalance.compareTo(getBigInt18(1001000)));
+                0, yeedBalance.compareTo(new BigInteger("1000999900000000000000000")));
     }
 
     @Test
