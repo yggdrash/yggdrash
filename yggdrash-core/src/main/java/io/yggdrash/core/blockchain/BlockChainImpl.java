@@ -26,8 +26,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     private static final Logger log = LoggerFactory.getLogger(BlockChainImpl.class);
@@ -185,6 +187,8 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             if (!listenerList.isEmpty() && broadcast) {
                 listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
             }
+
+            flushUnconfirmedErrorTxs();
             nextBlock.loggingBlock(this.blockChainManager.getUnconfirmedTxsSize());
         } catch (Exception e) {
             log.debug("Add block failed. {}", e.getMessage()); //TODO Exception handling
@@ -202,6 +206,15 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                 .map(Receipt::getEvents)
                 .forEach(contractEventList::addAll);
         return contractEventList;
+    }
+
+    private void flushUnconfirmedErrorTxs() {
+        BlockRuntimeResult result = contractManager.executeTxs(blockChainManager.getUnconfirmedTxs());
+        Set<Sha3Hash> errTxKeys = result.getReceipts().stream()
+                .filter(receipt -> receipt.getStatus().equals(ExecuteStatus.ERROR))
+                .map(receipt -> new Sha3Hash(receipt.getTxId())).collect(Collectors.toSet());
+        log.debug("Flush Unconfirmed Txs. TxSize={}, ErrTxSize={}", result.getReceipts().size(), errTxKeys.size());
+        blockChainManager.flushUnconfirmedTxs(errTxKeys);
     }
 
     @Override
