@@ -51,10 +51,13 @@ public class BlockChainSyncManager implements SyncManager {
         nodeStatus.sync();
         try {
             for (BlockChain blockChain : branchGroup.getAllBranch()) {
-                List<BlockChainHandler> peerHandlerList = peerNetwork.getHandlerList(blockChain.getBranchId());
-                fullSyncBlock(blockChain, peerHandlerList);
-                blockChain.setFullSynced(true);
-                log.debug("Branch({}) is fullSynced.", blockChain.getBranch().getBranchId().toString());
+                try {
+                    List<BlockChainHandler> peerHandlerList = peerNetwork.getHandlerList(blockChain.getBranchId());
+                    fullSyncBlock(blockChain, peerHandlerList);
+                } finally {
+                    blockChain.setFullSynced(true);
+                    log.debug("Branch is fullSynced.");
+                }
             }
         } finally {
             nodeStatus.up();
