@@ -920,9 +920,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
                                 log.debug("Propose require block height : {} ", pi.getNetworkBlockHeight());
                                 log.debug("TxConfirm block height : {} ", txConfirm.getBlockHeight());
                                 boolean checkBlockHeight = false;
+                                // TODO Fix Network Block Height Check
                                 if (pi.getNetworkBlockHeight() <= txConfirm.getBlockHeight()) {
-                                    checkBlockHeight = true;
-                                } else if (pi.getNetworkBlockHeight() >= txConfirm.getLastBlockHeight()) {
                                     checkBlockHeight = true;
                                 }
 
