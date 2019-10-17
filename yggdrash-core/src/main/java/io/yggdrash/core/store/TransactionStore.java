@@ -205,7 +205,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
         try {
             Collection<Transaction> unconfirmedTxs = getTransactionList();
             if (!unconfirmedTxs.isEmpty()) {
-                log.debug("unconfirmedKeys={} unconfirmedTxs={}", pendingKeys.size(), unconfirmedTxs.size());
+                log.trace("unconfirmedKeys={} unconfirmedTxs={}", pendingKeys.size(), unconfirmedTxs.size());
             }
             return unconfirmedTxs;
         } finally {

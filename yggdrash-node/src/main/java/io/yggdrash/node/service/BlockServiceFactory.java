@@ -91,7 +91,7 @@ public class BlockServiceFactory {
         public void broadcastPbftBlock(PbftProto.PbftBlock request,
                                        StreamObserver<CommonProto.Empty> responseObserver) {
             PbftBlock block = new PbftBlock(request);
-            log.debug("Received block: id=[{}], hash={}", block.getIndex(), block.getHash());
+            log.trace("Received block: id=[{}], hash={}", block.getIndex(), block.getHash());
             blockConsumer.broadcastBlock(block);
             responseObserver.onNext(EMPTY);
             responseObserver.onCompleted();

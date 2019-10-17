@@ -41,7 +41,6 @@ public abstract class AbstractBlockChainHandler<T> extends DiscoveryHandler<T> {
     private final TransactionServiceGrpc.TransactionServiceStub transactionAsyncStub;
     private final StreamObserver<CommonProto.Empty> emptyResponseStreamObserver;
     private StreamObserver<Proto.Transaction> broadcastTxRequestObserver;
-    private boolean alive;
 
     public AbstractBlockChainHandler(ManagedChannel channel, Peer peer) {
         super(channel, peer);
@@ -56,7 +55,6 @@ public abstract class AbstractBlockChainHandler<T> extends DiscoveryHandler<T> {
                     @Override
                     public void onError(Throwable t) {
                         log.debug("Cannot broadcast txs to {}", peer);
-                        alive = false;
                     }
 
                     @Override
@@ -106,13 +104,12 @@ public abstract class AbstractBlockChainHandler<T> extends DiscoveryHandler<T> {
 
     @Override
     public void broadcastTx(Transaction tx) {
-        log.trace("Broadcasting txs -> {}", getPeer().getYnodeUri());
-
-        if (!alive) {
-            alive = true;
+        try {
             this.broadcastTxRequestObserver = transactionAsyncStub.broadcastTx(emptyResponseStreamObserver);
+            broadcastTxRequestObserver.onNext(tx.getInstance());
+            log.trace("Broadcasting tx={} to={}", tx.getHash().toString(), getPeer().getYnodeUri());
+        } catch (Exception e) {
+            log.trace("BroadcastingTx() is failed. {}", e.getMessage());
         }
-
-        broadcastTxRequestObserver.onNext(tx.getInstance());
     }
 }
