@@ -61,7 +61,7 @@
       "description": "This contract is for a validator."
     },
     {
-      "contractVersion": "f4fbefe627e2e2c87b64a4099c9d30bcd8528cde",
+      "contractVersion": "4802f8d2b7fe0f72f38ddbd58ef7a855b19d56ff",
       "isSystem": true,
       "init": {},
       "name": "TOKEN",
