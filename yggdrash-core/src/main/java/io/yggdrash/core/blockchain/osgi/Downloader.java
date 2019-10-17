@@ -12,6 +12,7 @@
 
 package io.yggdrash.core.blockchain.osgi;
 
+import com.google.common.base.Strings;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
 import org.slf4j.Logger;
@@ -32,7 +33,7 @@ public class Downloader {
 
     private static Logger log = LoggerFactory.getLogger(Downloader.class);
 
-    private static String contractRepoUrl;
+    private static String contractRepoUrl = "https://s3.ap-northeast-2.amazonaws.com/store.yggdrash.io/contract/";
     private static String contractFilePath;
 
     public Downloader(DefaultConfig defaultConfig) {

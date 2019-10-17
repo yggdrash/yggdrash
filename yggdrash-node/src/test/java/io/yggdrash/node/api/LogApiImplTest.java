@@ -104,8 +104,8 @@ public class LogApiImplTest {
                 1, generateTx, bc.getContractManager()).get(0);
         bc.addBlock(block);
 
-        Log log = logApi.getLog(branchId, 33);
-        List<Log> logs = logApi.getLogs(branchId, 33, 0);
+        Log log = logApi.getLog(branchId, generateTx);
+        List<Log> logs = logApi.getLogs(branchId, generateTx, 0);
 
         assertEquals("Size of logs", 1, logs.size());
         assertEquals(log.getMsg(), logs.get(0).getMsg());
@@ -119,7 +119,7 @@ public class LogApiImplTest {
 
         // Logs of executed transactions when the block was added.
         List<Log> regLogs = logApi.getLogs(branchId, "Transfe", 0, curIndex);
-        assertEquals(66, regLogs.size());
+        assertEquals(regLogs.size(), generateTx);
 
         log = logApi.getLog(branchId, 0);
         logs = logApi.getLogs(branchId, 0, 0);
