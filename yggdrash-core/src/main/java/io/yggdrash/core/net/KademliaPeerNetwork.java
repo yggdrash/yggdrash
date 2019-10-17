@@ -126,14 +126,13 @@ public class KademliaPeerNetwork implements PeerNetwork {
     private class TxWorker implements Runnable {
 
         public void run() {
-            try {
-                while (!txExecutor.isTerminated()) {
+            while (true) {
+                try {
                     Transaction tx = txQueue.take();
                     broadcastTx(tx);
+                } catch (Exception e) {
+                    log.debug("broadcastTx() is failed. {}", e.getMessage());
                 }
-            } catch (InterruptedException e) {
-                txExecutor.shutdown();
-                Thread.currentThread().interrupt();
             }
         }
 
@@ -152,6 +151,8 @@ public class KademliaPeerNetwork implements PeerNetwork {
                             peerTableGroup.getOwner().getPort(),
                             peerHandler.getPeer().getPort(), e.getMessage());
                 }
+
+                log.debug("broadcastTx() tx={} peer={}", tx.getHash().toString(), peerHandler.getPeer().getYnodeUri());
             }
         }
     }
