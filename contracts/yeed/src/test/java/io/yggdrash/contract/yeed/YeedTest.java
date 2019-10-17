@@ -216,6 +216,8 @@ public class YeedTest {
 
         assertTrue(receipt.isSuccess());
 
+        assertTrue("Receipt Log write just send amount", receipt.getLog().size() == 1);
+
         BigInteger senderRemainAmount = sendAddress.subtract(feeAmount).subtract(sendAmount);
         BigInteger receiverRemainAmount = receiveAmount.add(sendAmount);
 
