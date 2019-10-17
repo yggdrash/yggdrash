@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -212,6 +211,7 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     public void addTransaction(Transaction tx) {
         try {
             transactionStore.addTransaction(tx);
+            log.trace("AddTransaction: txStore added tx={}", tx.getHash().toString());
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }

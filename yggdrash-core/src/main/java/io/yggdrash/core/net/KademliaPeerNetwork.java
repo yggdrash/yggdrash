@@ -100,6 +100,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
     public void receivedTransaction(Transaction tx) {
         try {
             txQueue.put(tx);
+            log.trace("AddTransaction: txQueue tx={}", tx.getHash().toString());
         } catch (Exception e) {
             log.debug("receivedTransaction() is failed. {}", e.getMessage());
         }
@@ -152,7 +153,8 @@ public class KademliaPeerNetwork implements PeerNetwork {
                             peerHandler.getPeer().getPort(), e.getMessage());
                 }
 
-                log.debug("broadcastTx() tx={} peer={}", tx.getHash().toString(), peerHandler.getPeer().getYnodeUri());
+                log.trace("broadcastTx() tx={} peer={} txQueueSize={}",
+                        tx.getHash().toString(), peerHandler.getPeer().getYnodeUri(), txQueue.size());
             }
         }
     }
