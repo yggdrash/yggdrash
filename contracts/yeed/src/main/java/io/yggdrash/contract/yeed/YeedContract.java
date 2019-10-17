@@ -338,8 +338,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 BigInteger fee = params.has(FEE) ? params.get(FEE).getAsBigInteger() : calculateFee();
 
                 try {
-                    if (checkNetworkFee(fee) && checkAmount(amount) && transfer(from, to, amount, fee)) {
-                        setSuccessTxReceipt(String.format(TRANSFER_SUCCESS, amount, from, to, fee));
+                    if (checkNetworkFee(fee) && checkAmount(amount)) {
+                        transfer(from, to, amount, fee);
                         if (log.isDebugEnabled()) {
                             log.debug("[Transferred] Transfer {} from {} to {}", amount, from, to);
                             log.trace("Balance of From ({}) : {} To ({}) : {}", from, getBalance(from), to, getBalance(to));
