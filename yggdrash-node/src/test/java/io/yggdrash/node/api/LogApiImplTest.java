@@ -119,7 +119,7 @@ public class LogApiImplTest {
 
         // Logs of executed transactions when the block was added.
         List<Log> regLogs = logApi.getLogs(branchId, "Transfe", 0, curIndex);
-        assertEquals(regLogs.size(), generateTx);
+        assertEquals(generateTx, regLogs.size());
 
         log = logApi.getLog(branchId, 0);
         logs = logApi.getLogs(branchId, 0, 0);
