@@ -20,6 +20,7 @@ public class EthTransaction {
     byte[] gasPrice;
     byte[] gasLimit;
     byte[] receiverAddress;
+    byte[] rawValue;
     BigInteger value;
     byte[] data;
     byte[] rlpEncoded;
@@ -91,6 +92,7 @@ public class EthTransaction {
         gasPrice = ethTx.get(1).getRLPData();
         gasLimit = ethTx.get(2).getRLPData();
         receiverAddress = ethTx.get(3).getRLPData();
+        rawValue = ethTx.get(4).getRLPData();
         value = ByteUtil.bytesToBigInteger(ethTx.get(4).getRLPData());
         data = ethTx.get(5).getRLPData();
 
@@ -104,6 +106,7 @@ public class EthTransaction {
             byte[] s = ethTx.get(8).getRLPData();
             chainId = extractChainIdFromRawSignature(v, r, s);
             rawData = getEncodedRaw();
+
             if (chainId == null) { // NOT MAINNET
                 // TODO check chainId(network ID)
                 signature = ECKey.ECDSASignature.fromComponents(r, s, v.byteValue());
@@ -170,7 +173,7 @@ public class EthTransaction {
         byte[] gasPrice = RLP.encodeElement(this.gasPrice);
         byte[] gasLimit = RLP.encodeElement(this.gasLimit);
         byte[] receiveAddress = RLP.encodeElement(this.receiverAddress);
-        byte[] value = RLP.encodeElement(this.value.toByteArray());
+        byte[] value = RLP.encodeElement(this.rawValue);
         byte[] data = RLP.encodeElement(this.data);
 
         // Since EIP-155 use chainId for v
