@@ -301,7 +301,7 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
                 .collect(Collectors.toList());
 
         if (!contractList.isEmpty()) {
-            return contractList.get(contractList.size() - 1).getName();
+            return contractList.get(contractList.size() - 1).getContractVersion().toString();
         }
         return null;
     }
