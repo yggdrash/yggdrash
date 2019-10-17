@@ -213,7 +213,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         Set<Sha3Hash> errTxKeys = result.getReceipts().stream()
                 .filter(receipt -> receipt.getStatus().equals(ExecuteStatus.ERROR))
                 .map(receipt -> new Sha3Hash(receipt.getTxId())).collect(Collectors.toSet());
-        log.debug("Flush Unconfirmed Txs. TxSize={}, ErrTxSize={}", result.getReceipts().size(), errTxKeys.size());
+        log.trace("Flush Unconfirmed Txs. TxSize={}, ErrTxSize={}", result.getReceipts().size(), errTxKeys.size());
         blockChainManager.flushUnconfirmedTxs(errTxKeys);
     }
 
