@@ -33,7 +33,7 @@ public class Downloader {
 
     private static Logger log = LoggerFactory.getLogger(Downloader.class);
 
-    private static String contractRepoUrl = "https://s3.ap-northeast-2.amazonaws.com/store.yggdrash.io/contract/";
+    private static String contractRepoUrl = "http://store.yggdrash.io/contract/";
     private static String contractFilePath;
 
     public Downloader(DefaultConfig defaultConfig) {
