@@ -54,7 +54,6 @@ public abstract class AbstractBlockChainHandler<T> extends DiscoveryHandler<T> {
 
                     @Override
                     public void onError(Throwable t) {
-                        log.debug("Cannot broadcast txs to {}", peer);
                     }
 
                     @Override
