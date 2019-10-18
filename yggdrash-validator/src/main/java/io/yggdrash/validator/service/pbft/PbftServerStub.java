@@ -141,8 +141,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
         long count = request.getCount();
         long end = Math.min(start - 1 + count, blockChain.getBlockChainManager().getLastIndex());
 
-        log.trace("start: {}", start);
-        log.trace("end: {}", end);
+        log.trace("start: {} - end: {}", start, end);
 
         responseObserver.onNext(getBlockList(start, end));
         responseObserver.onCompleted();
@@ -176,8 +175,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
             return;
         }
 
-        if (status.getIndex()
-                <= this.blockChain.getBlockChainManager().getLastIndex()) {
+        if (status.getIndex() <= this.blockChain.getBlockChainManager().getLastIndex()) {
             return;
         }
 

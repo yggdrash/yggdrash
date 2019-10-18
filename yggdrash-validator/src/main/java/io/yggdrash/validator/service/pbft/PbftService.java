@@ -54,12 +54,15 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
     private Map<String, PbftClientStub> totalValidatorMap;
     private int bftCount;
     private int consensusCount;
+
     private boolean isActive;
     private boolean isSynced;
     private boolean isPrePrepared;
     private boolean isPrepared;
     private boolean isCommitted;
+    private boolean isViewchanged;
     private boolean isPrimary;
+
     private long viewNumber;
     private long seqNumber;
     private int failCount;
@@ -87,6 +90,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         this.isPrePrepared = false;
         this.isPrepared = false;
         this.isCommitted = false;
+        this.isViewchanged = false;
         this.failCount = 0;
 
         this.viewNumber = this.blockChain.getBlockChainManager().getLastIndex() + 1;
@@ -236,10 +240,10 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
     private void loggingStatus() {
         log.info("Status: node={}, "
-                        + "fail={}, active={}, synced={}, prePrepared={}, prepared={}, committed={} "
+                        + "fail={}, active={}, synced={}, prePrepared={}, prepared={}, committed={}, viewChanged={} "
                         + "unConMsg={}, unConTx={}, viewNum={}, seqNum={}",
                 getActiveNodeCount(),
-                this.failCount, this.isActive, this.isSynced, this.isPrePrepared, this.isPrepared, this.isCommitted,
+                failCount, isActive, isSynced, isPrePrepared, isPrepared, isCommitted, isViewchanged,
                 this.blockChain.getUnConfirmedData().size(),
                 blockChain.getBlockChainManager().getUnconfirmedTxs().size(),
                 this.viewNumber,
@@ -286,8 +290,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
     private PbftMessage makePrePrepareMsg() {
         if (!this.isPrimary
-                || this.isPrePrepared) {
-            log.trace("isPrimary({}), isPrePrepared({})", isPrimary, isPrePrepared);
+                || this.isPrePrepared
+                || this.isViewchanged) {
             return null;
         }
 
@@ -339,8 +343,10 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
         if (viewChangeMsgMap.size() < consensusCount) {
             return this.viewNumber;
+        } else {
+            this.isViewchanged = false;
+            return newViewNumber;
         }
-        return newViewNumber;
     }
 
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
@@ -387,8 +393,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
     private PbftMessage makePrepareMsg() {
         if (!this.isPrePrepared
-                || this.isPrepared) {
-            log.trace("isPrePrepared({}), isPrepared({})", isPrePrepared, isPrepared);
+                || this.isPrepared
+                || this.isViewchanged) {
             return null;
         }
 
@@ -432,8 +438,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
     private PbftMessage makeCommitMsg() {
         if (!this.isPrepared
-                || this.isCommitted) {
-            log.trace("isPrepared({}), isCommitted({})", isPrepared, isCommitted);
+                || this.isCommitted
+                || this.isViewchanged) {
             return null;
         }
 
@@ -472,7 +478,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
      * @return confirmed PbftBlock
      */
     private PbftBlock confirmFinalBlock() {
-        if (!isCommitted) {
+        if (!isCommitted
+                || this.isViewchanged) {
             return null;
         }
 
@@ -557,7 +564,6 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         }
 
         Block block = this.blockChain.getBlockChainManager().getLastConfirmedBlock().getBlock();
-        log.trace("block: {}", block);
         long newViewNumber = this.viewNumber + 1;
 
         PbftMessage viewChangeMsg = new PbftMessage(
@@ -574,10 +580,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         }
 
         this.blockChain.getUnConfirmedData().put(viewChangeMsg.getSignatureHex(), viewChangeMsg);
-
-        log.warn("ViewChanged ({}) -> ({}}",
-                seqNumber,
-                newViewNumber);
+        this.isViewchanged = true;
+        log.warn("ViewChanged ({}) -> ({}}", seqNumber, newViewNumber);
 
         return viewChangeMsg;
     }
@@ -601,6 +605,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         this.isPrePrepared = false;
         this.isPrepared = false;
         this.isCommitted = false;
+        this.isViewchanged = false;
         this.failCount = 0;
 
         this.viewNumber = (this.viewNumber > index + 1 ? this.viewNumber : index + 1);
@@ -652,6 +657,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         this.isPrePrepared = false;
         this.isPrepared = false;
         this.isCommitted = false;
+        this.isViewchanged = false;
         this.failCount = 0;
     }
 
