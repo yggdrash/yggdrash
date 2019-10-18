@@ -132,8 +132,7 @@ public class StemContractTest {
         stemContract.create(getParamForCreateBranch());
 
         assertFalse(receipt.isSuccess());
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
-        assertEquals(1, receipt.getLog().size());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
         assertTrue(receipt.getLog().contains("Insufficient funds"));
     }
 
@@ -229,6 +228,20 @@ public class StemContractTest {
     }
 
     @Test
+    public void queryParamCheck() {
+        JsonObject param = new JsonObject();
+        assertEquals(BigInteger.ZERO, stemContract.feeState(param)); // BranchId not exists
+        assertEquals(0, stemContract.getContract(param).size());
+        assertEquals(new JsonObject(), stemContract.getBranch(param));
+        assertEquals(new JsonObject(), stemContract.getBranchMeta(param));
+        param.addProperty("branchId", "branchId");
+        assertEquals(BigInteger.ZERO, stemContract.feeState(param)); // Invalid branchId
+        assertEquals(0, stemContract.getContract(param).size());
+        assertEquals(new JsonObject(), stemContract.getBranch(param));
+        assertEquals(new JsonObject(), stemContract.getBranchMeta(param));
+    }
+
+    @Test
     public void getContractQuery() {
         createStemBranch();
 
@@ -295,8 +308,7 @@ public class StemContractTest {
 
         stemContract.update(param);
 
-        assertEquals("transaction update is False", ExecuteStatus.ERROR, receipt.getStatus());
-        //assertEquals("transaction update is False", ExecuteStatus.FALSE, receipt.getStatus());
+        assertEquals("transaction update is False", ExecuteStatus.FALSE, receipt.getStatus());
     }
 
     @Test
