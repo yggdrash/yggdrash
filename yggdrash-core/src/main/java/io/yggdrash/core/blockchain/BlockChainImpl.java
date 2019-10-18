@@ -151,7 +151,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                         nextBlock.getIndex(), BusinessError.getErrorLogsMap(verificationCode).values());
                 return BusinessError.getErrorLogsMap(verificationCode);
             }
-            System.out.println("============<Add Block> BlockChainImpl : Block Body size (TxSize) = " + nextBlock.getBody().getTransactionList().size() + "==================");
             // Add best Block
             branchStore.setBestBlock(nextBlock);
             // Run Block Transactions
@@ -166,7 +165,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                         : contractManager.getOriginStateRoot();
                 Sha3Hash nextBlockStateRoot = new Sha3Hash(nextBlock.getHeader().getStateRoot(), true);
                 if (!nextBlockStateRoot.equals(blockResultStateRoot)) {
-                    System.out.println("<<<<<< Add Block Failed. Invalid StateRoot! >>>>>>");
                     log.warn("Add block failed. Invalid stateRoot. BlockStateRoot : {}, CurStateRoot : {}"
                             , nextBlockStateRoot, blockResultStateRoot);
                     return BusinessError.getErrorLogsMap(BusinessError.INVALID_STATE_ROOT_HASH.toValue());
