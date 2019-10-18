@@ -228,7 +228,6 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
     public void addBranchContract(BranchContract contract) {
         this.contracts.add(contract);
         setBranchContracts(this.contracts);
-
     }
 
     /**

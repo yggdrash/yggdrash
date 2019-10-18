@@ -223,12 +223,12 @@ public class ContractExecutor {
                     receipt.setContractVersion(contractVersion);
                     changedValues = invokeMethod(receipt, service, method, new JsonObject());
 
-                    if (!receipt.getStatus().equals(ExecuteStatus.ERROR) && changedValues != null) {
+                    if (!receipt.getStatus().equals(ExecuteStatus.ERROR)
+                            && changedValues != null && changedValues.size() > 0) {
                         result.setBlockResult(changedValues);
+                        result.addReceipt(receipt);
+                        i++;
                     }
-
-                    result.addReceipt(receipt);
-                    i++;
                 }
             }
             commitBlockResult(result);
@@ -295,15 +295,17 @@ public class ContractExecutor {
     }
 
     void commitBlockResult(BlockRuntimeResult result) {
-        if (!result.getBlockResult().isEmpty()) {
+        if (!result.getReceipts().isEmpty()) {
             ReceiptStore receiptStore = contractStore.getReceiptStore();
             for (Receipt receipt : result.getReceipts()) {
-                if (receipt.getTxId() == null) { // endBlock
-                    receiptStore.put(receipt.getBlockId(), receipt);
-                    logIndexer.put(receipt.getBlockId(), receipt.getLog().size());
-                } else {
-                    receiptStore.put(receipt.getTxId(), receipt);
-                    logIndexer.put(receipt.getTxId(), receipt.getLog().size());
+                if (!receipt.getStatus().equals(ExecuteStatus.ERROR)) {
+                    if (receipt.getTxId() == null) { // endBlock
+                        receiptStore.put(receipt.getBlockId(), receipt);
+                        logIndexer.put(receipt.getBlockId(), receipt.getLog().size());
+                    } else {
+                        receiptStore.put(receipt.getTxId(), receipt);
+                        logIndexer.put(receipt.getTxId(), receipt.getLog().size());
+                    }
                 }
             }
 
