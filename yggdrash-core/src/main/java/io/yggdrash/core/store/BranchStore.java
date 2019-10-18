@@ -295,10 +295,9 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
      */
     @Override
     public String getContractVersion(String contractName) {
-        List<BranchContract> contractList = this.contracts.stream()
+        List<BranchContract> contractList = getBranchContacts().stream()
                 .filter(c -> contractName.equalsIgnoreCase(c.getName()))
                 .collect(Collectors.toList());
-
         if (!contractList.isEmpty()) {
             return contractList.get(contractList.size() - 1).getContractVersion().toString();
         }
@@ -313,7 +312,7 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
     @Override
     public String getContractName(String contractVersion) {
         // get contract Name by ContractVersion
-        List<BranchContract> contractList = this.contracts.stream()
+        List<BranchContract> contractList = getBranchContacts().stream()
                 .filter(c -> contractVersion.equalsIgnoreCase(c.getContractVersion().toString()))
                 .collect(Collectors.toList());
 
