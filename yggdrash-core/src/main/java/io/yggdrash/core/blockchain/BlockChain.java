@@ -33,6 +33,8 @@ public interface BlockChain<T, V> extends ConsensusBlockChain<T, V> {
 
     Map<String, List<String>> addTransaction(Transaction tx); // return errorLogs
 
+    Map<String, List<String>> addTransaction(Transaction tx, boolean broadcast); // return errorLogs
+
     List<BranchContract> getBranchContracts();
 
     boolean containBranchContract(ContractVersion contractVersion);

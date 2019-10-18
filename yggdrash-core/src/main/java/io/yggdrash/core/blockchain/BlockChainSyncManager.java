@@ -228,7 +228,7 @@ public class BlockChainSyncManager implements SyncManager {
     private void addTransaction(BlockChain blockChain, List<Transaction> txList) {
         for (Transaction tx : txList) {
             try {
-                blockChain.addTransaction(tx);
+                blockChain.addTransaction(tx, false);
             } catch (Exception e) {
                 log.warn("[SyncManager] Add Tx ERR occurred: {}", e.getMessage());
             }
