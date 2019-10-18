@@ -242,7 +242,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         log.trace("AddTransaction: tx={}", tx.getHash().toString());
         int verifyResult = blockChainManager.verify(tx);
         if (verifyResult == BusinessError.VALID.toValue()) {
-            log.trace("contractManager.executeTx: {}", tx.toString());
+            log.trace("contractManager.executeTx: {}", tx.getHash().toString());
             TransactionRuntimeResult txResult = contractManager.executeTx(tx); //checkTx
             log.trace("contractManager.executeTx Result: {}", txResult.getReceipt().getLog());
             if (txResult.getReceipt().getStatus() != ExecuteStatus.ERROR) {
