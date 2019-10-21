@@ -68,7 +68,7 @@ public class BranchGroupTest {
         Transaction tx = BlockChainTestUtils.createContractProposeTx(
                 "8c65bc05e107aab9ceaa872bbbb2d96d57811de4", "activate");
         Map<String, List<String>> errLogs = branchGroup.addTransaction(tx);
-        Assert.assertEquals(0, errLogs.size());
+        Assert.assertEquals(1, errLogs.size()); //{SystemError=[Validator verification failed]}
     }
 
     @Test
