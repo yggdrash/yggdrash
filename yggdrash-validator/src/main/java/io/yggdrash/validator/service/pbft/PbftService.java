@@ -364,7 +364,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
             }
 
             result.getReceipts().stream()
-                    .filter(r -> r.getStatus().equals(ExecuteStatus.ERROR))
+                    .filter(r -> !r.getStatus().equals(ExecuteStatus.SUCCESS))
                     .forEach(r -> {
                         errTxHashes.add(new Sha3Hash(r.getTxId()));
                         errTxList.add(blockChain.getBlockChainManager().getTxByHash(new Sha3Hash(r.getTxId())));
