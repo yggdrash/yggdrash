@@ -122,9 +122,9 @@ public class BlockChainSyncManager implements SyncManager {
                             peerHandler.getPeer().setBestBlock(lastBlockIndex + (l + 1L) * 10000L);
                             syncBlock(peerHandler, blockChain);
                         }
-                    } else {
-                        syncBlock(peerHandler, blockChain);
+                        peerHandler.getPeer().setBestBlock(peerBestBlock);
                     }
+                    syncBlock(peerHandler, blockChain);
                 }
             } catch (Exception e) {
                 log.debug("fullSyncBlock() is failed. {}", e.getMessage());
