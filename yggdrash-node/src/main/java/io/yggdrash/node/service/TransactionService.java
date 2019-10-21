@@ -130,7 +130,7 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
 
             @Override
             public void onError(Throwable t) {
-                log.debug("Encountered error in broadcastTx: {}", Status.fromThrowable(t));
+                log.trace("Encountered error in broadcastTx: {}", Status.fromThrowable(t));
             }
 
             @Override
