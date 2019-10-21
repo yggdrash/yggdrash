@@ -113,7 +113,17 @@ public class BlockChainSyncManager implements SyncManager {
             try {
                 peerHandler.getPeer().setBestBlock(
                         peerHandler.pingPong(blockChain.getBranchId(), peerTableGroup.getOwner(), "Ping"));
-                if (peerHandler.getPeer().getBestBlock() > blockChain.getBlockChainManager().getLastIndex()) {
+                long peerBestBlock = peerHandler.getPeer().getBestBlock();
+                long lastBlockIndex = blockChain.getBlockChainManager().getLastIndex();
+                long blockDiff = peerBestBlock - lastBlockIndex;
+                if (peerBestBlock > lastBlockIndex) {
+                    if (blockDiff > 10000) {
+                        for (long l = 0; l < blockDiff / 10000L; l++) {
+                            peerHandler.getPeer().setBestBlock(lastBlockIndex + (l + 1L) * 10000L);
+                            syncBlock(peerHandler, blockChain);
+                        }
+                        peerHandler.getPeer().setBestBlock(peerBestBlock);
+                    }
                     syncBlock(peerHandler, blockChain);
                 }
             } catch (Exception e) {
