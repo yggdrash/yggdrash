@@ -144,6 +144,19 @@ public class LogApiImplTest {
     }
 
     @Test
+    public void exceptionTest() {
+        assertEquals(0, logApi.curIndex("String")); //exception decoding Hex string
+        assertEquals(0, logApi.curIndex("")); //branch not found
+        assertEquals(0, logApi.curIndex("b42eb7d71e3794d192a1b5783d01a59840fcbec2")); //branch not found
+
+        assertTrue(!logApi.getLog("String", 1).getMsg().isEmpty());
+        assertTrue(!logApi.getLog("b42eb7d71e3794d192a1b5783d01a59840fcbec2", 1).getMsg().isEmpty());
+
+        assertEquals(1, logApi.getLogs("String", 1, 1).size());
+        assertEquals(1, logApi.getLogs("b42eb7d71e3794d192a1b5783d01a59840fcbec2", 1, 1).size());
+    }
+
+    @Test
     public void regexTest() {
         String log = "Propose 6a95d72869643550a485cbea0a4a8aac1092b4b185f58903b1d348383068ca42 ISSUED";
         assertTrue(Pattern.compile("^(Propose [a-f0-9]{64} ISSUED)").matcher(log).find());

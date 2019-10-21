@@ -1,7 +1,6 @@
 package io.yggdrash.node.api;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
-import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
@@ -10,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,12 +36,7 @@ public class BranchApiImpl implements BranchApi {
     @Override
     public Set<String> getValidators(String branchId) {
         BlockChain bc = branchGroup.getBranch(BranchId.of(branchId));
-        if (bc != null) {
-            ValidatorSet vs = bc.getValidators();
-            return vs.getValidatorMap().keySet();
-        } else {
-            return null;
-        }
+        return bc != null ? bc.getValidators().getValidatorMap().keySet() : new HashSet<>();
     }
 
 }

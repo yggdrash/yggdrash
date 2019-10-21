@@ -16,9 +16,12 @@ import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -26,6 +29,9 @@ import java.util.stream.Collectors;
 @Service
 @AutoJsonRpcServiceImpl
 public class LogApiImpl implements LogApi {
+
+    private static final Logger log = LoggerFactory.getLogger(LogApiImpl.class);
+    private static final String BRANCH_NOT_FOUND = "Branch not found";
 
     private final BranchGroup branchGroup;
 
@@ -36,12 +42,30 @@ public class LogApiImpl implements LogApi {
 
     @Override
     public Log getLog(String branchId, long index) {
-        return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getLog(index);
+        try {
+            return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getLog(index);
+        } catch (Exception e) {
+            if (e instanceof NullPointerException) {
+                log.debug("GetLog Exception: {}", BRANCH_NOT_FOUND);
+                return Log.createBy(BRANCH_NOT_FOUND);
+            }
+            log.debug("GetLog Exception: {}", e.getMessage());
+            return Log.createBy(e.getMessage());
+        }
     }
 
     @Override
     public List<Log> getLogs(String branchId, long start, long offset) {
-        return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getLogs(start, offset);
+        try {
+            return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getLogs(start, offset);
+        } catch (Exception e) {
+            if (e instanceof NullPointerException) {
+                log.debug("GetLogs Exception: {}", BRANCH_NOT_FOUND);
+                return Collections.singletonList(Log.createBy(BRANCH_NOT_FOUND));
+            }
+            log.debug("GetLogs Exception: {}", e.getMessage());
+            return Collections.singletonList(Log.createBy(e.getMessage()));
+        }
     }
 
     @Override
@@ -53,6 +77,15 @@ public class LogApiImpl implements LogApi {
 
     @Override
     public long curIndex(String branchId) {
-        return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getCurLogIndex();
+        try {
+            return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getCurLogIndex();
+        } catch (Exception e) {
+            if (e instanceof NullPointerException) {
+                log.debug("CurIndex Exception: {}", BRANCH_NOT_FOUND);
+            } else {
+                log.debug("CurIndex Exception : {}", e.getMessage());
+            }
+            return 0;
+        }
     }
 }
