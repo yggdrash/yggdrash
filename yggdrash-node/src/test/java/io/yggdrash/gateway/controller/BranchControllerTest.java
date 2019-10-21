@@ -21,7 +21,9 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Branch;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.node.YggdrashNodeApp;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +48,13 @@ public class BranchControllerTest  extends TestConstants.CiTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private BranchId yggdrashBranchId;
+
+    @Before
+    public void setUp() throws Exception {
+        shouldGetBranches();
+    }
+
     @Test
     public void shouldGetBranches() throws Exception {
         MockHttpServletResponse response = mockMvc.perform(get("/branches"))
@@ -56,6 +65,7 @@ public class BranchControllerTest  extends TestConstants.CiTest {
         JsonObject branchJson = JsonUtil.parseJsonObject(contentAsString);
         for (String key : branchJson.keySet()) {
             Branch branch = Branch.of(branchJson.getAsJsonObject(key));
+            yggdrashBranchId = branch.getBranchId();
             assertThat(branch.getBranchId().toString()).isEqualTo(key);
         }
 
@@ -63,7 +73,7 @@ public class BranchControllerTest  extends TestConstants.CiTest {
 
     @Test
     public void shouldGetStemBranchStates() throws Exception {
-        mockMvc.perform(get("/branches/" + TestConstants.yggdrash() + "/states"))
+        mockMvc.perform(get("/branches/" + yggdrashBranchId + "/states"))
                 .andDo(print())
                 .andExpect(status().isOk()); // TODO fixed already in devBranch
     }

@@ -186,7 +186,7 @@ public class ContractExecutor {
                 }
 
                 blockRuntimeResult.addReceipt(receipt);
-                if (!receipt.getStatus().equals(ExecuteStatus.ERROR)) {
+                if (receipt.getStatus().equals(ExecuteStatus.SUCCESS)) {
                     blockRuntimeResult.setBlockResult(result);
                 } else {
                     log.warn("Error TxId={}, TxLog={}", receipt.getTxId(), receipt.getLog());
@@ -223,7 +223,7 @@ public class ContractExecutor {
                     receipt.setContractVersion(contractVersion);
                     changedValues = invokeMethod(receipt, service, method, new JsonObject());
 
-                    if (!receipt.getStatus().equals(ExecuteStatus.ERROR)
+                    if (receipt.getStatus().equals(ExecuteStatus.SUCCESS)
                             && changedValues != null && changedValues.size() > 0) {
                         result.setBlockResult(changedValues);
                         result.addReceipt(receipt);
@@ -298,7 +298,7 @@ public class ContractExecutor {
         if (!result.getReceipts().isEmpty()) {
             ReceiptStore receiptStore = contractStore.getReceiptStore();
             for (Receipt receipt : result.getReceipts()) {
-                if (!receipt.getStatus().equals(ExecuteStatus.ERROR)) {
+                if (receipt.getStatus().equals(ExecuteStatus.SUCCESS)) {
                     if (receipt.getTxId() == null) { // endBlock
                         receiptStore.put(receipt.getBlockId(), receipt);
                         logIndexer.put(receipt.getBlockId(), receipt.getLog().size());
@@ -308,7 +308,9 @@ public class ContractExecutor {
                     }
                 }
             }
+        }
 
+        if (!result.getBlockResult().isEmpty()) {
             StateStore stateStore = contractStore.getStateStore();
             result.getBlockResult().forEach(stateStore::put);
         }
