@@ -80,7 +80,7 @@ public class TransactionServiceStub extends TransactionServiceGrpc.TransactionSe
 
             @Override
             public void onError(Throwable t) {
-                log.warn("Encountered error in broadcastTx: {}", Status.fromThrowable(t));
+                log.trace("Encountered error in broadcastTx: {}", Status.fromThrowable(t));
             }
 
             @Override
