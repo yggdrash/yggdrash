@@ -58,6 +58,11 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
     public void syncTx(CommonProto.SyncLimit syncLimit, StreamObserver<Proto.TransactionList> responseObserver) {
         BranchId branchId = BranchId.of(syncLimit.getBranch().toByteArray());
         log.debug("Received syncTransaction request branchId={}", branchId);
+        if (branchGroup.getBranch(branchId) == null) {
+            log.debug("Branch Not Found.");
+            return;
+        }
+
         if (!branchGroup.getBranch(branchId).isFullSynced()) {
             log.debug("Not yet fullSynced.");
             return;
