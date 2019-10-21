@@ -98,6 +98,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
     private static final String FEE_TRANSFER_FAIL = "Fee transfer failed";
     private static final String TRANSFER_SUCCESS = "Transfer %s from %s to %s fee %s";
     private static final String TRANSFER_FAIL = "Transfer failed";
+    private static final String TRANSFER_FEE_SUCCESS = "Transfer fee %s from %s success";
+    private static final String TRANSFER_FEE_FAIL = "Transfer fee %s from %s failed";
     private static final String BALANCE_EMPTY = "Balance empty";
     private static final String TRANSFER_FROM_SUCCESS = "TransferFrom %s from %s to %s fee %s by %s";
     private static final String TRANSFER_CHANNEL_FAILED = "Transfer channel failed";
@@ -307,7 +309,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 }
 
             } catch (Exception e) {
-                setErrorTxReceipt(INVALID_PARAMS);
+                setFalseTxReceipt(INVALID_PARAMS);
                 log.debug("{} : {}",INVALID_PARAMS, e.getMessage());
                 return receipt;
             }
@@ -351,7 +353,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 }
 
             } catch (Exception e) {
-                setErrorTxReceipt(INVALID_PARAMS);
+                setFalseTxReceipt(INVALID_PARAMS);
                 log.debug("{} : {}",INVALID_PARAMS, e.getMessage());
                 return receipt;
             }
@@ -463,7 +465,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 }
 
             } catch (Exception e) {
-                setErrorTxReceipt(INVALID_PARAMS);
+                setFalseTxReceipt(INVALID_PARAMS);
                 log.debug("{} : {}",INVALID_PARAMS, e.getMessage());
                 return receipt;
             }
@@ -510,19 +512,40 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 setFalseTxReceipt(TRANSFER_CHANNEL_FAILED);
                 return false; // If neither deposit nor withdraw
             } catch (Exception e) {
-                setErrorTxReceipt(INVALID_PARAMS);
+                setFalseTxReceipt(INVALID_PARAMS);
                 log.debug("{} : {}", INVALID_PARAMS, e.getMessage());
                 return false;
             }
 
         }
 
-        protected boolean transferFee(String from, BigInteger fee) {
-            if (fee.compareTo(BigInteger.ZERO) > 0) {
-                return transfer(from, from, BigInteger.ZERO, fee);
-            } else {
-                return fee.compareTo(BigInteger.ZERO) >= 0; // Return false if fee is less than zero (fee < 0)
+        @ContractChannelMethod
+        public boolean transferFeeChannel(JsonObject params) {
+            try {
+                String from = params.get(FROM).getAsString();
+                BigInteger serviceFee = params.get(SERVICE_FEE).getAsBigInteger();
+                try {
+                    return transferFee(from, serviceFee);
+                } catch (Exception e) {
+                    setErrorTxReceipt(e.getMessage());
+                    log.debug("TransferFeeChannel Exception : {}", e.getMessage());
+                    return false;
+                }
+            } catch (Exception e) {
+                setFalseTxReceipt(INVALID_PARAMS);
+                log.debug("{} : {}", INVALID_PARAMS, e.getMessage());
+                return false;
             }
+        }
+
+        private boolean transferFee(String from, BigInteger fee) {
+            boolean result = checkAmount(fee) && transfer(from, from, BigInteger.ZERO, fee);
+            if (result) {
+                setSuccessTxReceipt(String.format(TRANSFER_FEE_SUCCESS, from, fee));
+            } else {
+                setFalseTxReceipt(String.format(TRANSFER_FEE_FAIL, from, fee));
+            }
+            return result;
         }
 
         private void addBalanceTo(String to, BigInteger amount) {
@@ -600,7 +623,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 }
 
             } catch (Exception e) {
-                setErrorTxReceipt(INVALID_PARAMS);
+                setFalseTxReceipt(INVALID_PARAMS);
                 log.debug("{} : {}", INVALID_PARAMS, e.getMessage());
             }
         }
@@ -695,7 +718,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 }
 
             } catch (Exception e) {
-                setErrorTxReceipt(INVALID_PARAMS);
+                setFalseTxReceipt(INVALID_PARAMS);
                 log.debug("{} : {}", INVALID_PARAMS, e.getMessage());
             }
 
@@ -872,7 +895,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                     log.debug("ClosePropose Exception : {}", e.getMessage());
                 }
             } catch (Exception e) {
-                setErrorTxReceipt(INVALID_PARAMS);
+                setFalseTxReceipt(INVALID_PARAMS);
                 log.debug("{} : {}", INVALID_PARAMS, e.getMessage());
             }
         }
@@ -972,7 +995,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 }
 
             } catch (Exception e) {
-                setErrorTxReceipt(INVALID_PARAMS);
+                setFalseTxReceipt(INVALID_PARAMS);
                 log.debug("{} : {}", INVALID_PARAMS, e.getMessage());
             }
         }
@@ -980,7 +1003,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
         @ContractQuery
         public JsonObject queryTransactionConfirm(JsonObject param) {
             try {
-                String txConfirmId = param.get(TX_CONFIRM_ID).getAsString(); //TODO to lowerCase
+                String txConfirmId = param.get(TX_CONFIRM_ID).getAsString().toLowerCase();
                 TxConfirm confirm = getTxConfirm(txConfirmId);
                 return confirm.toJsonObject();
             } catch (Exception e) {
@@ -1066,7 +1089,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
         private boolean checkNetworkFee(BigInteger fee) {
             BigInteger networkFee = calculateFee();
             if (networkFee.compareTo(fee) > 0) { // Fee must be greater or equal to network fee
-                setErrorTxReceipt(LOW_TX_FEE);
+                setFalseTxReceipt(LOW_TX_FEE);
                 log.debug(LOW_TX_FEE);
                 return false;
             }
@@ -1075,7 +1098,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
         private boolean checkBalanceEmpty(String account) {
             if (isAccountEmpty(account)) { // Balance must not be empty
-                setErrorTxReceipt(BALANCE_EMPTY);
+                setFalseTxReceipt(BALANCE_EMPTY);
                 log.debug(BALANCE_EMPTY);
                 return true;
             }
@@ -1084,7 +1107,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
         private boolean checkBalance(String account, BigInteger amount) {
             if (!isTransferable(getBalance(account), amount)) {
-                setErrorTxReceipt(INSUFFICIENT_FUNDS);
+                setFalseTxReceipt(INSUFFICIENT_FUNDS);
                 log.debug(INSUFFICIENT_FUNDS);
                 return false;
             }
@@ -1093,7 +1116,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
         private boolean checkAmount(BigInteger amount) {
             if (!isPositive(amount)) { // Amount must be greater than zero
-                setErrorTxReceipt(INVALID_AMOUNT);
+                setFalseTxReceipt(INVALID_AMOUNT);
                 log.debug(INVALID_AMOUNT);
                 return false;
             }

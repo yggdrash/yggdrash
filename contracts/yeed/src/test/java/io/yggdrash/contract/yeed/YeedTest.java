@@ -246,63 +246,56 @@ public class YeedTest {
         JsonObject obj = new JsonObject();
         receipt = yeedContract.transfer(obj);
         String invalidParamsLog = Iterables.getLast(receipt.getLog());
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         obj.addProperty("to", "to");
         receipt = yeedContract.transfer(obj);
         assertEquals(invalidParamsLog, Iterables.getLast(receipt.getLog()));
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         // invalid type check
         obj.addProperty("amount", 0.00001);
         receipt = yeedContract.transfer(obj);
         assertEquals(invalidParamsLog, Iterables.getLast(receipt.getLog()));
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         obj.addProperty("amount", "amount!");
         receipt = yeedContract.transfer(obj);
         assertEquals(invalidParamsLog, Iterables.getLast(receipt.getLog()));
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         // Invalid amount check
         obj.addProperty("amount", 0);
         receipt = yeedContract.transfer(obj);
         String invalidAmountLog = Iterables.getLast(receipt.getLog());
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         obj.addProperty("amount", -100);
         receipt = yeedContract.transfer(obj);
         assertEquals(invalidAmountLog, Iterables.getLast(receipt.getLog()));
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         obj.addProperty("amount", -0);
         receipt = yeedContract.transfer(obj);
         assertEquals(invalidAmountLog, Iterables.getLast(receipt.getLog()));
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         obj.addProperty("amount", 100L);
         receipt = yeedContract.transfer(obj);
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
         assertTrue(Iterables.getLast(receipt.getLog()).contains(String.valueOf(DEFAULT_FEE)));
 
-        /*
-        //No limited amount
-        obj.addProperty("amount", BigInteger.TEN.pow(1000000000));
-        receipt = yeedContract.transfer(obj);
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
-        */
-
         // Low Transaction Fee check
         obj.addProperty("fee", 1);
 
         receipt = yeedContract.transfer(obj);
         String lowTxFee = Iterables.getLast(receipt.getLog());
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         obj.addProperty("fee", -100);
 
         receipt = yeedContract.transfer(obj);
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
         assertEquals(lowTxFee, Iterables.getLast(receipt.getLog()));
 
         obj.addProperty("fee", DEFAULT_FEE);
@@ -314,7 +307,7 @@ public class YeedTest {
         obj.add("to", null);
         receipt = yeedContract.transfer(obj);
         assertEquals(invalidParamsLog, Iterables.getLast(receipt.getLog()));
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
     }
 
     @Test
@@ -398,38 +391,30 @@ public class YeedTest {
         JsonObject obj = new JsonObject();
         receipt = yeedContract.approve(obj);
         String invalidParamsLog = Iterables.getLast(receipt.getLog());
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         obj.addProperty("spender", "spender");
         receipt = yeedContract.approve(obj);
         assertEquals(invalidParamsLog, Iterables.getLast(receipt.getLog()));
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         // invalid type check
         obj.addProperty("amount", 0.00001);
         receipt = yeedContract.approve(obj);
         assertEquals(invalidParamsLog, Iterables.getLast(receipt.getLog()));
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         obj.addProperty("amount", -100);
         receipt = yeedContract.approve(obj);
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         obj.addProperty("amount", 0);
         receipt = yeedContract.approve(obj);
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         obj.addProperty("amount", "amount!");
         receipt = yeedContract.approve(obj);
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
-
-        /*
-        //FIXME No limited amount -> SerializationUtil.serializeJson(value) -> The progress of serialization would be freeze.
-        obj.addProperty("amount", BigInteger.TEN.pow(10000000));
-        receipt = yeedContract.approve(obj);
-        assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
-        assertTrue(Iterables.getLast(receipt.getLog()).contains(String.valueOf(DEFAULT_FEE)));
-        */
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         obj.addProperty("amount", 100);
         receipt = yeedContract.approve(obj);
@@ -439,13 +424,13 @@ public class YeedTest {
 
         receipt = yeedContract.approve(obj);
         String lowTxFee = Iterables.getLast(receipt.getLog());
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         obj.addProperty("fee", -100);
 
         receipt = yeedContract.approve(obj);
         assertEquals(lowTxFee, Iterables.getLast(receipt.getLog()));
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         obj.addProperty("fee", DEFAULT_FEE);
 
@@ -461,48 +446,48 @@ public class YeedTest {
         JsonObject obj = new JsonObject();
         receipt = yeedContract.transferFrom(obj);
         String invalidParamsLog = Iterables.getLast(receipt.getLog());
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         obj.addProperty("from", ADDRESS_1);
         obj.addProperty("to", ADDRESS_2);
         receipt = yeedContract.transferFrom(obj);
         assertEquals(invalidParamsLog, Iterables.getLast(receipt.getLog()));
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         // invalid type check
         obj.addProperty("amount", 0.00001);
         receipt = yeedContract.transferFrom(obj);
         assertEquals(invalidParamsLog, Iterables.getLast(receipt.getLog()));
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         obj.addProperty("amount", -100);
         receipt = yeedContract.transferFrom(obj);
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         obj.addProperty("amount", 0);
         receipt = yeedContract.transferFrom(obj);
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         obj.addProperty("amount", "amount!");
         receipt = yeedContract.transferFrom(obj);
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
 
         obj.addProperty("amount", 100);
         receipt = yeedContract.transferFrom(obj);
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus()); // Insufficient funds
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus()); // Insufficient funds
 
         obj.addProperty("fee", 1);
 
         receipt = yeedContract.transferFrom(obj);
         String lowTxFee = Iterables.getLast(receipt.getLog());
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         obj.addProperty("fee", -100);
 
         receipt = yeedContract.transferFrom(obj);
         assertEquals(lowTxFee, Iterables.getLast(receipt.getLog()));
-        assertEquals(ExecuteStatus.ERROR, receipt.getStatus());
+        assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
     }
 
     @Test
@@ -603,7 +588,7 @@ public class YeedTest {
         testTransfer.addProperty("fee", DEFAULT_FEE);
 
         yeedContract.transfer(testTransfer);
-        assertSame(ExecuteStatus.ERROR, yeedContract.receipt.getStatus()); // Insufficient funds
+        assertSame(ExecuteStatus.FALSE, yeedContract.receipt.getStatus()); // Insufficient funds
 
         yeedContract.faucet(emptyParam);
         assertSame(ExecuteStatus.SUCCESS, yeedContract.receipt.getStatus());

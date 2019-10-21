@@ -598,7 +598,7 @@ public class InterChainProcessTest {
 
         yeedContract.issuePropose(proposal);
 
-        assertSame(ExecuteStatus.ERROR, receipt.getStatus());
+        assertSame(ExecuteStatus.FALSE, receipt.getStatus());
         printTxLog();
 
         stakeYeed = new BigInteger("1000000000000000000");
