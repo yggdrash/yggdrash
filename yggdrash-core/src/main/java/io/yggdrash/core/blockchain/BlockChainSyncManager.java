@@ -118,7 +118,7 @@ public class BlockChainSyncManager implements SyncManager {
                 long blockDiff = peerBestBlock - lastBlockIndex;
                 if (peerBestBlock > lastBlockIndex) {
                     if (blockDiff > 10000) {
-                        for (long l = 0; l <= blockDiff / 10000L; l++) {
+                        for (long l = 0; l < blockDiff / 10000L; l++) {
                             peerHandler.getPeer().setBestBlock(lastBlockIndex + (l + 1L) * 10000L);
                             syncBlock(peerHandler, blockChain);
                         }
