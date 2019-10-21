@@ -496,21 +496,25 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 BigInteger serviceFee = params.has(SERVICE_FEE)
                         ? params.get(SERVICE_FEE).getAsBigInteger() : BigInteger.ZERO;
 
-                if (!checkAmount(amount)) {
+                try {
+                    if (checkAmount(amount)
+                            && toAccount.equalsIgnoreCase(contractName)
+                            && fromAccount.equalsIgnoreCase(issuer)) {
+                        // deposit
+                        return transfer(fromAccount, contractAccount, amount, serviceFee);
+                    } else if (fromAccount.equalsIgnoreCase(contractName)) { // withdraw
+                        // withdraw service fee is used contract Account
+                        return transfer(contractAccount, toAccount, amount, serviceFee);
+                    }
+
+                    setFalseTxReceipt(TRANSFER_CHANNEL_FAILED);
+                    return false; // If neither deposit nor withdraw
+                } catch (Exception e) {
+                    setErrorTxReceipt(e.getMessage());
+                    log.debug("TransferChannel Exception : {}", e.getMessage());
                     return false;
                 }
 
-                if (toAccount.equalsIgnoreCase(contractName)
-                        && fromAccount.equalsIgnoreCase(issuer)) {
-                    // deposit
-                    return transfer(fromAccount, contractAccount, amount, serviceFee);
-                } else if (fromAccount.equalsIgnoreCase(contractName)) { // withdraw
-                    // withdraw service fee is used contract Account
-                    return transfer(contractAccount, toAccount, amount, serviceFee);
-                }
-
-                setFalseTxReceipt(TRANSFER_CHANNEL_FAILED);
-                return false; // If neither deposit nor withdraw
             } catch (Exception e) {
                 setFalseTxReceipt(INVALID_PARAMS);
                 log.debug("{} : {}", INVALID_PARAMS, e.getMessage());

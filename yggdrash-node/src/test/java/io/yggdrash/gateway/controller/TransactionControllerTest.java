@@ -111,12 +111,12 @@ public class TransactionControllerTest extends TestConstants.CiTest {
         // Error Tx. Issuer has no balance!
         MockHttpServletResponse postResponse = mockMvc.perform(post(basePath)
                 .contentType(MediaType.APPLICATION_JSON).content(json.write(req).getJson()))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isOk())
                 .andDo(print())
                 .andReturn().getResponse();
 
         boolean containTransfer = postResponse.getContentAsString().contains("transfer");
-        assertThat(containTransfer).isFalse();
+        assertThat(containTransfer).isTrue();
 
         if (containTransfer) {
             String txId = json.parseObject(postResponse.getContentAsString()).txId;
