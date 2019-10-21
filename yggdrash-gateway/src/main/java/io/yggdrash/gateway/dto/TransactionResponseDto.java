@@ -29,4 +29,11 @@ public class TransactionResponseDto {
 
         return txResDto;
     }
+
+    public static TransactionResponseDto createBy(Map<String, List<String>> logs) {
+        TransactionResponseDto txResDto = new TransactionResponseDto();
+        txResDto.logs = logs;
+
+        return txResDto;
+    }
 }

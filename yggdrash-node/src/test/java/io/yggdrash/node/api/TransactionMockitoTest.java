@@ -138,7 +138,6 @@ public class TransactionMockitoTest {
         assertThat(res.txHash).isNotEmpty();
     }
 
-    @Test(expected = FailedOperationException.class)
     public void sendInvalidRawTransaction() {
         TransactionResponseDto res = txApiImpl.sendRawTransaction(tx.toBinary());
         assertFalse(res.status);
