@@ -89,14 +89,26 @@ public class TransactionApiImpl implements TransactionApi {
 
     @Override
     public TransactionResponseDto sendTransaction(TransactionDto tx) {
-        Transaction transaction = TransactionDto.of(tx);
-        return addTx(transaction);
+        try {
+            Transaction transaction = TransactionDto.of(tx);
+            return addTx(transaction);
+        } catch (Exception e) {
+            log.debug("SendTransaction Exception : {}", e.getMessage());
+            return TransactionResponseDto.createBy(
+                    BusinessError.getErrorLogsMap(BusinessError.INVALID_DATA_FORMAT.toValue()));
+        }
     }
 
     @Override
     public TransactionResponseDto sendRawTransaction(byte[] bytes) {
-        Transaction transaction = TransactionImpl.parseFromRaw(bytes);
-        return addTx(transaction);
+        try {
+            Transaction transaction = TransactionImpl.parseFromRaw(bytes);
+            return addTx(transaction);
+        } catch (Exception e) {
+            log.debug("SendRawTransaction Exception : {}", e.getMessage());
+            return TransactionResponseDto.createBy(
+                    BusinessError.getErrorLogsMap(BusinessError.INVALID_DATA_FORMAT.toValue()));
+        }
     }
 
     private TransactionResponseDto addTx(Transaction transaction) {

@@ -39,6 +39,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 
 import static io.yggdrash.node.api.JsonRpcConfig.BLOCK_API;
@@ -241,6 +242,13 @@ public class TransactionApiImplTest {
     public void getRawTransactionHeaderTest() {
         assertThat(txApi.getRawTransactionHeader(yggdrashBranch, testTransactionHash))
                 .isNotNull();
+    }
+
+    @Test
+    public void sendInvalidDataFormatOfRawTx() {
+        byte[] input = "Invalid Raw Transaction Input Data".getBytes();
+        TransactionResponseDto transactionResponseDto = txApi.sendRawTransaction(input);
+        assertTrue(!transactionResponseDto.logs.isEmpty());
     }
 
     @Ignore
