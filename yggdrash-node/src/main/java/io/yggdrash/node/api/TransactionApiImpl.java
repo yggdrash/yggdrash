@@ -116,7 +116,7 @@ public class TransactionApiImpl implements TransactionApi {
         Map<String, List<String>> errorLogs = branchGroup.addTransaction(transaction);
 
         if (errorLogs.size() > 0) {
-            log.warn("AddTx Error : {}", errorLogs);
+            log.debug("AddTx Error : {}", errorLogs);
         }
 
         return errorLogs.size() > 0
