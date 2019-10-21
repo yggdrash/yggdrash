@@ -37,14 +37,6 @@ public class BranchApiImpl implements BranchApi {
     public Set<String> getValidators(String branchId) {
         BlockChain bc = branchGroup.getBranch(BranchId.of(branchId));
         return bc != null ? bc.getValidators().getValidatorMap().keySet() : new HashSet<>();
-        /*
-        if (bc != null) {
-            ValidatorSet vs = bc.getValidators();
-            return vs.getValidatorMap().keySet();
-        } else {
-            return new HashSet<>();
-        }
-        */
     }
 
 }
