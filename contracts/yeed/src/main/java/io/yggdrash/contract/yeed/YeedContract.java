@@ -497,8 +497,11 @@ public class YeedContract implements BundleActivator, ServiceListener {
                         ? params.get(SERVICE_FEE).getAsBigInteger() : BigInteger.ZERO;
 
                 try {
-                    if (checkAmount(amount)
-                            && toAccount.equalsIgnoreCase(contractName)
+                    if (!checkAmount(amount)) {
+                        return false;
+                    }
+
+                    if (toAccount.equalsIgnoreCase(contractName)
                             && fromAccount.equalsIgnoreCase(issuer)) {
                         // deposit
                         return transfer(fromAccount, contractAccount, amount, serviceFee);
