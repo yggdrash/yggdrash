@@ -44,11 +44,10 @@ public class LogApiImpl implements LogApi {
     public Log getLog(String branchId, long index) {
         try {
             return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getLog(index);
+        } catch (NullPointerException ne) {
+            log.debug("GetLog Exception: {}", BRANCH_NOT_FOUND);
+            return Log.createBy(BRANCH_NOT_FOUND);
         } catch (Exception e) {
-            if (e instanceof NullPointerException) {
-                log.debug("GetLog Exception: {}", BRANCH_NOT_FOUND);
-                return Log.createBy(BRANCH_NOT_FOUND);
-            }
             log.debug("GetLog Exception: {}", e.getMessage());
             return Log.createBy(e.getMessage());
         }
@@ -58,11 +57,10 @@ public class LogApiImpl implements LogApi {
     public List<Log> getLogs(String branchId, long start, long offset) {
         try {
             return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getLogs(start, offset);
+        } catch (NullPointerException ne) {
+            log.debug("GetLogs Exception: {}", BRANCH_NOT_FOUND);
+            return Collections.singletonList(Log.createBy(BRANCH_NOT_FOUND));
         } catch (Exception e) {
-            if (e instanceof NullPointerException) {
-                log.debug("GetLogs Exception: {}", BRANCH_NOT_FOUND);
-                return Collections.singletonList(Log.createBy(BRANCH_NOT_FOUND));
-            }
             log.debug("GetLogs Exception: {}", e.getMessage());
             return Collections.singletonList(Log.createBy(e.getMessage()));
         }
@@ -79,13 +77,13 @@ public class LogApiImpl implements LogApi {
     public long curIndex(String branchId) {
         try {
             return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getCurLogIndex();
+        } catch (NullPointerException ne){
+            log.debug("CurIndex Exception: {}", BRANCH_NOT_FOUND);
+            return 0;
         } catch (Exception e) {
-            if (e instanceof NullPointerException) {
-                log.debug("CurIndex Exception: {}", BRANCH_NOT_FOUND);
-            } else {
-                log.debug("CurIndex Exception : {}", e.getMessage());
-            }
+            log.debug("CurIndex Exception : {}", e.getMessage());
             return 0;
         }
     }
+
 }

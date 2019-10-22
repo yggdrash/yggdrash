@@ -151,8 +151,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                         nextBlock.getIndex(), BusinessError.getErrorLogsMap(verificationCode).values());
                 return BusinessError.getErrorLogsMap(verificationCode);
             }
-            // Add best Block
-            branchStore.setBestBlock(nextBlock);
+
             // Run Block Transactions
             // TODO run block execute move to other process (or thread)
             // TODO last execute block will invoke
@@ -173,6 +172,9 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                 branchStore.setLastExecuteBlock(nextBlock);
             }
 
+            // Add best Block
+            branchStore.setBestBlock(nextBlock); // It can be sure that all Txs in BestBlock have been executed.
+
             // BlockChainManager add nextBlock to the blockStore, set the lastConfirmedBlock to nextBlock,
             // and then batch the transactions.
             blockChainManager.addBlock(nextBlock);
@@ -188,7 +190,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                 listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
             }
 
-            flushUnconfirmedErrorTxs();
             nextBlock.loggingBlock(this.blockChainManager.getUnconfirmedTxsSize());
         } catch (Exception e) {
             log.debug("Add block failed. {}", e.getMessage()); //TODO Exception handling
@@ -206,15 +207,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                 .map(Receipt::getEvents)
                 .forEach(contractEventList::addAll);
         return contractEventList;
-    }
-
-    private void flushUnconfirmedErrorTxs() {
-        BlockRuntimeResult result = contractManager.executeTxs(blockChainManager.getUnconfirmedTxs());
-        Set<Sha3Hash> errTxKeys = result.getReceipts().stream()
-                .filter(receipt -> receipt.getStatus().equals(ExecuteStatus.ERROR))
-                .map(receipt -> new Sha3Hash(receipt.getTxId())).collect(Collectors.toSet());
-        log.trace("Flush Unconfirmed Txs. TxSize={}, ErrTxSize={}", result.getReceipts().size(), errTxKeys.size());
-        blockChainManager.flushUnconfirmedTxs(errTxKeys);
     }
 
     @Override

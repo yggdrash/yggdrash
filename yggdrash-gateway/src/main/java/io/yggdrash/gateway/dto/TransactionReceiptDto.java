@@ -46,7 +46,7 @@ public class TransactionReceiptDto {
         transactionDto.issuer = tx.getIssuer();
         transactionDto.contractVersion = tx.getContractVersion();
         transactionDto.blockHeight = tx.getBlockHeight();
-        // TODO Add method Name
+        transactionDto.methodName = tx.getMethod();
 
         return transactionDto;
     }

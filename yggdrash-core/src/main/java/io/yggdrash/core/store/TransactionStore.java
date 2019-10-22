@@ -47,7 +47,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
 
     private final DbSource<byte[], byte[]> db;
 
-    // Shared resources(pendingPool, pendingKesy, stateRoot) must be synchoronized.
+    // Shared resources(pendingPool, pendingKeys, stateRoot) must be synchronized.
     private final Cache<Sha3Hash, Transaction> pendingPool;
     private final List<Sha3Hash> pendingKeys = new ArrayList<>();
 

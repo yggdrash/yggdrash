@@ -17,6 +17,7 @@
 package io.yggdrash.contract.dpoa;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.common.contract.vo.dpoa.ProposeValidatorSet;
@@ -99,7 +100,13 @@ public class DPoAContract implements BundleActivator {
         public Receipt init(JsonObject params) {
             log.info("Initialize DPoA");
             boolean isSuccess = saveInitValidator(params.getAsJsonArray("validators"));
-            receipt.setStatus(isSuccess ? ExecuteStatus.SUCCESS : ExecuteStatus.FALSE);
+            if (isSuccess) {
+                receipt.setStatus(ExecuteStatus.SUCCESS);
+                log.debug("DPoA init success");
+            } else {
+                receipt.setStatus(ExecuteStatus.FALSE);
+                log.error("DPoA init fail");
+            }
             return receipt;
         }
 
@@ -107,8 +114,8 @@ public class DPoAContract implements BundleActivator {
             log.debug("saveInitValidator {}", validators);
             ValidatorSet validatorSet = getValidatorSet();
             if (validatorSet != null) {
-                log.error("initial validator is not null");
-                return false;
+                log.debug("Initial validator is not null");
+                return checkValidatorSet(validators, validatorSet);
             }
 
             validatorSet = new ValidatorSet();
@@ -121,6 +128,21 @@ public class DPoAContract implements BundleActivator {
 
             branchStateStore.setValidators(validatorSet);
 
+            return true;
+        }
+
+        private boolean checkValidatorSet(JsonArray validators, ValidatorSet validatorSet) {
+            if (validators.size() != validatorSet.getValidatorMap().size()) {
+                log.debug("Invalid validators");
+                return false;
+            }
+
+            for (JsonElement validator : validators) {
+                if (!validatorSet.contains(validator.getAsString())) {
+                    log.debug("Invalid validators");
+                    return false;
+                }
+            }
             return true;
         }
 
