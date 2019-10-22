@@ -91,7 +91,7 @@ public class ContractManager implements ContractEventListener {
     public void revertBestBlockStateRoot(ConsensusBlock lastConfirmedBlock) {
         String lastStateRootHash = new Sha3Hash(lastConfirmedBlock.getHeader().getStateRoot(), true).toString();
         this.contractStore.getStateStore().setLastStateRootHash(lastStateRootHash);
-
+        endBlock(lastConfirmedBlock);
     }
 
     @Override

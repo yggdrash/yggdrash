@@ -149,8 +149,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                         nextBlock.getIndex(), BusinessError.getErrorLogsMap(verificationCode).values());
                 return BusinessError.getErrorLogsMap(verificationCode);
             }
-            // Add best Block
-            branchStore.setBestBlock(nextBlock);
+
             // Run Block Transactions
             // TODO run block execute move to other process (or thread)
             // TODO last execute block will invoke
@@ -170,6 +169,9 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
                 branchStore.setLastExecuteBlock(nextBlock);
             }
+
+            // Add best Block
+            branchStore.setBestBlock(nextBlock); // It can be sure that all Txs in BestBlock have been executed.
 
             // BlockChainManager add nextBlock to the blockStore, set the lastConfirmedBlock to nextBlock,
             // and then batch the transactions.

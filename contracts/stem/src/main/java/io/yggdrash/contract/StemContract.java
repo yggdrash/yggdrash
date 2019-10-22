@@ -78,6 +78,7 @@ public class StemContract implements BundleActivator, ServiceListener {
     private static final String GET_CONTRACT_BALANCE_OF = "getContractBalanceOf";
 
     // Log messages
+    private static final String INIT_SUCCESS = "Stem init success";
     private static final String INVALID_AMOUNT = "Invalid amount";
     private static final String INVALID_PARAMS = "Invalid parameters";
     private static final String INVALID_BRANCH = "Invalid branch";
@@ -161,7 +162,7 @@ public class StemContract implements BundleActivator, ServiceListener {
         @InvokeTransaction // TODO remove InvokeTransaction
         public Receipt init(JsonObject params) {
             log.info("[StemContract | genesis] SUCCESS!");
-
+            setSuccessTxReceipt(INIT_SUCCESS);
             // TODO save yeed contract version
             // TODO set yeed contract version interface
 

@@ -247,6 +247,7 @@ public class ContractExecutor {
 
         String methodName = txBody.get("method").getAsString();
         JsonObject params = txBody.getAsJsonObject("params");
+        receipt.setMethod(methodName);
 
         Object service = getService(serviceMap, contractVersion);
         Method method = getMethod(service, contractVersion, ContractMethodType.INVOKE, methodName);
