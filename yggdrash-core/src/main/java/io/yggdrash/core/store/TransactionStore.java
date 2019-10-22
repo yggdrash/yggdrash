@@ -49,7 +49,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
 
     // Shared resources(pendingPool, pendingKeys, stateRoot) must be synchronized.
     private final Cache<Sha3Hash, Transaction> pendingPool;
-    private final List<Sha3Hash> pendingKeys = new ArrayList<>();
+    private final Queue<Sha3Hash> pendingKeys;
 
     private Queue<Transaction> readCache;
 
@@ -62,6 +62,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
                 .createCache("txPool", CacheConfigurationBuilder
                         .newCacheConfigurationBuilder(Sha3Hash.class, Transaction.class,
                                 ResourcePoolsBuilder.heap(CACHE_SIZE)));
+        this.pendingKeys = EvictingQueue.create(CACHE_SIZE);
         this.readCache = EvictingQueue.create(CACHE_SIZE);
     }
 
