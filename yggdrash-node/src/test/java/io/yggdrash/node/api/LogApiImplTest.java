@@ -97,7 +97,6 @@ public class LogApiImplTest {
         int contractSize = bc.getBranchContracts().size();
 
         assertEquals("Last Index", 0, mgr.getLastIndex());
-        assertEquals("Tx Count", contractSize, mgr.countOfTxs());
 
         int generateTx = 33;
         ConsensusBlock<PbftProto.PbftBlock> block = BlockChainTestUtils.createBlockListWithTxs(

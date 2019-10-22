@@ -76,13 +76,11 @@ class TransactionController {
 
     @GetMapping
     public ResponseEntity getAll(@PathVariable(name = BRANCH_ID) String branchId) {
-        long countOfTotal = branchGroup.countOfTxs(BranchId.of(branchId));
         List<Transaction> txs = new ArrayList<>(branchGroup.getRecentTxs(BranchId.of(branchId)));
         List<TransactionDto> dtoList = txs.stream().sorted(Comparator.reverseOrder())
                 .map(TransactionDto::createBy).collect(Collectors.toList());
 
         Map<String, Object> res = new HashMap<>();
-        res.put("countOfTotal", countOfTotal);
         res.put("txs", dtoList);
         return ResponseEntity.ok(res);
     }

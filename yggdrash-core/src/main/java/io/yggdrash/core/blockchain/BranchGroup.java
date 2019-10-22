@@ -154,8 +154,4 @@ public class BranchGroup {
         }
     }
 
-    public long countOfTxs(BranchId branchId) {
-        return isBranchExist(branchId) ? branches.get(branchId).getBlockChainManager().countOfTxs() : 0L;
-    }
-
 }

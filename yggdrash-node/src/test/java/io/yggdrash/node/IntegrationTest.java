@@ -195,7 +195,6 @@ public class IntegrationTest extends TcpNodeTesting {
 
         BlockChainManager blockChainManager = branch.getBlockChainManager();
         if (blockChainManager.getLastIndex() == 0) { // not synced yet
-            Assert.assertEquals(3, blockChainManager.countOfTxs()); // genesis txs
             Assert.assertEquals(1, blockChainManager.countOfBlocks()); // only genesis block
         }
     }

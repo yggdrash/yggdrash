@@ -112,7 +112,6 @@ public class YeedContractE2ETest extends TestConstants.SlowTest {
         ConsensusBlock<PbftProto.PbftBlock> genesis = BlockChainTestUtils.genesisBlock();
 
         assertEquals(1, mgr.countOfBlocks());
-        assertEquals(genesis.getBody().getTransactionList().size(), mgr.countOfTxs());
         assertEquals(genesis.getBody().getTransactionList().size(), mgr.getRecentTxs().size());
 
         ConsensusBlock<PbftProto.PbftBlock> block = BlockChainTestUtils.createNextBlock(
@@ -121,7 +120,6 @@ public class YeedContractE2ETest extends TestConstants.SlowTest {
         bc.addBlock(block, false);
 
         assertEquals(2, mgr.countOfBlocks());
-        assertEquals(13, bc.getBlockChainManager().countOfTxs());
         assertEquals(13, bc.getBlockChainManager().getRecentTxs().size());
         assertEquals(0, bc.getBlockChainManager().getUnconfirmedTxs().size());
 
@@ -140,7 +138,6 @@ public class YeedContractE2ETest extends TestConstants.SlowTest {
         Utils.sleep(10000);
 
         assertEquals(203, mgr.getRecentTxs().size());
-        assertEquals(203, mgr.countOfTxs());
         assertEquals(0, mgr.getUnconfirmedTxs().size());
         BigInteger frontierExpected = new BigInteger("1000000000000000000000");
         frontierExpected = frontierExpected.subtract(BigInteger.valueOf(200));
@@ -185,7 +182,6 @@ public class YeedContractE2ETest extends TestConstants.SlowTest {
 
         assertEquals(mgr.getLastIndex(), blockJsonRpc.blockNumber(branchId.toString()));
         assertEquals(303, mgr.getRecentTxs().size());
-        assertEquals(303, mgr.countOfTxs());
         assertEquals(0, mgr.getUnconfirmedTxs().size());
 
         // assert

@@ -53,8 +53,6 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
 
     private Queue<Transaction> readCache;
 
-    private long countOfTxs = 0;
-
     public TransactionStore(DbSource<byte[], byte[]> db) {
         this.db = db.init();
         this.pendingPool = CacheManagerBuilder
@@ -153,17 +151,13 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
         lock.lock();
         try {
             Map<Sha3Hash, Transaction> map = pendingPool.getAll(keys);
-            int countOfBatchedTxs = map.size();
             for (Map.Entry<Sha3Hash, Transaction> entry : map.entrySet()) {
                 Transaction foundTx = entry.getValue();
                 if (foundTx != null) {
                     db.put(entry.getKey().getBytes(), foundTx.toBinary());
                     addReadCache(foundTx);
-                } else {
-                    countOfBatchedTxs -= 1;
                 }
             }
-            this.countOfTxs += countOfBatchedTxs;
             this.flush(keys);
         } finally {
             lock.unlock();
@@ -174,9 +168,6 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
         readCache.add(tx);
     }
 
-    public long countOfTxs() {
-        return this.countOfTxs;
-    }
 
     public List<Transaction> getUnconfirmedTxsWithLimit(long limit) {
         lock.lock();
@@ -234,7 +225,6 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
         lock.lock();
         try {
             List<Transaction> body = block.getBody().getTransactionList();
-            this.countOfTxs += body.size();
             this.readCache.addAll(body);
         } finally {
             lock.unlock();

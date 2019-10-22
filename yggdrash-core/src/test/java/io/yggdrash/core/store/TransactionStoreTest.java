@@ -82,7 +82,6 @@ public class TransactionStoreTest {
         assertThat(ts.getUnconfirmedTxs().size()).isEqualTo(cacheSize + 1);
         batch();
         assertThat(ts.getUnconfirmedTxs()).isEmpty();
-        assertThat(ts.countOfTxs()).isEqualTo(cacheSize + 1);
         assertThat(ts.getRecentTxs().size()).isEqualTo(cacheSize);
     }
 
@@ -121,7 +120,6 @@ public class TransactionStoreTest {
         ts.put(tx.getHash(), tx);
         batch();
         assertThat(ts.getUnconfirmedTxs()).isEmpty();
-        assertThat(ts.countOfTxs()).isEqualTo(1L);
     }
 
     @Test

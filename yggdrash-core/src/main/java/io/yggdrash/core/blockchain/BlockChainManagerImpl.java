@@ -320,11 +320,6 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     }
 
     @Override
-    public long countOfTxs() {
-        return transactionStore.countOfTxs();
-    }
-
-    @Override
     public boolean containsBlockHash(Sha3Hash blockHash) {
         return blockStore.contains(blockHash);
     }

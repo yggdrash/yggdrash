@@ -62,7 +62,6 @@ public class BlockChainManagerImplTest {
         // invalidTx couldn't be added to blockChain (refer to BlockChainImpl)
 
         assertEquals(0, blockChainManager.getRecentTxs().size()); // haven't done batchTx yet
-        assertEquals(0, blockChainManager.countOfTxs());
         assertEquals(1, blockChainManager.getUnconfirmedTxs().size()); // txPool only contains valid tx
         assertTrue(blockChainManager.getUnconfirmedTxs().contains(tx)); // txPool contains tx
         assertTrue(blockChainManager.contains(tx));
@@ -94,7 +93,6 @@ public class BlockChainManagerImplTest {
         assertEquals(2, blockChainManager.countOfBlocks());
         assertEquals(0, blockChainManager.getUnconfirmedTxs().size());
         assertEquals(10, blockChainManager.getRecentTxs().size());
-        assertEquals(10, blockChainManager.countOfTxs());
 
         assertEquals(32004, blockChainManager.verify(block)); //blockHeight > blockHash, duplicated
         block.getBlock().getBody().getTransactionList().add(BlockChainTestUtils.createTransferTx());
@@ -105,7 +103,6 @@ public class BlockChainManagerImplTest {
         blockChainManager.addBlock(blockWithInvalidTx);
 
         assertEquals(3, blockChainManager.countOfBlocks());
-        assertEquals(20, blockChainManager.countOfTxs());
         assertEquals(20, blockChainManager.getRecentTxs().size()); //invalid tx was excluded
     }
 
