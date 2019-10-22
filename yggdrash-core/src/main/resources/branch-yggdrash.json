@@ -5,7 +5,7 @@
   "description": "TRUST-based Multi-dimensional Blockchains",
   "contracts": [
     {
-      "contractVersion": "65ad5b0821836813a4bd733f04a83adf9969d222",
+      "contractVersion": "2f3d1ab327c1e98fa04d4e155edf51f3726d6d5f",
       "init": {},
       "description": "The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.",
       "name": "STEM",
@@ -46,7 +46,7 @@
       "name": "YEED"
     },
     {
-      "contractVersion": "dba3e93ee7e61921ed95fdba23a8dc6b7dda4563",
+      "contractVersion": "e1a0e57c48674a92c8bb1f9dee2df9e60663d117",
       "isSystem": true,
       "init": {
         "validators": [

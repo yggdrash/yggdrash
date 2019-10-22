@@ -65,11 +65,7 @@ public class TransactionStoreTest {
         pendingPool.put("3", 3);
         pendingKeys.add("3");
 
-
-
-
         ArrayList<Integer> haha = new ArrayList<>(pendingPool.getAll(pendingKeys).values());
-        System.out.println(haha);
     }
 
     @Test
