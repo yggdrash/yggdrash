@@ -78,7 +78,6 @@ public class BranchGroupTest {
 
         // should be existed tx on genesis block
         assertThat(branchGroup.getRecentTxs(tx.getBranchId()).size()).isEqualTo(contractSize);
-        assertThat(branchGroup.countOfTxs(tx.getBranchId())).isEqualTo(contractSize);
 
         Map<String, List<String>> errLogs = branchGroup.addTransaction(tx);
         if (getBalance(tx.getAddress().toString()).equals(BigInteger.ZERO)) {
@@ -144,7 +143,6 @@ public class BranchGroupTest {
         }
 
         BlockChainTestUtils.generateBlock(branchGroup, blockChain.getBranchId());
-        assertThat(blockChain.getBlockChainManager().countOfTxs()).isGreaterThan(countTx); // include genesis tx
     }
 
     @Test

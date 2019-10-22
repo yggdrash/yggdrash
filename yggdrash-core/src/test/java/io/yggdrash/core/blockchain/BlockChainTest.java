@@ -130,7 +130,6 @@ public class BlockChainTest extends CiTest {
             assertThat(blockChainManager.getTxByHash(tx.getHash())).isNotNull();
         }
 
-        assertThat(blockChainManager.countOfTxs()).isEqualTo(genesis.getBody().getCount());
         blockChain.close();
     }
 

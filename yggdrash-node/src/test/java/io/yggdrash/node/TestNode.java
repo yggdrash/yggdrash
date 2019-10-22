@@ -190,8 +190,8 @@ public class TestNode extends BootStrapNode {
         String branchInfo = "";
         if (getDefaultBranch() != null) {
             BlockChainManager blockChainManager = getDefaultBranch().getBlockChainManager();
-            branchInfo = String.format(" bestBlock=%d, txCnt=%d, unConfirmed=%d,", blockChainManager.getLastIndex(),
-                    blockChainManager.countOfTxs(), branchGroup.getUnconfirmedTxs(branchId).size());
+            branchInfo = String.format(" bestBlock=%d, unConfirmed=%d,", blockChainManager.getLastIndex(),
+                    branchGroup.getUnconfirmedTxs(branchId).size());
         }
 
         log.info("{} =>{} peer={}, bucket={}, active={}",

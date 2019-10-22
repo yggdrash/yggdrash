@@ -62,8 +62,6 @@ public interface BlockChainManager<T> {
 
     long getLastIndex();
 
-    long countOfTxs();
-
     long countOfBlocks();
 
     boolean containsBlockHash(Sha3Hash blockHash);

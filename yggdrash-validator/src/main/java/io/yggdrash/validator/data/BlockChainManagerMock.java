@@ -134,11 +134,6 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     }
 
     @Override
-    public long countOfTxs() {
-        return blockChainManager.countOfTxs();
-    }
-
-    @Override
     public long countOfBlocks() {
         return blockChainManager.countOfBlocks();
     }
