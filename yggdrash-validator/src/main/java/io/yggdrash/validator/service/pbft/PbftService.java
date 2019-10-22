@@ -559,7 +559,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
     private PbftMessage makeViewChangeMsg() {
         if (this.failCount < FAIL_COUNT
-                || this.isPrePrepared) {
+                || this.isPrePrepared
+                || this.isViewchanged) {
             return null;
         }
 
