@@ -43,7 +43,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> {
     private static final Logger log = LoggerFactory.getLogger(TransactionStore.class);
     private static final Lock lock = new ReentrantLock();
-    private static final int CACHE_SIZE = 500;
+    private static final int CACHE_SIZE = 1000;
 
     private final DbSource<byte[], byte[]> db;
 
@@ -61,7 +61,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
                 .newCacheManagerBuilder().build(true)
                 .createCache("txPool", CacheConfigurationBuilder
                         .newCacheConfigurationBuilder(Sha3Hash.class, Transaction.class,
-                                ResourcePoolsBuilder.heap(Long.MAX_VALUE)));
+                                ResourcePoolsBuilder.heap(CACHE_SIZE)));
         this.readCache = EvictingQueue.create(CACHE_SIZE);
     }
 
@@ -152,7 +152,6 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
 
         lock.lock();
         try {
-
             Map<Sha3Hash, Transaction> map = pendingPool.getAll(keys);
             int countOfBatchedTxs = map.size();
             for (Map.Entry<Sha3Hash, Transaction> entry : map.entrySet()) {
