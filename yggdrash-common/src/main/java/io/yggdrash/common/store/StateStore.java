@@ -7,6 +7,8 @@ import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 public class StateStore implements ReadWriterStore<String, JsonObject> {
 
     private final DbSource<byte[], byte[]> db;
@@ -15,6 +17,7 @@ public class StateStore implements ReadWriterStore<String, JsonObject> {
     private static final String STATE_ROOT = "stateRoot";
     private static final String STATE_HASH = "stateHash";
 
+    private final ReentrantLock lock = new ReentrantLock();
 
     public StateStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
@@ -36,29 +39,44 @@ public class StateStore implements ReadWriterStore<String, JsonObject> {
     
     @Override
     public void put(String key, JsonObject value) {
-        // Check exist
-        if (db.get(key.getBytes()) == null) {
-            this.dbSize++;
-            byte[] dbSizeByteArray = Longs.toByteArray(this.dbSize);
-            db.put(DATABASE_SIZE, dbSizeByteArray);
+        lock.lock();
+        try {
+            // Check exist
+            if (db.get(key.getBytes()) == null) {
+                this.dbSize++;
+                byte[] dbSizeByteArray = Longs.toByteArray(this.dbSize);
+                db.put(DATABASE_SIZE, dbSizeByteArray);
+            }
+            byte[] tempValue = SerializationUtil.serializeJson(value);
+            db.put(key.getBytes(), tempValue);
+        } finally {
+            lock.unlock();
         }
-        byte[] tempValue = SerializationUtil.serializeJson(value);
-        db.put(key.getBytes(), tempValue);
     }
 
     @Override
     public JsonObject get(String key) {
-        byte[] result = db.get(key.getBytes());
-        if (result == null) {
-            return null;
+        lock.lock();
+        try {
+            byte[] result = db.get(key.getBytes());
+            if (result == null) {
+                return null;
+            }
+            String tempValue = SerializationUtil.deserializeString(result);
+            return JsonUtil.parseJsonObject(tempValue);
+        } finally {
+            lock.unlock();
         }
-        String tempValue = SerializationUtil.deserializeString(result);
-        return JsonUtil.parseJsonObject(tempValue);
     }
 
     @Override
     public boolean contains(String key) {
-        return db.get(key.getBytes()) != null;
+        lock.lock();
+        try {
+            return db.get(key.getBytes()) != null;
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
