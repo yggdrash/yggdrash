@@ -16,8 +16,6 @@ public class StateStore implements ReadWriterStore<String, JsonObject> {
     private static final Logger log = LoggerFactory.getLogger(StateStore.class);
 
     private final DbSource<byte[], byte[]> db;
-    private long dbSize = 0L;
-    private static final byte[] DATABASE_SIZE = "DATABASE_SIZE".getBytes();
     private static final String STATE_ROOT = "stateRoot";
     private static final String STATE_HASH = "stateHash";
 
@@ -25,14 +23,6 @@ public class StateStore implements ReadWriterStore<String, JsonObject> {
 
     public StateStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
-        // getState Size
-        if (db.get(DATABASE_SIZE) != null) {
-            dbSize = Longs.fromByteArray(db.get(DATABASE_SIZE));
-        }
-    }
-
-    public long getStateSize() {
-        return dbSize;
     }
 
     public void setLastStateRootHash(String lastStateRootHash) {
@@ -61,12 +51,6 @@ public class StateStore implements ReadWriterStore<String, JsonObject> {
                 this.get(STATE_ROOT) == null ? "null" : this.get(STATE_ROOT).get(STATE_HASH).getAsString(),
                 value.get(STATE_HASH) == null ? "null" : value.get(STATE_HASH).getAsString());
         try {
-            // Check exist
-            if (db.get(key.getBytes()) == null) {
-                this.dbSize++;
-                byte[] dbSizeByteArray = Longs.toByteArray(this.dbSize);
-                db.put(DATABASE_SIZE, dbSizeByteArray);
-            }
             byte[] tempValue = SerializationUtil.serializeJson(value);
             db.put(key.getBytes(), tempValue);
         } finally {
