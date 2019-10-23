@@ -338,10 +338,6 @@ public class ContractManager implements ContractEventListener {
         return bundleService.getContractList();
     }
 
-    public Long getStateSize() { // TODO for BranchController -> remove this
-        return contractStore.getStateStore().getStateSize();
-    }
-
     // Log Indexer Services
     public Log getLog(long index) {
         return logIndexer.getLog(index);

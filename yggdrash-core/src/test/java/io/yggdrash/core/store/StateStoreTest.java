@@ -47,7 +47,7 @@ public class StateStoreTest {
         String stateKey = "State";
         JsonObject obj = new JsonParser().parse("{\"value\":\"value\"}").getAsJsonObject();
         stateStore.put(stateKey, obj);
-        assertEquals(1L, stateStore.getStateSize());
+        assertEquals(stateStore.get(stateKey).get("value").getAsString(), "value");
     }
 
     @Test
@@ -59,16 +59,5 @@ public class StateStoreTest {
         assertEquals(obj, obj2);
         log.debug(obj.getClass().toString());
     }
-
-    @Test
-    public void getStateSize() {
-        // first is null
-        assertEquals(0L, this.stateStore.getStateSize());
-        // add some state
-        this.stateStore.put("STATE", new JsonObject());
-        // state size is 1L
-        assertEquals(1L, this.stateStore.getStateSize());
-    }
-
 
 }
