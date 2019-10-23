@@ -213,7 +213,7 @@ public class TokenContractTest {
         params.addProperty(TOKEN_ID, "NONE_TOKEN");
         params.addProperty(ADDRESS, tx.getIssuer());
 
-        BigInteger result = tokenContract.totalSupply(params);
+        BigInteger result = tokenContract.balanceOf(params);
 
         tx.getLog().stream().forEach(l -> log.debug(l));
         Assert.assertEquals("The result must be null", null, result);
@@ -798,7 +798,7 @@ public class TokenContractTest {
         tokenContract.transferFrom(params);
 
         tx.getLog().stream().forEach(l -> log.debug(l));
-        Assert.assertFalse("Transfer of nonexistent token should be failed", tx.isSuccess());
+        Assert.assertFalse("Transfer of not running token should be failed", tx.isSuccess());
 
         // move phase to run
         tx = new ReceiptImpl("0x04", 300L, TEST_OWNER);

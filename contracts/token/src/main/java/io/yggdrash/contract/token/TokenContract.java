@@ -36,6 +36,7 @@ import java.util.Hashtable;
  */
 public class TokenContract implements BundleActivator, ServiceListener {
     private static final String TOKEN_CONTRACT_NAME = "TOKEN";
+    private static final String TOKEN_CONTRACT_ACCOUNT = "CONTRACT_ACCOUNTTOKEN";
     private static final String TOKEN_PREFIX = "token-";
 
     private static final String TOKEN_ID = "tokenId";
@@ -462,7 +463,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 setErrorTxReceipt("Insufficient yeed stake of the token for service fee!");
                 return txReceipt;
             }
-            if (burnServiceFeeFromYeedStake(tokenId) == false) {
+            if (burnServiceFeeFromYeedStake(tokenId, DEFAULT_SERVICE_FEE) == false) {
                 setErrorTxReceipt("Insufficient service fee in yeed stake!");
                 return txReceipt;
             }
@@ -510,7 +511,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 setErrorTxReceipt("Insufficient yeed stake of the token for service fee!");
                 return txReceipt;
             }
-            if (burnServiceFeeFromYeedStake(tokenId) == false) {
+            if (burnServiceFeeFromYeedStake(tokenId, DEFAULT_SERVICE_FEE) == false) {
                 setErrorTxReceipt("Insufficient service fee in yeed stake!");
                 return txReceipt;
             }
@@ -558,7 +559,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 setErrorTxReceipt("Insufficient yeed stake of the token for service fee!");
                 return txReceipt;
             }
-            if (burnServiceFeeFromYeedStake(tokenId) == false) {
+            if (burnServiceFeeFromYeedStake(tokenId, DEFAULT_SERVICE_FEE) == false) {
                 setErrorTxReceipt("Insufficient service fee in yeed stake!");
                 return txReceipt;
             }
@@ -602,18 +603,18 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
+            // TODO : kevin : 2019-10-08 : return yeed stake to owner account!
             if (getYeedBalanceOfSub(tokenId).compareTo(DEFAULT_SERVICE_FEE) < 0) {
                 if (burnServiceFeeFromYeedStake(tokenId, getYeedBalanceOfSub(tokenId))) {
                     setErrorTxReceipt("Burning service fee in yeed stake failed!");
                     return txReceipt;
                 }
             }
-            else if (burnServiceFeeFromYeedStake(tokenId) == false) {
+            else if (burnServiceFeeFromYeedStake(tokenId, DEFAULT_SERVICE_FEE) == false) {
                 setErrorTxReceipt("Insufficient service fee in yeed stake!");
                 return txReceipt;
             }
 
-            // TODO : kevin : 2019-10-08 : return yeed stake to owner account!
 
             return null;
         }
@@ -675,7 +676,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 setErrorTxReceipt("Insufficient yeed stake of the token for service fee!");
                 return txReceipt;
             }
-            if (burnServiceFeeFromYeedStake(tokenId) == false) {
+            if (burnServiceFeeFromYeedStake(tokenId, DEFAULT_SERVICE_FEE) == false) {
                 setErrorTxReceipt("Insufficient service fee in yeed stake!");
                 return txReceipt;
             }
@@ -724,7 +725,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 setErrorTxReceipt("Insufficient yeed stake of the token for service fee!");
                 return txReceipt;
             }
-            if (burnServiceFeeFromYeedStake(tokenId) == false) {
+            if (burnServiceFeeFromYeedStake(tokenId, DEFAULT_SERVICE_FEE) == false) {
                 setErrorTxReceipt("Insufficient service fee in yeed stake!");
                 return txReceipt;
             }
@@ -797,7 +798,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 setErrorTxReceipt("Insufficient yeed stake of the token for service fee!");
                 return txReceipt;
             }
-            if (burnServiceFeeFromYeedStake(tokenId) == false) {
+            if (burnServiceFeeFromYeedStake(tokenId, DEFAULT_SERVICE_FEE) == false) {
                 setErrorTxReceipt("Insufficient service fee in yeed stake!");
                 return txReceipt;
             }
@@ -866,7 +867,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 setErrorTxReceipt("Insufficient yeed stake of the token for service fee!");
                 return txReceipt;
             }
-            if (burnServiceFeeFromYeedStake(tokenId) == false) {
+            if (burnServiceFeeFromYeedStake(tokenId, DEFAULT_SERVICE_FEE) == false) {
                 setErrorTxReceipt("Insufficient service fee in yeed stake!");
                 return txReceipt;
             }
@@ -942,7 +943,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 setErrorTxReceipt("Insufficient yeed stake of the token for service fee!");
                 return txReceipt;
             }
-            if (burnServiceFeeFromYeedStake(tokenId) == false) {
+            if (burnServiceFeeFromYeedStake(tokenId, DEFAULT_SERVICE_FEE) == false) {
                 setErrorTxReceipt("Insufficient service fee in yeed stake!");
                 return txReceipt;
             }
@@ -1041,7 +1042,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 setErrorTxReceipt("Insufficient yeed stake of the token for service fee!");
                 return txReceipt;
             }
-            if (burnServiceFeeFromYeedStake(tokenId) == false) {
+            if (burnServiceFeeFromYeedStake(tokenId, DEFAULT_SERVICE_FEE) == false) {
                 setErrorTxReceipt("Insufficient service fee in yeed stake!");
                 return txReceipt;
             }
@@ -1208,7 +1209,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 setErrorTxReceipt("Insufficient yeed stake of the token for service fee!");
                 return txReceipt;
             }
-            if (burnServiceFeeFromYeedStake(tokenId) == false) {
+            if (burnServiceFeeFromYeedStake(tokenId, DEFAULT_SERVICE_FEE) == false) {
                 setErrorTxReceipt("Insufficient service fee in yeed stake!");
                 return txReceipt;
             }
@@ -1266,7 +1267,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 setErrorTxReceipt("Insufficient yeed stake of the token for service fee!");
                 return txReceipt;
             }
-            if (burnServiceFeeFromYeedStake(tokenId) == false) {
+            if (burnServiceFeeFromYeedStake(tokenId, DEFAULT_SERVICE_FEE) == false) {
                 setErrorTxReceipt("Insufficient service fee in yeed stake!");
                 return txReceipt;
             }
@@ -1347,7 +1348,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 setErrorTxReceipt("Insufficient yeed stake of the token for service fee!");
                 return txReceipt;
             }
-            if (burnServiceFeeFromYeedStake(tokenId) == false) {
+            if (burnServiceFeeFromYeedStake(tokenId, DEFAULT_SERVICE_FEE) == false) {
                 setErrorTxReceipt("Insufficient service fee in yeed stake!");
                 return txReceipt;
             }
@@ -1477,21 +1478,15 @@ public class TokenContract implements BundleActivator, ServiceListener {
             return result.get("result").getAsBoolean();
         }
 
-        private boolean burnServiceFeeFromYeedStake(String tokenId) {
-            return burnServiceFeeFromYeedStake(tokenId, DEFAULT_SERVICE_FEE);
-        }
-
         private boolean burnServiceFeeFromYeedStake(String tokenId, BigInteger amount) {
             JsonObject param = new JsonObject();
-            param.addProperty("from", TOKEN_CONTRACT_NAME);
-            param.addProperty("to", "0");
-            param.addProperty(AMOUNT, BigInteger.ZERO);
+            param.addProperty("from", TOKEN_CONTRACT_ACCOUNT);
             param.addProperty(SERVICE_FEE, amount);
 
             String yeedContractVersion = this.branchStateStore.getContractVersion("YEED");
             log.debug("YEED Contract {}", yeedContractVersion);
             JsonObject result = this.channel.call(
-                    yeedContractVersion, ContractMethodType.CHANNEL_METHOD, "transferChannel", param);
+                    yeedContractVersion, ContractMethodType.CHANNEL_METHOD, "transferFeeChannel", param);
 
             if (result.get("result").getAsBoolean()) {
                 BigInteger curYeedBalance = getYeedBalanceOfSub(tokenId);
