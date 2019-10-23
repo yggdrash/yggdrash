@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class TestYeed {
@@ -269,7 +270,81 @@ public class TestYeed {
         return false;
     }
 
+    @ContractChannelMethod
+    public boolean transferFeeChannel(JsonObject params) {
+        try {
+            String from = params.get("from").getAsString();
+            BigInteger serviceFee = params.get("serviceFee").getAsBigInteger();
+            try {
+                return transferFee(from, serviceFee);
+            } catch (Exception e) {
+                setErrorTxReceipt(e.getMessage());
+                log.debug("TransferFeeChannel Exception : {}", e.getMessage());
+                return false;
+            }
+        } catch (Exception e) {
+            setFalseTxReceipt("Invalid parameters");
+            log.debug("{} : {}", "Invalid parameters", e.getMessage());
+            return false;
+        }
+    }
+
+    private static final String TRANSFER_FEE_SUCCESS = "Transfer fee %s from %s success";
+    private static final String TRANSFER_FEE_FAIL = "Transfer fee %s from %s failed";
+
+    private boolean transferFee(String from, BigInteger fee) {
+        boolean result = checkAmount(fee) && transfer(from, from, BigInteger.ZERO, fee);
+        if (result) {
+            setSuccessTxReceipt(String.format(TRANSFER_FEE_SUCCESS, from, fee));
+        } else {
+            setFalseTxReceipt(String.format(TRANSFER_FEE_FAIL, from, fee));
+        }
+        return result;
+    }
+
+    private boolean checkAmount(BigInteger amount) {
+        if (!isPositive(amount)) { // Amount must be greater than zero
+            setFalseTxReceipt("Invalid parameters");
+            log.debug("Invalid parameters");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isPositive(BigInteger amount) {
+        return amount.compareTo(BigInteger.ZERO) > 0; // amount > 0
+    }
+
+
+
     private BigInteger getBalance(String address) {
         return amount.getOrDefault(address, BigInteger.ZERO);
     }
+
+
+    private void setErrorTxReceipt(String msg) {
+        this.txReceipt.setStatus(ExecuteStatus.ERROR);
+        this.txReceipt.addLog(msg);
+    }
+
+    private void setFalseTxReceipt(String msg) {
+        this.txReceipt.setStatus(ExecuteStatus.FALSE);
+        this.txReceipt.addLog(msg);
+    }
+
+    private void setFalseTxReceipt(List<String> msgs) {
+        this.txReceipt.setStatus(ExecuteStatus.FALSE);
+        msgs.forEach(l -> this.txReceipt.addLog(l));
+    }
+
+    private void setSuccessTxReceipt(String msg) {
+        this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
+        this.txReceipt.addLog(msg);
+    }
+
+    private void setSuccessTxReceipt(List<String> msgs) {
+        this.txReceipt.setStatus(ExecuteStatus.SUCCESS);
+        msgs.forEach(l -> this.txReceipt.addLog(l));
+    }
+
 }
