@@ -6,8 +6,14 @@ import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.locks.ReentrantLock;
 
 public class StateStore implements ReadWriterStore<String, JsonObject> {
+
+    private static final Logger log = LoggerFactory.getLogger(StateStore.class);
 
     private final DbSource<byte[], byte[]> db;
     private long dbSize = 0L;
@@ -15,6 +21,7 @@ public class StateStore implements ReadWriterStore<String, JsonObject> {
     private static final String STATE_ROOT = "stateRoot";
     private static final String STATE_HASH = "stateHash";
 
+    private final ReentrantLock lock = new ReentrantLock();
 
     public StateStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
@@ -29,42 +36,72 @@ public class StateStore implements ReadWriterStore<String, JsonObject> {
     }
 
     public void setLastStateRootHash(String lastStateRootHash) {
-        JsonObject obj = new JsonObject();
-        obj.addProperty(STATE_HASH, lastStateRootHash);
-        put(STATE_ROOT, obj);
+        lock.lock();
+        log.debug("STATEROOT: {} -> {}",
+                this.get(STATE_ROOT) == null ? "null" : this.get(STATE_ROOT).get(STATE_HASH).getAsString(),
+                lastStateRootHash);
+        try {
+            JsonObject obj = new JsonObject();
+            obj.addProperty(STATE_HASH, lastStateRootHash);
+            put(STATE_ROOT, obj);
+        } finally {
+            lock.unlock();
+        }
     }
     
     @Override
     public void put(String key, JsonObject value) {
-        // Check exist
-        if (db.get(key.getBytes()) == null) {
-            this.dbSize++;
-            byte[] dbSizeByteArray = Longs.toByteArray(this.dbSize);
-            db.put(DATABASE_SIZE, dbSizeByteArray);
+        log.debug("KEY: {}  VALUE: {}", key, value);
+        if (key == null || value == null) {
+            return;
         }
-        byte[] tempValue = SerializationUtil.serializeJson(value);
-        db.put(key.getBytes(), tempValue);
+
+        lock.lock();
+        log.debug("STATEROOT: {} -> {}",
+                this.get(STATE_ROOT) == null ? "null" : this.get(STATE_ROOT).get(STATE_HASH).getAsString(),
+                value.get(STATE_HASH) == null ? "null" : value.get(STATE_HASH).getAsString());
+        try {
+            // Check exist
+            if (db.get(key.getBytes()) == null) {
+                this.dbSize++;
+                byte[] dbSizeByteArray = Longs.toByteArray(this.dbSize);
+                db.put(DATABASE_SIZE, dbSizeByteArray);
+            }
+            byte[] tempValue = SerializationUtil.serializeJson(value);
+            db.put(key.getBytes(), tempValue);
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public JsonObject get(String key) {
-        byte[] result = db.get(key.getBytes());
-        if (result == null) {
-            return null;
+        lock.lock();
+        try {
+            byte[] result = db.get(key.getBytes());
+            if (result == null) {
+                return null;
+            }
+            String tempValue = SerializationUtil.deserializeString(result);
+            return JsonUtil.parseJsonObject(tempValue);
+        } finally {
+            lock.unlock();
         }
-        String tempValue = SerializationUtil.deserializeString(result);
-        return JsonUtil.parseJsonObject(tempValue);
     }
 
     @Override
     public boolean contains(String key) {
-        return db.get(key.getBytes()) != null;
+        lock.lock();
+        try {
+            return db.get(key.getBytes()) != null;
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public void close() {
         db.close();
     }
-
 
 }
