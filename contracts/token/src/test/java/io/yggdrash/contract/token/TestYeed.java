@@ -272,11 +272,12 @@ public class TestYeed {
 
     @ContractChannelMethod
     public boolean transferFeeChannel(JsonObject params) {
+        String contractName = "TOKEN"; // contract Name base
+        String contractAccount = String.format("%s%s", PrefixKeyEnum.CONTRACT_ACCOUNT, contractName);
         try {
-            String from = params.get("from").getAsString();
             BigInteger serviceFee = params.get("serviceFee").getAsBigInteger();
             try {
-                return transferFee(from, serviceFee);
+                return transferFee(contractAccount, serviceFee);
             } catch (Exception e) {
                 setErrorTxReceipt(e.getMessage());
                 log.debug("TransferFeeChannel Exception : {}", e.getMessage());
