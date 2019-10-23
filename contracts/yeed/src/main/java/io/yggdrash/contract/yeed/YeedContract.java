@@ -529,10 +529,13 @@ public class YeedContract implements BundleActivator, ServiceListener {
         @ContractChannelMethod
         public boolean transferFeeChannel(JsonObject params) {
             try {
-                String from = params.get(FROM).getAsString();
+                String otherContract = this.receipt.getContractVersion();
+                String contractName = this.branchStateStore.getContractName(otherContract);
+                String contractAccount = String.format("%s%s", PrefixKeyEnum.CONTRACT_ACCOUNT, contractName);
+
                 BigInteger serviceFee = params.get(SERVICE_FEE).getAsBigInteger();
                 try {
-                    return transferFee(from, serviceFee);
+                    return transferFee(contractAccount, serviceFee);
                 } catch (Exception e) {
                     setErrorTxReceipt(e.getMessage());
                     log.debug("TransferFeeChannel Exception : {}", e.getMessage());
