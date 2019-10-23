@@ -1,14 +1,16 @@
 package io.yggdrash.common.store;
 
-import com.google.common.primitives.Longs;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.store.datasource.DbSource;
+import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class StateStore implements ReadWriterStore<String, JsonObject> {
@@ -25,23 +27,25 @@ public class StateStore implements ReadWriterStore<String, JsonObject> {
         this.db = dbSource.init();
     }
 
-    public void setLastStateRootHash(String lastStateRootHash) {
-        lock.lock();
-        log.debug("STATEROOT: {} -> {}",
-                this.get(STATE_ROOT) == null ? "null" : this.get(STATE_ROOT).get(STATE_HASH).getAsString(),
-                lastStateRootHash);
-        try {
-            JsonObject obj = new JsonObject();
-            obj.addProperty(STATE_HASH, lastStateRootHash);
-            put(STATE_ROOT, obj);
-        } finally {
-            lock.unlock();
+    public void updatePatch(Map<String, JsonObject> result) {
+        if (db instanceof LevelDbDataSource) {
+            LevelDbDataSource levelDbDataSource = (LevelDbDataSource) this.db;
+            levelDbDataSource.updateByBatch(convertToByteMap(result));
+        } else {
+            result.forEach(this::put);
         }
     }
-    
+
+    private Map<byte[], byte[]> convertToByteMap(Map<String, JsonObject> result) {
+        Map<byte[], byte[]> ret = new HashMap<>();
+        for (String k : result.keySet()) {
+            ret.put(k.getBytes(), SerializationUtil.serializeJson(result.get(k)));
+        }
+        return ret;
+    }
+
     @Override
     public void put(String key, JsonObject value) {
-        log.debug("KEY: {}  VALUE: {}", key, value);
         if (key == null || value == null) {
             return;
         }

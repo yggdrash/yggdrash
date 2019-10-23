@@ -32,14 +32,17 @@ public class BlockRuntimeResult {
     private final Map<String, JsonObject> blockResult = new HashMap<>();
     private final List<Receipt> receipts = new ArrayList<>();
     private final ConsensusBlock block;
+    private final String branchId;
 
     public BlockRuntimeResult(List<Transaction> txList) {
         this.txList.addAll(txList);
         this.block = null;
+        this.branchId = txList.get(0).getBranchId().toString();
     }
 
     public BlockRuntimeResult(ConsensusBlock block) {
         this.block = block;
+        this.branchId = block.getBranchId().toString();
     }
 
     public void setBlockResult(Set<Map.Entry<String, JsonObject>> values) {
@@ -48,6 +51,14 @@ public class BlockRuntimeResult {
 
     public void addReceipt(Receipt receipt) {
         receipts.add(receipt);
+    }
+
+    public void freeze() {
+        if (blockResult.containsKey("stateRoot") && block != null) {
+            JsonObject value = blockResult.get("stateRoot");
+            value.addProperty("blockHeight", block.getIndex());
+            blockResult.put("stateRoot", value);
+        }
     }
 
     public List<Receipt> getReceipts() {
@@ -64,5 +75,9 @@ public class BlockRuntimeResult {
 
     public ConsensusBlock getOriginBlock() {
         return this.block;
+    }
+
+    public String getBranchId() {
+        return this.branchId;
     }
 }

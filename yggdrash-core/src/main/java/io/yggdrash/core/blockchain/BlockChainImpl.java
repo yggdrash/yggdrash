@@ -1,5 +1,6 @@
 package io.yggdrash.core.blockchain;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.ContractVersion;
@@ -91,7 +92,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             log.debug("BlockChain Load in Storage");
             // Load Block Chain Information
             blockChainManager.loadTransaction();
-            contractManager.revertBestBlockStateRoot(blockChainManager.getLastConfirmedBlock());
         }
     }
 
@@ -143,6 +143,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     public Map<String, List<String>> addBlock(ConsensusBlock<T> nextBlock, boolean broadcast) {
         try {
             lock.lock();
+
             int verificationCode = blockChainManager.verify(nextBlock);
             if (verificationCode != BusinessError.VALID.toValue()) {
                 log.trace("addBlock is failed. Index({}) {}",
@@ -150,37 +151,40 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                 return BusinessError.getErrorLogsMap(verificationCode);
             }
 
+            if (isLastExecutedBlock(nextBlock)) {
+                log.info("Block[{}] has already been executed. Save it directly to blockStore.", nextBlock.getIndex());
+                branchStore.setBestBlock(nextBlock);
+                blockChainManager.addBlock(nextBlock);
+                return new HashMap<>();
+            }
+
             // Run Block Transactions
             // TODO run block execute move to other process (or thread)
             // TODO last execute block will invoke
-            if (nextBlock.getIndex() > branchStore.getLastExecuteBlockIndex()) {
-                // Execute block and commit the result of block.
-                BlockRuntimeResult blockResult = contractManager.executeTxs(nextBlock); //TODO Exception
-                // Validate StateRoot
-                Sha3Hash blockResultStateRoot = blockResult.getBlockResult().size() > 0
-                        ? new Sha3Hash(blockResult.getBlockResult().get("stateRoot").get("stateHash").getAsString())
-                        : contractManager.getOriginStateRoot();
-                Sha3Hash nextBlockStateRoot = new Sha3Hash(nextBlock.getHeader().getStateRoot(), true);
-                if (!nextBlockStateRoot.equals(blockResultStateRoot)) {
-                    log.warn("Add block failed. Invalid stateRoot. BlockStateRoot : {}, CurStateRoot : {}"
-                            , nextBlockStateRoot, blockResultStateRoot);
-                    return BusinessError.getErrorLogsMap(BusinessError.INVALID_STATE_ROOT_HASH.toValue());
-                }
 
-                branchStore.setLastExecuteBlock(nextBlock);
+            // Execute block and commit the result of block.
+            BlockRuntimeResult blockResult = contractManager.executeTxs(nextBlock); //TODO Exception
+            Sha3Hash nextBlockStateRoot = new Sha3Hash(nextBlock.getHeader().getStateRoot(), true);
+            // Validate StateRoot
+            Sha3Hash blockResultStateRoot = blockResult.getBlockResult().size() > 0
+                    ? new Sha3Hash(blockResult.getBlockResult().get("stateRoot").get("stateHash").getAsString())
+                    : contractManager.getOriginStateRootHash();
+            if (!nextBlockStateRoot.equals(blockResultStateRoot)) {
+                log.warn("Add block failed. Invalid stateRoot. BlockStateRoot : {}, CurStateRoot : {}"
+                        , nextBlockStateRoot, blockResultStateRoot);
+                return BusinessError.getErrorLogsMap(BusinessError.INVALID_STATE_ROOT_HASH.toValue());
             }
 
+            branchStore.setLastExecuteBlock(nextBlock);
             // Add best Block
             branchStore.setBestBlock(nextBlock); // It can be sure that all Txs in BestBlock have been executed.
-
+            contractManager.commitBlockResult(blockResult);
             // BlockChainManager add nextBlock to the blockStore, set the lastConfirmedBlock to nextBlock,
             // and then batch the transactions.
             blockChainManager.addBlock(nextBlock);
 
-            BlockRuntimeResult endBlockResult = contractManager.endBlock(nextBlock);
-
             // Fire contract event
-            getContractEventList(endBlockResult).stream()
+            getContractEventList(blockResult).stream()
                     .filter(event -> !contractEventListenerList.isEmpty())
                     .forEach(event -> contractEventListenerList.forEach(l -> l.endBlock(event)));
 
@@ -196,6 +200,17 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         }
 
         return new HashMap<>();
+    }
+
+    private boolean isLastExecutedBlock(ConsensusBlock<T> nextBlock) {
+        if (branchStore.getLastExecuteBlockIndex() == nextBlock.getIndex()) {
+            Sha3Hash nextBlockStateRoot = new Sha3Hash(nextBlock.getHeader().getStateRoot(), true);
+            JsonObject originStateRoot = contractManager.getOriginStateRoot();
+            Sha3Hash stateRootHash = new Sha3Hash(originStateRoot.get("stateHash").getAsString());
+            long blockHeight = originStateRoot.get("blockHeight").getAsLong();
+            return nextBlock.getIndex() == blockHeight && nextBlockStateRoot.equals(stateRootHash);
+        }
+        return false;
     }
 
     private List<ContractEvent> getContractEventList(BlockRuntimeResult result) {
@@ -231,7 +246,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     public Map<String, List<String>> addTransaction(Transaction tx, boolean broadcast) {
         lock.lock();
         try {
-            log.trace("AddTransaction: tx={}", tx.getHash().toString());
+            log.trace("addTransaction: tx={}", tx.getHash().toString());
             int verifyResult = blockChainManager.verify(tx);
             if (verifyResult == BusinessError.VALID.toValue()) {
                 log.trace("contractManager.executeTx: {}", tx.getHash().toString());

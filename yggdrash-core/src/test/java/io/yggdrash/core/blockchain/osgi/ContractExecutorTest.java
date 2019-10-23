@@ -197,6 +197,7 @@ public class ContractExecutorTest {
         ConsensusBlock<PbftProto.PbftBlock> nextBlock = BlockChainTestUtils.createNextBlock(
                 wallet, txs, genesisBlock, manager);
         BlockRuntimeResult res = manager.executeTxs(nextBlock); // executeTxs contains commitBlockResult
+        manager.commitBlockResult(res);
 
         res.getReceipts().forEach(r -> assertEquals(ExecuteStatus.SUCCESS, r.getStatus()));
         assertEquals("1000",
@@ -267,6 +268,7 @@ public class ContractExecutorTest {
 
         String errLog = SystemError.CONTRACT_VERSION_NOT_FOUND.toString();
         BlockRuntimeResult res = manager.executeTxs(nextBlock);
+        manager.commitBlockResult(res);
 
         assertEquals(ExecuteStatus.ERROR, res.getReceipts().get(0).getStatus());
 
@@ -275,7 +277,6 @@ public class ContractExecutorTest {
         assertTrue(errReceipt.getLog().contains(errLog));
         assertEquals(errTx.getHash().toString(), errReceipt.getTxId());
         assertEquals(errTx.getAddress().toString(), errReceipt.getIssuer());
-        assertEquals(nextBlock.getHash().toString(), errReceipt.getBlockId());
         assertEquals(branchId.toString(), errReceipt.getBranchId());
         assertEquals(1, errReceipt.getBlockHeight().longValue());
         assertEquals(1, res.getReceipts().size());
@@ -290,6 +291,7 @@ public class ContractExecutorTest {
         Transaction tx = generateTx(BigInteger.valueOf(100)); //method => transfer
         nextBlock = BlockChainTestUtils.createNextBlock(wallet, Collections.singletonList(tx), genesisBlock, manager);
         res = manager.executeTxs(nextBlock);
+        manager.commitBlockResult(res);
 
         assertEquals(10, manager.getCurLogIndex());
         assertEquals(ExecuteStatus.SUCCESS, res.getReceipts().get(0).getStatus());
@@ -397,6 +399,7 @@ public class ContractExecutorTest {
 
     private void assertCommitBlockResult(BlockRuntimeResult res) {
         log.debug("commitBlockResult : blockResultSize = {}", res.getBlockResult().size());
+        manager.commitBlockResult(res);
 
         ReceiptStore receiptStore = contractStore.getReceiptStore();
         for (Receipt receipt : res.getReceipts()) {

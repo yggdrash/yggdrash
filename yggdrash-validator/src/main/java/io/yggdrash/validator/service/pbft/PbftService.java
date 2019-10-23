@@ -351,7 +351,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
         List<Transaction> txList = new ArrayList<>(blockChain.getBlockChainManager().getUnconfirmedTxs());
-        Sha3Hash curStateRootHash = blockChain.getContractManager().getOriginStateRoot();
+        Sha3Hash curStateRootHash = blockChain.getContractManager().getOriginStateRootHash();
 
         List<Transaction> errTxList = new ArrayList<>();
         Set<Sha3Hash> errTxHashes = new HashSet<>();

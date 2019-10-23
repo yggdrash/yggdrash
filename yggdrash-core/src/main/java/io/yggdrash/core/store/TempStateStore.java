@@ -115,7 +115,6 @@ public class TempStateStore implements ReadWriterStore<String, JsonObject> {
         }
     }
 
-
     public Set<Map.Entry<String, JsonObject>> changeValues() {
         return this.tempStore.entrySet();
     }
