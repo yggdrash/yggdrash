@@ -49,9 +49,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
-public class YeedTest {
+public class YeedContractTest {
     private static final YeedContract.YeedService yeedContract = new YeedContract.YeedService();
-    private static final Logger log = LoggerFactory.getLogger(YeedTest.class);
+    private static final Logger log = LoggerFactory.getLogger(YeedContractTest.class);
 
     private static final String ADDRESS_1 = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94"; // validator
     private static final String ADDRESS_2 = "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e"; // validator
@@ -645,6 +645,53 @@ public class YeedTest {
         // Contract Balance is zero
         contractBalance = yeedContract.getContractBalanceOf(param);
         assertEquals("Contract Balance is zero", 0, contractBalance.compareTo(BigInteger.ZERO));
+    }
+
+    @Test
+    public void transferFeeChannelTest() {
+        // Transfer Fee Channel Method is pay fee from contract
+
+        String from = ADDRESS_1;
+        final BigInteger serviceFee = DEFAULT_FEE;
+        final BigInteger amount = BASE_CURRENCY.multiply(BigInteger.valueOf(1000L));
+        String testContractName = "TEST";
+
+        setUpReceipt("0x00", from, BRANCH_ID, 1);
+        JsonObject transferChannelTx = new JsonObject();
+        transferChannelTx.addProperty("from", from);
+        transferChannelTx.addProperty("to",testContractName);
+        transferChannelTx.addProperty("amount", amount);
+        transferChannelTx.addProperty("serviceFee", serviceFee);
+
+        BigInteger originBalance = getBalance(from);
+
+        // Deposit Test
+        boolean result = yeedContract.transferChannel(transferChannelTx);
+        BigInteger depositBalance = getBalance(from);
+        assertTrue("Result is True", result);
+        assertEquals("", originBalance.subtract(amount).subtract(serviceFee), depositBalance);
+
+        JsonObject param = new JsonObject();
+        param.addProperty("contractName", testContractName);
+        BigInteger contractBalance = yeedContract.getContractBalanceOf(param);
+
+        assertEquals("Contract Stake Balance", amount, contractBalance);
+
+        // pay fee
+        BigInteger payFee = DEFAULT_FEE;
+        JsonObject fee = new JsonObject();
+        fee.addProperty("serviceFee", payFee);
+
+
+        yeedContract.transferFeeChannel(fee);
+        BigInteger contractPayFeeBalance = yeedContract.getContractBalanceOf(param);
+
+        log.debug(contractBalance.toString());
+        log.debug(contractPayFeeBalance.toString());
+
+        assertTrue("", contractBalance.compareTo(contractPayFeeBalance) == 1);
+        assertTrue(contractBalance.subtract(contractPayFeeBalance).compareTo(DEFAULT_FEE) == 0);
+
     }
 
     @Test
