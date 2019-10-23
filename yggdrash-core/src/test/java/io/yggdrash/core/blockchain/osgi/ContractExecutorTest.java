@@ -116,7 +116,6 @@ public class ContractExecutorTest {
 
         //tx not yet committed
         assertEquals(0, contractStore.getTmpStateStore().changeValues().size()); //revert after checkTx
-        assertEquals(11, contractStore.getStateStore().getStateSize()); //same with origin state
         assertFalse(contractStore.getReceiptStore().contains(tx.getHash().toString()));
 
         //error tx [insufficient funds of the sender]
@@ -128,7 +127,6 @@ public class ContractExecutorTest {
 
         //tx not yet committed
         assertEquals(0, contractStore.getTmpStateStore().changeValues().size()); //revert after checkTx
-        assertEquals(11, contractStore.getStateStore().getStateSize()); //same with origin state
         assertFalse(contractStore.getReceiptStore().contains(tx.getHash().toString()));
     }
 
@@ -212,13 +210,10 @@ public class ContractExecutorTest {
 
         //tx not yet committed
         assertEquals(0, contractStore.getTmpStateStore().changeValues().size()); //revert after checkTx
-        assertEquals(12, contractStore.getStateStore().getStateSize()); //same with origin state // contains stateRoot
         assertTrue(contractStore.getReceiptStore().contains(txs.get(0).getHash().toString()));
 
         assertEquals(19, manager.getCurLogIndex());
         assertEquals(0, contractStore.getTmpStateStore().changeValues().size()); //revert after checkTx
-        //changed values have been updated (issuer had been allocated coin when initializing genesis)
-        assertEquals(12, contractStore.getStateStore().getStateSize());
 
         txs.stream().map(tx -> contractStore.getReceiptStore() //tx hashes have been stored in receiptStore
                 .contains(tx.getHash().toString()))
@@ -413,7 +408,7 @@ public class ContractExecutorTest {
         }
 
         StateStore stateStore = contractStore.getStateStore();
-        assertEquals(11, stateStore.getStateSize());
+
 
         for (String alloc : genesisTx.getBody().getBody().getAsJsonObject("params").getAsJsonObject("alloc").keySet()) {
             stateStore.contains(alloc);
