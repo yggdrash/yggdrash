@@ -48,8 +48,6 @@ public class BranchControllerTest  extends TestConstants.CiTest {
     @Autowired
     private MockMvc mockMvc;
 
-    private BranchId yggdrashBranchId;
-
     @Before
     public void setUp() throws Exception {
         shouldGetBranches();
@@ -65,16 +63,8 @@ public class BranchControllerTest  extends TestConstants.CiTest {
         JsonObject branchJson = JsonUtil.parseJsonObject(contentAsString);
         for (String key : branchJson.keySet()) {
             Branch branch = Branch.of(branchJson.getAsJsonObject(key));
-            yggdrashBranchId = branch.getBranchId();
             assertThat(branch.getBranchId().toString()).isEqualTo(key);
         }
 
-    }
-
-    @Test
-    public void shouldGetStemBranchStates() throws Exception {
-        mockMvc.perform(get("/branches/" + yggdrashBranchId + "/states"))
-                .andDo(print())
-                .andExpect(status().isOk()); // TODO fixed already in devBranch
     }
 }
