@@ -12,7 +12,7 @@
       "isSystem": true
     },
     {
-      "contractVersion": "ac873320eb636345f27498c10bd15a007bc22211",
+      "contractVersion": "8a784310504fb912c8b6837636bb29c406a41026",
       "isSystem": true,
       "init": {
         "alloc": {
@@ -61,7 +61,7 @@
       "description": "This contract is for a validator."
     },
     {
-      "contractVersion": "4802f8d2b7fe0f72f38ddbd58ef7a855b19d56ff",
+      "contractVersion": "f6e516c5e76cc2014fd6ab0cf8b7f125837c4f8a",
       "isSystem": true,
       "init": {},
       "name": "TOKEN",

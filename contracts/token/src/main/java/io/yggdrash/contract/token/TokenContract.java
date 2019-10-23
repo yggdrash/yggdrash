@@ -36,7 +36,6 @@ import java.util.Hashtable;
  */
 public class TokenContract implements BundleActivator, ServiceListener {
     private static final String TOKEN_CONTRACT_NAME = "TOKEN";
-    private static final String TOKEN_CONTRACT_ACCOUNT = "CONTRACT_ACCOUNTTOKEN";
     private static final String TOKEN_PREFIX = "token-";
 
     private static final String TOKEN_ID = "tokenId";
@@ -1480,7 +1479,6 @@ public class TokenContract implements BundleActivator, ServiceListener {
 
         private boolean burnServiceFeeFromYeedStake(String tokenId, BigInteger amount) {
             JsonObject param = new JsonObject();
-            param.addProperty("from", TOKEN_CONTRACT_ACCOUNT);
             param.addProperty(SERVICE_FEE, amount);
 
             String yeedContractVersion = this.branchStateStore.getContractVersion("YEED");
