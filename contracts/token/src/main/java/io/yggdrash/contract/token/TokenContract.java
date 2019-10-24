@@ -595,7 +595,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
          *               @tokenId
          * @return the receipt
          */
-        @InvokeTransaction
+        // @InvokeTransaction
         public Receipt destroyToken(JsonObject params) {
             String issuer = txReceipt.getIssuer();
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
