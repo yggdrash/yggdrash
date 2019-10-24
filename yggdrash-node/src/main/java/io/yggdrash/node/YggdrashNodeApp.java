@@ -16,10 +16,13 @@
 
 package io.yggdrash.node;
 
+import com.woozooha.adonistrack.filter.AdonistrackFilter;
 import io.yggdrash.common.config.Constants.ActiveProfiles;
 import io.yggdrash.gateway.GatewayConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
@@ -28,6 +31,16 @@ import org.springframework.context.annotation.Profile;
 public class YggdrashNodeApp {
     public static void main(String[] args) {
         SpringApplication.run(YggdrashNodeApp.class, args);
+    }
+
+    @Bean
+    public FilterRegistrationBean<AdonistrackFilter> profileFilter() {
+        FilterRegistrationBean<AdonistrackFilter> registrationBean = new FilterRegistrationBean<>();
+
+        registrationBean.setFilter(new AdonistrackFilter());
+        registrationBean.addUrlPatterns("/*");
+
+        return registrationBean;
     }
 
     @Configuration
