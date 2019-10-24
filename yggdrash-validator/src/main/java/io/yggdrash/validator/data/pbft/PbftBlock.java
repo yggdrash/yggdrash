@@ -26,6 +26,7 @@ import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.PbftProto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
 
 public class PbftBlock extends AbstractConsensusBlock<PbftProto.PbftBlock> {
     private static final Logger log = LoggerFactory.getLogger(PbftBlock.class);
@@ -108,7 +109,7 @@ public class PbftBlock extends AbstractConsensusBlock<PbftProto.PbftBlock> {
                     this.getBlock().getAddress(),
                     this.getBlock().getBody().getCount(),
                     unConfirmedTxs,
-                    new Sha3Hash(this.getHeader().getStateRoot(), true)
+                    Hex.toHexString(this.getHeader().getStateRoot())
             );
         } catch (Exception e) {
             log.debug(e.getMessage());
