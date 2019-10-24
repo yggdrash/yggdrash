@@ -107,7 +107,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         updateTotalValidatorMap();
 
         if (!isValidator()) {
-            log.debug("Node is not validator.");
+            log.warn("Node is not validator.");
             return;
         }
 
@@ -125,14 +125,14 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         try {
             viewChangeMsg = makeViewChangeMsg();
         } catch (Exception e) {
-            log.debug("makeViewChangeMsg() is failed. {}", e.getMessage());
+            log.trace("makeViewChangeMsg() is failed. {}", e.getMessage());
         } finally {
             lock.unlock();
         }
         if (viewChangeMsg != null) {
             multicastMessage(viewChangeMsg);
             if (!waitingForMessage(Constants.PBFT_VIEWCHANGE)) {
-                log.debug("VIEWCHAN messages are not enough.");
+                log.trace("VIEWCHAN messages are not enough.");
             }
         }
 
@@ -140,7 +140,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         try {
             checkPrimary();
         } catch (Exception e) {
-            log.debug("checkPrimary() is failed. {}", e.getMessage());
+            log.trace("checkPrimary() is failed. {}", e.getMessage());
         } finally {
             lock.unlock();
         }
@@ -151,7 +151,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         try {
             prePrepareMsg = makePrePrepareMsg();
         } catch (Exception e) {
-            log.debug("makePrePrepareMsg() is failed. {}", e.getMessage());
+            log.trace("makePrePrepareMsg() is failed. {}", e.getMessage());
         } finally {
             lock.unlock();
         }
@@ -160,7 +160,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
             multicastMessage(prePrepareMsg);
         } else if (!waitingForMessage(Constants.PBFT_PREPREPARE)) {
             failCount++;
-            log.debug("PREPREPARE message is not received.");
+            log.trace("PREPREPARE message is not received.");
         }
 
         // make Prepare msg
@@ -169,7 +169,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         try {
             prepareMsg = makePrepareMsg();
         } catch (Exception e) {
-            log.debug("makePrepareMsg() is failed. {}", e.getMessage());
+            log.trace("makePrepareMsg() is failed. {}", e.getMessage());
         } finally {
             lock.unlock();
         }
@@ -177,7 +177,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         if (prepareMsg != null) {
             multicastMessage(prepareMsg);
             if (!waitingForMessage(Constants.PBFT_PREPARE)) {
-                log.debug("PREPAREM messages are not enough.");
+                log.trace("PREPAREM messages are not enough.");
             }
         }
 
@@ -187,7 +187,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         try {
             commitMsg = makeCommitMsg();
         } catch (Exception e) {
-            log.debug("makeCommitMsg() is failed. {}", e.getMessage());
+            log.trace("makeCommitMsg() is failed. {}", e.getMessage());
         } finally {
             lock.unlock();
         }
@@ -195,7 +195,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         if (commitMsg != null) {
             multicastMessage(commitMsg);
             if (!waitingForMessage(Constants.PBFT_COMMIT)) {
-                log.debug("COMMITMS messages are not enough.");
+                log.trace("COMMITMS messages are not enough.");
             }
         }
 
@@ -204,7 +204,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         try {
             block = confirmFinalBlock();
         } catch (Exception e) {
-            log.debug("confirmFinalBlock() is failed. {}", e.getMessage());
+            log.trace("confirmFinalBlock() is failed. {}", e.getMessage());
         } finally {
             lock.unlock();
         }
@@ -216,7 +216,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
 
     private boolean waitingForMessage(String message) {
         int messageCount;
-        for (int i = 0; i < consensusCount; i++) {
+        for (int i = 0; i < consensusCount * 2; i++) {
             if (Constants.PBFT_PREPREPARE.equals(message)) {
                 messageCount = 1;
             } else {
