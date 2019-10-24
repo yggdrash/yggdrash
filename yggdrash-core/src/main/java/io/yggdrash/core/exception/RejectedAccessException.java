@@ -7,4 +7,14 @@ public class RejectedAccessException extends RuntimeException {
     public RejectedAccessException() {
         super(MSG);
     }
+
+    public RejectedAccessException(String msg) {
+        super(msg);
+    }
+
+    public static class NotFullSynced extends WrongStructuredException {
+        public NotFullSynced() {
+            super(MSG + ". Not yet full synced.");
+        }
+    }
 }

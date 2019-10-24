@@ -19,7 +19,6 @@ package io.yggdrash.node.api;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HexUtil;
-import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.contract.core.ReceiptImpl;
 import io.yggdrash.core.blockchain.BranchGroup;
@@ -134,6 +133,7 @@ public class TransactionMockitoTest {
 
     @Test
     public void sendTransactionTest() {
+        when(branchGroupMock.isFullSynced(tx.getBranchId())).thenReturn(true);
         TransactionResponseDto res = txApiImpl.sendTransaction(TransactionDto.createBy(tx));
         assertThat(res.txHash).isNotEmpty();
     }
@@ -145,6 +145,7 @@ public class TransactionMockitoTest {
 
     @Test
     public void sendRawTransaction() {
+        when(branchGroupMock.isFullSynced(tx.getBranchId())).thenReturn(true);
         TransactionImpl testTx = new TransactionImpl(tx.getInstance());
         TransactionResponseDto res = txApiImpl.sendRawTransaction(testTx.toRawTransaction());
         //success tx

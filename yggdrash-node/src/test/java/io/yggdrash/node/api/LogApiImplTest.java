@@ -19,6 +19,7 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Log;
 import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.exception.DecodeException;
 import io.yggdrash.proto.PbftProto;
 import org.junit.Assert;
 import org.junit.Before;
@@ -142,7 +143,7 @@ public class LogApiImplTest {
         assertEquals(0, res.size());
     }
 
-    @Test
+    @Test(expected = DecodeException.BranchIdNotHexString.class)
     public void exceptionTest() {
         assertEquals(0, logApi.curIndex("String")); //exception decoding Hex string
         assertEquals(0, logApi.curIndex("")); //branch not found

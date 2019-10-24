@@ -105,17 +105,11 @@ public class ContractExecutor {
         return new String(Base64.encodeBase64(bundleSymbolicSha3));
     }
 
-    Object query(Map<String, Object> serviceMap, String contractVersion, String methodName, JsonObject params) {
-        try {
-            Object service = getService(serviceMap, contractVersion);
-            Method method = getMethod(service, contractVersion, ContractMethodType.QUERY, methodName);
+    Object query(Map<String, Object> serviceMap, String contractVersion, String methodName, JsonObject params) throws Exception {
+        Object service = getService(serviceMap, contractVersion);
+        Method method = getMethod(service, contractVersion, ContractMethodType.QUERY, methodName);
 
-            return invokeMethod(service, method, params);
-        } catch (Exception e) {
-            log.error("Query failed. {}", e.getMessage());
-        }
-
-        return null;
+        return invokeMethod(service, method, params);
     }
 
     private TransactionRuntimeResult getTransactionRuntimeResult(Map<String, Object> serviceMap, Transaction tx) {

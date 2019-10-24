@@ -83,7 +83,7 @@ public class BranchConfiguration {
 
         try {
             for (GenesisBlock genesis : branchLoader.getGenesisBlockList()) {
-                if (branchGroup.getBranch(genesis.getBranchId()) != null) {
+                if (branchGroup.isBranchExist(genesis.getBranchId())) {
                     continue;
                 }
                 BlockChain bc = createBranch(genesis);

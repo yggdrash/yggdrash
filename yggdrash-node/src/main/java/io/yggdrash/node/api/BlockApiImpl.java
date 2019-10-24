@@ -4,7 +4,6 @@ import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.consensus.ConsensusBlock;
-import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.gateway.dto.BlockDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,37 +21,25 @@ public class BlockApiImpl implements BlockApi {
 
     @Override
     public long blockNumber(String branchId) {
-        try {
-            return branchGroup.getLastIndex(BranchId.of(branchId));
-        } catch (Exception e) {
-            throw new NonExistObjectException(e.getMessage());
-        }
+        return branchGroup.getLastIndex(BranchId.of(branchId));
     }
 
     @Override
     public BlockDto getBlockByHash(String branchId, String blockId, Boolean bool) {
-        try {
-            ConsensusBlock block = branchGroup.getBlockByHash(BranchId.of(branchId), blockId);
-            return BlockDto.createBy(block);
-        } catch (Exception exception) {
-            throw new NonExistObjectException("block");
-        }
+        ConsensusBlock block = branchGroup.getBlockByHash(BranchId.of(branchId), blockId);
+        return BlockDto.createBy(block);
     }
 
     @Override
     public BlockDto getBlockByNumber(String branchId, long numOfBlock, Boolean bool) {
-        try {
-            ConsensusBlock block = branchGroup.getBlockByIndex(BranchId.of(branchId), numOfBlock);
-            return BlockDto.createBy(block);
-        } catch (Exception exception) {
-            throw new NonExistObjectException("block");
-        }
+        ConsensusBlock block = branchGroup.getBlockByIndex(BranchId.of(branchId), numOfBlock);
+        return BlockDto.createBy(block);
     }
 
     @Override
     public BlockDto getLastBlock(String branchId) {
-        BranchId id = BranchId.of(branchId);
-        ConsensusBlock block = branchGroup.getBlockByIndex(id, branchGroup.getLastIndex(id));
+        ConsensusBlock block = branchGroup.getBlockByIndex(BranchId.of(branchId), branchGroup.getLastIndex(BranchId.of(branchId)));
         return BlockDto.createBy(block);
     }
+
 }

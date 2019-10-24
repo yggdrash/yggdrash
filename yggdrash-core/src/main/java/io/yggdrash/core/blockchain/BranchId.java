@@ -21,6 +21,8 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.SerializationUtil;
+import io.yggdrash.core.exception.DecodeException;
+import org.spongycastle.util.encoders.DecoderException;
 import org.spongycastle.util.encoders.Hex;
 
 public class BranchId {
@@ -68,7 +70,11 @@ public class BranchId {
     }
 
     public static BranchId of(String hash) {
-        return new BranchId(Hex.decode(hash));
+        try {
+            return new BranchId(Hex.decode(hash));
+        } catch (DecoderException e) {
+            throw new DecodeException.BranchIdNotHexString();
+        }
     }
 
     public static BranchId of(byte[] hash) {

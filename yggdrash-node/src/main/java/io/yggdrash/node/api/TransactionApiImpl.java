@@ -2,16 +2,14 @@ package io.yggdrash.node.api;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.common.crypto.HexUtil;
-import io.yggdrash.contract.core.Receipt;
-import io.yggdrash.contract.core.ReceiptImpl;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NonExistObjectException;
-import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.core.exception.errorcode.BusinessError;
+import io.yggdrash.core.exception.RejectedAccessException;
+import io.yggdrash.core.exception.WrongStructuredException;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
 import io.yggdrash.gateway.dto.TransactionResponseDto;
@@ -54,9 +52,6 @@ public class TransactionApiImpl implements TransactionApi {
     @Override
     public TransactionDto getTransactionByHash(String branchId, String txId) {
         Transaction tx = branchGroup.getTxByHash(BranchId.of(branchId), txId);
-        if (tx == null) {
-            throw new NonExistObjectException("Transaction");
-        }
         return TransactionDto.createBy(tx);
     }
 
@@ -83,46 +78,26 @@ public class TransactionApiImpl implements TransactionApi {
             long lastIndex = branchGroup.getLastIndex(BranchId.of(branchId));
             return getTransactionByBlockNumber(branchId, lastIndex, txIndexPosition);
         } else {
-            return null;
+            throw new NonExistObjectException(tag);
         }
     }
 
     @Override
     public TransactionResponseDto sendTransaction(TransactionDto tx) {
-        try {
-            Transaction transaction = TransactionDto.of(tx);
-            return addTx(transaction);
-        } catch (Exception e) {
-            log.debug("SendTransaction Exception : {}", e.getMessage());
-            return TransactionResponseDto.createBy(
-                    BusinessError.getErrorLogsMap(BusinessError.INVALID_DATA_FORMAT.toValue()));
-        }
+        Transaction transaction = TransactionDto.of(tx);
+        return addTx(transaction);
     }
 
     @Override
     public TransactionResponseDto sendRawTransaction(byte[] bytes) {
-        try {
-            Transaction transaction = TransactionImpl.parseFromRaw(bytes);
-            return addTx(transaction);
-        } catch (Exception e) {
-            log.debug("SendRawTransaction Exception : {}", e.getMessage());
-            return TransactionResponseDto.createBy(
-                    BusinessError.getErrorLogsMap(BusinessError.INVALID_DATA_FORMAT.toValue()));
-        }
+        Transaction transaction = TransactionImpl.parseFromRaw(bytes);
+        return addTx(transaction);
     }
 
     private TransactionResponseDto addTx(Transaction transaction) {
-        try {
-            if (!branchGroup.getBranch(transaction.getBranchId()).isFullSynced()) {
-                log.debug("SendRawTransaction is failed. Not yet fullSynced. {}", transaction.getBranchId().toString());
-                return TransactionResponseDto.createBy(transaction.getHash().toString(), false,
-                        BusinessError.getErrorLogsMap(BusinessError.UNDEFINED_ERROR.toValue()
-                        ));
-            }
-        } catch (Exception e) {
-            log.debug("SendTx failed. {}", e.getMessage());
-            return TransactionResponseDto.createBy(transaction.getHash().toString(), false,
-                    BusinessError.getErrorLogsMap(BusinessError.UNDEFINED_ERROR.toValue()));
+        if (!branchGroup.isFullSynced(transaction.getBranchId())) {
+            log.debug("SendRawTransaction is failed. Not yet fullSynced. {}", transaction.getBranchId().toString());
+            throw new RejectedAccessException.NotFullSynced();
         }
 
         Map<String, List<String>> errorLogs = branchGroup.addTransaction(transaction);
@@ -155,22 +130,12 @@ public class TransactionApiImpl implements TransactionApi {
 
     @Override
     public TransactionReceiptDto getTransactionReceipt(String branchId, String txId) {
-        Receipt receipt;
-        try {
-            receipt = branchGroup.getReceipt(BranchId.of(branchId), txId);
-        } catch (NullPointerException ex) {
-            receipt = new ReceiptImpl();
-            log.debug("Null Receipt : {}", txId);
-        }
-        return TransactionReceiptDto.createBy(receipt);
+        return TransactionReceiptDto.createBy(branchGroup.getReceipt(BranchId.of(branchId), txId));
     }
 
     @Override
     public String getRawTransaction(String branchId, String txId) {
         Transaction tx = branchGroup.getTxByHash(BranchId.of(branchId), txId);
-        if (tx == null) {
-            throw new NonExistObjectException("Transaction");
-        }
         byte[] rawTransaction = tx.toRawTransaction();
 
         return HexUtil.toHexString(rawTransaction);
@@ -179,9 +144,7 @@ public class TransactionApiImpl implements TransactionApi {
     @Override
     public String getRawTransactionHeader(String branchId, String txId) {
         Transaction tx = branchGroup.getTxByHash(BranchId.of(branchId), txId);
-        if (tx == null) {
-            throw new NonExistObjectException("Transaction");
-        }
+
         byte[] rawTransactionBinary = tx.getHeader().getBinaryForSigning();
         byte[] transactionSign = tx.getSignature();
 
@@ -190,7 +153,7 @@ public class TransactionApiImpl implements TransactionApi {
             bao.write(rawTransactionBinary);
             bao.write(transactionSign);
         } catch (IOException e) {
-            throw new NotValidateException();
+            throw new WrongStructuredException.InvalidTx();
         }
 
         byte[] rawTransactionHeader = bao.toByteArray();
