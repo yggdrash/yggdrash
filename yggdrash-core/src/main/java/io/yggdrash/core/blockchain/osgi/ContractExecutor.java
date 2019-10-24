@@ -2,7 +2,6 @@ package io.yggdrash.core.blockchain.osgi;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.crypto.HashUtil;
-import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.contract.core.ReceiptAdapter;
@@ -12,7 +11,6 @@ import io.yggdrash.contract.core.annotation.ContractChannelField;
 import io.yggdrash.contract.core.annotation.ContractReceipt;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.channel.ContractMethodType;
-import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.LogIndexer;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
@@ -126,7 +124,7 @@ public class ContractExecutor {
         locker.lock();
         try {
             txRuntimeResult = new TransactionRuntimeResult(tx);
-            Receipt receipt = createReceipt(tx, null);
+            Receipt receipt = createTxReceipt(tx, null);
             Set<Map.Entry<String, JsonObject>> result = null;
             try {
                 result = invokeTx(serviceMap, tx, receipt);
@@ -175,8 +173,7 @@ public class ContractExecutor {
                     ? nextBlock.getBody().getTransactionList() : blockRuntimeResult.getTxList();
 
             for (Transaction tx : txList) {
-                // get all exceptions
-                Receipt receipt = createReceipt(tx, nextBlock);
+                Receipt receipt = createTxReceipt(tx, nextBlock);
 
                 Set<Map.Entry<String, JsonObject>> result = null;
                 try {
@@ -193,50 +190,34 @@ public class ContractExecutor {
                 }
             }
 
-            if (nextBlock != null) {
-                commitBlockResult(blockRuntimeResult);
-            }
-            contractStore.getTmpStateStore().close();
+            return endBlock(serviceMap, blockRuntimeResult);
         } finally {
             locker.unlock();
         }
-
-        return blockRuntimeResult;
     }
 
-    BlockRuntimeResult endBlock(Map<String, Object> serviceMap, ConsensusBlock addedBlock) {
-        locker.lock();
-        BlockRuntimeResult result = new BlockRuntimeResult(addedBlock);
+    BlockRuntimeResult endBlock(Map<String, Object> serviceMap, BlockRuntimeResult result) {
+        int i = 0;
+        for (String contractVersion : serviceMap.keySet()) {
+            Object service = serviceMap.get(contractVersion);
+            List<Method> values = new ArrayList<>(contractCache
+                    .getContractMethodMap(contractVersion, ContractMethodType.END_BLOCK, service)
+                    .values());
+            if (!values.isEmpty()) {
+                // Each contract has only one endBlock method
+                Method method = values.get(0);
+                Receipt receipt = createBlockReceipt(result, contractVersion, i);
+                Set<Map.Entry<String, JsonObject>> changedValues
+                        = invokeMethod(receipt, service, method, new JsonObject());
 
-        try {
-            int i = 0;
-            Set<Map.Entry<String, JsonObject>> changedValues;
-            for (String contractVersion : serviceMap.keySet()) {
-                Receipt receipt = createReceipt(addedBlock, i);
-                Object service = serviceMap.get(contractVersion);
-                List<Method> values = new ArrayList<>(contractCache
-                        .getContractMethodMap(contractVersion, ContractMethodType.END_BLOCK, service)
-                        .values());
-                if (!values.isEmpty()) {
-                    // Each contract has only one endBlock method
-                    Method method = values.get(0);
-                    receipt.setContractVersion(contractVersion);
-                    changedValues = invokeMethod(receipt, service, method, new JsonObject());
-
-                    if (receipt.getStatus().equals(ExecuteStatus.SUCCESS)
-                            && changedValues != null && changedValues.size() > 0) {
-                        result.setBlockResult(changedValues);
-                        result.addReceipt(receipt);
-                        i++;
-                    }
+                if (receipt.getStatus().equals(ExecuteStatus.SUCCESS) && changedValues.size() > 0) {
+                    result.setBlockResult(changedValues);
+                    result.addReceipt(receipt);
+                    i++;
                 }
             }
-            commitBlockResult(result);
-            contractStore.getTmpStateStore().close();
-        } finally {
-            locker.unlock();
         }
-
+        contractStore.getTmpStateStore().close();
         return result;
     }
 
@@ -296,61 +277,53 @@ public class ContractExecutor {
     }
 
     void commitBlockResult(BlockRuntimeResult result) {
-        if (!result.getReceipts().isEmpty()) {
-            ReceiptStore receiptStore = contractStore.getReceiptStore();
-            for (Receipt receipt : result.getReceipts()) {
-                if (receipt.getStatus().equals(ExecuteStatus.SUCCESS)) {
-                    if (receipt.getTxId() == null) { // endBlock
-                        receiptStore.put(receipt.getBlockId(), receipt);
-                        logIndexer.put(receipt.getBlockId(), receipt.getLog().size());
-                    } else {
-                        receiptStore.put(receipt.getTxId(), receipt);
-                        logIndexer.put(receipt.getTxId(), receipt.getLog().size());
+        locker.lock();
+        try {
+            if (!result.getReceipts().isEmpty()) {
+                ReceiptStore receiptStore = contractStore.getReceiptStore();
+                for (Receipt receipt : result.getReceipts()) {
+                    if (receipt.getStatus().equals(ExecuteStatus.SUCCESS)) {
+                        if (receipt.getTxId() == null) { // endBlock
+                            receiptStore.put(receipt.getBlockId(), receipt);
+                            logIndexer.put(receipt.getBlockId(), receipt.getLog().size());
+                        } else {
+                            receiptStore.put(receipt.getTxId(), receipt);
+                            logIndexer.put(receipt.getTxId(), receipt.getLog().size());
+                        }
                     }
                 }
             }
-        }
 
-        if (!result.getBlockResult().isEmpty()) {
-            StateStore stateStore = contractStore.getStateStore();
-            result.getBlockResult().forEach(stateStore::put);
+            if (!result.getBlockResult().isEmpty()) {
+                result.freeze(); // Set blockHeight of stateRootHash
+                contractStore.getStateStore().updatePatch(result.getBlockResult());
+            }
+            contractStore.getTmpStateStore().close(); // Set StateRootHash of TempStateStore
+        } finally {
+            locker.unlock();
         }
     }
 
-    private static Receipt createReceipt(ConsensusBlock consensusBlock, int index) { //for endBlock
-        Block block = consensusBlock.getBlock();
-        String issuer = block.getAddress().toString();
-        String branchId = block.getBranchId().toString();
-        String blockId = String.format("%s%d", block.getHash().toString(), index);
-        long blockSize = block.getLength();
-        long blockHeight = block.getIndex();
-
-        return new ReceiptImpl(issuer, branchId, blockId, blockSize, blockHeight);
+    private Receipt createBlockReceipt(BlockRuntimeResult result, String contractVersion, int index) {
+        ConsensusBlock block = result.getOriginBlock();
+        String branchId = result.getBranchId(); // instead of issuer
+        String blockId = block != null? String.format("%s%d", block.getHash().toString(), index) : "";
+        long blockSize = block != null ? block.getLength() : 0;
+        long blockHeight = block != null
+                ? block.getIndex() : contractStore.getBranchStore().getLastExecuteBlockIndex() + 1;
+        return ReceiptImpl.createBlockReceipt(branchId, blockId, blockSize, blockHeight, contractVersion);
     }
 
-    private Receipt createReceipt(Transaction tx, ConsensusBlock block) {
+    private Receipt createTxReceipt(Transaction tx, ConsensusBlock block) {
+        String issuer = tx.getAddress().toString();
+        String branchId = tx.getBranchId().toString();
         String txId = tx.getHash().toString();
         long txSize = tx.getBody().getLength();
-        String issuer = tx.getAddress().toString();
-
-        Receipt receipt;
-        if (tx.getBody().getBody().get(CONTACT_VERSION) == null) {
-            receipt = new ReceiptImpl(txId, txSize, issuer);
-        } else {
-            receipt = new ReceiptImpl(txId, txSize, issuer,
-                    tx.getBody().getBody().get(CONTACT_VERSION).getAsString());
-        }
-
-        if (block != null) {
-            receipt.setBlockId(block.getHash().toString());
-            receipt.setBlockHeight(block.getIndex());
-        } else {
-            receipt.setBlockHeight(contractStore.getBranchStore().getLastExecuteBlockIndex() + 1);
-        }
-
-        receipt.setBranchId(tx.getBranchId().toString());
-
-        return receipt;
+        long blockHeight = block != null
+                ? block.getIndex() : contractStore.getBranchStore().getLastExecuteBlockIndex() + 1;
+        String contractVersion = tx.getBody().getBody().has(CONTACT_VERSION)
+                ? tx.getBody().getBody().get(CONTACT_VERSION).getAsString() : "";
+        return ReceiptImpl.createTxReceipt(issuer, branchId, txId, txSize, blockHeight, contractVersion);
     }
 
     private void exceptionHandler(ExecutorException e, Receipt receipt) {

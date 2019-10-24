@@ -88,10 +88,8 @@ public class ContractManager implements ContractEventListener {
 
     }
 
-    public void revertBestBlockStateRoot(ConsensusBlock lastConfirmedBlock) {
-        String lastStateRootHash = new Sha3Hash(lastConfirmedBlock.getHeader().getStateRoot(), true).toString();
-        this.contractStore.getStateStore().setLastStateRootHash(lastStateRootHash);
-        endBlock(lastConfirmedBlock);
+    public void commitBlockResult(BlockRuntimeResult result) {
+        contractExecutor.commitBlockResult(result);
     }
 
     @Override
@@ -356,14 +354,15 @@ public class ContractManager implements ContractEventListener {
         return contractExecutor.query(serviceMap, contractVersion, methodName, params);
     }
 
-    public Sha3Hash getOriginStateRoot() {
+    public Sha3Hash getOriginStateRootHash() {
         return contractStore.getStateStore().contains("stateRoot")
                 ? new Sha3Hash(contractStore.getStateStore().get("stateRoot").get("stateHash").getAsString())
                 : new Sha3Hash(Constants.EMPTY_HASH);
     }
 
-    public BlockRuntimeResult endBlock(ConsensusBlock addedBlock) {
-        return contractExecutor.endBlock(serviceMap, addedBlock);
+    public JsonObject getOriginStateRoot() {
+        return contractStore.getStateStore().contains("stateRoot")
+                ? contractStore.getStateStore().get("stateRoot") : new JsonObject();
     }
 
     public BlockRuntimeResult executeTxs(ConsensusBlock nextBlock) {

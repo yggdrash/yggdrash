@@ -102,9 +102,9 @@ public class ContractTestUtils {
             BlockRuntimeResult executePendingTxs = contractManager.executeTxs(txs);
             return executePendingTxs.getBlockResult().containsKey("stateRoot")
                     ? new Sha3Hash(executePendingTxs.getBlockResult().get("stateRoot").get("stateHash").getAsString())
-                    : contractManager.getOriginStateRoot();
+                    : contractManager.getOriginStateRootHash();
         } else {
-            return contractManager.getOriginStateRoot();
+            return contractManager.getOriginStateRootHash();
         }
     }
 
@@ -123,16 +123,16 @@ public class ContractTestUtils {
         validatorSet.setValidatorMap(validatorMap);
         contractStore.getBranchStore().setValidators(validatorSet);
 
-        contractManager.executeTxs(BlockChainTestUtils.genesisBlock());
+        BlockRuntimeResult genesisResult = contractManager.executeTxs(BlockChainTestUtils.genesisBlock());
+        contractManager.commitBlockResult(genesisResult);
 
         if (prevBlock.getHeader().getIndex() != 0L) {
             byte[] prevStateRoot = prevBlock.getHeader().getStateRoot();
             contractStore.getStateStore().put("stateRoot", createStateHashObj(prevStateRoot));
         }
 
-        contractManager.endBlock(prevBlock);
-
         BlockRuntimeResult result = contractManager.executeTxs(txs);
+        contractManager.commitBlockResult(result);
         return new Sha3Hash(result.getBlockResult().get("stateRoot").get("stateHash").getAsString());
     }
 

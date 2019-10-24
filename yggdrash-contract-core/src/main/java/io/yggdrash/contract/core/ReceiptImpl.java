@@ -38,25 +38,33 @@ public class ReceiptImpl implements Receipt {
     public ReceiptImpl() { //TODO check initialize variables
     }
 
-    public ReceiptImpl(String issuer, String branchId, String blockId, Long blockSize, Long blockHeight) {
-        this.issuer = issuer;
-        this.branchId = branchId;
+    public static Receipt createTxReceipt(
+            String issuer, String branchId, String txId, long txSize, long blockHeight, String contractVersion) {
+        Receipt receipt = new ReceiptImpl(txId, txSize, issuer);
+        receipt.setBranchId(branchId);
+        receipt.setContractVersion(contractVersion);
+        receipt.setBlockHeight(blockHeight);
+        return receipt;
+    }
+
+    public static Receipt createBlockReceipt(
+            String branchId, String blockId, long blockSize, long blockHeight, String contractVersion) {
+        ReceiptImpl receipt = new ReceiptImpl(blockId, blockSize, blockHeight, branchId);
+        receipt.setContractVersion(contractVersion);
+        return receipt;
+    }
+
+    public ReceiptImpl(String blockId, Long blockSize, Long blockHeight, String branchId) {
         this.blockId = blockId;
         this.blockSize = blockSize;
         this.blockHeight = blockHeight;
+        this.branchId = branchId;
     }
 
     public ReceiptImpl(String txId, Long txSize, String issuer) {
         this.txId = txId;
         this.txSize = txSize;
         this.issuer = issuer;
-    }
-
-    public ReceiptImpl(String txId, Long txSize, String issuer, String contractVersion) {
-        this.issuer = issuer;
-        this.txId = txId;
-        this.txSize = txSize;
-        this.contractVersion = contractVersion;
     }
 
     @Override
