@@ -48,7 +48,8 @@ public class GrpcDiscoveryServiceTest {
 
     @Before
     public void setUp() {
-        grpcServerRule.getServiceRegistry().addService(new DiscoveryService(discoveryConsumerMock, null));
+        grpcServerRule.getServiceRegistry().addService(
+                new DiscoveryService(discoveryConsumerMock, null, null));
         yggdrash = TestConstants.yggdrash();
     }
 

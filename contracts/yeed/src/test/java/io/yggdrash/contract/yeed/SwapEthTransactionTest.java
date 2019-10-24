@@ -220,8 +220,8 @@ public class SwapEthTransactionTest {
 
     }
 
-    @Test
     @Ignore
+    @Test
     public void goerliTransaction() {
         // Goerl TEST NET Not support
         String goerli = "0xf86c821717843b9aca0082753094f689d779d9108faa0ba447399fb247768792327887b"

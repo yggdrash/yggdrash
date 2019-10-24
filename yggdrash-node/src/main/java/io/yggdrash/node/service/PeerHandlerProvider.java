@@ -73,7 +73,7 @@ public class PeerHandlerProvider {
 
         private final PbftServiceGrpc.PbftServiceBlockingStub blockingStub;
 
-        public PbftPeerHandler(Peer peer) {
+        PbftPeerHandler(Peer peer) {
             this(ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext().build(), peer);
         }
 
