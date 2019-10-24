@@ -51,9 +51,9 @@ public class StateStore implements ReadWriterStore<String, JsonObject> {
         }
 
         lock.lock();
-        log.debug("STATEROOT: {} -> {}",
-                this.get(STATE_ROOT) == null ? "null" : this.get(STATE_ROOT).get(STATE_HASH).getAsString(),
-                value.get(STATE_HASH) == null ? "null" : value.get(STATE_HASH).getAsString());
+        log.trace("current STATEROOT: {}",
+                this.get(STATE_ROOT) == null ? "null" : this.get(STATE_ROOT).get(STATE_HASH).getAsString());
+        log.trace("Key: {} , Value: {}", key, value);
         try {
             byte[] tempValue = SerializationUtil.serializeJson(value);
             db.put(key.getBytes(), tempValue);

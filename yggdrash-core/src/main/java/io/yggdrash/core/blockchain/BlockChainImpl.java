@@ -92,6 +92,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             log.debug("BlockChain Load in Storage");
             // Load Block Chain Information
             blockChainManager.loadTransaction();
+            log.debug("Current StateRoot -> ", contractManager.getOriginStateRoot().toString());
         }
     }
 
@@ -153,7 +154,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
             if (isLastExecutedBlock(nextBlock)) {
                 log.info("Block[{}] has already been executed. Save it directly to blockStore.", nextBlock.getIndex());
-                branchStore.setBestBlock(nextBlock);
+                branchStore.setLastExecuteBlock(nextBlock);
                 blockChainManager.addBlock(nextBlock);
                 return new HashMap<>();
             }
@@ -203,7 +204,10 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     }
 
     private boolean isLastExecutedBlock(ConsensusBlock<T> nextBlock) {
-        if (branchStore.getLastExecuteBlockIndex() == nextBlock.getIndex()) {
+        if (branchStore.getLastExecuteBlockIndex() >= nextBlock.getIndex()) {
+            log.info("IsLastExecutedBlock? lastExecutedBlock: {} >= nextBlockIndex: {}",
+                    branchStore.getLastExecuteBlockIndex(), nextBlock.getIndex());
+
             Sha3Hash nextBlockStateRoot = new Sha3Hash(nextBlock.getHeader().getStateRoot(), true);
             JsonObject originStateRoot = contractManager.getOriginStateRoot();
             Sha3Hash stateRootHash = new Sha3Hash(originStateRoot.get("stateHash").getAsString());

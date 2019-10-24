@@ -83,7 +83,8 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
                     branchStore.setBestBlock(curBestBlock);
                     //Set lastConfirmedBlock to the changed bestBlock. Currently, the lastConfirmedBlock is null
                     setLastConfirmedBlock(curBestBlock);
-                    log.warn("Reset branchStore bestBlock: {} -> {}", bestBlock, prevIdx);
+                    log.warn("Reset branchStore bestBlock: {} -> {}, lastExecutedBlock: {}",
+                            bestBlock, prevIdx, branchStore.getLastExecuteBlockIndex());
                     break;
                 }
                 updateTxCache(block);
