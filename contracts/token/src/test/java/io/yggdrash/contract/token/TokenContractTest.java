@@ -53,12 +53,12 @@ public class TokenContractTest {
     private static final String SPENDER = "spender";
     private static final String OWNER = "owner";
 
-    private static final String TEST_TOKEN_ID = "ThisIsTestTokenThisIsTestTokenThisIsTest";
+    private static final String TEST_TOKEN_ID = "ThisIsTestTokenThisIsTestTokenThisIsTest".toLowerCase();
     private static final String TEST_OWNER = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
     private static final String TEST_ACCOUNT0 = "0000000000000000000000000000000000000000";
     private static final String TEST_ACCOUNT1 = "1111111111111111111111111111111111111111";
     private static final String TEST_ACCOUNT2 = "2222222222222222222222222222222222222222";
-    private static final String TEST_TARGET_TOKEN_ID = "ThisIsTargetTokenThisIsTargetTokenThisIs";
+    private static final String TEST_TARGET_TOKEN_ID = "ThisIsTargetTokenThisIsTargetTokenThisIs".toLowerCase();
      
 
     private static final Logger log = LoggerFactory.getLogger(TokenContractTest.class);
@@ -251,6 +251,26 @@ public class TokenContractTest {
         Assert.assertEquals(
                 "The result should match with initial YEED stake",
                 0, result.compareTo(new BigInteger("999999900000000000000000")));
+    }
+
+    @Test
+    public void getTokenInfo() {
+        Receipt tx = _testInit();
+
+        // NORMAL
+        JsonObject params = new JsonObject();
+        params.addProperty(TOKEN_ID, TEST_TOKEN_ID);
+
+        JsonObject token = tokenContract.getTokenInfo(params);
+
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertEquals(
+                "The result should match",
+                TEST_TOKEN_ID, token.get(TOKEN_ID).getAsString());
+
+        Assert.assertEquals(
+                "The result should match",
+                "RUN", token.get("tokenPhase").getAsString());
     }
 
     @Test
@@ -614,6 +634,94 @@ public class TokenContractTest {
 
         tx.getLog().stream().forEach(l -> log.debug(l));
         Assert.assertFalse("Phase move STOP to RUN should be failed", tx.isSuccess());
+    }
+
+    @Test
+    public void destroyToken() {
+        _createToken();
+
+        // NONE_TOKEN
+        Receipt tx = new ReceiptImpl("0x02", 300L, TEST_OWNER);
+        this.adapter.setReceipt(tx);
+
+        JsonObject params = new JsonObject();
+        params.addProperty(TOKEN_ID, "NONE_TOKEN");
+
+        tokenContract.destroyToken(params);
+
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Destroy of nonexistent token should be failed", tx.isSuccess());
+
+        // NOT_OWNER
+        params.addProperty(TOKEN_ID, TEST_TOKEN_ID);
+
+        tx = new ReceiptImpl("0x03", 300L, "1111111111111111111111111111111111111111");
+        this.adapter.setReceipt(tx);
+
+        tokenContract.destroyToken(params);
+
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Phase move by who does not own token should be failed", tx.isSuccess());
+
+        // RUN -> PAUSE -> STOP NORMAL -> Destroy
+        tx = new ReceiptImpl("0x04", 300L, TEST_OWNER);
+        this.adapter.setReceipt(tx);
+
+        tokenContract.movePhaseRun(params);
+
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Phase move from INIT to RUN is failed", tx.isSuccess());
+
+        tx = new ReceiptImpl("0x05", 300L, TEST_OWNER);
+        this.adapter.setReceipt(tx);
+
+        tokenContract.movePhasePause(params);
+
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Phase move from RUN to PAUSE is failed", tx.isSuccess());
+
+        tx = new ReceiptImpl("0x06", 300L, TEST_OWNER);
+        this.adapter.setReceipt(tx);
+
+        tokenContract.movePhaseStop(params);
+
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Phase move from PAUSE to STOP is failed", tx.isSuccess());
+
+        tx = new ReceiptImpl("0x16", 300L, TEST_OWNER);
+        this.adapter.setReceipt(tx);
+
+        tokenContract.destroyToken(params);
+
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Destroy is failed", tx.isSuccess());
+
+        // Access to destroyed token FAIL
+        tx = new ReceiptImpl("0x07", 300L, TEST_OWNER);
+        this.adapter.setReceipt(tx);
+
+        tokenContract.movePhaseStop(params);
+
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertFalse("Phase move to STOP of destroyed token should be failed", tx.isSuccess());
+
+        // Access to destroyed token FAIL
+        tx = new ReceiptImpl("0x08", 300L, TEST_OWNER);
+        this.adapter.setReceipt(tx);
+
+        JsonObject tokenInfo = tokenContract.getTokenInfo(params);
+
+        tx.getLog().stream().forEach(l -> log.debug(l));
+        Assert.assertTrue("Destroyed token info should be empty", tokenInfo.get(TOKEN_ID) == null);
+
+        // Yeed balance of owner check (0.4 subtracted)
+        params = new JsonObject();
+        params.addProperty("address", TEST_OWNER);
+
+        BigInteger yeedAmount = testYeed.balanceOf(params);
+        Assert.assertEquals(
+                "Yeed balance of token owner's account address mismatch!!!",
+                0, yeedAmount.compareTo(new BigInteger("9999999999999999999999600000000000000000")));
     }
 
     @Test
