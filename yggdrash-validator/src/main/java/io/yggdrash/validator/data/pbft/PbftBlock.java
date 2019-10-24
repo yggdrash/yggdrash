@@ -18,7 +18,6 @@ package io.yggdrash.validator.data.pbft;
 
 import com.google.gson.JsonObject;
 import com.google.protobuf.InvalidProtocolBufferException;
-import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.consensus.AbstractConsensusBlock;
