@@ -18,6 +18,7 @@ package io.yggdrash.validator.data.pbft;
 
 import com.google.gson.JsonObject;
 import com.google.protobuf.InvalidProtocolBufferException;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.consensus.AbstractConsensusBlock;
@@ -97,7 +98,7 @@ public class PbftBlock extends AbstractConsensusBlock<PbftProto.PbftBlock> {
     @Override
     public void loggingBlock(int unConfirmedTxs) {
         try {
-            log.info("PbftBlock ({}) [{}] ({}) ({}) ({}) ({}) ({}) tx({}) uTx({})",
+            log.info("PbftBlock ({}) [{}] ({}) ({}) ({}) ({}) ({}) tx({}) uTx({}) stateRoot({})",
                     this.getConsensusMessages().getPrePrepare().getViewNumber(),
                     this.getIndex(),
                     this.getHash(),
@@ -106,7 +107,8 @@ public class PbftBlock extends AbstractConsensusBlock<PbftProto.PbftBlock> {
                     this.getConsensusMessages().getViewChangeMap().size(),
                     this.getBlock().getAddress(),
                     this.getBlock().getBody().getCount(),
-                    unConfirmedTxs
+                    unConfirmedTxs,
+                    new Sha3Hash(this.getHeader().getStateRoot(), true)
             );
         } catch (Exception e) {
             log.debug(e.getMessage());
