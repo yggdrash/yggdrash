@@ -130,7 +130,16 @@ public class KademliaPeerNetwork implements PeerNetwork {
             while (true) {
                 try {
                     Transaction tx = txQueue.take();
-                    broadcastTx(tx);
+                    if (tx != null) {
+                        broadcastTx(tx);
+                    } else {
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException e) {
+                            log.trace(e.getMessage());
+                            Thread.currentThread().interrupt();
+                        }
+                    }
                 } catch (Exception e) {
                     log.debug("broadcastTx() is failed. {}", e.getMessage());
                 }
