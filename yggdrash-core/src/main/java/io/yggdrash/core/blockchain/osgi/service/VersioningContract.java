@@ -185,7 +185,10 @@ public class VersioningContract {
                     break;
                 case AGREE:
                     log.debug("The vote ends with agreed. It will be updated.");
-                    ContractEvent agreeEvent = new ContractEvent(ContractEventType.AGREE, proposal, ContractConstants.VERSIONING_CONTRACT.toString());
+                    ContractEvent agreeEvent =
+                            new ContractEvent(
+                                    ContractEventType.AGREE, proposal,
+                                    ContractConstants.VERSIONING_CONTRACT.toString());
                     eventSet.addEvents(agreeEvent);
 
                     proposal.setVotingStatus(VotingProgress.VotingStatus.APPLYING);
@@ -205,7 +208,8 @@ public class VersioningContract {
                     break;
                 case APPLYING:
                     log.debug("The proposal is applying.");
-                    ContractEvent applyEvent = new ContractEvent(ContractEventType.APPLY, proposal, ContractConstants.VERSIONING_CONTRACT.toString());
+                    ContractEvent applyEvent = new ContractEvent(
+                            ContractEventType.APPLY, proposal, ContractConstants.VERSIONING_CONTRACT.toString());
                     eventSet.addEvents(applyEvent);
                     setSuccessTxReceipt(
                             String.format("%s The proposal is applying. tx id : %s", LOG_PREFIX, txId)

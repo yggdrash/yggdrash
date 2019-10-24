@@ -102,7 +102,7 @@ public class BlockChainTest extends CiTest {
     public void shouldBeLoadedStoredBlocks() {
         BlockChain blockChain1 = generateTestBlockChain(true);
 
-        ConsensusBlock<PbftProto.PbftBlock> testBlock= BlockChainTestUtils.createNextBlock(
+        ConsensusBlock<PbftProto.PbftBlock> testBlock = BlockChainTestUtils.createNextBlock(
                 new ArrayList<>(),
                 blockChain1.getBlockChainManager().getLastConfirmedBlock(),
                 blockChain1.getContractManager());

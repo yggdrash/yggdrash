@@ -368,7 +368,7 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
                     .forEach(r -> {
                         errTxHashes.add(new Sha3Hash(r.getTxId()));
                         errTxList.add(blockChain.getBlockChainManager().getTxByHash(new Sha3Hash(r.getTxId())));
-            });
+                    });
 
             // Remove err txs from txList and flush from pendingPool
             txList.removeAll(errTxList);

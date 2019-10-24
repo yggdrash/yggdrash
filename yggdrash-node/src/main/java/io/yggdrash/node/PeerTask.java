@@ -71,7 +71,8 @@ public class PeerTask {
                 for (PeerHandler peerHandler : peerNetwork.getHandlerList(branchId)) {
                     long peerBlockIndex
                             = peerDialer.healthCheck(branchId, peerTableGroup.getOwner(), peerHandler.getPeer());
-                    log.trace("HealthCheck() Node({}) BlockIndex({})", peerHandler.getPeer().getYnodeUri(), peerBlockIndex);
+                    log.trace("HealthCheck() Node({}) BlockIndex({})",
+                            peerHandler.getPeer().getYnodeUri(), peerBlockIndex);
                     if (peerBlockIndex >= 0) {
                         peerHandler.getPeer().setBestBlock(peerBlockIndex);
                         if (branchGroup != null && peerBlockIndex > branchGroup.getLastIndex(branchId)) {

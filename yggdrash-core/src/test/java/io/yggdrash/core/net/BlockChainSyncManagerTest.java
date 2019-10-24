@@ -86,11 +86,13 @@ public class BlockChainSyncManagerTest {
     }
 
     private JsonObject createAllocParam() {
-        String allocStr = "{\"alloc\": {\n" +
-                "          \"101167aaf090581b91c08480f6e559acdd9a3ddd\": {\n" +
-                "            \"balance\": \"1000000000000000000000\"\n" +
-                "          }" +
-                "        }}";
+        String allocStr = new StringBuilder()
+                .append("{\"alloc\": {\n")
+                .append("\"101167aaf090581b91c08480f6e559acdd9a3ddd\": {\n")
+                .append("\"balance\": \"1000000000000000000000\"\n")
+                .append("}")
+                .append("}}")
+                .toString();
         return new JsonParser().parse(allocStr).getAsJsonObject();
     }
 

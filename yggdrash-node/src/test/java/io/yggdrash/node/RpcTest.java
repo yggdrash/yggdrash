@@ -112,7 +112,7 @@ public class RpcTest extends TcpNodeTesting {
             if (!logs.isEmpty()) {
                 logs.entrySet().forEach(l -> {
                     log.debug("{} => {} ", l.getKey(), l.getValue());
-                        });
+                });
             }
             assertTrue(logs.isEmpty());
         }

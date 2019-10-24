@@ -45,6 +45,7 @@ public class VersioningContractDemoClient {
     private static String proposalTxId = "";
     private static String testCoinContractVersion = "8c65bc05e107aab9ceaa872bbbb2d96d57811de4"; //coinContract
     private static String testStemContractVersion = "3a0b7e2efc5e7d5eff4c18746a3fe56c952493d3"; //stemContract 2.0.0
+
     private static void setUp() throws Exception {
         ContractDemoClientUtils utils = new ContractDemoClientUtils();
         TARGET_SERVER = utils.getTargetServer();

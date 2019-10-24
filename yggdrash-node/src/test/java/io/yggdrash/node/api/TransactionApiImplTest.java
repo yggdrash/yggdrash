@@ -256,7 +256,8 @@ public class TransactionApiImplTest {
     public void versioningProposeTxTest() throws Exception {
         BranchId branchId = BranchId.of(yggdrashBranch);
         Wallet wallet = ContractTestUtils.createTestWallet("77283a04b3410fe21ba5ed04c7bd3ba89e70b78c.json");
-        JsonObject txBody = ContractTestUtils.contractProposeTxBodyJson(ContractConstants.VERSIONING_CONTRACT.toString(), "activate");
+        JsonObject txBody = ContractTestUtils.contractProposeTxBodyJson(
+                ContractConstants.VERSIONING_CONTRACT.toString(), "activate");
 
         Transaction tx = new TransactionBuilder()
                 .setType(Hex.decodeHex(ContractConstants.VERSIONING_TRANSACTION))

@@ -92,8 +92,6 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
 
     private void initGenesis() {
         this.blockKeyStore.put(0L, genesisBlock.getHash().getBytes());
-        // BlockChainManager add block to the blockStore, set the lastConfirmedBlock, and then batch the txs.
-        //blockChainManagerMock.addBlock(this.genesisBlock, new Sha3Hash(this.genesisBlock.getHeader().getStateRoot(), true)); // todo: check efficiency & change index
         blockChainManagerMock.addBlock(this.genesisBlock);
     }
 
@@ -160,7 +158,6 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
     public Map<String, List<String>> addBlock(ConsensusBlock<EbftProto.EbftBlock> block) {
         this.lock.lock();
         try {
-            //blockChainManagerMock.addBlock(block, new Sha3Hash(block.getHeader().getStateRoot(), true)); // todo: check efficiency & change index
             blockChainManagerMock.addBlock(block);
             this.blockKeyStore.put(block.getIndex(), block.getHash().getBytes());
             loggingBlock((EbftBlock) block);
@@ -174,7 +171,6 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
     public Map<String, List<String>> addBlock(ConsensusBlock<EbftProto.EbftBlock> block, boolean broadcast) {
         this.lock.lock();
         try {
-            //blockChainManagerMock.addBlock(block, new Sha3Hash(block.getHeader().getStateRoot(), true)); // todo: check efficiency & change index & check broadcast param
             blockChainManagerMock.addBlock(block);
             this.blockKeyStore.put(block.getIndex(), block.getHash().getBytes());
             loggingBlock((EbftBlock) block);

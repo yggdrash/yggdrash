@@ -53,7 +53,7 @@ public class SimpleTxBroadcastTest extends AbstractNodeTesting {
             Transaction tx = BlockChainTestUtils.createTransferTx();
             Map<String, List<String>> errors = nodeList.get(i).getBranchGroup().addTransaction(tx);
             if (errors.isEmpty()) {
-                sendTx ++;
+                sendTx++;
             }
             log.info("broadcast finish={}", i);
         }

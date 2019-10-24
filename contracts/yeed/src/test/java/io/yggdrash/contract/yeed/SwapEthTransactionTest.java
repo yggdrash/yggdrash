@@ -16,8 +16,6 @@
 
 package io.yggdrash.contract.yeed;
 
-import com.google.common.primitives.Longs;
-import com.google.common.primitives.UnsignedInteger;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
@@ -39,7 +37,6 @@ import java.io.Reader;
 import java.math.BigInteger;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class SwapEthTransactionTest {
     private static final Logger log = LoggerFactory.getLogger(SwapEthTransactionTest.class);
@@ -342,7 +339,6 @@ public class SwapEthTransactionTest {
                 + "334780880de0b6b3a76400008026a0c9938e35c6281a2003531ef19c0368fb0ec680d1bc073ee2881"
                 + "3602616ce172ca03885e6218dbd7a09fc250ce4eb982114cc25c0974f4adfbd08c4e834f9c74dc3";
         byte[] ethHex = HexUtil.hexStringToBytes(ethHexString);
-
 
         EthereumTransaction tx = new EthereumTransaction(
                 267436,

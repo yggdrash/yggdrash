@@ -110,12 +110,11 @@ public class StemContract implements BundleActivator, ServiceListener {
     private static final String ISSUER_IS_NOT_VALIDATOR = "Issuer is not a validator";
     private static final String ISSUER_IS_NOT_BRANCH_VALIDATOR = "Issuer is not branch validator";
     private static final String TARGET_VALIDATOR_ALREADY_EXISTS = "Target validator already exists in validator set";
-    private static final String TARGET_VALIDATOR_NOT_EXISTS ="The target validator not exists in validator set";
-    private static final String PROPOSER_OR_NEW_VALIDATOR_NOT_EXISTS = "Proposer not exists or new validator already exists in validator set";
-
+    private static final String TARGET_VALIDATOR_NOT_EXISTS = "The target validator not exists in validator set";
+    private static final String PROPOSER_OR_NEW_VALIDATOR_NOT_EXISTS
+            = "Proposer not exists or new validator already exists in validator set";
 
     private static final Logger log = LoggerFactory.getLogger(StemContract.class);
-    //private ServiceRegistration registration;
 
     @Override
     public void start(BundleContext context) {
@@ -490,12 +489,12 @@ public class StemContract implements BundleActivator, ServiceListener {
             }
         }
 
-        private byte[] merge(String bid, Long blockHeight, String proposer, String tValidator, StemOperation opFlag) {
+        private byte[] merge(String bid, Long blockHeight, String proposer, String tmpValidator, StemOperation opFlag) {
             return ByteUtil.merge(
                     HexUtil.hexStringToBytes(bid),
                     ByteUtil.longToBytes(blockHeight),
                     HexUtil.hexStringToBytes(proposer),
-                    HexUtil.hexStringToBytes(tValidator),
+                    HexUtil.hexStringToBytes(tmpValidator),
                     opFlag.toValue().getBytes(StandardCharsets.UTF_8)
             );
         }
@@ -580,7 +579,7 @@ public class StemContract implements BundleActivator, ServiceListener {
         }
 
         private JsonObject getBranch(String branchId) {
-            return isBranchExists(branchId)? this.state.get(branchIdKey(branchId)) : new JsonObject();
+            return isBranchExists(branchId) ? this.state.get(branchIdKey(branchId)) : new JsonObject();
         }
 
         @ContractQuery

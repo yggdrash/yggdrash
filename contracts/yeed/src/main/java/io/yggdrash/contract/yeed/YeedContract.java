@@ -111,7 +111,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
     private static final String TX_CONFIRM_FAIL = "%s is FAIL";
     private static final String TX_CONFIRM_DONE = "%s is DONE";
     private static final String TX_CONFIRM_EXIST = "Propose %s transaction %s exist";
-    private static final String TX_CONFIRM_PROCESS_SUCCESS = "Propose %s check %s network %s transaction %s confirm ID %s";
+    private static final String TX_CONFIRM_PROCESS_SUCCESS =
+            "Propose %s check %s network %s transaction %s confirm ID %s";
     private static final String PROCESS_YEED_TO_ETH_TOKEN_SUCCESS = "Yeed to EthToken Proposal completed successfully";
     private static final String PROCESS_YEED_TO_ETH_SUCCESS = "Yeed to Eth Proposal completed successfully";
     private static final String PROCESS_PROPOSE_FAIL = "Propose cannot proceed (ProposeStatus=%s)";
@@ -240,6 +241,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 for (Map.Entry<String, JsonElement> entry : alloc.entrySet()) {
                     String frontier;
                     BigInteger balance;
+
                     try {
                         frontier = entry.getKey();
                         JsonObject value = entry.getValue().getAsJsonObject();

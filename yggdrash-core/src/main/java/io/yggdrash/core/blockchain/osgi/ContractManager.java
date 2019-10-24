@@ -127,7 +127,7 @@ public class ContractManager implements ContractEventListener {
                     break;
                 case APPLY:
                     // pkg version check
-                    if(isPackageAvailable(proposalVersion)) {
+                    if (isPackageAvailable(proposalVersion)) {
                         // copy file
                         copyContractFile(proposalVersion);
                         // load bundle service
@@ -135,7 +135,8 @@ public class ContractManager implements ContractEventListener {
                         // save into branchStore.
                         addNewBranchContract(bundleService.getBundle(proposalVersion), proposalVersion);
                     } else {
-                        log.warn("proposal contract {} dose not installed. Already exist package version", proposalVersion);
+                        log.warn("proposal contract {} dose not installed. Already exist package version",
+                                proposalVersion);
                     }
                     break;
                 default:
@@ -428,7 +429,8 @@ public class ContractManager implements ContractEventListener {
                 String contractName = jarFile.getManifest().getMainAttributes().getValue("Bundle-Name");
                 String pacakgeVersion = jarFile.getManifest().getMainAttributes().getValue("Bundle-Version");
                 List<Bundle> bundles = getBundlesByName(contractName);
-                return !bundles.stream().anyMatch(bundle -> bundle.getHeaders().get("Bundle-Version").equals(pacakgeVersion));
+                return !bundles.stream()
+                        .anyMatch(bundle -> bundle.getHeaders().get("Bundle-Version").equals(pacakgeVersion));
             }
         }
 

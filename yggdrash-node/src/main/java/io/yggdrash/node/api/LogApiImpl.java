@@ -77,7 +77,7 @@ public class LogApiImpl implements LogApi {
     public long curIndex(String branchId) {
         try {
             return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getCurLogIndex();
-        } catch (NullPointerException ne){
+        } catch (NullPointerException ne) {
             log.debug("CurIndex Exception: {}", BRANCH_NOT_FOUND);
             return 0;
         } catch (Exception e) {

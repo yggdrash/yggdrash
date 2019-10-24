@@ -26,6 +26,7 @@ import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -608,12 +609,10 @@ public class TokenContract implements BundleActivator, ServiceListener {
                     setErrorTxReceipt("Burning service fee in yeed stake failed!");
                     return txReceipt;
                 }
-            }
-            else if (burnServiceFeeFromYeedStake(tokenId, DEFAULT_SERVICE_FEE) == false) {
+            } else if (burnServiceFeeFromYeedStake(tokenId, DEFAULT_SERVICE_FEE) == false) {
                 setErrorTxReceipt("Insufficient service fee in yeed stake!");
                 return txReceipt;
             }
-
 
             return null;
         }

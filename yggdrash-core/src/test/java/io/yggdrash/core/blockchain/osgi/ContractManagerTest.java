@@ -35,16 +35,11 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.File;
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 
 public class ContractManagerTest {
@@ -147,11 +142,6 @@ public class ContractManagerTest {
         ContractEvent activateApplyEvent =
                 createEvent(ContractEventType.APPLY, coinContract.toString(), "ACTIVATE");
 
-        ContractEvent deactivateAgreeEvent =
-                createEvent(ContractEventType.AGREE, coinContract.toString(), "DEACTIVATE");
-        ContractEvent deactivateApplyEvent =
-                createEvent(ContractEventType.APPLY, coinContract.toString(), "DEACTIVATE");
-
         int originNumberOfBundles = getNumberOfBundles();
         int originNumberOfBranchContracts = getNumberOfBranchContracts();
 
@@ -170,6 +160,11 @@ public class ContractManagerTest {
 
         Assert.assertEquals(ExecuteStatus.ERROR, res.getReceipt().getStatus());
         Assert.assertTrue(res.getReceipt().getLog().contains("Insufficient funds"));
+
+        ContractEvent deactivateAgreeEvent =
+                createEvent(ContractEventType.AGREE, coinContract.toString(), "DEACTIVATE");
+        ContractEvent deactivateApplyEvent =
+                createEvent(ContractEventType.APPLY, coinContract.toString(), "DEACTIVATE");
 
         // do nothing deactivate agree event.
         manager.endBlock(deactivateAgreeEvent);
@@ -220,10 +215,11 @@ public class ContractManagerTest {
 
     private Transaction generateTx(BigInteger amount, ContractVersion contractVersion) throws Exception {
         Wallet wallet = null;
-            wallet = ContractTestUtils.createTestWallet("dea328146c7248231a5bcafdeea12019a2f5dc58.json");
-            JsonObject txBody = ContractTestUtils.transferTxBodyJson(TestConstants.TRANSFER_TO, amount, contractVersion);
-            TransactionBuilder builder = new TransactionBuilder();
-            return builder.setTxBody(txBody).setWallet(wallet).setBranchId(branchId).build();
+        wallet = ContractTestUtils.createTestWallet("dea328146c7248231a5bcafdeea12019a2f5dc58.json");
+        JsonObject txBody =
+                ContractTestUtils.transferTxBodyJson(TestConstants.TRANSFER_TO, amount, contractVersion);
+        TransactionBuilder builder = new TransactionBuilder();
+        return builder.setTxBody(txBody).setWallet(wallet).setBranchId(branchId).build();
     }
 
 }
