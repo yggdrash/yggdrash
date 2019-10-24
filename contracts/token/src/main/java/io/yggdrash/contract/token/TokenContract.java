@@ -199,6 +199,21 @@ public class TokenContract implements BundleActivator, ServiceListener {
             putBalance(tokenId, YEED_STAKE, amount);
         }
 
+        @ContractQuery
+        public JsonObject getTokenInfo(JsonObject params) {
+            String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
+            JsonObject token = loadTokenObject(tokenId);
+
+            if (token == null) {
+                return null;
+            }
+
+            token.addProperty(TOTAL_SUPPLY, getBalance(tokenId, TOTAL_SUPPLY));
+            token.addProperty(TOKEN_PHASE, loadTokenPhase(tokenId));
+
+            return token;
+        }
+
         /**
          * Allowance of a spender by an owner for a token
          *
@@ -257,12 +272,14 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            BigInteger initMintAmount = token.get(TOKEN_INIT_MINT_AMOUNT).getAsBigInteger();
+            BigInteger initMintAmount = token.get(TOKEN_INIT_MINT_AMOUNT) == null
+                    ? BigInteger.ZERO : token.get(TOKEN_INIT_MINT_AMOUNT).getAsBigInteger();
             putBalance(tokenId, ownerAccount, initMintAmount);
             putBalance(tokenId, TOTAL_SUPPLY, initMintAmount);
 
             // STAKE
-            BigInteger stakeAmount = token.get(TOKEN_INIT_YEED_STAKE_AMOUNT).getAsBigInteger();
+            BigInteger stakeAmount = token.get(TOKEN_INIT_YEED_STAKE_AMOUNT) == null
+                    ? BigInteger.ZERO : token.get(TOKEN_INIT_YEED_STAKE_AMOUNT).getAsBigInteger();
             boolean isSuccess = depositYeedStakeSub(txReceipt.getIssuer(), stakeAmount);
             if (isSuccess == false) {
                 setErrorTxReceipt("Insufficient balance to stake!");
@@ -357,7 +374,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            if (issuer.equals(token.get(TOKEN_OWNER_ACCOUNT).getAsString()) == false) {
+            if (isOwner(token, issuer) == false) {
                 setErrorTxReceipt("Issuer must be token owner!");
                 return txReceipt;
             }
@@ -402,7 +419,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            if (issuer.equals(token.get(TOKEN_OWNER_ACCOUNT).getAsString()) == false) {
+            if (isOwner(token, issuer) == false) {
                 setErrorTxReceipt("Issuer must be token owner!");
                 return txReceipt;
             }
@@ -446,7 +463,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            if (issuer.equals(token.get(TOKEN_OWNER_ACCOUNT).getAsString()) == false) {
+            if (isOwner(token, issuer) == false) {
                 setErrorTxReceipt("Issuer must be token owner!");
                 return txReceipt;
             }
@@ -494,7 +511,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            if (issuer.equals(token.get(TOKEN_OWNER_ACCOUNT).getAsString()) == false) {
+            if (isOwner(token, issuer) == false) {
                 setErrorTxReceipt("Issuer must be token owner!");
                 return txReceipt;
             }
@@ -542,7 +559,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            if (issuer.equals(token.get(TOKEN_OWNER_ACCOUNT).getAsString()) == false) {
+            if (isOwner(token, issuer) == false) {
                 setErrorTxReceipt("Issuer must be token owner!");
                 return txReceipt;
             }
@@ -578,7 +595,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
          *               @tokenId
          * @return the receipt
          */
-        @InvokeTransaction
+        // @InvokeTransaction
         public Receipt destroyToken(JsonObject params) {
             String issuer = txReceipt.getIssuer();
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
@@ -590,7 +607,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            if (issuer.equals(token.get(TOKEN_OWNER_ACCOUNT).getAsString()) == false) {
+            if (isOwner(token, issuer) == false) {
                 setErrorTxReceipt("Issuer must be token owner!");
                 return txReceipt;
             }
@@ -602,20 +619,23 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            // TODO : kevin : 2019-10-08 : return yeed stake to owner account!
-            if (getYeedBalanceOfSub(tokenId).compareTo(DEFAULT_SERVICE_FEE) < 0) {
-                if (burnServiceFeeFromYeedStake(tokenId, getYeedBalanceOfSub(tokenId))) {
-                    setErrorTxReceipt("Burning service fee in yeed stake failed!");
-                    return txReceipt;
-                }
-            }
-            else if (burnServiceFeeFromYeedStake(tokenId, DEFAULT_SERVICE_FEE) == false) {
-                setErrorTxReceipt("Insufficient service fee in yeed stake!");
+            // return yeed stake to owner account
+            BigInteger amount = getYeedBalanceOfSub(tokenId).subtract(DEFAULT_SERVICE_FEE);
+            boolean isSuccess = withdrawYeedStakeSub(issuer, amount);
+            if (isSuccess == false) {
+                setErrorTxReceipt("Withdrawal yeed stake failed!");
                 return txReceipt;
             }
 
+            // remove token from store
+            store.put(TOKEN_PREFIX.concat(tokenId), new JsonObject());
 
-            return null;
+            String msg = String.format(
+                    "Token [%s] is destroyed completely!", tokenId
+            );
+            setSuccessTxReceipt(msg);
+
+            return txReceipt;
         }
 
         /**
@@ -830,13 +850,13 @@ public class TokenContract implements BundleActivator, ServiceListener {
             String tokenId = params.get(TOKEN_ID).getAsString().toLowerCase();
             JsonObject token = loadTokenObject(tokenId);
 
-            if (token == null) {
+            if (token == null || token.get(TOKEN_ID) == null || token.get(TOKEN_ID).getAsString().isEmpty()) {
                 setErrorTxReceipt(
                         String.format("Token [%s] does not exist!", tokenId));
                 return txReceipt;
             }
 
-            if (txReceipt.getIssuer().equals(token.get(TOKEN_OWNER_ACCOUNT).getAsString()) == false) {
+            if (isOwner(token, txReceipt.getIssuer()) == false) {
                 setErrorTxReceipt("Issuer must be token owner!");
                 return txReceipt;
             }
@@ -905,7 +925,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            if (txReceipt.getIssuer().equals(token.get(TOKEN_OWNER_ACCOUNT).getAsString()) == false) {
+            if (isOwner(token, txReceipt.getIssuer()) == false) {
                 setErrorTxReceipt("Issuer must be token owner!");
                 return txReceipt;
             }
@@ -1173,7 +1193,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            if (txReceipt.getIssuer().equals(token.get(TOKEN_OWNER_ACCOUNT).getAsString()) == false) {
+            if (isOwner(token, txReceipt.getIssuer()) == false) {
                 setErrorTxReceipt("Issuer must be token owner!");
                 return txReceipt;
             }
@@ -1243,7 +1263,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            if (txReceipt.getIssuer().equals(token.get(TOKEN_OWNER_ACCOUNT).getAsString()) == false) {
+            if (isOwner(token, txReceipt.getIssuer())  == false) {
                 setErrorTxReceipt("Issuer must be token owner!");
                 return txReceipt;
             }
@@ -1497,6 +1517,12 @@ public class TokenContract implements BundleActivator, ServiceListener {
 
         private boolean isTokenRunning(String tokenId) {
             return TOKEN_PHASE_RUN.equals(loadTokenPhase(tokenId));
+        }
+
+        private boolean isOwner(JsonObject token, String account) {
+            return account.equals(
+                    token.get(TOKEN_OWNER_ACCOUNT) == null
+                            ? null : token.get(TOKEN_OWNER_ACCOUNT).getAsString());
         }
 
 
