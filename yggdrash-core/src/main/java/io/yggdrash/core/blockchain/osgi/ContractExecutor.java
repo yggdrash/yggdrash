@@ -206,7 +206,8 @@ public class ContractExecutor {
                 Set<Map.Entry<String, JsonObject>> changedValues
                         = invokeMethod(receipt, service, method, new JsonObject());
 
-                if (receipt.getStatus().equals(ExecuteStatus.SUCCESS) && changedValues.size() > 0) {
+                if (receipt.getStatus().equals(ExecuteStatus.SUCCESS) &&
+                        (!changedValues.isEmpty() || !receipt.getEvents().isEmpty())) {
                     result.setBlockResult(changedValues);
                     result.addReceipt(receipt);
                     i++;
