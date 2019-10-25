@@ -103,7 +103,7 @@ public class BlockChainTestUtils {
     public static GenesisBlock generateGenesisBlockByInputStream(InputStream is) {
         try {
             GenesisBlock genesisBlock = GenesisBlock.of(is);
-            genesisBlock.toBlock(TestConstants.GENESIS_STATE_ROOT_HASH);
+            genesisBlock.toBlock(ContractTestUtils.calGenesisStateRoot(genesisBlock));
             return genesisBlock;
         } catch (IOException e) {
             throw new InvalidSignatureException(e);
