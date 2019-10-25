@@ -12,7 +12,7 @@
       "isSystem": true
     },
     {
-      "contractVersion": "8a784310504fb912c8b6837636bb29c406a41026",
+      "contractVersion": "f8f7c637abbd33422f966974663c2d73280840f3",
       "isSystem": true,
       "init": {
         "alloc": {
@@ -39,6 +39,9 @@
           },
           "4e5cbe1d0db35add81e7f2840eeb250b5b469161": {
             "balance": "994000000000000000000000"
+          },
+          "4020d5f2322f7e42493aa3000d583510f2d413e0": {
+            "balance": "1000000000000000000000000"
           }
         }
       },

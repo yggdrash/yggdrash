@@ -573,36 +573,6 @@ public class YeedContractTest {
     }
 
     @Test
-    public void faucetTest() {
-        // TODO remove in MainNet
-        String issuer = "691af5cbc92d8f4e5683246d27d199ccfa2548d6";
-
-        setUpReceipt("0x00", issuer, BRANCH_ID, 1);
-
-        final JsonObject emptyParam = new JsonObject();
-        final BigInteger totalSupply = yeedContract.totalSupply();
-
-        JsonObject testTransfer = new JsonObject();
-        testTransfer.addProperty("to","81b7e08f65bdf5648606c89998a9cc8164397647");
-        testTransfer.addProperty("amount", BigInteger.valueOf(100L));
-        testTransfer.addProperty("fee", DEFAULT_FEE);
-
-        yeedContract.transfer(testTransfer);
-        assertSame(ExecuteStatus.FALSE, yeedContract.receipt.getStatus()); // Insufficient funds
-
-        yeedContract.faucet(emptyParam);
-        assertSame(ExecuteStatus.SUCCESS, yeedContract.receipt.getStatus());
-        assertTrue(yeedContract.totalSupply().compareTo(totalSupply) != 0);
-
-        // Call faucet one more
-        yeedContract.faucet(emptyParam);
-        assertSame(ExecuteStatus.ERROR, yeedContract.receipt.getStatus()); // Already received or has balance
-
-        yeedContract.transfer(testTransfer);
-        assertSame(ExecuteStatus.SUCCESS, yeedContract.receipt.getStatus());
-    }
-
-    @Test
     public void transferChannelTest() {
         String from = ADDRESS_1;
         final BigInteger serviceFee = DEFAULT_FEE;
