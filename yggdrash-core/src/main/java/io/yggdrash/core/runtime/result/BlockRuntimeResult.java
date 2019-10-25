@@ -35,9 +35,13 @@ public class BlockRuntimeResult {
     private final String branchId;
 
     public BlockRuntimeResult(List<Transaction> txList) {
-        this.txList.addAll(txList);
+        if (txList.size() > 0) {
+            this.txList.addAll(txList);
+            this.branchId = txList.get(0).getBranchId().toString();
+        } else {
+            this.branchId = "";
+        }
         this.block = null;
-        this.branchId = txList.get(0).getBranchId().toString();
     }
 
     public BlockRuntimeResult(ConsensusBlock block) {

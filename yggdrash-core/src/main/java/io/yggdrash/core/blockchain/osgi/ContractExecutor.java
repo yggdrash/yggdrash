@@ -307,7 +307,7 @@ public class ContractExecutor {
 
     private Receipt createBlockReceipt(BlockRuntimeResult result, String contractVersion, int index) {
         ConsensusBlock block = result.getOriginBlock();
-        String branchId = result.getBranchId(); // instead of issuer
+        String branchId = result.getBranchId().isEmpty() ? contractStore.getBranchStore().getBranch().getBranchId().toString() : result.getBranchId();
         String blockId = block != null ? String.format("%s%d", block.getHash().toString(), index) : "";
         long blockSize = block != null ? block.getLength() : 0;
         long blockHeight = block != null
