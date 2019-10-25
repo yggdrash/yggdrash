@@ -42,28 +42,12 @@ public class LogApiImpl implements LogApi {
 
     @Override
     public Log getLog(String branchId, long index) {
-        try {
-            return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getLog(index);
-        } catch (NullPointerException ne) {
-            log.debug("GetLog Exception: {}", BRANCH_NOT_FOUND);
-            return Log.createBy(BRANCH_NOT_FOUND);
-        } catch (Exception e) {
-            log.debug("GetLog Exception: {}", e.getMessage());
-            return Log.createBy(e.getMessage());
-        }
+        return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getLog(index);
     }
 
     @Override
     public List<Log> getLogs(String branchId, long start, long offset) {
-        try {
-            return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getLogs(start, offset);
-        } catch (NullPointerException ne) {
-            log.debug("GetLogs Exception: {}", BRANCH_NOT_FOUND);
-            return Collections.singletonList(Log.createBy(BRANCH_NOT_FOUND));
-        } catch (Exception e) {
-            log.debug("GetLogs Exception: {}", e.getMessage());
-            return Collections.singletonList(Log.createBy(e.getMessage()));
-        }
+        return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getLogs(start, offset);
     }
 
     @Override
@@ -75,15 +59,7 @@ public class LogApiImpl implements LogApi {
 
     @Override
     public long curIndex(String branchId) {
-        try {
-            return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getCurLogIndex();
-        } catch (NullPointerException ne){
-            log.debug("CurIndex Exception: {}", BRANCH_NOT_FOUND);
-            return 0;
-        } catch (Exception e) {
-            log.debug("CurIndex Exception : {}", e.getMessage());
-            return 0;
-        }
+        return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getCurLogIndex();
     }
 
 }

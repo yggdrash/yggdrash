@@ -1,15 +1,16 @@
 package io.yggdrash.node.api;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
+import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.gateway.dto.BranchDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,7 +37,11 @@ public class BranchApiImpl implements BranchApi {
     @Override
     public Set<String> getValidators(String branchId) {
         BlockChain bc = branchGroup.getBranch(BranchId.of(branchId));
-        return bc != null ? bc.getValidators().getValidatorMap().keySet() : new HashSet<>();
+        ValidatorSet validators = bc.getValidators();
+        if (validators == null) {
+            throw new NonExistObjectException.TxNotFound();
+        }
+        return validators.getValidatorMap().keySet();
     }
 
 }

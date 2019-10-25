@@ -17,6 +17,7 @@ import com.googlecode.jsonrpc4j.JsonRpcErrors;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
 import io.yggdrash.core.blockchain.Log;
+import io.yggdrash.core.exception.DecodeException;
 import io.yggdrash.core.exception.NonExistObjectException;
 
 import java.util.List;
@@ -32,8 +33,8 @@ public interface LogApi {
      * @param index logIndex
      * @return corresponding log
      */
-    @JsonRpcErrors(
-            {@JsonRpcError(exception = NonExistObjectException.class, code = NonExistObjectException.CODE)})
+    @JsonRpcErrors({@JsonRpcError(exception = NonExistObjectException.class, code = NonExistObjectException.CODE),
+            @JsonRpcError(exception = DecodeException.class, code = DecodeException.CODE)})
     Log getLog(@JsonRpcParam(value = BRANCH_ID) String branchId,
                @JsonRpcParam(value = "index") long index);
 
@@ -45,8 +46,8 @@ public interface LogApi {
      * @param offset offset
      * @return corresponding logs
      */
-    @JsonRpcErrors(
-            {@JsonRpcError(exception = NonExistObjectException.class, code = NonExistObjectException.CODE)})
+    @JsonRpcErrors({@JsonRpcError(exception = NonExistObjectException.class, code = NonExistObjectException.CODE),
+            @JsonRpcError(exception = DecodeException.class, code = DecodeException.CODE)})
     List<Log> getLogs(@JsonRpcParam(value = BRANCH_ID) String branchId,
                       @JsonRpcParam(value = "start") long start,
                       @JsonRpcParam(value = "offset") long offset);
@@ -60,8 +61,8 @@ public interface LogApi {
      * @param offset   offset
      * @return corresponding filtered logs
      */
-    @JsonRpcErrors(
-            {@JsonRpcError(exception = NonExistObjectException.class, code = NonExistObjectException.CODE)})
+    @JsonRpcErrors({@JsonRpcError(exception = NonExistObjectException.class, code = NonExistObjectException.CODE),
+            @JsonRpcError(exception = DecodeException.class, code = DecodeException.CODE)})
     List<Log> getLogs(@JsonRpcParam(value = BRANCH_ID) String branchId,
                       @JsonRpcParam(value = "regex") String regex,
                       @JsonRpcParam(value = "start") long start,
@@ -73,8 +74,8 @@ public interface LogApi {
      * @param branchId branchId
      * @return current index
      */
-    @JsonRpcErrors(
-            {@JsonRpcError(exception = NonExistObjectException.class, code = NonExistObjectException.CODE)})
+    @JsonRpcErrors({@JsonRpcError(exception = NonExistObjectException.class, code = NonExistObjectException.CODE),
+            @JsonRpcError(exception = DecodeException.class, code = DecodeException.CODE)})
     long curIndex(@JsonRpcParam(value = BRANCH_ID) String branchId);
 
 }

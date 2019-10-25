@@ -192,47 +192,44 @@ public class BlockChainSyncManager implements SyncManager {
     // When broadcastBlock is called (BlockServiceConsumer)
     @Override
     public void catchUpRequest(ConsensusBlock block) {
-        log.trace("catchUpRequest() block {}", block.getBlock().toJsonObject().toString());
-        BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
-        if (blockChain == null) {
-            log.trace("catchUpRequest(): blockChain is null. {}", block.getBlock().getBranchId().toString());
-            return;
+        try {
+            log.trace("catchUpRequest() block {}", block.getBlock().toJsonObject().toString());
+            BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
+            reqSyncBlockToHandlers(blockChain);
+        } catch (Exception e) {
+            log.trace(e.getMessage());
         }
-
-        reqSyncBlockToHandlers(blockChain);
     }
 
     // When syncBlock is called (BlockServiceConsumer)
     @Override
     public void catchUpRequest(BranchId branchId, long offset) {
-        BlockChain blockChain = branchGroup.getBranch(branchId);
-        if (blockChain == null) {
-            log.trace("catchUpRequest(): blockChain is null. {}", branchId.toString());
-            return;
+        try {
+            BlockChain blockChain = branchGroup.getBranch(branchId);
+            reqSyncBlockToHandlers(blockChain);
+        } catch (Exception e) {
+            log.trace(e.getMessage());
         }
-
-        reqSyncBlockToHandlers(blockChain);
     }
 
     // When ping received (DiscoveryServiceConsumer)
     @Override
     public void catchUpRequest(BranchId branchId, Peer from) {
-        BlockChain blockChain = branchGroup.getBranch(branchId);
-        if (blockChain == null) {
-            log.trace("catchUpRequest(): blockChain is null. {}", branchId.toString());
-            return;
+        try {
+            BlockChain blockChain = branchGroup.getBranch(branchId);
+            long peerBlockIndex = from.getBestBlock();
+            long myBlockIndex = blockChain.getBlockChainManager().getLastIndex();
+            log.trace("catchUpRequest(): bestBlock from peer=({}), curBestBlock of branch=({})",
+                    peerBlockIndex, myBlockIndex);
+
+            if (myBlockIndex >= peerBlockIndex) {
+                return;
+            }
+
+            reqSyncBlockToPeer(blockChain, from);
+        } catch (Exception e) {
+            log.trace(e.getMessage());
         }
-
-        long peerBlockIndex = from.getBestBlock();
-        long myBlockIndex = blockChain.getBlockChainManager().getLastIndex();
-        log.trace("catchUpRequest(): bestBlock from peer=({}), curBestBlock of branch=({})",
-                peerBlockIndex, myBlockIndex);
-
-        if (myBlockIndex >= peerBlockIndex) {
-            return;
-        }
-
-        reqSyncBlockToPeer(blockChain, from);
     }
 
     private void addTransaction(BlockChain blockChain, List<Transaction> txList) {
