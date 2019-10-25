@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 
 import java.util.List;
+import java.util.Objects;
 
 @Profile({Constants.ActiveProfiles.NODE, Constants.ActiveProfiles.BOOTSTRAP})
 @GrpcService
@@ -28,15 +29,16 @@ public class DiscoveryService extends DiscoveryServiceGrpc.DiscoveryServiceImplB
 
     private SyncManager syncManager;
 
-    private GrpcServerRunner grpcServerRunner;
+    private final GrpcServerRunner grpcServerRunner;
+
+    private final BranchGroup branchGroup;
 
     @Autowired
-    private BranchGroup branchGroup;
-
-    @Autowired
-    public DiscoveryService(DiscoveryConsumer discoveryConsumer, GrpcServerRunner grpcServerRunner) {
+    public DiscoveryService(
+            DiscoveryConsumer discoveryConsumer, GrpcServerRunner grpcServerRunner, BranchGroup branchGroup) {
         this.discoveryConsumer = discoveryConsumer;
         this.grpcServerRunner = grpcServerRunner;
+        this.branchGroup = branchGroup;
     }
 
     @Autowired
@@ -71,14 +73,14 @@ public class DiscoveryService extends DiscoveryServiceGrpc.DiscoveryServiceImplB
     public void ping(Proto.Ping request, StreamObserver<Proto.Pong> responseObserver) {
         try {
             BranchId branchId = BranchId.of(request.getBranch().toByteArray());
-            if (branchId == null || branchId.toString().equals("")) {
+            if (branchId.toString().equals("")) {
                 return;
             }
 
             Peer from = Peer.valueOf(request.getFrom());
             Peer to = Peer.valueOf(request.getTo());
-            String grpcHost = grpcServerRunner.getServerCallCapture().get()
-                    .getAttributes().get(Grpc.TRANSPORT_ATTR_REMOTE_ADDR)
+            String grpcHost = Objects.requireNonNull(grpcServerRunner.getServerCallCapture().get()
+                    .getAttributes().get(Grpc.TRANSPORT_ATTR_REMOTE_ADDR))
                     .toString().split(":")[0].replaceAll("/", "");
 
             from.setBestBlock(request.getBestBlock());

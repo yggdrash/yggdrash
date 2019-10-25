@@ -294,7 +294,9 @@ public class BlockChainTestUtils {
         BlockChain branch = branchGroup.getBranch(branchId);
         List<Transaction> txs =
                 branch.getBlockChainManager().getUnconfirmedTxsWithLimit(Constants.Limit.BLOCK_SYNC_SIZE);
-        branch.addBlock(createNextBlock(txs, branch.getBlockChainManager().getLastConfirmedBlock(), branch.getContractManager()));
+        branch.addBlock(
+                createNextBlock(
+                        txs, branch.getBlockChainManager().getLastConfirmedBlock(), branch.getContractManager()));
     }
 
     public static void setBlockHeightOfBlockChain(BlockChain blockChain, int height) {
@@ -308,9 +310,11 @@ public class BlockChainTestUtils {
         }
     }
 
-    public static List<ConsensusBlock<PbftProto.PbftBlock>> createBlockListWithTxs(int blockHeight, int txSize, ContractManager contractManager) {
+    public static List<ConsensusBlock<PbftProto.PbftBlock>> createBlockListWithTxs(
+            int blockHeight, int txSize, ContractManager contractManager) {
         List<ConsensusBlock<PbftProto.PbftBlock>> blockList = new ArrayList<>();
-        List<Transaction> blockBody = IntStream.range(0, txSize).mapToObj(i -> createTransferTx()).collect(Collectors.toList());
+        List<Transaction> blockBody =
+                IntStream.range(0, txSize).mapToObj(i -> createTransferTx()).collect(Collectors.toList());
         blockList.add(createNextBlock(blockBody, genesisBlock(), contractManager));
         for (int i = 0; i < blockHeight - 1; i++) {
             blockList.add(createNextBlock(blockBody, blockList.get(i), contractManager));
@@ -318,7 +322,8 @@ public class BlockChainTestUtils {
         return blockList;
     }
 
-    public static List<ConsensusBlock<PbftProto.PbftBlock>> createBlockListWithoutTxs(int blockHeight, ConsensusBlock<PbftProto.PbftBlock> curBlock) {
+    public static List<ConsensusBlock<PbftProto.PbftBlock>> createBlockListWithoutTxs(
+            int blockHeight, ConsensusBlock<PbftProto.PbftBlock> curBlock) {
         List<ConsensusBlock<PbftProto.PbftBlock>> blockList = new ArrayList<>();
         if (curBlock != null && curBlock.getIndex() != 0L) {
             blockList.add(createNextBlock(curBlock));

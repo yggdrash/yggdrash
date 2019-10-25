@@ -88,7 +88,6 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
 
     private void initGenesis() {
         blockKeyStore.put(0L, this.genesisBlock.getHash().getBytes());
-        //blockChainManagerMock.addBlock(this.genesisBlock, new Sha3Hash(this.genesisBlock.getHeader().getStateRoot(), true));  // todo: check efficiency & change index
         blockChainManagerMock.addBlock(this.genesisBlock);
     }
 
@@ -155,7 +154,6 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
 
     @Override
     public Map<String, List<String>> addBlock(ConsensusBlock<PbftProto.PbftBlock> block) {
-        //blockChainManagerMock.addBlock(block, new Sha3Hash(block.getHeader().getStateRoot(), true)); // todo: check efficiency & change index
         blockChainManagerMock.addBlock(block);
         this.blockKeyStore.put(block.getIndex(), block.getHash().getBytes());
         loggingBlock((PbftBlock) block);
@@ -164,7 +162,6 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
 
     @Override
     public Map<String, List<String>> addBlock(ConsensusBlock<PbftProto.PbftBlock> block, boolean broadcast) {
-        //blockChainManagerMock.addBlock(block, new Sha3Hash(block.getHeader().getStateRoot(), true)); // todo: check efficiency & change index & change broadcast param
         blockChainManagerMock.addBlock(block);
         this.blockKeyStore.put(block.getIndex(), block.getHash().getBytes());
         loggingBlock((PbftBlock) block);

@@ -223,7 +223,7 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
 
     /**
      * save new contract in store
-     * @param contract
+     * @param contract return BranchContract
      */
     public void addBranchContract(BranchContract contract) {
         this.contracts.add(contract);
@@ -232,7 +232,7 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
 
     /**
      * delete contract in store
-     * @param contractVersion
+     * @param contractVersion return contractVersion
      */
     public void removeBranchContract(String contractVersion) {
         this.contracts.remove(getBranchContractByVersion(contractVersion));
@@ -263,7 +263,7 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
 
     /**
      * get contract list by contract name.
-     * @param contractName
+     * @param contractName return contractName
      * @return
      */
     public List<BranchContract> getBranchContractsByName(String contractName) {
@@ -278,7 +278,7 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
 
     /**
      * get branch contract by contract version.
-     * @param contractVersion
+     * @param contractVersion return contractVersion
      * @return BranchContract
      */
     private BranchContract getBranchContractByVersion(String contractVersion) {

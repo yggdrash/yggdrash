@@ -143,7 +143,8 @@ public class ContractExecutor {
         return getTransactionRuntimeResult(serviceMap, tx);
     }
 
-    BlockRuntimeResult executeTxs(Map<String, Object> serviceMap, List<Transaction> txs) { // Execute unconfirmed Txs by pbftServie
+    BlockRuntimeResult executeTxs(Map<String, Object> serviceMap, List<Transaction> txs) {
+        // Execute unconfirmed Txs by pbftServie
         return getBlockRuntimeResult(new BlockRuntimeResult(txs), serviceMap);
     }
 
@@ -156,7 +157,8 @@ public class ContractExecutor {
         return getBlockRuntimeResult(new BlockRuntimeResult(nextBlock), serviceMap);
     }
 
-    private BlockRuntimeResult getBlockRuntimeResult(BlockRuntimeResult blockRuntimeResult, Map<String, Object> serviceMap) {
+    private BlockRuntimeResult getBlockRuntimeResult(
+            BlockRuntimeResult blockRuntimeResult, Map<String, Object> serviceMap) {
         locker.lock();
         try {
             // Set Coupler Contract and contractCache
@@ -215,7 +217,8 @@ public class ContractExecutor {
         return result;
     }
 
-    private Set<Map.Entry<String, JsonObject>> invokeTx(Map<String, Object> serviceMap, Transaction tx, Receipt receipt) throws ExecutorException {
+    private Set<Map.Entry<String, JsonObject>> invokeTx(
+            Map<String, Object> serviceMap, Transaction tx, Receipt receipt) throws ExecutorException {
         JsonObject txBody = tx.getBody().getBody();
 
         String contractVersion = txBody.get(CONTACT_VERSION).getAsString();
@@ -229,7 +232,9 @@ public class ContractExecutor {
         return invokeMethod(receipt, service, method, params);
     }
 
-    private Method getMethod(Object service, String contractVersion, ContractMethodType methodType, String methodName) throws ExecutorException {
+    private Method getMethod(
+            Object service, String contractVersion, ContractMethodType methodType, String methodName)
+            throws ExecutorException {
         Method method = contractCache.getContractMethodMap(contractVersion, methodType, service).get(methodName);
 
         if (method == null) {
@@ -251,11 +256,13 @@ public class ContractExecutor {
         return service;
     }
 
-    private Object invokeMethod(Object service, Method method, JsonObject params) throws InvocationTargetException, IllegalAccessException {
+    private Object invokeMethod(Object service, Method method, JsonObject params)
+            throws InvocationTargetException, IllegalAccessException {
         return method.getParameterCount() == 0 ? method.invoke(service) : method.invoke(service, params);
     }
 
-    private Set<Map.Entry<String, JsonObject>> invokeMethod(Receipt receipt, Object service, Method method, JsonObject params) { //=> getRuntimeResult
+    private Set<Map.Entry<String, JsonObject>> invokeMethod(
+            Receipt receipt, Object service, Method method, JsonObject params) { //=> getRuntimeResult
         trAdapter.setReceipt(receipt);
 
         try {
@@ -301,7 +308,7 @@ public class ContractExecutor {
     private Receipt createBlockReceipt(BlockRuntimeResult result, String contractVersion, int index) {
         ConsensusBlock block = result.getOriginBlock();
         String branchId = result.getBranchId(); // instead of issuer
-        String blockId = block != null? String.format("%s%d", block.getHash().toString(), index) : "";
+        String blockId = block != null ? String.format("%s%d", block.getHash().toString(), index) : "";
         long blockSize = block != null ? block.getLength() : 0;
         long blockHeight = block != null
                 ? block.getIndex() : contractStore.getBranchStore().getLastExecuteBlockIndex() + 1;

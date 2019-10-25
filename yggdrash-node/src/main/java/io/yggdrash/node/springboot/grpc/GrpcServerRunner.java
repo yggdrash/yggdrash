@@ -54,7 +54,7 @@ public class GrpcServerRunner implements CommandLineRunner, DisposableBean {
 
     private Server server;
 
-    private final AtomicReference<ServerCall<?, ?>> serverCallCapture = new AtomicReference<ServerCall<?, ?>>();
+    private final AtomicReference<ServerCall<?, ?>> serverCallCapture = new AtomicReference<>();
 
     public GrpcServerRunner(GrpcServerBuilderConfigurer configurer, ServerBuilder<?> serverBuilder) {
         this.configurer = configurer;

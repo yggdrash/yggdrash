@@ -59,7 +59,15 @@ public class LogApiImpl implements LogApi {
 
     @Override
     public long curIndex(String branchId) {
-        return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getCurLogIndex();
+        try {
+            return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getCurLogIndex();
+        } catch (NullPointerException ne){
+            log.debug("CurIndex Exception: {}", BRANCH_NOT_FOUND);
+            return 0;
+        } catch (Exception e) {
+            log.debug("CurIndex Exception : {}", e.getMessage());
+            return 0;
+        }
     }
 
 }

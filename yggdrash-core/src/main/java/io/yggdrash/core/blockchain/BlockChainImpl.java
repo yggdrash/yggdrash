@@ -171,8 +171,8 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                     ? new Sha3Hash(blockResult.getBlockResult().get("stateRoot").get("stateHash").getAsString())
                     : contractManager.getOriginStateRootHash();
             if (!nextBlockStateRoot.equals(blockResultStateRoot)) {
-                log.warn("Add block failed. Invalid stateRoot. BlockStateRoot : {}, CurStateRoot : {}"
-                        , nextBlockStateRoot, blockResultStateRoot);
+                log.warn("Add block failed. Invalid stateRoot. BlockStateRoot : {}, CurStateRoot : {}",
+                        nextBlockStateRoot, blockResultStateRoot);
                 return BusinessError.getErrorLogsMap(BusinessError.INVALID_STATE_ROOT_HASH.toValue());
             }
 
@@ -201,29 +201,6 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         }
 
         return new HashMap<>();
-    }
-
-    private boolean isLastExecutedBlock(ConsensusBlock<T> nextBlock) {
-        if (branchStore.getLastExecuteBlockIndex() >= nextBlock.getIndex()) {
-            log.info("IsLastExecutedBlock? lastExecutedBlock: {} >= nextBlockIndex: {}",
-                    branchStore.getLastExecuteBlockIndex(), nextBlock.getIndex());
-
-            Sha3Hash nextBlockStateRoot = new Sha3Hash(nextBlock.getHeader().getStateRoot(), true);
-            JsonObject originStateRoot = contractManager.getOriginStateRoot();
-            Sha3Hash stateRootHash = new Sha3Hash(originStateRoot.get("stateHash").getAsString());
-            long blockHeight = originStateRoot.get("blockHeight").getAsLong();
-            return nextBlock.getIndex() == blockHeight && nextBlockStateRoot.equals(stateRootHash);
-        }
-        return false;
-    }
-
-    private List<ContractEvent> getContractEventList(BlockRuntimeResult result) {
-        List<ContractEvent> contractEventList = new ArrayList<>();
-        result.getReceipts().stream()
-                .filter(receipt -> !receipt.getEvents().isEmpty())
-                .map(Receipt::getEvents)
-                .forEach(contractEventList::addAll);
-        return contractEventList;
     }
 
     @Override
@@ -328,4 +305,28 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     public void addListener(ContractEventListener listener) {
         contractEventListenerList.add(listener);
     }
+
+    private boolean isLastExecutedBlock(ConsensusBlock<T> nextBlock) {
+        if (branchStore.getLastExecuteBlockIndex() >= nextBlock.getIndex()) {
+            log.info("IsLastExecutedBlock? lastExecutedBlock: {} >= nextBlockIndex: {}",
+                    branchStore.getLastExecuteBlockIndex(), nextBlock.getIndex());
+
+            Sha3Hash nextBlockStateRoot = new Sha3Hash(nextBlock.getHeader().getStateRoot(), true);
+            JsonObject originStateRoot = contractManager.getOriginStateRoot();
+            Sha3Hash stateRootHash = new Sha3Hash(originStateRoot.get("stateHash").getAsString());
+            long blockHeight = originStateRoot.get("blockHeight").getAsLong();
+            return nextBlock.getIndex() == blockHeight && nextBlockStateRoot.equals(stateRootHash);
+        }
+        return false;
+    }
+
+    private List<ContractEvent> getContractEventList(BlockRuntimeResult result) {
+        List<ContractEvent> contractEventList = new ArrayList<>();
+        result.getReceipts().stream()
+                .filter(receipt -> !receipt.getEvents().isEmpty())
+                .map(Receipt::getEvents)
+                .forEach(contractEventList::addAll);
+        return contractEventList;
+    }
+
 }

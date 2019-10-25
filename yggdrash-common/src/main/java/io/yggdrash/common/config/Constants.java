@@ -105,6 +105,7 @@ public final class Constants {
 
     // Base currency
     public static final BigInteger BASE_CURRENCY = BigInteger.TEN.pow(18);
+
     public final class Limit {
         private Limit() {
         }

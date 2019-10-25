@@ -137,7 +137,7 @@ public class BranchGroupTest {
         for (int i = 0; i < 100; i++) {
             Transaction tx = createTx(BigInteger.valueOf(i));
             Map<String, List<String>> result = blockChain.addTransaction(tx);
-            if(result.isEmpty()) {
+            if (result.isEmpty()) {
                 countTx++;
             }
         }

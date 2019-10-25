@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Base64;
@@ -50,7 +51,7 @@ public class FeeModelTest {
     @Test
     public void baseCurrencyModelSpeedTest() {
         BigInteger oneYeed = BigInteger.TEN.pow(18); // 1 * 10 ^ 18 (decimal = 18)
-        for (int i= 0; i <1000000; i++) {
+        for (int i = 0; i < 1000000; i++) {
             BigInteger bi = oneYeed.multiply(BigInteger.valueOf(i));
             //log.debug(Base64.getEncoder().encodeToString(bi.toByteArray()));
         }
@@ -65,7 +66,7 @@ public class FeeModelTest {
                 bigIntegerString, bigIntegerString.length(),
                 base64String, base64String.length(),
                 bigIntegerString.length() - base64String.length(),
-                1-(bigIntegerString.length() - base64String.length())*1.0f/bigIntegerString.length()
+                1 - (bigIntegerString.length() - base64String.length()) * 1.0f / bigIntegerString.length()
         );
     }
 }

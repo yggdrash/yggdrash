@@ -45,7 +45,8 @@ public class TestNode extends BootStrapNode {
     private final NodeStatus nodeStatus = NodeStatusMock.create();
 
     private final BlockChainSyncManager syncManager
-            = new BlockChainSyncManager(nodeStatus, new PeerNetworkMock(), branchGroup, PeerTestUtils.createTableGroup());
+            = new BlockChainSyncManager(
+            nodeStatus, new PeerNetworkMock(), branchGroup, PeerTestUtils.createTableGroup());
 
     private boolean enableBranch;
     private BlockChainHandlerFactory factory;

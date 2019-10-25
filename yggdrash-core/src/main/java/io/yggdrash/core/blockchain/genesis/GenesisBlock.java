@@ -54,9 +54,9 @@ public class GenesisBlock {
         return new Consensus(branch.getConsensus());
     }
 
-   public List<Transaction> getContractTxs() {
-       return this.contractTxs;
-   }
+    public List<Transaction> getContractTxs() {
+        return this.contractTxs;
+    }
 
     public void toBlock(Sha3Hash stateRoot) {
         this.block = generatorGenesisBlock(contractTxs, stateRoot);

@@ -111,7 +111,7 @@ public class ContractTestUtils {
     public static Sha3Hash calStateRoot(ConsensusBlock prevBlock, List<Transaction> txs) {
         Map<ContractManager, ContractStore> map = createContractManager(BlockChainTestUtils.getGenesis());
         ContractManager contractManager =  map.keySet().stream().findFirst().get();
-        ContractStore contractStore = map.get(contractManager);
+
         Map<String, Validator> validatorMap = new HashMap<>();
         validatorMap.put("TEST1",
                 new Validator("a2b0f5fce600eb6c595b28d6253bed92be0568ed"));
@@ -121,6 +121,8 @@ public class ContractTestUtils {
                 new Validator("a2b0f5fce600eb6c595b28d6253bed92be0568ed"));
         ValidatorSet validatorSet = new ValidatorSet();
         validatorSet.setValidatorMap(validatorMap);
+
+        ContractStore contractStore = map.get(contractManager);
         contractStore.getBranchStore().setValidators(validatorSet);
 
         BlockRuntimeResult genesisResult = contractManager.executeTxs(BlockChainTestUtils.genesisBlock());

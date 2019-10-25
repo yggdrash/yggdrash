@@ -126,7 +126,6 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
                         branchGroup.addTransaction(tx);
                     } else {
                         log.debug("BroadcastTx() is failed. Not yet fullSynced.");
-                        return;
                     }
                 } catch (Exception e) {
                     log.debug("BroadcastTx() is failed. {}", e.getMessage());

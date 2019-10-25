@@ -45,7 +45,7 @@ public class AdminApiImpl implements AdminApi {
     private final String adminIp;
     private final byte[] adminPubKey;
 
-    private int timeout;
+    private final int timeout;
 
     private JsonObject header;
     private String signature;

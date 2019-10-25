@@ -69,10 +69,7 @@ public class NodeProperties {
     }
 
     public boolean isSeed() {
-        if (activeProfile.contains("bootstrap")) {
-            return true;
-        }
-        return false;
+        return activeProfile.contains("bootstrap");
     }
 
     public void setSeed(boolean seed) {
@@ -99,10 +96,7 @@ public class NodeProperties {
         private boolean enabled;
 
         public boolean isEnabled() {
-            if (activeProfile.contains("node")) {
-                return true;
-            }
-            return false;
+            return activeProfile.contains("node");
         }
 
         public void setEnabled(boolean enabled) {
@@ -132,10 +126,7 @@ public class NodeProperties {
         }
 
         public boolean isEnabled() {
-            if (!activeProfile.contains("validator")) {
-                return true;
-            }
-            return false;
+            return !activeProfile.contains("validator");
         }
 
         public void setEnabled(boolean enabled) {

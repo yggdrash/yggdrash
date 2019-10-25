@@ -73,7 +73,7 @@ public class PeerHandlerProvider {
 
         private final PbftServiceGrpc.PbftServiceBlockingStub blockingStub;
 
-        public PbftPeerHandler(Peer peer) {
+        PbftPeerHandler(Peer peer) {
             this(ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext().build(), peer);
         }
 
@@ -96,7 +96,8 @@ public class PeerHandlerProvider {
                 PbftProto.PbftBlockList protoPbftBlockList
                         = blockingStub.withDeadlineAfter(TIMEOUT_BLOCKLIST, TimeUnit.SECONDS).getPbftBlockList(request);
 
-                CompletableFuture<List<ConsensusBlock<PbftProto.PbftBlock>>> futureBlockList = new CompletableFuture<>();
+                CompletableFuture<List<ConsensusBlock<PbftProto.PbftBlock>>> futureBlockList =
+                        new CompletableFuture<>();
                 List<ConsensusBlock<PbftProto.PbftBlock>> newBlockList = new ArrayList<>();
                 for (PbftProto.PbftBlock block : protoPbftBlockList.getPbftBlockList()) {
                     newBlockList.add(new PbftBlock(block));

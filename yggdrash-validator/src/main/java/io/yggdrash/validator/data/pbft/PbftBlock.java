@@ -25,7 +25,6 @@ import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.PbftProto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 
 public class PbftBlock extends AbstractConsensusBlock<PbftProto.PbftBlock> {
     private static final Logger log = LoggerFactory.getLogger(PbftBlock.class);
@@ -98,7 +97,7 @@ public class PbftBlock extends AbstractConsensusBlock<PbftProto.PbftBlock> {
     @Override
     public void loggingBlock(int unConfirmedTxs) {
         try {
-            log.info("PbftBlock ({}) [{}] ({}) ({}) ({}) ({}) ({}) tx({}) uTx({}) stateRoot({})",
+            log.info("PbftBlock ({}) [{}] ({}) ({}) ({}) ({}) ({}) tx({}) uTx({})",
                     this.getConsensusMessages().getPrePrepare().getViewNumber(),
                     this.getIndex(),
                     this.getHash(),
@@ -107,8 +106,7 @@ public class PbftBlock extends AbstractConsensusBlock<PbftProto.PbftBlock> {
                     this.getConsensusMessages().getViewChangeMap().size(),
                     this.getBlock().getAddress(),
                     this.getBlock().getBody().getCount(),
-                    unConfirmedTxs,
-                    Hex.toHexString(this.getHeader().getStateRoot())
+                    unConfirmedTxs
             );
         } catch (Exception e) {
             log.debug(e.getMessage());

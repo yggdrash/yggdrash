@@ -303,7 +303,8 @@ public class EbftService implements ConsensusService<EbftProto.EbftBlock, EbftBl
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
         List<Transaction> txList = new ArrayList<>(blockChain.getBlockChainManager().getUnconfirmedTxs());
         BlockRuntimeResult result = blockChain.getContractManager().executeTxs(txList);
-        Sha3Hash curStateRootHash = new Sha3Hash(result.getBlockResult().get("stateRoot").get("stateHash").getAsString());
+        Sha3Hash curStateRootHash
+                = new Sha3Hash(result.getBlockResult().get("stateRoot").get("stateHash").getAsString());
         log.debug("makeNextBlock : stateRootHash {}, txList size {}", curStateRootHash, txList.size());
 
         BlockBody newBlockBody = new BlockBody(txList);
