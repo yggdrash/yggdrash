@@ -103,7 +103,7 @@ public class BlockTest {
     @Test
     public void shouldBeLoadedBranchJsonFile() throws IOException {
         ClassLoader loader = BlockTest.class.getClassLoader();
-        InputStream is = loader.getResourceAsStream("branch-sample.json");
+        InputStream is = loader.getResourceAsStream("branch-yggdrash.json");
         GenesisBlock genesisBlock = BlockChainTestUtils.generateGenesisBlockByInputStream(is);
 
         assertThat(genesisBlock.getBlock()).isNotNull();

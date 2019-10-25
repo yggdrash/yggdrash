@@ -20,6 +20,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.contract.vo.dpoa.Validator;
@@ -106,6 +107,21 @@ public class ContractTestUtils {
         } else {
             return contractManager.getOriginStateRootHash();
         }
+    }
+
+    public static Sha3Hash calGenesisStateRoot(GenesisBlock genesis) {
+        Map<ContractManager, ContractStore> map = createContractManager(genesis);
+        ContractManager contractManager =  map.keySet().stream().findFirst().get();
+
+        Sha3Hash genesisStateRootHash;
+        if (genesis.getContractTxs().size() > 0) {
+            genesisStateRootHash = new Sha3Hash(contractManager.executeTxs(genesis.getContractTxs())
+                    .getBlockResult().get("stateRoot").get("stateHash").getAsString());
+        } else {
+            genesisStateRootHash = new Sha3Hash(Constants.EMPTY_HASH);
+        }
+        return genesisStateRootHash;
+
     }
 
     public static Sha3Hash calStateRoot(ConsensusBlock prevBlock, List<Transaction> txs) {
