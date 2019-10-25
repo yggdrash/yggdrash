@@ -97,7 +97,11 @@ public class BranchGroup {
 
 
     public long getLastIndex(BranchId branchId) {
-        return getBranch(branchId).getBlockChainManager().getLastIndex();
+        try {
+            return getBranch(branchId).getBlockChainManager().getLastIndex();
+        } catch (Exception e) {
+            return 0L;
+        }
     }
 
     public boolean isBranchExist(BranchId branchId) {
