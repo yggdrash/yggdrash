@@ -1040,30 +1040,6 @@ public class YeedContract implements BundleActivator, ServiceListener {
             this.store.put(txConfirmKey(txConfirm.getTxConfirmId()), txConfirm.toJsonObject());
         }
 
-        @InvokeTransaction
-        public void faucet(JsonObject param) { // THIS IS FAUCET IN TEST NET!!
-            String issuer = this.receipt.getIssuer();
-            String faucetKey = String.format("%s%s", "faucet", issuer);
-            BigInteger balance = this.getBalance(issuer);
-            // Can be charged Yeed once per account
-            if (!this.store.contains(faucetKey) && balance.compareTo(BigInteger.ZERO) == 0) {
-                balance = balance.add(BASE_CURRENCY.multiply(BigInteger.valueOf(1000L))); // Add 1000 YEED
-
-                // Update TOTAL SUPPLY
-                BigInteger totalSupply = this.totalSupply();
-                totalSupply = totalSupply.add(balance);
-                // Save total supply and faucet balance
-                putBalance(TOTAL_SUPPLY, totalSupply);
-                putBalance(issuer, balance);
-
-                setSuccessTxReceipt(Arrays.asList("The faucet function can only be called from a test net",
-                        String.format("%s has received %s", issuer, balance.toString())));
-
-            } else {
-                setErrorTxReceipt(String.format("%s has already received or has the balance", issuer));
-            }
-        }
-
         @ContractEndBlock
         public void endBlock() {
             try {
