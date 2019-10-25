@@ -192,11 +192,15 @@ public class ContractManagerTest {
         String proposer = "77283a04b3410fe21ba5ed04c7bd3ba89e70b78c";
         String sourceUrl = "http://github.com/yggdrash";
         String buildVersion = "1.0.0";
+        long votePeriod = 10L;
+        long applyPeriod = 10L;
+
         Set<String> validatorSet = new HashSet<>();
         long blockHeight = 10L;
 
         return new ContractProposal(
-                txId, proposer, proposalVersion, sourceUrl, buildVersion, blockHeight, validatorSet, proposalType);
+                txId, proposer, proposalVersion, sourceUrl, buildVersion, blockHeight,
+                votePeriod, applyPeriod, validatorSet, proposalType);
     }
 
     private boolean isFileDownloaded(String version) {
