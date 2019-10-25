@@ -50,6 +50,7 @@ public class BlockChainSyncManagerTest {
         blockChainManager = blockChain.getBlockChainManager();
     }
 
+    @Ignore
     @Test
     public void syncBlock() {
         assertThat(blockChainManager.getLastIndex()).isEqualTo(0);
@@ -59,6 +60,7 @@ public class BlockChainSyncManagerTest {
         assertThat(blockChainManager.getLastIndex()).isEqualTo(33);
     }
 
+    @Ignore
     @Test
     public void syncBlockFailed() {
         GenesisBlock genesisBlock = createGenesisBlock();

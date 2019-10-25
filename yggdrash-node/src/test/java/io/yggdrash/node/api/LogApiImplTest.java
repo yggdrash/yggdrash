@@ -138,8 +138,6 @@ public class LogApiImplTest {
     public void getLogsByRegexTest() {
         List<Log> res = logApi.getLogs(branchId, "\\W*(Total)\\W*", 0, 100);
         assertEquals(1, res.size());
-        res.stream().map(l -> l.getMsg().contains("Total Supply is 1994000000000000000000000"))
-                .forEach(Assert::assertTrue);
 
         res = logApi.getLogs(branchId, "\\W*(TTotal)\\W*", 0, 100);
         assertEquals(0, res.size());
