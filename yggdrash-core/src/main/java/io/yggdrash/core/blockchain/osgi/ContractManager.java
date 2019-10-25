@@ -351,7 +351,7 @@ public class ContractManager implements ContractEventListener {
     }
 
     // Executor Services
-    public Object query(String contractVersion, String methodName, JsonObject params) {
+    public Object query(String contractVersion, String methodName, JsonObject params) throws Exception {
         return contractExecutor.query(serviceMap, contractVersion, methodName, params);
     }
 

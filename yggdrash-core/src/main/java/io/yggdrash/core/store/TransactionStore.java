@@ -18,12 +18,12 @@ package io.yggdrash.core.store;
 
 import com.google.common.collect.EvictingQueue;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionImpl;
+import io.yggdrash.core.exception.NonExistObjectException;
 import org.ehcache.Cache;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.CacheManagerBuilder;
@@ -140,7 +140,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
             return item != null ? item : new TransactionImpl(db.get(key.getBytes()));
         } catch (Exception e) {
             log.warn("get() is failed. {} {}", e.getMessage(), key.toString());
-            throw new FailedOperationException(e);
+            throw new NonExistObjectException.TxNotFound(key.toString());
         }
     }
 

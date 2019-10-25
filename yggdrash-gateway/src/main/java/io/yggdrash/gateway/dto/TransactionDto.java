@@ -21,6 +21,7 @@ import com.google.protobuf.ByteString;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionImpl;
+import io.yggdrash.core.exception.WrongStructuredException;
 import io.yggdrash.proto.Proto;
 import org.spongycastle.util.encoders.Hex;
 
@@ -42,22 +43,26 @@ public class TransactionDto {
     }
 
     public static Transaction of(TransactionDto dto) {
-        Proto.Transaction.Header header;
-        header = Proto.Transaction.Header.newBuilder()
-                .setChain(ByteString.copyFrom(Hex.decode(dto.branchId)))
-                .setVersion(ByteString.copyFrom(Hex.decode(dto.version)))
-                .setType(ByteString.copyFrom(Hex.decode(dto.type)))
-                .setTimestamp(dto.timestamp)
-                .setBodyHash(ByteString.copyFrom(Hex.decode(dto.bodyHash)))
-                .setBodyLength(dto.bodyLength)
-                .build();
+        try {
+            Proto.Transaction.Header header;
+            header = Proto.Transaction.Header.newBuilder()
+                    .setChain(ByteString.copyFrom(Hex.decode(dto.branchId)))
+                    .setVersion(ByteString.copyFrom(Hex.decode(dto.version)))
+                    .setType(ByteString.copyFrom(Hex.decode(dto.type)))
+                    .setTimestamp(dto.timestamp)
+                    .setBodyHash(ByteString.copyFrom(Hex.decode(dto.bodyHash)))
+                    .setBodyLength(dto.bodyLength)
+                    .build();
 
-        Proto.Transaction tx = Proto.Transaction.newBuilder()
-                .setHeader(header)
-                .setSignature(ByteString.copyFrom(Hex.decode(dto.signature)))
-                .setBody(dto.body)
-                .build();
-        return new TransactionImpl(tx);
+            Proto.Transaction tx = Proto.Transaction.newBuilder()
+                    .setHeader(header)
+                    .setSignature(ByteString.copyFrom(Hex.decode(dto.signature)))
+                    .setBody(dto.body)
+                    .build();
+            return new TransactionImpl(tx);
+        } catch (Exception e) {
+            throw new WrongStructuredException.InvalidTx();
+        }
     }
 
     public static TransactionDto createBy(Transaction tx) {

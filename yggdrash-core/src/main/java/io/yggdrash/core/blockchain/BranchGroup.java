@@ -23,12 +23,13 @@ import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.core.blockchain.osgi.ContractConstants;
 import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.exception.DecodeException;
 import io.yggdrash.core.exception.DuplicatedException;
+import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.errorcode.SystemError;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,7 +50,14 @@ public class BranchGroup {
     }
 
     public BlockChain getBranch(BranchId branchId) {
-        return isBranchExist(branchId) ? branches.get(branchId) : null;
+        if (!isBranchExist(branchId)) {
+            throw new NonExistObjectException.BranchNotFound(branchId.toString());
+        }
+        return branches.get(branchId);
+    }
+
+    public boolean isFullSynced(BranchId branchId) {
+        return getBranch(branchId).isFullSynced();
     }
 
     public int verify(BranchId branchId, String contractVersion) {
@@ -87,45 +95,61 @@ public class BranchGroup {
         return SystemError.getErrorLogsMap(verifyResult);
     }
 
+
     public long getLastIndex(BranchId branchId) {
-        return isBranchExist(branchId) ? branches.get(branchId).getBlockChainManager().getLastIndex() : 0L;
+        return getBranch(branchId).getBlockChainManager().getLastIndex();
     }
 
-    private boolean isBranchExist(BranchId branchId) {
+    public boolean isBranchExist(BranchId branchId) {
         return branches.containsKey(branchId);
     }
 
     public Collection<Transaction> getRecentTxs(BranchId branchId) {
-        return isBranchExist(branchId)
-                ? branches.get(branchId).getBlockChainManager().getRecentTxs()
-                : Collections.emptyList();
+        return getBranch(branchId).getBlockChainManager().getRecentTxs();
     }
 
     public Transaction getTxByHash(BranchId branchId, String id) {
-        return getTxByHash(branchId, new Sha3Hash(id));
+        try {
+            Sha3Hash txId = new Sha3Hash(id);
+            return getTxByHash(branchId, txId);
+        } catch (Exception e) {
+            throw new DecodeException.TxIdNotHexString();
+        }
     }
 
     Transaction getTxByHash(BranchId branchId, Sha3Hash hash) {
-        return isBranchExist(branchId) ? branches.get(branchId).getBlockChainManager().getTxByHash(hash) : null;
+        return getBranch(branchId).getBlockChainManager().getTxByHash(hash);
     }
 
-    Map<String, List<String>> addBlock(ConsensusBlock block) {
-        return addBlock(block, true);
+    void addBlock(ConsensusBlock block) {
+        addBlock(block, true);
     }
 
-    public Map<String, List<String>> addBlock(ConsensusBlock block, boolean broadcast) {
-
-        return isBranchExist(block.getBranchId())
-                ? branches.get(block.getBranchId()).addBlock(block, broadcast)
-                : SystemError.getErrorLogsMap(SystemError.BRANCH_NOT_FOUND.toValue());
+    public void addBlock(ConsensusBlock block, boolean broadcast) {
+        if (getBranch(block.getBranchId()).addBlock(block, broadcast).size() > 0) {
+            throw new InternalErrorException.AddBlockFailed(block.getHash().toString());
+        }
     }
 
     public ConsensusBlock getBlockByIndex(BranchId branchId, long index) {
-        return branches.get(branchId).getBlockChainManager().getBlockByIndex(index);
+        ConsensusBlock blockByIndex = getBranch(branchId).getBlockChainManager().getBlockByIndex(index);
+        if (blockByIndex == null) {
+            throw new NonExistObjectException.BlockNotFound();
+        }
+        return blockByIndex;
     }
 
     public ConsensusBlock getBlockByHash(BranchId branchId, String hash) {
-        return branches.get(branchId).getBlockChainManager().getBlockByHash(new Sha3Hash(hash));
+        try {
+            Sha3Hash blockHash = new Sha3Hash(hash);
+            ConsensusBlock blockByHash = getBranch(branchId).getBlockChainManager().getBlockByHash(blockHash);
+            if (blockByHash == null) {
+                throw new NonExistObjectException.BlockNotFound(hash);
+            }
+            return blockByHash;
+        } catch (Exception e) {
+            throw new DecodeException.BlockIdNotHexString();
+        }
     }
 
     int getBranchSize() {
@@ -133,21 +157,16 @@ public class BranchGroup {
     }
 
     public Receipt getReceipt(BranchId branchId, String key) {
-        return branches.get(branchId).getBlockChainManager().getReceipt(key);
+        return getBranch(branchId).getBlockChainManager().getReceipt(key);
     }
 
     public List<Transaction> getUnconfirmedTxs(BranchId branchId) {
-        return isBranchExist(branchId)
-                ? branches.get(branchId).getBlockChainManager().getUnconfirmedTxs()
-                : Collections.emptyList();
+        return getBranch(branchId).getBlockChainManager().getUnconfirmedTxs();
     }
 
     public Object query(BranchId branchId, String contractVersion, String method, JsonObject params) {
-        if (!isBranchExist(branchId)) {
-            throw new NonExistObjectException(branchId.toString() + " branch");
-        }
+        BlockChain chain = getBranch(branchId);
         try {
-            BlockChain chain = branches.get(branchId);
             return chain.getContractManager().query(contractVersion, method, params);
         } catch (Exception e) {
             throw new FailedOperationException(e);

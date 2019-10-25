@@ -11,4 +11,11 @@ public class InternalErrorException extends RuntimeException {
     public InternalErrorException(String message) {
         super(message);
     }
+
+    public static class AddBlockFailed extends InternalErrorException {
+        public AddBlockFailed(String blockId) {
+            super("Add block " + blockId + " failed");
+        }
+    }
+
 }
