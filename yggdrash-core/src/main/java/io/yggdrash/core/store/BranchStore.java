@@ -268,7 +268,7 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
      */
     public List<BranchContract> getBranchContractsByName(String contractName) {
         List<BranchContract> result = new ArrayList<>();
-        for (BranchContract bc: this.contracts) {
+        for (BranchContract bc: getBranchContacts()) {
             if (bc.getName().equals(contractName)) {
                 result.add(bc);
             }

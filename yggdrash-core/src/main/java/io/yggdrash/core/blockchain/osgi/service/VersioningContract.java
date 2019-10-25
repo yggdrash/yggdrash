@@ -47,6 +47,8 @@ public class VersioningContract {
     private static final String SOURCE_URL = "sourceUrl";
     private static final String BUILD_VERSION = "buildVersion";
     private static final String PROPOSAL_TYPE = "proposalType";
+    private static final String VOTE_PERIOD = "votePeriod";
+    private static final String APPLY_PERIOD = "applyPeriod";
 
     @ContractStateStore
     ReadWriterStore<String, JsonObject> state;
@@ -85,6 +87,8 @@ public class VersioningContract {
         String proposalVersion = params.get(PROPOSAL_VERSION).getAsString();
         String sourceUrl = params.get(SOURCE_URL).getAsString();
         String buildVersion = params.get(BUILD_VERSION).getAsString();
+        long votePeriod = params.get(VOTE_PERIOD).getAsLong();
+        long applyPeriod = params.get(APPLY_PERIOD).getAsLong();
         Set<String> validatorSet = new HashSet<>(branchStore.getValidators().getValidatorMap().keySet());
         String proposalType = params.get(PROPOSAL_TYPE).getAsString().toUpperCase();
 
@@ -102,7 +106,8 @@ public class VersioningContract {
 
         // blockHeight => targetBlockHeight
         ContractProposal proposal = new ContractProposal(
-                txId, proposer, proposalVersion, sourceUrl, buildVersion, blockHeight, validatorSet, proposalType);
+                txId, proposer, proposalVersion, sourceUrl, buildVersion,
+                blockHeight, votePeriod, applyPeriod, validatorSet, proposalType);
 
         // The proposer automatically votes to agree
         proposal.vote(proposer, true);
