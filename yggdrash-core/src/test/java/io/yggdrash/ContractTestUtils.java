@@ -20,12 +20,38 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.config.Constants;
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.common.contract.vo.dpoa.Validator;
+import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
+import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Branch;
+import io.yggdrash.core.blockchain.SystemProperties;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.genesis.GenesisBlock;
+import io.yggdrash.core.blockchain.osgi.ContractConstants;
+import io.yggdrash.core.blockchain.osgi.ContractManager;
+import io.yggdrash.core.blockchain.osgi.ContractManagerBuilder;
+import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkConfig;
+import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkLauncher;
+import io.yggdrash.core.blockchain.osgi.framework.BundleService;
+import io.yggdrash.core.blockchain.osgi.framework.BundleServiceImpl;
+import io.yggdrash.core.blockchain.osgi.framework.FrameworkConfig;
+import io.yggdrash.core.blockchain.osgi.framework.FrameworkLauncher;
+import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.runtime.result.BlockRuntimeResult;
+import io.yggdrash.core.store.BlockChainStore;
+import io.yggdrash.core.store.BlockChainStoreBuilder;
+import io.yggdrash.core.store.ContractStore;
+import io.yggdrash.core.store.PbftBlockStoreMock;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.mock.ContractMock;
+import io.yggdrash.proto.PbftProto;
 import org.apache.commons.codec.binary.Base64;
+import org.osgi.framework.Bundle;
+import org.spongycastle.crypto.InvalidCipherTextException;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.File;
@@ -33,39 +59,168 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import static io.yggdrash.common.config.Constants.BASE_CURRENCY;
 
 public class ContractTestUtils {
 
-    public static JsonObject versionUpdateTxBodyJson(File file) throws IOException {
-        JsonObject params = new JsonObject();
+    public static Map<ContractManager, ContractStore> createContractManager(GenesisBlock genesis) {
+        DefaultConfig config = new DefaultConfig();
+        BlockChainStore bcStore = BlockChainStoreBuilder.newBuilder(genesis.getBranchId())
+                .withDataBasePath(config.getDatabasePath())
+                .withProductionMode(config.isProductionMode())
+                .setConsensusAlgorithm(null)
+                .setBlockStoreFactory(PbftBlockStoreMock::new)
+                .build();
+        ContractStore contractStore = bcStore.getContractStore();
+        FrameworkConfig bootFrameworkConfig = new BootFrameworkConfig(config, genesis.getBranchId());
+        FrameworkLauncher bootFrameworkLauncher = new BootFrameworkLauncher(bootFrameworkConfig);
+        BundleService bundleService = new BundleServiceImpl(bootFrameworkLauncher.getBundleContext());
 
-        try (FileInputStream is = new FileInputStream(file)) {
-            byte[] contractBinary =  new byte[Math.toIntExact(file.length())];
-            is.read(contractBinary);
-            params.addProperty("contract", new String(Base64.encodeBase64(contractBinary)));
+        SystemProperties systemProperties = BlockChainTestUtils.createDefaultSystemProperties();
+
+        ContractManager manager = ContractManagerBuilder.newInstance()
+                .withGenesis(genesis)
+                .withBundleManager(bundleService)
+                .withDefaultConfig(config)
+                .withContractStore(contractStore)
+                .withLogStore(bcStore.getLogStore())
+                .withSystemProperties(systemProperties)
+                .build();
+
+        Map<ContractManager, ContractStore> res = new HashMap<>();
+        res.put(manager, contractStore);
+
+        return res;
+    }
+
+    public static Sha3Hash calStateRoot(ContractManager contractManager, List<Transaction> txs) {
+        if (txs.size() > 0) {
+            BlockRuntimeResult executePendingTxs = contractManager.executeTxs(txs);
+            return executePendingTxs.getBlockResult().containsKey("stateRoot")
+                    ? new Sha3Hash(executePendingTxs.getBlockResult().get("stateRoot").get("stateHash").getAsString())
+                    : contractManager.getOriginStateRootHash();
+        } else {
+            return contractManager.getOriginStateRootHash();
+        }
+    }
+
+    public static Sha3Hash calGenesisStateRoot(GenesisBlock genesis) {
+        Map<ContractManager, ContractStore> map = createContractManager(genesis);
+        ContractManager contractManager =  map.keySet().stream().findFirst().get();
+
+        Sha3Hash genesisStateRootHash;
+        if (genesis.getContractTxs().size() > 0) {
+            genesisStateRootHash = new Sha3Hash(contractManager.executeTxs(genesis.getContractTxs())
+                    .getBlockResult().get("stateRoot").get("stateHash").getAsString());
+        } else {
+            genesisStateRootHash = new Sha3Hash(Constants.EMPTY_HASH);
+        }
+        return genesisStateRootHash;
+
+    }
+
+    public static Sha3Hash calStateRoot(ConsensusBlock prevBlock, List<Transaction> txs) {
+        Map<ContractManager, ContractStore> map = createContractManager(BlockChainTestUtils.getGenesis());
+        ContractManager contractManager =  map.keySet().stream().findFirst().get();
+
+        Map<String, Validator> validatorMap = new HashMap<>();
+        validatorMap.put("TEST1",
+                new Validator("a2b0f5fce600eb6c595b28d6253bed92be0568ed"));
+        validatorMap.put("TEST2",
+                new Validator("a2b0f5fce600eb6c595b28d6253bed92be0568ed"));
+        validatorMap.put("TEST3",
+                new Validator("a2b0f5fce600eb6c595b28d6253bed92be0568ed"));
+        ValidatorSet validatorSet = new ValidatorSet();
+        validatorSet.setValidatorMap(validatorMap);
+
+        ContractStore contractStore = map.get(contractManager);
+        contractStore.getBranchStore().setValidators(validatorSet);
+
+        BlockRuntimeResult genesisResult = contractManager.executeTxs(BlockChainTestUtils.genesisBlock());
+        contractManager.commitBlockResult(genesisResult);
+
+        if (prevBlock.getHeader().getIndex() != 0L) {
+            byte[] prevStateRoot = prevBlock.getHeader().getStateRoot();
+            contractStore.getStateStore().put("stateRoot", createStateHashObj(prevStateRoot));
         }
 
-//        params.addProperty("contractVersion", "4adc453cbd99b3be960118e9eced4b5dad435d0f");
-//        params.addProperty("method", "updateProposer");
-
-        return txBodyJson("updateProposer", params);
+        BlockRuntimeResult result = contractManager.executeTxs(txs);
+        contractManager.commitBlockResult(result);
+        return new Sha3Hash(result.getBlockResult().get("stateRoot").get("stateHash").getAsString());
     }
 
-    public static JsonObject versionVoteTxBodyJson(String txId, boolean agree) {
-        JsonObject params = new JsonObject();
-        params.addProperty("txId", txId);
-        params.addProperty("agree", agree);
-        params.addProperty("method", "vote");
-        return txBodyJson("vote", params);
-
+    private static JsonObject createStateHashObj(byte[] stateRootBytes) {
+        Sha3Hash prevStateRootHash = new Sha3Hash(stateRootBytes, true);
+        JsonObject stateHash = new JsonObject();
+        stateHash.addProperty("stateHash", prevStateRootHash.toString());
+        return  stateHash;
     }
 
-    private static JsonObject txBodyJson(String method, JsonObject params) {
+    public static String setNamespace(ContractManager manager, ContractVersion contractVersion) {
+        Bundle bundle = manager.getBundle(contractVersion);
+        String name = bundle.getSymbolicName();
+        byte[] bundleSymbolicSha3 = HashUtil.sha3omit12(name.getBytes());
+        return new String(Base64.encodeBase64(bundleSymbolicSha3));
+    }
+
+    public static GenesisBlock createGenesis(String branchJson) throws IOException {
+        return GenesisBlock.of(new FileInputStream(getFileFromResource(branchJson)));
+    }
+
+    public static ConsensusBlock<PbftProto.PbftBlock> createGenesisBlock(String branchJson) {
+        return BlockChainTestUtils.genesisBlock(getFileFromResource(branchJson));
+    }
+
+    private static File getFileFromResource(String branchJson) {
+        String filePath = Objects.requireNonNull(
+                ContractTestUtils.class.getClassLoader().getResource(branchJson)).getFile();
+        return new File(filePath);
+    }
+
+    public static Wallet createTestWallet(String keyStore) throws IOException, InvalidCipherTextException {
+        String path = Objects.requireNonNull(ContractTestUtils.class.getClassLoader()
+                .getResource(String.format("keys/%s", keyStore))).getPath();
+        return new Wallet(path, "Aa1234567890!");
+    }
+
+    public static JsonObject contractProposeTxBodyJson(String contractVersion, String proposalType) {
+        return nodeContractTxBodJson("propose", contractProposeParam(contractVersion, proposalType));
+    }
+
+    public static JsonObject contractVoteTxBodyJson(String txId, boolean agree) {
+        return nodeContractTxBodJson("vote", contractVoteParam(txId, agree));
+    }
+
+    private static JsonObject nodeContractTxBodJson(String method, JsonObject params) {
         JsonObject txBody = new JsonObject();
+        txBody.addProperty("contractVersion", ContractConstants.VERSIONING_CONTRACT.toString());
         txBody.addProperty("method", method);
         txBody.add("params", params);
 
         return txBody;
+    }
+
+    private static JsonObject contractProposeParam(String contractVersion, String proposalType) {
+        JsonObject param = new JsonObject();
+        param.addProperty("proposalVersion", contractVersion);
+        param.addProperty("sourceUrl", "https://github.com/yggdrash/yggdrash");
+        param.addProperty("buildVersion", "1.8.0_172");
+        param.addProperty("proposalType", proposalType);
+
+        return param;
+    }
+
+    private static JsonObject contractVoteParam(String txId, boolean agree) {
+        JsonObject param = new JsonObject();
+        param.addProperty("txId", txId);
+        param.addProperty("agree", agree);
+
+        return param;
     }
 
     public static JsonObject createParams(String key, String value) {
@@ -78,6 +233,7 @@ public class ContractTestUtils {
         JsonObject params = new JsonObject();
         params.addProperty("to", to);
         params.addProperty("amount", amount);
+        params.addProperty("fee", BASE_CURRENCY.divide(BigInteger.valueOf(50L)));
         TestConstants.yggdrash();
         return txBodyJson(TestConstants.YEED_CONTRACT, "transfer", params, true);
     }
@@ -86,6 +242,7 @@ public class ContractTestUtils {
         JsonObject params = new JsonObject();
         params.addProperty("to", to);
         params.addProperty("amount", amount);
+        params.addProperty("fee", BASE_CURRENCY.divide(BigInteger.valueOf(50L)));
         TestConstants.yggdrash();
         return txBodyJson(contractVersion, "transfer", params, true);
     }
@@ -94,6 +251,7 @@ public class ContractTestUtils {
         JsonObject params = new JsonObject();
         params.addProperty("to", to);
         params.addProperty("amount", amount);
+        params.addProperty("fee", BASE_CURRENCY.divide(BigInteger.valueOf(50L)));
         return txBodyJson(TestConstants.YEED_CONTRACT, "create", params, true);
     }
 
@@ -199,4 +357,5 @@ public class ContractTestUtils {
         }
         return raw;
     }
+
 }

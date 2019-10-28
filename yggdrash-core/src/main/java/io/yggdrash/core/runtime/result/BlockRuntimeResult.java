@@ -17,7 +17,8 @@
 package io.yggdrash.core.runtime.result;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
 
 import java.util.ArrayList;
@@ -27,25 +28,49 @@ import java.util.Map;
 import java.util.Set;
 
 public class BlockRuntimeResult {
+    private final List<Transaction> txList = new ArrayList<>();
     private final Map<String, JsonObject> blockResult = new HashMap<>();
-    private final List<TransactionReceipt> txReceipts = new ArrayList<>();
+    private final List<Receipt> receipts = new ArrayList<>();
     private final ConsensusBlock block;
+    private final String branchId;
 
+    public BlockRuntimeResult(List<Transaction> txList) {
+        if (txList.size() > 0) {
+            this.txList.addAll(txList);
+            this.branchId = txList.get(0).getBranchId().toString();
+        } else {
+            this.branchId = "";
+        }
+        this.block = null;
+    }
 
     public BlockRuntimeResult(ConsensusBlock block) {
         this.block = block;
+        this.branchId = block.getBranchId().toString();
     }
 
     public void setBlockResult(Set<Map.Entry<String, JsonObject>> values) {
         values.forEach(entry -> blockResult.put(entry.getKey(), entry.getValue()));
     }
 
-    public void addTxReceipt(TransactionReceipt txReceipt) {
-        txReceipts.add(txReceipt);
+    public void addReceipt(Receipt receipt) {
+        receipts.add(receipt);
     }
 
-    public List<TransactionReceipt> getTxReceipts() {
-        return this.txReceipts;
+    public void freeze() {
+        if (blockResult.containsKey("stateRoot") && block != null) {
+            JsonObject value = blockResult.get("stateRoot");
+            value.addProperty("blockHeight", block.getIndex());
+            blockResult.put("stateRoot", value);
+        }
+    }
+
+    public List<Receipt> getReceipts() {
+        return this.receipts;
+    }
+
+    public List<Transaction> getTxList() {
+        return this.txList;
     }
 
     public Map<String, JsonObject> getBlockResult() {
@@ -54,5 +79,9 @@ public class BlockRuntimeResult {
 
     public ConsensusBlock getOriginBlock() {
         return this.block;
+    }
+
+    public String getBranchId() {
+        return this.branchId;
     }
 }

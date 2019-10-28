@@ -39,6 +39,7 @@ public class PeerHandlerMock implements BlockChainHandler {
 
     private final Peer peer;
     private boolean pongResponse = true;
+    private int failCount = 0;
 
     private PeerHandlerMock(String ynodeUri) {
         this.peer = Peer.valueOf(ynodeUri);
@@ -85,6 +86,16 @@ public class PeerHandlerMock implements BlockChainHandler {
     }
 
     @Override
+    public long pingPong(BranchId branchId, Peer owner, String message) {
+        if (pongResponse) {
+            pongResponse = false;
+            return 1;
+        }
+        pongResponse = true;
+        return -1;
+    }
+
+    @Override
     public Future<List<ConsensusBlock>> syncBlock(BranchId branchId, long offset) {
         log.debug("[PeerHandlerMock] SyncBlock branchId={}, offset={}", branchId, offset);
 
@@ -93,7 +104,7 @@ public class PeerHandlerMock implements BlockChainHandler {
         List<ConsensusBlock> tmp = new ArrayList<>();
         if (offset < 33) {
             for (int i = (int) offset; i < (int) offset + 33; i++) {
-                tmp.add(BlockChainTestUtils.getSampleBlockList().get(i));
+                tmp.add(BlockChainTestUtils.getSampleBlockList().get(i - 1));
             }
         }
         future.complete(tmp);
@@ -117,6 +128,16 @@ public class PeerHandlerMock implements BlockChainHandler {
 
     @Override
     public void broadcastTx(Transaction tx) {
+    }
+
+    @Override
+    public void setFailCount(int failCount) {
+        this.failCount = failCount;
+    }
+
+    @Override
+    public int getFailCount() {
+        return failCount;
     }
 
     public static BlockChainHandler dummy() {

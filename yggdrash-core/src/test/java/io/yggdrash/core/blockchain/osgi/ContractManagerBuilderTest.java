@@ -49,7 +49,6 @@ public class ContractManagerBuilderTest {
 
         BranchId branchId = genesis.getBranchId();
 
-
         BlockChainStore bcStore = BlockChainStoreBuilder.newBuilder(branchId)
                 .withDataBasePath(config.getDatabasePath())
                 .withProductionMode(config.isProductionMode())
@@ -61,7 +60,7 @@ public class ContractManagerBuilderTest {
 
         FrameworkConfig bootFrameworkConfig = new BootFrameworkConfig(config, branchId);
         FrameworkLauncher bootFrameworkLauncher = new BootFrameworkLauncher(bootFrameworkConfig);
-        BundleService bundleService = new BundleServiceImpl();
+        BundleService bundleService = new BundleServiceImpl(bootFrameworkLauncher.getBundleContext());
 
         List<BranchContract> genesisContractList = genesis.getBranch().getBranchContracts();
 
@@ -69,7 +68,6 @@ public class ContractManagerBuilderTest {
 
         ContractManager manager = ContractManagerBuilder.newInstance()
                 .withGenesis(genesis)
-                .withBootFramework(bootFrameworkLauncher)
                 .withBundleManager(bundleService)
                 .withDefaultConfig(config)
                 .withContractStore(contractStore)
@@ -78,7 +76,6 @@ public class ContractManagerBuilderTest {
                 .build();
 
         assert manager != null;
-        assert manager.getContractExecutor() != null;
 
         for (ContractStatus cs : manager.searchContracts()) {
             log.debug("Description {}", cs.getDescription());

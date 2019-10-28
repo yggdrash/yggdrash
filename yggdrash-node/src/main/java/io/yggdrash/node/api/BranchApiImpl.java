@@ -5,6 +5,7 @@ import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.gateway.dto.BranchDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,12 +37,11 @@ public class BranchApiImpl implements BranchApi {
     @Override
     public Set<String> getValidators(String branchId) {
         BlockChain bc = branchGroup.getBranch(BranchId.of(branchId));
-        if (bc != null) {
-            ValidatorSet vs = bc.getValidators();
-            return vs.getValidatorMap().keySet();
-        } else {
-            return null;
+        ValidatorSet validators = bc.getValidators();
+        if (validators == null) {
+            throw new NonExistObjectException.TxNotFound();
         }
+        return validators.getValidatorMap().keySet();
     }
 
 }

@@ -1,12 +1,16 @@
 package io.yggdrash.core.blockchain;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.util.VerifierUtils;
+import io.yggdrash.contract.core.ContractEvent;
 import io.yggdrash.contract.core.ExecuteStatus;
+import io.yggdrash.contract.core.Receipt;
+import io.yggdrash.core.blockchain.osgi.ContractEventListener;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.consensus.ConsensusBlock;
@@ -30,6 +34,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     private static final Logger log = LoggerFactory.getLogger(BlockChainImpl.class);
 
     private final List<BranchEventListener> listenerList = new ArrayList<>();
+    private final List<ContractEventListener> contractEventListenerList = new ArrayList<>();
 
     private final Branch branch;
     private final ConsensusBlock<T> genesisBlock;
@@ -41,6 +46,8 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
     private final Consensus consensus;
     private final ReentrantLock lock = new ReentrantLock();
+
+    private boolean isFullSynced = false;
 
     public BlockChainImpl(Branch branch,
                           ConsensusBlock<T> genesisBlock,
@@ -62,6 +69,14 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         init();
     }
 
+    public boolean isFullSynced() {
+        return isFullSynced;
+    }
+
+    public void setFullSynced(boolean fullSynced) {
+        isFullSynced = fullSynced;
+    }
+
     private void init() {
         // step1: branch contract check
         if (this.getBranchContracts().isEmpty()) {
@@ -77,11 +92,13 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             log.debug("BlockChain Load in Storage");
             // Load Block Chain Information
             blockChainManager.loadTransaction();
-            // load contract
+            log.debug("Current StateRoot -> ", contractManager.getOriginStateRoot().toString());
         }
     }
 
     private void initGenesis() {
+        // After executing the transactions of GenesisBlock,
+        // put them in the txStore with the stateRootHash of pendingStateStore.
         blockChainManager.initGenesis(genesisBlock);
         addBlock(genesisBlock, false);
 
@@ -130,30 +147,55 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
             int verificationCode = blockChainManager.verify(nextBlock);
             if (verificationCode != BusinessError.VALID.toValue()) {
-                log.debug("Add Block failed. Index : {}, ErrorLogs : {}",
+                log.trace("addBlock is failed. Index({}) {}",
                         nextBlock.getIndex(), BusinessError.getErrorLogsMap(verificationCode).values());
                 return BusinessError.getErrorLogsMap(verificationCode);
             }
-            // Add best Block
-            branchStore.setBestBlock(nextBlock);
+
+            if (isLastExecutedBlock(nextBlock)) {
+                log.info("Block[{}] has already been executed. Save it directly to blockStore.", nextBlock.getIndex());
+                branchStore.setLastExecuteBlock(nextBlock);
+                blockChainManager.addBlock(nextBlock);
+                return new HashMap<>();
+            }
 
             // Run Block Transactions
             // TODO run block execute move to other process (or thread)
             // TODO last execute block will invoke
-            if (nextBlock.getIndex() > branchStore.getLastExecuteBlockIndex()) {
-                BlockRuntimeResult result = contractManager.executeTxs(nextBlock); //TODO Exception
-                // Save Result
-                contractManager.commitBlockResult(result);
-                branchStore.setLastExecuteBlock(nextBlock);
+
+            // Execute block and commit the result of block.
+            BlockRuntimeResult blockResult = contractManager.executeTxs(nextBlock); //TODO Exception
+            Sha3Hash nextBlockStateRoot = new Sha3Hash(nextBlock.getHeader().getStateRoot(), true);
+            // Validate StateRoot
+            Sha3Hash blockResultStateRoot = blockResult.getBlockResult().size() > 0
+                    ? new Sha3Hash(blockResult.getBlockResult().get("stateRoot").get("stateHash").getAsString())
+                    : contractManager.getOriginStateRootHash();
+            if (!nextBlockStateRoot.equals(blockResultStateRoot)) {
+                log.warn("Add block failed. Invalid stateRoot. BlockStateRoot : {}, CurStateRoot : {}",
+                        nextBlockStateRoot, blockResultStateRoot);
+                return BusinessError.getErrorLogsMap(BusinessError.INVALID_STATE_ROOT_HASH.toValue());
             }
 
+            branchStore.setLastExecuteBlock(nextBlock);
+            // Add best Block
+            branchStore.setBestBlock(nextBlock); // It can be sure that all Txs in BestBlock have been executed.
+            contractManager.commitBlockResult(blockResult);
             // BlockChainManager add nextBlock to the blockStore, set the lastConfirmedBlock to nextBlock,
             // and then batch the transactions.
             blockChainManager.addBlock(nextBlock);
+
+            // Fire contract event
+            getContractEventList(blockResult).stream()
+                    .filter(event -> !contractEventListenerList.isEmpty())
+                    .forEach(event -> contractEventListenerList.forEach(l -> l.endBlock(event)));
+
             if (!listenerList.isEmpty() && broadcast) {
                 listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
             }
-            nextBlock.loggingBlock();
+
+            nextBlock.loggingBlock(this.blockChainManager.getUnconfirmedTxsSize());
+        } catch (Exception e) {
+            log.debug("Add block failed. {}", e.getMessage()); //TODO Exception handling
         } finally {
             lock.unlock();
         }
@@ -181,25 +223,40 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         return addTransaction(tx, true);
     }
 
+    @Override
     public Map<String, List<String>> addTransaction(Transaction tx, boolean broadcast) {
-        int verifyResult = blockChainManager.verify(tx);
-        if (verifyResult == BusinessError.VALID.toValue()) {
-            TransactionRuntimeResult txResult = contractManager.executeTx(tx); //checkTx
-            if (txResult.getReceipt().getStatus() != ExecuteStatus.ERROR) {
-                blockChainManager.addTransaction(tx);
+        lock.lock();
+        try {
+            log.trace("addTransaction: tx={}", tx.getHash().toString());
+            int verifyResult = blockChainManager.verify(tx);
+            if (verifyResult == BusinessError.VALID.toValue()) {
+                log.trace("contractManager.executeTx: {}", tx.getHash().toString());
+                TransactionRuntimeResult txResult = contractManager.executeTx(tx); //checkTx
+                log.trace("contractManager.executeTx Result: {}", txResult.getReceipt().getLog());
+                if (txResult.getReceipt().getStatus() == ExecuteStatus.SUCCESS) {
+                    blockChainManager.addTransaction(tx);
 
-                if (!listenerList.isEmpty() && broadcast) {
-                    listenerList.forEach(listener -> listener.receivedTransaction(tx));
+                    if (!listenerList.isEmpty() && broadcast) {
+                        listenerList.forEach(listener -> listener.receivedTransaction(tx));
+                    } else {
+                        log.trace("addTransaction(): queuing broadcast is failed. listener={} broadcast={}",
+                                listenerList.size(), broadcast);
+                    }
+
+                    return new HashMap<>();
+                } else {
+                    Map<String, List<String>> applicationError = new HashMap<>();
+                    applicationError.put("SystemError", txResult.getReceipt().getLog());
+                    log.trace("addTransaction(): executeTx() is failed. {}", txResult.getReceipt().getLog());
+                    return applicationError;
                 }
-
-                return new HashMap<>();
             } else {
-                Map<String, List<String>> applicationError = new HashMap<>();
-                applicationError.put("SystemError", txResult.getReceipt().getTxLog());
-                return applicationError;
+                log.trace("addTransaction(): verify() is failed. tx={} {}",
+                        tx.getHash().toString(), BusinessError.getErrorLogsMap(verifyResult));
+                return BusinessError.getErrorLogsMap(verifyResult);
             }
-        } else {
-            return BusinessError.getErrorLogsMap(verifyResult);
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -243,4 +300,33 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     public void addListener(BranchEventListener listener) {
         listenerList.add(listener);
     }
+
+    @Override
+    public void addListener(ContractEventListener listener) {
+        contractEventListenerList.add(listener);
+    }
+
+    private boolean isLastExecutedBlock(ConsensusBlock<T> nextBlock) {
+        if (branchStore.getLastExecuteBlockIndex() >= nextBlock.getIndex()) {
+            log.info("IsLastExecutedBlock? lastExecutedBlock: {} >= nextBlockIndex: {}",
+                    branchStore.getLastExecuteBlockIndex(), nextBlock.getIndex());
+
+            Sha3Hash nextBlockStateRoot = new Sha3Hash(nextBlock.getHeader().getStateRoot(), true);
+            JsonObject originStateRoot = contractManager.getOriginStateRoot();
+            Sha3Hash stateRootHash = new Sha3Hash(originStateRoot.get("stateHash").getAsString());
+            long blockHeight = originStateRoot.get("blockHeight").getAsLong();
+            return nextBlock.getIndex() == blockHeight && nextBlockStateRoot.equals(stateRootHash);
+        }
+        return false;
+    }
+
+    private List<ContractEvent> getContractEventList(BlockRuntimeResult result) {
+        List<ContractEvent> contractEventList = new ArrayList<>();
+        result.getReceipts().stream()
+                .filter(receipt -> !receipt.getEvents().isEmpty())
+                .map(Receipt::getEvents)
+                .forEach(contractEventList::addAll);
+        return contractEventList;
+    }
+
 }

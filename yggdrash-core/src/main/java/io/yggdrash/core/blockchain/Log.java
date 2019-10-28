@@ -27,6 +27,13 @@ public class Log {
         return ret;
     }
 
+    public static Log createBy(String msg) {
+        Log ret = new Log();
+        ret.msg = msg;
+
+        return ret;
+    }
+
     public long getNum() {
         return num;
     }

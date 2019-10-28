@@ -17,6 +17,7 @@
 package io.yggdrash.core.store;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import org.junit.After;
@@ -54,5 +55,32 @@ public class TempStateStoreTest {
         store.close();
 
         Assert.assertEquals(originObj, store.get("TEST"));
+    }
+
+    @Test
+    public void RevertStateRoot() {
+        TempStateStore store = new TempStateStore(stateStore);
+
+        Sha3Hash initStateRoot = store.getStateRoot();
+
+        JsonObject testObj = new JsonObject();
+        testObj.addProperty("test", "test");
+        store.put("test", testObj);
+
+        Sha3Hash changedStateRoot = store.getStateRoot();
+
+        Assert.assertNotEquals(initStateRoot, changedStateRoot);
+
+        store.revertStateRootHash();
+
+        Sha3Hash backupStateRoot = store.getStateRoot();
+
+        Assert.assertEquals(initStateRoot, backupStateRoot);
+
+        store.put("test", testObj);
+
+        Sha3Hash changedStateRoot2 = store.getStateRoot();
+
+        Assert.assertEquals(changedStateRoot, changedStateRoot2);
     }
 }

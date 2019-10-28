@@ -118,8 +118,9 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         }
     }
 
-    void updateByBatch(Map<byte[], byte[]> rows) {
+    public void updateByBatch(Map<byte[], byte[]> rows) {
         resetDbLock.readLock().lock();
+        log.trace("UpdateByBatch Rows size: {}", rows.size());
         try (WriteBatch batch = db.createWriteBatch()) {
             rows.forEach((key, value) -> {
                 if (value == null) {

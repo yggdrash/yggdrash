@@ -62,7 +62,6 @@ public class BlockChainManagerImplTest {
         // invalidTx couldn't be added to blockChain (refer to BlockChainImpl)
 
         assertEquals(0, blockChainManager.getRecentTxs().size()); // haven't done batchTx yet
-        assertEquals(0, blockChainManager.countOfTxs());
         assertEquals(1, blockChainManager.getUnconfirmedTxs().size()); // txPool only contains valid tx
         assertTrue(blockChainManager.getUnconfirmedTxs().contains(tx)); // txPool contains tx
         assertTrue(blockChainManager.contains(tx));
@@ -85,6 +84,7 @@ public class BlockChainManagerImplTest {
         ConsensusBlock<PbftProto.PbftBlock> block = generateBlockWithTxs(true);
         assertEquals(32000, blockChainManager.verify(block));
         blockChainManager.addBlock(block);
+
         assertTrue(blockChainManager.contains(block));
         assertEquals(block, blockChainManager.getBlockByHash(block.getHash()));
         assertEquals(block, blockChainManager.getBlockByIndex(1));
@@ -93,7 +93,6 @@ public class BlockChainManagerImplTest {
         assertEquals(2, blockChainManager.countOfBlocks());
         assertEquals(0, blockChainManager.getUnconfirmedTxs().size());
         assertEquals(10, blockChainManager.getRecentTxs().size());
-        assertEquals(10, blockChainManager.countOfTxs());
 
         assertEquals(32004, blockChainManager.verify(block)); //blockHeight > blockHash, duplicated
         block.getBlock().getBody().getTransactionList().add(BlockChainTestUtils.createTransferTx());
@@ -102,8 +101,8 @@ public class BlockChainManagerImplTest {
         ConsensusBlock<PbftProto.PbftBlock> blockWithInvalidTx = generateBlockWithTxs(false);
         assertEquals(32000, blockChainManager.verify(blockWithInvalidTx));
         blockChainManager.addBlock(blockWithInvalidTx);
+
         assertEquals(3, blockChainManager.countOfBlocks());
-        assertEquals(20, blockChainManager.countOfTxs());
         assertEquals(20, blockChainManager.getRecentTxs().size()); //invalid tx was excluded
     }
 
@@ -116,7 +115,7 @@ public class BlockChainManagerImplTest {
         if (!valid) {
             txs.add(BlockChainTestUtils.createInvalidTransferTx());
         }
-        return BlockChainTestUtils.createNextBlock(txs, blockChainManager.getLastConfirmedBlock());
+        return BlockChainTestUtils.createNextBlock(txs, blockChainManager.getLastConfirmedBlock(), null);
     }
 
 }

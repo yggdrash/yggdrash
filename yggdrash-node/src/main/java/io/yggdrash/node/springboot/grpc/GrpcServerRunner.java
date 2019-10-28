@@ -17,8 +17,11 @@
 package io.yggdrash.node.springboot.grpc;
 
 import io.grpc.BindableService;
+import io.grpc.Metadata;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.ServerCall;
+import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
@@ -37,6 +40,7 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -49,6 +53,8 @@ public class GrpcServerRunner implements CommandLineRunner, DisposableBean {
     private AbstractApplicationContext applicationContext;
 
     private Server server;
+
+    private final AtomicReference<ServerCall<?, ?>> serverCallCapture = new AtomicReference<>();
 
     public GrpcServerRunner(GrpcServerBuilderConfigurer configurer, ServerBuilder<?> serverBuilder) {
         this.configurer = configurer;
@@ -64,6 +70,10 @@ public class GrpcServerRunner implements CommandLineRunner, DisposableBean {
         return server;
     }
 
+    public AtomicReference<ServerCall<?, ?>> getServerCallCapture() {
+        return serverCallCapture;
+    }
+
     @Override
     public void run(String... args) throws IOException {
         log.info("Starting gRPC Server ...");
@@ -73,6 +83,7 @@ public class GrpcServerRunner implements CommandLineRunner, DisposableBean {
                 getBeanNamesByTypeWithAnnotation(GrpcGlobalInterceptor.class, ServerInterceptor.class)
                         .map(name -> applicationContext.getBeanFactory().getBean(name, ServerInterceptor.class))
                         .collect(Collectors.toList());
+        globalInterceptors.add(recordServerCallInterceptor(serverCallCapture));
 
         // find and register all GrpcService enabled beans
         getBeanNamesByTypeWithAnnotation(GrpcService.class, BindableService.class)
@@ -165,5 +176,18 @@ public class GrpcServerRunner implements CommandLineRunner, DisposableBean {
         if (server != null) {
             server.shutdown();
         }
+    }
+
+    private static ServerInterceptor recordServerCallInterceptor(AtomicReference<ServerCall<?, ?>> serverCallCapture) {
+        return new ServerInterceptor() {
+            @Override
+            public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(
+                    ServerCall<ReqT, RespT> call,
+                    Metadata requestHeaders,
+                    ServerCallHandler<ReqT, RespT> next) {
+                serverCallCapture.set(call);
+                return next.startCall(call, requestHeaders);
+            }
+        };
     }
 }

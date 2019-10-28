@@ -3,17 +3,16 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.Contract;
 import io.yggdrash.common.store.StateStore;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.contract.core.annotation.ContractChannelField;
 import io.yggdrash.contract.core.annotation.ContractChannelMethod;
 import io.yggdrash.contract.core.annotation.ContractQuery;
+import io.yggdrash.contract.core.annotation.ContractReceipt;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
-import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.channel.ContractChannel;
 import io.yggdrash.contract.core.channel.ContractMethodType;
 import io.yggdrash.contract.core.store.ReadWriterStore;
-import io.yggdrash.core.blockchain.osgi.ContractManagerBuilderTest;
 import io.yggdrash.core.runtime.annotation.YggdrashContract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +31,8 @@ public class TestContract implements Contract {
     private ReadWriterStore<String, JsonObject> state;
 
 
-    @ContractTransactionReceipt
-    private TransactionReceipt txReceipt;
+    @ContractReceipt
+    private Receipt txReceipt;
 
     public void init(StateStore stateStore) {
     }
@@ -45,7 +44,7 @@ public class TestContract implements Contract {
     }
 
     @InvokeTransaction
-    public TransactionReceipt transfer(JsonObject params) {
+    public Receipt transfer(JsonObject params) {
 
         String to = params.get("to").getAsString().toLowerCase();
         BigInteger amount = params.get("amount").getAsBigInteger();

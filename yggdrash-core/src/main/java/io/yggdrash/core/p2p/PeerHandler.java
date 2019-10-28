@@ -25,7 +25,13 @@ public interface PeerHandler {
 
     String ping(BranchId branchId, Peer owner, String message);
 
+    long pingPong(BranchId branchId, Peer owner, String message);
+
     Peer getPeer();
 
     void stop();
+
+    void setFailCount(int failCount);
+
+    int getFailCount();
 }

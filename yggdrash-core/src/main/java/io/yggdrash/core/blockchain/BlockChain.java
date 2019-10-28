@@ -18,7 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.ContractVersion;
-import io.yggdrash.core.blockchain.osgi.ContractManager;
+import io.yggdrash.core.blockchain.osgi.ContractEventListener;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
 
@@ -33,7 +33,7 @@ public interface BlockChain<T, V> extends ConsensusBlockChain<T, V> {
 
     Map<String, List<String>> addTransaction(Transaction tx); // return errorLogs
 
-    ContractManager getContractManager();
+    Map<String, List<String>> addTransaction(Transaction tx, boolean broadcast); // return errorLogs
 
     List<BranchContract> getBranchContracts();
 
@@ -42,4 +42,11 @@ public interface BlockChain<T, V> extends ConsensusBlockChain<T, V> {
     void close();
 
     void addListener(BranchEventListener listener);
+
+    void addListener(ContractEventListener listener);
+
+    boolean isFullSynced();
+
+    void setFullSynced(boolean fullSynced);
+
 }

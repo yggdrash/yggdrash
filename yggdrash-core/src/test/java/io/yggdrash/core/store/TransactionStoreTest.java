@@ -20,10 +20,16 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.core.blockchain.Transaction;
+import org.ehcache.Cache;
+import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.config.builders.CacheManagerBuilder;
+import org.ehcache.config.builders.ResourcePoolsBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -42,6 +48,27 @@ public class TransactionStoreTest {
     }
 
     @Test
+    public void TEST() {
+        Cache<String, Integer> pendingPool = CacheManagerBuilder
+                .newCacheManagerBuilder().build(true)
+                .createCache("txPool", CacheConfigurationBuilder
+                        .newCacheConfigurationBuilder(String.class, Integer.class,
+                                ResourcePoolsBuilder.heap(Long.MAX_VALUE)));
+        Set<String> pendingKeys = new LinkedHashSet<>();
+
+        pendingPool.put("1", 1);
+        pendingKeys.add("1");
+
+        pendingPool.put("2", 2);
+        pendingKeys.add("2");
+
+        pendingPool.put("3", 3);
+        pendingKeys.add("3");
+
+        ArrayList<Integer> haha = new ArrayList<>(pendingPool.getAll(pendingKeys).values());
+    }
+
+    @Test
     public void shouldBeCachedByCacheSize() {
         int cacheSize = 5;
         ts = new TransactionStore(new HashMapDbSource(), cacheSize);
@@ -55,7 +82,6 @@ public class TransactionStoreTest {
         assertThat(ts.getUnconfirmedTxs().size()).isEqualTo(cacheSize + 1);
         batch();
         assertThat(ts.getUnconfirmedTxs()).isEmpty();
-        assertThat(ts.countOfTxs()).isEqualTo(cacheSize + 1);
         assertThat(ts.getRecentTxs().size()).isEqualTo(cacheSize);
     }
 
@@ -94,7 +120,6 @@ public class TransactionStoreTest {
         ts.put(tx.getHash(), tx);
         batch();
         assertThat(ts.getUnconfirmedTxs()).isEmpty();
-        assertThat(ts.countOfTxs()).isEqualTo(1L);
     }
 
     @Test
@@ -105,6 +130,7 @@ public class TransactionStoreTest {
         assertThat(foundTx).isNotNull();
         assertThat(ts.getUnconfirmedTxs()).isNotEmpty();
     }
+
 
     private void batch() {
         Set<Sha3Hash> keys = ts.getUnconfirmedTxs().stream().map(Transaction::getHash).collect(Collectors.toSet());

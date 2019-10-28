@@ -16,9 +16,12 @@ import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -26,6 +29,9 @@ import java.util.stream.Collectors;
 @Service
 @AutoJsonRpcServiceImpl
 public class LogApiImpl implements LogApi {
+
+    private static final Logger log = LoggerFactory.getLogger(LogApiImpl.class);
+    private static final String BRANCH_NOT_FOUND = "Branch not found";
 
     private final BranchGroup branchGroup;
 
@@ -53,6 +59,15 @@ public class LogApiImpl implements LogApi {
 
     @Override
     public long curIndex(String branchId) {
-        return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getCurLogIndex();
+        try {
+            return branchGroup.getBranch(BranchId.of(branchId)).getContractManager().getCurLogIndex();
+        } catch (NullPointerException ne){
+            log.debug("CurIndex Exception: {}", BRANCH_NOT_FOUND);
+            return 0;
+        } catch (Exception e) {
+            log.debug("CurIndex Exception : {}", e.getMessage());
+            return 0;
+        }
     }
+
 }

@@ -28,19 +28,20 @@ import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 public class DiscoveryHandler<T> implements BlockChainHandler<T> {
     private static final FailedOperationException NOT_IMPLEMENTED = new FailedOperationException("Not implemented");
-
     private static final Logger log = LoggerFactory.getLogger(DiscoveryHandler.class);
 
     private final Peer peer;
-
     private final ManagedChannel channel;
+
     private DiscoveryServiceGrpc.DiscoveryServiceBlockingStub peerBlockingStub;
+    private int failCount = 0;
 
     public DiscoveryHandler(Peer peer) {
         this(ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext().build(), peer);
@@ -50,6 +51,16 @@ public class DiscoveryHandler<T> implements BlockChainHandler<T> {
         this.channel = channel;
         this.peer = peer;
         this.peerBlockingStub = DiscoveryServiceGrpc.newBlockingStub(channel);
+    }
+
+    @Override
+    public int getFailCount() {
+        return failCount;
+    }
+
+    @Override
+    public void setFailCount(int failCount) {
+        this.failCount = failCount;
     }
 
     @Override
@@ -74,15 +85,20 @@ public class DiscoveryHandler<T> implements BlockChainHandler<T> {
 
     @Override
     public List<Peer> findPeers(BranchId branchId, Peer peer) {
+        log.trace("findPeers() Branch({}) Peer({})", branchId.toString(), peer.toString());
         Proto.TargetPeer targetPeer = Proto.TargetPeer.newBuilder()
                 .setPubKey(peer.getPubKey().toString())
                 .setIp(peer.getHost())
                 .setPort(peer.getPort())
                 .setBranch(ByteString.copyFrom(branchId.getBytes()))
                 .build();
-        return peerBlockingStub.findPeers(targetPeer).getPeersList().stream()
+        List<Peer> peerList = peerBlockingStub.findPeers(targetPeer).getPeersList().stream()
                 .map(peerInfo -> Peer.valueOf(peerInfo.getUrl()))
                 .collect(Collectors.toList());
+
+        log.trace("findPeers() result: {}", peerList.toString());
+
+        return peerList;
     }
 
     @Override
@@ -97,8 +113,25 @@ public class DiscoveryHandler<T> implements BlockChainHandler<T> {
     }
 
     @Override
+    public long pingPong(BranchId branchId, Peer owner, String message) {
+        Proto.Ping request = Proto.Ping.newBuilder().setPing(message)
+                .setFrom(owner.getYnodeUri())
+                .setTo(peer.getYnodeUri())
+                .setBranch(ByteString.copyFrom(branchId.getBytes()))
+                .setBestBlock(owner.getBestBlock())
+                .build();
+
+        Proto.Pong response = peerBlockingStub.ping(request);
+        if (Arrays.equals(branchId.getBytes(), request.getBranch().toByteArray())) {
+            return response.getBestBlock();
+        }
+
+        return -1;
+    }
+
+    @Override
     public Future<List<ConsensusBlock<T>>> syncBlock(BranchId branchId, long offset) {
-        throw NOT_IMPLEMENTED;
+        return null;
     }
 
     @Override

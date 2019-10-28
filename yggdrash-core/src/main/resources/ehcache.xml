@@ -10,7 +10,7 @@
            eternal="false"
            diskSpoolBufferSizeMB="20"
            timeToIdleSeconds="300" timeToLiveSeconds="600"
-           memoryStoreEvictionPolicy="LFU"
+           memoryStoreEvictionPolicy="FIFO"
            transactionalMode="off">
         <persistence strategy="localTempSwap"/>
     </cache>

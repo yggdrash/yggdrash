@@ -7,6 +7,7 @@ import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
@@ -87,7 +88,7 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
 
     private void initGenesis() {
         blockKeyStore.put(0L, this.genesisBlock.getHash().getBytes());
-        blockChainManagerMock.addBlock(this.genesisBlock);  // todo: check efficiency & change index
+        blockChainManagerMock.addBlock(this.genesisBlock);
     }
 
     private boolean isOriginGenesis() {
@@ -132,6 +133,11 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
     }
 
     @Override
+    public ContractManager getContractManager() {
+        return null;
+    }
+
+    @Override
     public PbftBlock getGenesisBlock() {
         return genesisBlock;
     }
@@ -148,7 +154,7 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
 
     @Override
     public Map<String, List<String>> addBlock(ConsensusBlock<PbftProto.PbftBlock> block) {
-        blockChainManagerMock.addBlock(block); // todo: check efficiency & change index
+        blockChainManagerMock.addBlock(block);
         this.blockKeyStore.put(block.getIndex(), block.getHash().getBytes());
         loggingBlock((PbftBlock) block);
         return new HashMap<>();
@@ -156,7 +162,7 @@ public class PbftBlockChain implements ConsensusBlockChain<PbftProto.PbftBlock, 
 
     @Override
     public Map<String, List<String>> addBlock(ConsensusBlock<PbftProto.PbftBlock> block, boolean broadcast) {
-        blockChainManagerMock.addBlock(block); // todo: check efficiency & change index & change broadcast param
+        blockChainManagerMock.addBlock(block);
         this.blockKeyStore.put(block.getIndex(), block.getHash().getBytes());
         loggingBlock((PbftBlock) block);
         return new HashMap<>();

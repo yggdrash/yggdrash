@@ -4,7 +4,7 @@ import io.yggdrash.common.store.StateStore;
 
 public class BlockChainStore {
     private final TransactionStore transactionStore;
-    private final TransactionReceiptStore transactionReceiptStore;
+    private final ReceiptStore receiptStore;
     private final StateStore stateStore;
     private final ConsensusBlockStore consensusBlockStore;
     private final BranchStore branchStore;
@@ -12,27 +12,27 @@ public class BlockChainStore {
     private final LogStore logStore;
 
     public BlockChainStore(TransactionStore transactionStore,
-                           TransactionReceiptStore transactionReceiptStore,
+                           ReceiptStore receiptStore,
                            StateStore stateStore,
                            ConsensusBlockStore consensusBlockStore,
                            BranchStore branchStore,
                            LogStore logStore) {
         this.transactionStore = transactionStore;
-        this.transactionReceiptStore = transactionReceiptStore;
+        this.receiptStore = receiptStore;
         this.stateStore = stateStore;
         this.consensusBlockStore = consensusBlockStore;
         this.branchStore = branchStore;
         this.logStore = logStore;
 
-        contractStore = new ContractStore(branchStore, stateStore, transactionReceiptStore);
+        contractStore = new ContractStore(branchStore, stateStore, receiptStore);
     }
 
     public TransactionStore getTransactionStore() {
         return transactionStore;
     }
 
-    public TransactionReceiptStore getTransactionReceiptStore() {
-        return transactionReceiptStore;
+    public ReceiptStore getReceiptStore() {
+        return receiptStore;
     }
 
     public StateStore getStateStore() {

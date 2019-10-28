@@ -20,6 +20,7 @@ import com.google.protobuf.ByteString;
 import io.grpc.Context;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NotValidateException;
@@ -72,7 +73,7 @@ public class PeerHandlerProvider {
 
         private final PbftServiceGrpc.PbftServiceBlockingStub blockingStub;
 
-        public PbftPeerHandler(Peer peer) {
+        PbftPeerHandler(Peer peer) {
             this(ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext().build(), peer);
         }
 
@@ -83,25 +84,32 @@ public class PeerHandlerProvider {
 
         @Override
         public Future<List<ConsensusBlock<PbftProto.PbftBlock>>> syncBlock(BranchId branchId, long offset) {
-            log.debug("Requesting sync block: branchId={}, offset={}", branchId, offset);
+            try {
+                log.debug("Requesting sync block: branchId={}, offset={}, to={}",
+                        branchId, offset, this.getPeer().getYnodeUri());
+                CommonProto.Offset request = CommonProto.Offset.newBuilder()
+                        .setIndex(offset)
+                        .setCount(Constants.BLOCK_SYNC_COUNT)
+                        .setChain(ByteString.copyFrom(branchId.getBytes()))
+                        .build();
 
-            CommonProto.Offset request = CommonProto.Offset.newBuilder()
-                    .setIndex(offset)
-                    .setCount(DEFAULT_LIMIT)
-                    .setChain(ByteString.copyFrom(branchId.getBytes()))
-                    .build();
+                PbftProto.PbftBlockList protoPbftBlockList
+                        = blockingStub.withDeadlineAfter(TIMEOUT_BLOCKLIST, TimeUnit.SECONDS).getPbftBlockList(request);
 
-            PbftProto.PbftBlockList protoPbftBlockList
-                    = blockingStub.withDeadlineAfter(TIMEOUT_BLOCKLIST, TimeUnit.SECONDS).getPbftBlockList(request);
+                CompletableFuture<List<ConsensusBlock<PbftProto.PbftBlock>>> futureBlockList =
+                        new CompletableFuture<>();
+                List<ConsensusBlock<PbftProto.PbftBlock>> newBlockList = new ArrayList<>();
+                for (PbftProto.PbftBlock block : protoPbftBlockList.getPbftBlockList()) {
+                    newBlockList.add(new PbftBlock(block));
+                }
 
-            CompletableFuture<List<ConsensusBlock<PbftProto.PbftBlock>>> futureBlockList = new CompletableFuture<>();
-            List<ConsensusBlock<PbftProto.PbftBlock>> newEbftBlockList = new ArrayList<>();
-            for (PbftProto.PbftBlock block : protoPbftBlockList.getPbftBlockList()) {
-                newEbftBlockList.add(new PbftBlock(block));
+                futureBlockList.complete(newBlockList);
+                return futureBlockList;
+
+            } catch (Exception e) {
+                log.debug("syncBlock is failed(). {}", e.getMessage());
+                return null;
             }
-
-            futureBlockList.complete(newEbftBlockList);
-            return futureBlockList;
         }
 
         // When we send a (single) block to the server and get back a (single) empty.
@@ -131,11 +139,12 @@ public class PeerHandlerProvider {
 
         @Override
         public Future<List<ConsensusBlock<EbftProto.EbftBlock>>> syncBlock(BranchId branchId, long offset) {
-            log.debug("Requesting sync block: branchId={}, offset={}", branchId, offset);
+            log.debug("Requesting sync block: branchId={}, offset={}, to={}",
+                    branchId, offset, this.getPeer().getYnodeUri());
 
             CommonProto.Offset request = CommonProto.Offset.newBuilder()
                     .setIndex(offset)
-                    .setCount(DEFAULT_LIMIT)
+                    .setCount(Constants.BLOCK_SYNC_COUNT)
                     .setChain(ByteString.copyFrom(branchId.getBytes()))
                     .build();
 

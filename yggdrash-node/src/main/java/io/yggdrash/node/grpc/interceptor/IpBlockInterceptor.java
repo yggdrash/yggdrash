@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 public class IpBlockInterceptor implements ServerInterceptor {
     private static final Logger log = LoggerFactory.getLogger("interceptor.ipBlock");
@@ -58,6 +59,6 @@ public class IpBlockInterceptor implements ServerInterceptor {
     }
 
     private <ReqT, RespT> String getRemoteInetSocketString(ServerCall<ReqT, RespT> call) {
-        return call.getAttributes().get(Grpc.TRANSPORT_ATTR_REMOTE_ADDR).toString();
+        return Objects.requireNonNull(call.getAttributes().get(Grpc.TRANSPORT_ATTR_REMOTE_ADDR)).toString();
     }
 }

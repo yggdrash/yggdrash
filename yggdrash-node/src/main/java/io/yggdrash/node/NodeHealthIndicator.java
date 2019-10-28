@@ -61,19 +61,34 @@ public class NodeHealthIndicator implements HealthIndicator, NodeStatus {
 
     @Override
     public void up() {
-        log.info("Changed node status={} -> {}", health.get().getStatus(), Status.UP);
-        updateDetail(Status.UP);
+        try {
+            updateDetail(Status.UP);
+        } catch (Exception e) {
+            log.debug("Status up() is failed. {}", e.getMessage());
+        } finally {
+            log.trace("nodeStatus -> {}", health.get().getStatus());
+        }
     }
 
     @Override
     public void sync() {
-        log.info("Changed node status={} -> {}", health.get().getStatus(), SYNC);
-        updateDetail(SYNC);
+        try {
+            updateDetail(SYNC);
+        } catch (Exception e) {
+            log.trace("Status sync() is failed. {}", e.getMessage());
+        } finally {
+            log.trace("nodeStatus -> {}", health.get().getStatus());
+        }
     }
 
     @Override
     public boolean isUpStatus() {
         return health.get().getStatus().equals(Status.UP);
+    }
+
+    @Override
+    public boolean isSyncStatus() {
+        return health.get().getStatus().equals(SYNC);
     }
 
     private void updateDetail(Status status) {

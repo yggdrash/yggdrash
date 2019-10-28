@@ -13,11 +13,12 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.core.consensus.ConsensusBlock;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public interface BlockChainManager<T> {
 
@@ -31,7 +32,11 @@ public interface BlockChainManager<T> {
 
     void addBlock(ConsensusBlock<T> nextBlock);
 
+    void batchTxs(ConsensusBlock<T> block);
+
     void addTransaction(Transaction tx);
+
+    void flushUnconfirmedTxs(Set<Sha3Hash> keys);
 
     void updateTxCache(Block block);
 
@@ -49,13 +54,13 @@ public interface BlockChainManager<T> {
 
     List<Transaction> getUnconfirmedTxsWithLimit(long limit);
 
-    TransactionReceipt getTransactionReceipt(String txId);
+    int getUnconfirmedTxsSize();
+
+    Receipt getReceipt(String txId);
 
     Sha3Hash getLastHash();
 
     long getLastIndex();
-
-    long countOfTxs();
 
     long countOfBlocks();
 

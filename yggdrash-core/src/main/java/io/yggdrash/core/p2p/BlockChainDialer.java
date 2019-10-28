@@ -62,19 +62,18 @@ public class BlockChainDialer implements PeerDialer {
     }
 
     @Override
-    public boolean healthCheck(BranchId branchId, Peer owner, Peer to) {
+    public long healthCheck(BranchId branchId, Peer owner, Peer to) {
         BlockChainHandler peerHandler = getPeerHandler(branchId, to);
         try {
-            String pong = peerHandler.ping(branchId, owner, "Ping");
-            // TODO validation peer and considering expiration
-            if ("Pong".equals(pong)) {
-                return true;
+            long peerBlockIndex = peerHandler.pingPong(branchId, owner, "Ping");
+            if (peerBlockIndex >= 0) {
+                return peerBlockIndex;
             }
         } catch (Exception e) {
-            log.debug("Cannot connect {}", to.toAddress());
+            log.trace("healthCheck failed {} {}", to.toAddress(), e.getMessage());
         }
-        removeHandler(peerHandler);
-        return false;
+
+        return -1L;
     }
 
     @Override

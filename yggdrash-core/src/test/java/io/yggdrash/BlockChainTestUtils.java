@@ -17,14 +17,18 @@
 package io.yggdrash;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
 import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BlockChainManagerImpl;
+import io.yggdrash.core.blockchain.BlockHeader;
 import io.yggdrash.core.blockchain.BlockImpl;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
@@ -56,11 +60,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class BlockChainTestUtils {
     private static final GenesisBlock genesis;
@@ -75,24 +82,37 @@ public class BlockChainTestUtils {
     }
 
     static {
-        try (InputStream is = new FileInputStream(TestConstants.branchFile)) {
-            genesis = GenesisBlock.of(is);
+        try {
+            GenesisBlock genesisBlock = generateGenesisBlockByFile(TestConstants.branchFile);
             TestConstants.yggdrash();
+            genesis = genesisBlock;
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
         }
     }
 
-    private static GenesisBlock generateGenesisBlockByFile(File file) {
+
+    public static GenesisBlock generateGenesisBlockByFile(File file) {
         try (InputStream is = new FileInputStream(file)) {
-            return GenesisBlock.of(is);
+            return generateGenesisBlockByInputStream(is);
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
         }
     }
 
-    private static List<ConsensusBlock<PbftProto.PbftBlock>> sampleBlockList = createBlockList(
-            new ArrayList<>(), genesisBlock(), null, 100);
+    public static GenesisBlock generateGenesisBlockByInputStream(InputStream is) {
+        try {
+            GenesisBlock genesisBlock = GenesisBlock.of(is);
+            genesisBlock.toBlock(ContractTestUtils.calGenesisStateRoot(genesisBlock));
+            return genesisBlock;
+        } catch (IOException e) {
+            throw new InvalidSignatureException(e);
+        }
+
+    }
+
+    private static List<ConsensusBlock<PbftProto.PbftBlock>> sampleBlockList
+            = createBlockListWithoutTxs(100, genesisBlock());
 
     public static List<ConsensusBlock<PbftProto.PbftBlock>> getSampleBlockList() {
         return sampleBlockList;
@@ -107,22 +127,70 @@ public class BlockChainTestUtils {
     }
 
     public static ConsensusBlock<PbftProto.PbftBlock> createNextBlock() {
-        return createNextBlock(new PbftBlockMock(genesis.getBlock()));
+        PbftBlockMock genesisBLock = new PbftBlockMock(genesis.getBlock());
+        return new PbftBlockMock(BlockImpl.nextBlock(
+                TestConstants.wallet(),
+                Collections.emptyList(),
+                genesisBLock.getHeader().getStateRoot(),
+                genesisBLock));
     }
 
     public static ConsensusBlock<PbftProto.PbftBlock> createNextBlock(ConsensusBlock prevBlock) {
-        return createNextBlock(Collections.emptyList(), prevBlock);
+        return new PbftBlockMock(BlockImpl.nextBlock(
+                TestConstants.wallet(),
+                Collections.emptyList(),
+                prevBlock.getHeader().getStateRoot(),
+                prevBlock));
     }
 
     public static ConsensusBlock<PbftProto.PbftBlock> createNextBlock(List<Transaction> blockBody,
-                                                                      ConsensusBlock prevBlock) {
-        return new PbftBlockMock(BlockImpl.nextBlock(TestConstants.wallet(), blockBody, prevBlock));
+                                                                      ConsensusBlock prevBlock,
+                                                                      ContractManager contractManager) {
+        byte[] stateRoot = contractManager != null
+                ? ContractTestUtils.calStateRoot(contractManager, blockBody).getBytes()
+                : ContractTestUtils.calStateRoot(prevBlock, blockBody).getBytes();
+        return new PbftBlockMock(BlockImpl.nextBlock(TestConstants.wallet(), blockBody, stateRoot, prevBlock));
     }
 
     public static ConsensusBlock<PbftProto.PbftBlock> createNextBlock(Wallet wallet,
                                                                       List<Transaction> blockBody,
-                                                                      ConsensusBlock prevBlock) {
-        return new PbftBlockMock(BlockImpl.nextBlock(wallet, blockBody, prevBlock));
+                                                                      ConsensusBlock prevBlock,
+                                                                      ContractManager contractManager) {
+        byte[] stateRoot = contractManager != null
+                ? ContractTestUtils.calStateRoot(contractManager, blockBody).getBytes()
+                : ContractTestUtils.calStateRoot(prevBlock, blockBody).getBytes();
+        return new PbftBlockMock(BlockImpl.nextBlock(wallet, blockBody, stateRoot, prevBlock));
+    }
+
+    public static ConsensusBlock<PbftProto.PbftBlock> createSpecificHeightBlock(long index,
+                                                                                List<Transaction> blockBody,
+                                                                                ConsensusBlock prevBlock,
+                                                                                ContractManager contractManager) {
+        ConsensusBlock<PbftProto.PbftBlock> nextBlock = createNextBlock(blockBody, prevBlock, contractManager);
+        for (long i = 1L; i < index; i++) {
+            nextBlock = createNextBlock(blockBody, nextBlock, contractManager);
+        }
+        return nextBlock;
+    }
+
+    public static ConsensusBlock<PbftProto.PbftBlock> createNextBlockByPrevHash(Sha3Hash specificPrevHash,
+                                                                                ConsensusBlock prevBlock) {
+        Block prevTmpBlock = prevBlock.getBlock();
+        BlockHeader prevTmpBlockHeader = prevTmpBlock.getHeader();
+        BlockBody blockBody = new BlockBody(new ArrayList<>()); // no txs
+
+        BlockHeader newBlockHeader = new BlockHeader(
+                prevTmpBlockHeader.getChain(),
+                prevTmpBlockHeader.getVersion(),
+                prevTmpBlockHeader.getType(),
+                specificPrevHash.getBytes(),
+                prevTmpBlockHeader.getIndex() + 1L,
+                TimeUtils.time(),
+                prevTmpBlockHeader.getStateRoot(),
+                blockBody);
+
+        Block block = new BlockImpl(newBlockHeader, TestConstants.wallet(), blockBody);
+        return new PbftBlockMock(block);
     }
 
     public static Transaction createBranchTx() {
@@ -176,23 +244,34 @@ public class BlockChainTestUtils {
 
         BootFrameworkConfig bootFrameworkConfig = new BootFrameworkConfig(config, genesis.getBranchId());
         BootFrameworkLauncher bootFrameworkLauncher = new BootFrameworkLauncher(bootFrameworkConfig);
-        BundleServiceImpl bundleService = new BundleServiceImpl();
+        BundleServiceImpl bundleService = new BundleServiceImpl(bootFrameworkLauncher.getBundleContext());
         SystemProperties systemProperties = createDefaultSystemProperties();
 
         ContractManager contractManager = ContractManagerBuilder.newInstance()
                 .withGenesis(genesis)
-                .withBootFramework(bootFrameworkLauncher)
                 .withBundleManager(bundleService)
                 .withDefaultConfig(config)
                 .withContractStore(contractStore)
-                .withLogStore(bcStore.getLogStore()) // is this logstore for what?
+                .withLogStore(bcStore.getLogStore())
                 .withSystemProperties(systemProperties)
                 .build();
 
-        Assert.assertTrue(contractManager.getBundles().length
-                >= genesis.getBranch().getBranchContracts().size());
+        int numOfBundles =  contractManager.getBundles().length;
+        int numOfBranchContracts = genesis.getBranch().getBranchContracts().size();
+
+        // System bundle + contract bundle
+        Assert.assertEquals(numOfBundles, numOfBranchContracts + 1);
 
         BlockChainManager blockChainManager = new BlockChainManagerImpl(bcStore);
+
+        Sha3Hash genesisStateRootHash;
+        if (genesis.getContractTxs().size() > 0) {
+            genesisStateRootHash = new Sha3Hash(contractManager.executeTxs(genesis.getContractTxs())
+                    .getBlockResult().get("stateRoot").get("stateHash").getAsString());
+        } else {
+            genesisStateRootHash = new Sha3Hash(Constants.EMPTY_HASH);
+        }
+        genesis.toBlock(genesisStateRootHash);
 
         return BlockChainBuilder.newBuilder()
                 .setGenesis(genesis)
@@ -215,46 +294,65 @@ public class BlockChainTestUtils {
         BlockChain branch = branchGroup.getBranch(branchId);
         List<Transaction> txs =
                 branch.getBlockChainManager().getUnconfirmedTxsWithLimit(Constants.Limit.BLOCK_SYNC_SIZE);
-        branch.addBlock(createNextBlock(txs, branch.getBlockChainManager().getLastConfirmedBlock()));
+        branch.addBlock(
+                createNextBlock(
+                        txs, branch.getBlockChainManager().getLastConfirmedBlock(), branch.getContractManager()));
     }
 
     public static void setBlockHeightOfBlockChain(BlockChain blockChain, int height) {
         List<ConsensusBlock<PbftProto.PbftBlock>> blockList = new ArrayList<>();
         ConsensusBlock<PbftProto.PbftBlock> curBlock
                 = blockChain.getBlockChainManager().getBlockByIndex(blockChain.getBlockChainManager().getLastIndex());
-        ConsensusBlock<PbftProto.PbftBlock> nextBlock = createNextBlock(curBlock);
-        blockList = createBlockList(blockList, nextBlock, null, height);
+        blockList = createBlockListWithoutTxs(height, curBlock);
 
         for (ConsensusBlock block : blockList) {
             blockChain.addBlock(block, false);
         }
     }
 
-    public static List<ConsensusBlock<PbftProto.PbftBlock>> createBlockListFilledWithTx(int height, int txSize) {
+    public static List<ConsensusBlock<PbftProto.PbftBlock>> createBlockListWithTxs(
+            int blockHeight, int txSize, ContractManager contractManager) {
         List<ConsensusBlock<PbftProto.PbftBlock>> blockList = new ArrayList<>();
-        List<Transaction> blockBody = new ArrayList<>();
-
-        for (int i = 0; i < txSize; i++) {
-            blockBody.add(createTransferTx());
+        List<Transaction> blockBody =
+                IntStream.range(0, txSize).mapToObj(i -> createTransferTx()).collect(Collectors.toList());
+        blockList.add(createNextBlock(blockBody, genesisBlock(), contractManager));
+        for (int i = 0; i < blockHeight - 1; i++) {
+            blockList.add(createNextBlock(blockBody, blockList.get(i), contractManager));
         }
-
-        return createBlockList(blockList, createNextBlock(blockBody, genesisBlock()), blockBody, height);
+        return blockList;
     }
 
-    private static List<ConsensusBlock<PbftProto.PbftBlock>> createBlockList(
-            List<ConsensusBlock<PbftProto.PbftBlock>> blockList,
-            ConsensusBlock<PbftProto.PbftBlock> prevBlock,
-            List<Transaction> blockBody,
-            int height) {
-        while (blockList.size() < height) {
-            blockList.add(prevBlock);
-            if (blockBody != null) {
-                createBlockList(blockList, createNextBlock(blockBody, prevBlock), blockBody, height);
-            } else {
-                createBlockList(blockList, createNextBlock(prevBlock), null, height);
-            }
+    public static List<ConsensusBlock<PbftProto.PbftBlock>> createBlockListWithoutTxs(
+            int blockHeight, ConsensusBlock<PbftProto.PbftBlock> curBlock) {
+        List<ConsensusBlock<PbftProto.PbftBlock>> blockList = new ArrayList<>();
+        if (curBlock != null && curBlock.getIndex() != 0L) {
+            blockList.add(createNextBlock(curBlock));
+        } else {
+            blockList.add(createNextBlock()); // nextBlock of genesisBlock
         }
-        return blockList.size() > 0 ? blockList : Collections.emptyList();
+
+        for (int i = 0; i < blockHeight - 1; i++) {
+            blockList.add(createNextBlock(blockList.get(i)));
+        }
+        return blockList;
+    }
+
+    public static Transaction createContractProposeTx(String contractVersion, String proposalType) {
+        return createContractProposeTx(TestConstants.transferWallet(), contractVersion, proposalType);
+    }
+
+    public static Transaction createContractProposeTx(Wallet wallet, String contractVersion, String proposalType) {
+        return buildTx(ContractTestUtils.contractProposeTxBodyJson(contractVersion, proposalType),
+                wallet, TestConstants.yggdrash());
+    }
+
+    public static Transaction createContractVoteTx(String txId, boolean agree) {
+        return createContractVoteTx(TestConstants.transferWallet(), txId, agree);
+    }
+
+    public static Transaction createContractVoteTx(Wallet wallet, String txId, boolean agree) {
+        return buildTx(ContractTestUtils.contractVoteTxBodyJson(txId, agree),
+                wallet, TestConstants.yggdrash());
     }
 
     public static Transaction createTransferTx() {
@@ -313,8 +411,8 @@ public class BlockChainTestUtils {
     private static Transaction createInvalidTx(BranchId branchId, byte[] txVersion, JsonObject txBody) {
         TransactionBody transactionBody = new TransactionBody(txBody);
         byte[] chain = branchId.getBytes();
-        long hour = (1000 * 60 * 60);
-        long timestamp = TimeUtils.time() + hour * 2;
+        long twoHour = (1000 * 60 * 60) * 2;
+        long timestamp = TimeUtils.time() + twoHour * 2;
         TransactionHeader txHeader = new TransactionHeader(
                 chain, txVersion, Constants.EMPTY_BYTE8, timestamp, transactionBody);
         byte[] sign = Constants.EMPTY_SIGNATURE;

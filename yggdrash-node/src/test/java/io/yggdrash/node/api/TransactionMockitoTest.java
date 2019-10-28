@@ -19,9 +19,8 @@ package io.yggdrash.node.api;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HexUtil;
-import io.yggdrash.common.exception.FailedOperationException;
-import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.contract.core.TransactionReceiptImpl;
+import io.yggdrash.contract.core.Receipt;
+import io.yggdrash.contract.core.ReceiptImpl;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
@@ -47,6 +46,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -60,9 +60,9 @@ public class TransactionMockitoTest {
     private TransactionApiImpl txApiImpl;
     private String txId;
     private String blockId;
-    private TransactionReceipt txReceipt;
+    private Receipt txReceipt;
 
-    private HashMap<String, TransactionReceipt> txReceiptStore;
+    private HashMap<String, Receipt> txReceiptStore;
     private BranchId branchId;
 
     @Before
@@ -70,18 +70,18 @@ public class TransactionMockitoTest {
         txReceiptStore = new HashMap<>();
         txApiImpl = new TransactionApiImpl(branchGroupMock);
 
-        tx = BlockChainTestUtils.createBranchTx();
+        tx = BlockChainTestUtils.createTransferTx();
         branchId = tx.getBranchId();
         txId = tx.getHash().toString();
         List<Transaction> txList = new ArrayList<>();
         txList.add(tx);
         txList.add(tx);
         txList.add(tx);
-        txReceipt = new TransactionReceiptImpl();
+        txReceipt = new ReceiptImpl();
         txReceipt.setTxId(txId);
         txReceiptStore.put(txId, txReceipt);
         ConsensusBlock genesis = BlockChainTestUtils.genesisBlock();
-        block = BlockChainTestUtils.createNextBlock(txList, genesis);
+        block = BlockChainTestUtils.createNextBlock(txList, genesis, null); // contractManager is null
         blockId = block.getHash().toString();
     }
 
@@ -125,7 +125,7 @@ public class TransactionMockitoTest {
 
     @Test
     public void getTransactionReceiptTest() {
-        when(branchGroupMock.getTransactionReceipt(branchId, txId))
+        when(branchGroupMock.getReceipt(branchId, txId))
                 .thenReturn(txReceipt);
         TransactionReceiptDto res = txApiImpl.getTransactionReceipt(branchId.toString(), txId);
         assertEquals(res.txId, txId);
@@ -133,23 +133,23 @@ public class TransactionMockitoTest {
 
     @Test
     public void sendTransactionTest() {
+        when(branchGroupMock.isFullSynced(tx.getBranchId())).thenReturn(true);
         TransactionResponseDto res = txApiImpl.sendTransaction(TransactionDto.createBy(tx));
         assertThat(res.txHash).isNotEmpty();
     }
 
-    @Test(expected = FailedOperationException.class)
     public void sendInvalidRawTransaction() {
-        byte[] res = txApiImpl.sendRawTransaction(tx.toBinary());
-        log.debug("\n\nres :: " + Hex.encodeHexString(res));
-        assertThat(res).isNotEmpty();
+        TransactionResponseDto res = txApiImpl.sendRawTransaction(tx.toBinary());
+        assertFalse(res.status);
     }
 
     @Test
     public void sendRawTransaction() {
+        when(branchGroupMock.isFullSynced(tx.getBranchId())).thenReturn(true);
         TransactionImpl testTx = new TransactionImpl(tx.getInstance());
-        byte[] res = txApiImpl.sendRawTransaction(testTx.toRawTransaction());
-        log.debug("\n\nres :: " + Hex.encodeHexString(res));
-        assertThat(res).isEqualTo(testTx.getHash().getBytes()); //success tx
+        TransactionResponseDto res = txApiImpl.sendRawTransaction(testTx.toRawTransaction());
+        //success tx
+        assertEquals(testTx.getHash().toString(), res.txHash);
     }
 
     @Test

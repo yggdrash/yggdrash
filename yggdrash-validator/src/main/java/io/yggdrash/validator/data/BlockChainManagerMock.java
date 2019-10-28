@@ -13,7 +13,7 @@
 package io.yggdrash.validator.data;
 
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BlockChainManagerImpl;
@@ -23,6 +23,7 @@ import io.yggdrash.core.store.BlockChainStore;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class BlockChainManagerMock<T> implements BlockChainManager<T> {
 
@@ -58,8 +59,23 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     }
 
     @Override
+    public void batchTxs(ConsensusBlock<T> block) {
+        blockChainManager.batchTxs(block);
+    }
+
+    @Override
     public void addTransaction(Transaction tx) {
         blockChainManager.addTransaction(tx);
+    }
+
+    @Override
+    public void flushUnconfirmedTxs(Set<Sha3Hash> keys) {
+        blockChainManager.flushUnconfirmedTxs(keys);
+    }
+
+    @Override
+    public int getUnconfirmedTxsSize() {
+        return blockChainManager.getUnconfirmedTxsSize();
     }
 
     @Override
@@ -103,8 +119,8 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     }
 
     @Override
-    public TransactionReceipt getTransactionReceipt(String txId) {
-        return blockChainManager.getTransactionReceipt(txId);
+    public Receipt getReceipt(String txId) {
+        return blockChainManager.getReceipt(txId);
     }
 
     @Override
@@ -115,11 +131,6 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     @Override
     public Sha3Hash getLastHash() {
         return blockChainManager.getLastHash();
-    }
-
-    @Override
-    public long countOfTxs() {
-        return blockChainManager.countOfTxs();
     }
 
     @Override

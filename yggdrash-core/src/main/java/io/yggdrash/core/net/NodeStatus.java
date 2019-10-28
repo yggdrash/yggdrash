@@ -20,7 +20,10 @@ public interface NodeStatus {
 
     boolean isUpStatus();
 
+    boolean isSyncStatus();
+
     void up();
 
     void sync();
+
 }

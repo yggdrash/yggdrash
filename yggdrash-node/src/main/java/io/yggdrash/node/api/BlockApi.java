@@ -4,6 +4,7 @@ import com.googlecode.jsonrpc4j.JsonRpcError;
 import com.googlecode.jsonrpc4j.JsonRpcErrors;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
+import io.yggdrash.core.exception.DecodeException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.gateway.dto.BlockDto;
 
@@ -15,9 +16,8 @@ public interface BlockApi {
     /**
      * Returns the number of most recent block.
      */
-    @JsonRpcErrors({
-            @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.CODE)})
+    @JsonRpcErrors({@JsonRpcError(exception = NonExistObjectException.class, code = NonExistObjectException.CODE),
+            @JsonRpcError(exception = DecodeException.class, code = DecodeException.CODE)})
     long blockNumber(@JsonRpcParam(value = BRANCH_ID) String branchId);
 
     /**
@@ -28,9 +28,8 @@ public interface BlockApi {
      * @param bool        If true, it returns the full transaction objects,
      *                    if false only the hashes of the transactions.
      */
-    @JsonRpcErrors({
-            @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.CODE)})
+    @JsonRpcErrors({@JsonRpcError(exception = NonExistObjectException.class, code = NonExistObjectException.CODE),
+            @JsonRpcError(exception = DecodeException.class, code = DecodeException.CODE)})
     BlockDto getBlockByHash(@JsonRpcParam(value = BRANCH_ID) String branchId,
                              @JsonRpcParam(value = BLOCK_ID) String blockId,
                              @JsonRpcParam(value = "bool") Boolean bool);
@@ -43,9 +42,8 @@ public interface BlockApi {
      * @param bool        If true, it returns the full transaction objects,
      *                    if false only the hashes of the transactions.
      */
-    @JsonRpcErrors({
-            @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.CODE)})
+    @JsonRpcErrors({@JsonRpcError(exception = NonExistObjectException.class, code = NonExistObjectException.CODE),
+            @JsonRpcError(exception = DecodeException.class, code = DecodeException.CODE)})
     BlockDto getBlockByNumber(@JsonRpcParam(value = BRANCH_ID) String branchId,
                               @JsonRpcParam(value = "numOfBlock") long numOfBlock,
                               @JsonRpcParam(value = "bool") Boolean bool);
@@ -54,8 +52,7 @@ public interface BlockApi {
      * Get last block
      * @return the latest block
      */
-    @JsonRpcErrors({
-            @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.CODE)})
+    @JsonRpcErrors({@JsonRpcError(exception = NonExistObjectException.class, code = NonExistObjectException.CODE),
+            @JsonRpcError(exception = DecodeException.class, code = DecodeException.CODE)})
     BlockDto getLastBlock(@JsonRpcParam(value = BRANCH_ID) String branchId);
 }

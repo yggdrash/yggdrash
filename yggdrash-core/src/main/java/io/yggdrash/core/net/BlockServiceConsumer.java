@@ -67,19 +67,14 @@ public class BlockServiceConsumer<T> implements BlockConsumer<T> {
             long nextIndex = branchGroup.getLastIndex(branchId) + 1;
             long receivedIndex = block.getIndex();
 
-            if (receivedIndex < nextIndex) {
-                return;
-            } else if (receivedIndex == nextIndex) {
+            if (receivedIndex == nextIndex) {
                 branchGroup.addBlock(block, true);
             } else {
-                // Catchup Event!
-                if (listener != null) {
-                    log.info("CatchUp required. received={} expected={}", receivedIndex, nextIndex);
-                    listener.catchUpRequest(block);
-                }
+                log.trace("Received blockIndex({}) is not nextBlockIndex({}).",
+                        block.getIndex(), nextIndex);
             }
         } catch (Exception e) {
-            log.debug("BroadcastBlock ERR={}", e.getMessage());
+            log.debug("BroadcastBlock() is failed. {}", e.getMessage());
         }
     }
 
@@ -95,28 +90,26 @@ public class BlockServiceConsumer<T> implements BlockConsumer<T> {
     }
 
     private void updateBlockList(BranchId branchId, long offset, long limit, List<ConsensusBlock<T>> blockList) {
-        BlockChain blockChain = branchGroup.getBranch(branchId);
-
-        if (blockChain == null) {
-            log.warn("Invalid syncBlock request for branchId={}", branchId);
-            return;
-        }
-        if (offset < 0) {
-            offset = 0;
-        }
-
-        long bodyLengthSum = 0;
-
-        for (int i = 0; i < limit; i++) {
-            ConsensusBlock block = branchGroup.getBlockByIndex(branchId, offset++);
-            if (block == null) {
-                return;
+        try {
+            if (offset < 0) {
+                offset = 0;
             }
-            bodyLengthSum += block.getSerializedSize();
-            if (bodyLengthSum > Limit.BLOCK_SYNC_SIZE) {
-                return;
+
+            long bodyLengthSum = 0;
+
+            for (int i = 0; i < limit; i++) {
+                ConsensusBlock block = branchGroup.getBlockByIndex(branchId, offset++);
+                if (block == null) {
+                    return;
+                }
+                bodyLengthSum += block.getSerializedSize();
+                if (bodyLengthSum > Limit.BLOCK_SYNC_SIZE) {
+                    return;
+                }
+                blockList.add(block);
             }
-            blockList.add(block);
+        } catch (Exception e) {
+            log.debug(e.getMessage());
         }
     }
 

@@ -66,8 +66,8 @@ public class BlockChainStoreBuilder {
         return new StateStore(getDbSource(branchId + "/state"));
     }
 
-    private TransactionReceiptStore buildTransactionReceiptStore() {
-        return new TransactionReceiptStore(getDbSource(branchId + "/txreceipt"));
+    private ReceiptStore buildReceiptStore() {
+        return new ReceiptStore(getDbSource(branchId + "/receipt"));
     }
 
     private LogStore buildLogStore() {
@@ -81,7 +81,7 @@ public class BlockChainStoreBuilder {
 
     public BlockChainStore build() {
         TransactionStore txStore = buildTransactionStore();
-        TransactionReceiptStore txrStore = buildTransactionReceiptStore();
+        ReceiptStore receiptStore = buildReceiptStore();
         StateStore stateStore = buildStateStore();
         ConsensusBlockStore blockStore = buildBlockStore();
         // State Store and Branch Store is merged
@@ -91,7 +91,7 @@ public class BlockChainStoreBuilder {
 
         BlockChainStore blockChainStore = new BlockChainStore(
                 txStore,
-                txrStore,
+                receiptStore,
                 stateStore,
                 blockStore,
                 branchStore,

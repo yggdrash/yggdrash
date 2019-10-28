@@ -33,7 +33,6 @@ import io.yggdrash.node.service.BlockServiceFactory;
 import io.yggdrash.node.springboot.grpc.GrpcServerBuilderConfigurer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -47,15 +46,11 @@ import java.util.stream.Collectors;
 
 @Configuration
 @EnableScheduling
-@DependsOn("branchLoader")
+@DependsOn({"branchLoader", "peerTableGroup"})
 public class NetworkConfiguration {
     private static final Logger log = LoggerFactory.getLogger(NetworkConfiguration.class);
 
     private final List<Peer> validatorList;
-
-    @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
-    @Autowired(required = false)
-    BlockChain yggdrash;
 
     public NetworkConfiguration(NodeProperties nodeProperties) {
         if (nodeProperties.getValidatorList() == null) {
@@ -87,11 +82,12 @@ public class NetworkConfiguration {
     }
 
     @Bean
-    public SyncManager syncManager(NodeStatus nodeStatus, PeerNetwork peerNetwork, BranchGroup branchGroup) {
-        return new BlockChainSyncManager(nodeStatus, peerNetwork, branchGroup);
+    public SyncManager syncManager(NodeStatus nodeStatus, PeerNetwork peerNetwork, BranchGroup branchGroup,
+                                   PeerTableGroup peerTableGroup) {
+        return new BlockChainSyncManager(nodeStatus, peerNetwork, branchGroup, peerTableGroup);
     }
 
-    @Profile({Constants.ActiveProfiles.NODE, Constants.ActiveProfiles.BOOTSTRAP})
+    @Profile({Constants.ActiveProfiles.NODE})
     @Bean
     @Primary
     public GrpcServerBuilderConfigurer configurer(BranchGroup branchGroup, SyncManager syncManager) {

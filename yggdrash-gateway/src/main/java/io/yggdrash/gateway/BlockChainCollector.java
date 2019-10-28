@@ -26,7 +26,6 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.gateway.dto.BlockDto;
-import io.yggdrash.gateway.dto.TransactionDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
@@ -41,7 +40,7 @@ import java.util.Map;
  * 블록체인에서 발생되는 정보들을 외부 저장소에 수집합니다.
  */
 @Component
-@DependsOn("yggdrash")
+@DependsOn("branchLoader")
 @ConditionalOnProperty("elasticsearch.host")
 public class BlockChainCollector implements BranchEventListener {
     private static final Logger log = LoggerFactory.getLogger(BlockChainCollector.class);
@@ -53,6 +52,7 @@ public class BlockChainCollector implements BranchEventListener {
         for (BlockChain bc : branchGroup.getAllBranch()) {
             chainedBlock(bc.getGenesisBlock());
             bc.addListener(this);
+            log.debug("ElasticSearch listener added: {}", bc.getBranch().getBranchId());
         }
     }
 
@@ -69,6 +69,8 @@ public class BlockChainCollector implements BranchEventListener {
         }
 
         outputStore.put(block.getHash().toString(), block.getIndex(), transactionMap);
+        log.trace("ElasticSearch put: {} [{}] tx({})",
+                block.getHash().toString(), block.getIndex(), transactionMap.size());
     }
 
     @Override

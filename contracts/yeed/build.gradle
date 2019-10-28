@@ -64,18 +64,19 @@ task contractsPackage(type: Jar) {
     manifest {
         attributes(
                 'Bundle-ManifestVersion': '2',
-                'Bundle-Name': 'Yeed Contract',
+                'Bundle-Name': 'YEED',
                 'Bundle-Description': 'Yggdrash YEED Contract',
                 'Bundle-Vendor': 'YGGDRASH',
                 'Bundle-SymbolicName': 'io.yggdrash.contract.yeed.YeedContract',
-                'Bundle-Version': '0.1.0',
+                'Bundle-Version': '0.8.0',
                 'Bundle-Activator': 'io.yggdrash.contract.yeed.YeedContract',
                 'Import-Package': "${importPackage}"
         )
     }
     preserveFileTimestamps = false
     exclude(excludeList)
-    archiveName "system-yeed-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+    project.archivesBaseName = manifest.attributes.get('Bundle-Name')
+    project.version = manifest.attributes.get('Bundle-Version')
 }
 
 
@@ -91,7 +92,7 @@ task deleteOutputContract(type: Delete) {
     delete buildContract
 }
 
-task copyContractToResrouce(type: Copy) {
+task copyContractToResource(type: Copy) {
     dependsOn deleteOutputContract
     dependsOn contractsPackage
 
@@ -115,7 +116,7 @@ task copyContractToResrouce(type: Copy) {
     }
 }
 task copyContractToProject(type: Copy) {
-    dependsOn copyContractToResrouce
+    dependsOn copyContractToResource
 
     from file("${buildContract}")
     into file("${projectContractPath}")

@@ -16,7 +16,7 @@
 
 package io.yggdrash.gateway.dto;
 
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,11 +33,11 @@ public class TransactionReceiptDto {
     public Long blockHeight;
     public String methodName;
 
-    public static TransactionReceiptDto createBy(TransactionReceipt tx) {
+    public static TransactionReceiptDto createBy(Receipt tx) {
         TransactionReceiptDto transactionDto = new TransactionReceiptDto();
         transactionDto.txLog =  new ArrayList<>();
-        if (tx.getTxLog() != null) {
-            transactionDto.txLog.addAll(tx.getTxLog());
+        if (tx.getLog() != null) {
+            transactionDto.txLog.addAll(tx.getLog());
         }
         transactionDto.txId = tx.getTxId();
         transactionDto.blockId = tx.getBlockId();
@@ -46,7 +46,7 @@ public class TransactionReceiptDto {
         transactionDto.issuer = tx.getIssuer();
         transactionDto.contractVersion = tx.getContractVersion();
         transactionDto.blockHeight = tx.getBlockHeight();
-        // TODO Add method Name
+        transactionDto.methodName = tx.getMethod();
 
         return transactionDto;
     }

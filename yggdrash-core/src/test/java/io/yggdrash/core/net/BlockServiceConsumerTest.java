@@ -49,7 +49,7 @@ public class BlockServiceConsumerTest {
         // arrange
         int height = 110;
         List<ConsensusBlock<PbftProto.PbftBlock>> blockList =
-                BlockChainTestUtils.createBlockListFilledWithTx(height, 100);
+                BlockChainTestUtils.createBlockListWithTxs(height, 100, branch.getContractManager());
 
         blockList.forEach(b -> branch.addBlock(b, false));
         Assert.assertEquals(height, blockChainManager.getLastIndex());

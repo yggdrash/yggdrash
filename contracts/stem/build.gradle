@@ -44,7 +44,7 @@ task contractsPackage(type: Jar) {
     manifest {
         attributes(
                 'Bundle-ManifestVersion': '2',
-                'Bundle-Name': 'StemContract',
+                'Bundle-Name': 'STEM',
                 'Bundle-Description': 'Stem Contract',
                 'Bundle-Vendor': 'YGGDRASH',
                 'Bundle-SymbolicName': 'io.yggdrash.contract.StemContract',
@@ -75,7 +75,7 @@ task deleteOutputContract(type: Delete) {
     delete buildContract
 }
 
-task copyContractToResrouce(type: Copy) {
+task copyContractToResource(type: Copy) {
     dependsOn deleteOutputContract
     dependsOn contractsPackage
 
@@ -99,7 +99,7 @@ task copyContractToResrouce(type: Copy) {
     }
 }
 task copyContractToProject(type: Copy) {
-    dependsOn copyContractToResrouce
+    dependsOn copyContractToResource
 
     from file("${buildContract}")
     into file("${projectContractPath}")

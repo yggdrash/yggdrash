@@ -16,6 +16,8 @@
 
 package io.yggdrash.node.config;
 
+import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.Constants.ActiveProfiles;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
@@ -29,9 +31,12 @@ import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.blockchain.osgi.ContractManagerBuilder;
+import io.yggdrash.core.blockchain.osgi.Downloader;
 import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkConfig;
 import io.yggdrash.core.blockchain.osgi.framework.BootFrameworkLauncher;
 import io.yggdrash.core.blockchain.osgi.framework.BundleServiceImpl;
+import io.yggdrash.core.blockchain.osgi.framework.FrameworkConfig;
+import io.yggdrash.core.blockchain.osgi.framework.FrameworkLauncher;
 import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
@@ -40,28 +45,17 @@ import io.yggdrash.node.service.ValidatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
-import org.springframework.core.io.Resource;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
-import java.io.IOException;
 import java.util.Arrays;
 
 @Configuration
-@EnableScheduling
 public class BranchConfiguration {
     private static final Logger log = LoggerFactory.getLogger(BranchConfiguration.class);
 
-    //private final StoreBuilder storeBuilder;
-
     private final DefaultConfig defaultConfig;
-
-    @Value("classpath:/branch-yggdrash.json")
-    Resource yggdrashResource;
 
     @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
     @Autowired(required = false)
@@ -72,19 +66,6 @@ public class BranchConfiguration {
         this.defaultConfig = defaultConfig;
     }
 
-    // TODO Remove Default Branch Load
-    @Profile(ActiveProfiles.NODE)
-    @Bean
-    BlockChain yggdrash(BranchGroup branchGroup) throws IOException {
-        GenesisBlock genesis = GenesisBlock.of(yggdrashResource.getInputStream());
-        BlockChain yggdrash = branchGroup.getBranch(genesis.getBranchId());
-        if (yggdrash == null) {
-            yggdrash = createBranch(genesis);
-            branchGroup.addBranch(yggdrash);
-        }
-        return yggdrash;
-    }
-
     @Bean
     BranchGroup branchGroup() {
         return new BranchGroup();
@@ -92,7 +73,6 @@ public class BranchConfiguration {
 
     @Bean
     BranchLoader branchLoader(DefaultConfig defaultConfig, BranchGroup branchGroup, Environment env) {
-
         BranchLoader branchLoader = new BranchLoader(defaultConfig.getBranchPath());
         boolean isValidator = Arrays.asList(env.getActiveProfiles()).contains(ActiveProfiles.VALIDATOR);
         boolean isBsNode = Arrays.asList(env.getActiveProfiles()).contains(ActiveProfiles.BOOTSTRAP);
@@ -101,17 +81,16 @@ public class BranchConfiguration {
             return branchLoader;
         }
 
-        // TODO check exist branch
         try {
             for (GenesisBlock genesis : branchLoader.getGenesisBlockList()) {
-                if (branchGroup.getBranch(genesis.getBranchId()) != null) {
+                if (branchGroup.isBranchExist(genesis.getBranchId())) {
                     continue;
                 }
                 BlockChain bc = createBranch(genesis);
                 branchGroup.addBranch(bc);
             }
         } catch (Exception e) {
-            log.warn(e.getMessage(), e);
+            log.warn("branchLoader() is failed.", e.getMessage());
         }
         return branchLoader;
     }
@@ -136,7 +115,7 @@ public class BranchConfiguration {
 
             return blockChain;
         } catch (Exception e) {
-            log.warn(e.getMessage(), e);
+            log.warn("createBranch() is failed. {}", e.getMessage());
             return null;
         }
     }
@@ -151,23 +130,47 @@ public class BranchConfiguration {
 
         BlockChainManager blockChainManager = new BlockChainManagerImpl(blockChainStore);
 
+        FrameworkConfig frameworkConfig = new BootFrameworkConfig(config, branchId);
+        FrameworkLauncher frameworkLauncher = new BootFrameworkLauncher(frameworkConfig);
+        BundleServiceImpl bundleService = new BundleServiceImpl(frameworkLauncher.getBundleContext());
+        // fix me downloader @lucas. 190909.
+        new Downloader(config);
+
         ContractManager contractManager = ContractManagerBuilder.newInstance()
                 .withGenesis(genesis)
-                .withBootFramework(new BootFrameworkLauncher(new BootFrameworkConfig(config, branchId)))
-                .withBundleManager(new BundleServiceImpl())
+                .withBundleManager(bundleService)
                 .withDefaultConfig(config)
                 .withContractStore(contractStore)
                 .withLogStore(blockChainStore.getLogStore()) // is this logstore for what?
                 .withSystemProperties(systemProperties) // Contract Executor. do not need contractManager.
                 .build();
 
-        return BlockChainBuilder.newBuilder()
+        Sha3Hash genesisStateRootHash;
+        if (blockChainManager.countOfBlocks() > 0) {
+            genesisStateRootHash = new Sha3Hash(
+                    blockChainStore.getConsensusBlockStore().getBlockByIndex(0).getBlock().getHeader().getStateRoot(),
+                    true);
+        } else {
+            if (genesis.getContractTxs().size() > 0) {
+                genesisStateRootHash = new Sha3Hash(contractManager.executeTxs(genesis.getContractTxs())
+                        .getBlockResult().get("stateRoot").get("stateHash").getAsString());
+            } else {
+                genesisStateRootHash = new Sha3Hash(Constants.EMPTY_HASH);
+            }
+        }
+
+        genesis.toBlock(genesisStateRootHash);
+
+        BlockChain blockChain = BlockChainBuilder.newBuilder()
                 .setGenesis(genesis)
                 .setBranchStore(blockChainStore.getBranchStore())
                 .setBlockChainManager(blockChainManager)
                 .setContractManager(contractManager)
                 .setFactory(ValidatorService.factory())
                 .build();
+
+        blockChain.addListener(contractManager);
+        return blockChain;
     }
 
 }

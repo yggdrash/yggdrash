@@ -18,6 +18,7 @@ package io.yggdrash.node.service;
 
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
@@ -29,10 +30,12 @@ import io.yggdrash.proto.TransactionServiceGrpc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 
 import java.util.List;
 import java.util.Map;
 
+@Profile(Constants.ActiveProfiles.NODE)
 @GrpcService
 public class TransactionService extends TransactionServiceGrpc.TransactionServiceImplBase {
     private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
@@ -55,6 +58,15 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
     public void syncTx(CommonProto.SyncLimit syncLimit, StreamObserver<Proto.TransactionList> responseObserver) {
         BranchId branchId = BranchId.of(syncLimit.getBranch().toByteArray());
         log.debug("Received syncTransaction request branchId={}", branchId);
+        if (branchGroup.getBranch(branchId) == null) {
+            log.debug("Branch Not Found.");
+            return;
+        }
+
+        if (!branchGroup.getBranch(branchId).isFullSynced()) {
+            log.debug("Not yet fullSynced.");
+            return;
+        }
 
         Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
         for (Transaction tx : branchGroup.getUnconfirmedTxs(branchId)) {
@@ -75,6 +87,10 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
     public void sendTx(Proto.Transaction tx, StreamObserver<Proto.TransactionResponse> responseObserver) {
         BranchId branchId = BranchId.of(tx.getHeader().getChain().toByteArray());
         log.debug("Received sendTx request branchId={}", branchId);
+        if (!branchGroup.getBranch(branchId).isFullSynced()) {
+            log.debug("Not yet fullSynced.");
+            return;
+        }
 
         Proto.TransactionResponse.Builder builder = Proto.TransactionResponse.newBuilder();
         Transaction transaction = new TransactionImpl(tx);
@@ -105,17 +121,20 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
             @Override
             public void onNext(Proto.Transaction protoTx) {
                 Transaction tx = new TransactionImpl(protoTx);
-                log.trace("Received transaction: hash={}", tx.getHash());
                 try {
-                    branchGroup.addTransaction(tx);
+                    if (branchGroup.getBranch(tx.getBranchId()).isFullSynced()) {
+                        branchGroup.addTransaction(tx);
+                    } else {
+                        log.debug("BroadcastTx() is failed. Not yet fullSynced.");
+                    }
                 } catch (Exception e) {
-                    log.warn(e.getMessage());
+                    log.debug("BroadcastTx() is failed. {}", e.getMessage());
                 }
             }
 
             @Override
             public void onError(Throwable t) {
-                log.warn("Encountered error in broadcastTx: {}", Status.fromThrowable(t));
+                log.trace("Encountered error in broadcastTx: {}", Status.fromThrowable(t));
             }
 
             @Override

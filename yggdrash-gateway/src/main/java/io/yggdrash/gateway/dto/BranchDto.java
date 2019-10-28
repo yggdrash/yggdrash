@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
+import io.yggdrash.core.exception.WrongStructuredException;
 
 import java.util.List;
 import java.util.Map;
@@ -50,7 +51,8 @@ public class BranchDto {
         try {
             return MAPPER.readValue(json.toString(), BranchDto.class);
         } catch (Exception e) {
-            return null;
+            throw new WrongStructuredException.InvalidBranch();
         }
     }
+
 }

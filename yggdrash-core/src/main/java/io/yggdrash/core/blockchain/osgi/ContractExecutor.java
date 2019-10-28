@@ -2,17 +2,15 @@ package io.yggdrash.core.blockchain.osgi;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.crypto.HashUtil;
-import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.contract.core.TransactionReceiptAdapter;
-import io.yggdrash.contract.core.TransactionReceiptImpl;
+import io.yggdrash.contract.core.Receipt;
+import io.yggdrash.contract.core.ReceiptAdapter;
+import io.yggdrash.contract.core.ReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import io.yggdrash.contract.core.annotation.ContractChannelField;
+import io.yggdrash.contract.core.annotation.ContractReceipt;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
-import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.channel.ContractMethodType;
-import io.yggdrash.core.blockchain.Log;
 import io.yggdrash.core.blockchain.LogIndexer;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.consensus.ConsensusBlock;
@@ -20,94 +18,84 @@ import io.yggdrash.core.exception.errorcode.SystemError;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.ContractStore;
-import io.yggdrash.core.store.LogStore;
+import io.yggdrash.core.store.ReceiptStore;
 import io.yggdrash.core.store.StoreAdapter;
-import io.yggdrash.core.store.TransactionReceiptStore;
 import org.apache.commons.codec.binary.Base64;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ContractExecutor {
     private static final Logger log = LoggerFactory.getLogger(ContractExecutor.class);
 
-    private final ContractStore contractStore;
-
-    private final ContractCacheImpl contractCache;
-    private TransactionReceiptAdapter trAdapter;
-    private final LogIndexer logIndexer;
-    private ContractChannelCoupler coupler;
+    private static final String CONTACT_VERSION = "contractVersion";
 
     private final ReentrantLock locker = new ReentrantLock();
-    private final Condition isBlockExecuting = locker.newCondition();
-    private boolean isTx = false;
 
-    ContractExecutor(ContractStore contractStore, LogStore logStore) {
+    private final ContractStore contractStore;
+    private final ContractCacheImpl contractCache;
+    private final LogIndexer logIndexer;
+
+    private ReceiptAdapter trAdapter;
+    private ContractChannelCoupler coupler;
+
+
+    ContractExecutor(ContractStore contractStore, LogIndexer logIndexer) {
         this.contractStore = contractStore;
-        this.logIndexer = new LogIndexer(logStore, contractStore.getTransactionReceiptStore());
+        this.logIndexer = logIndexer;
         this.contractCache = new ContractCacheImpl();
-        this.trAdapter = new TransactionReceiptAdapter();
+        this.trAdapter = new ReceiptAdapter();
         this.coupler = new ContractChannelCoupler();
     }
 
-    Log getLog(long index) {
-        return logIndexer.getLog(index);
-    }
-
-    List<Log> getLogs(long start, long offset) {
-        return logIndexer.getLogs(start, offset);
-    }
-
-    long getCurLogIndex() {
-        return logIndexer.curIndex();
-    }
-
-    void injectNodeContract(Object service) throws IllegalAccessException {
+    void injectNodeContract(Object service) {
         inject(service, namespace(service.getClass().getName()));
     }
 
-    void injectBundleContract(Bundle bundle, Object service, boolean isSystemContract) throws IllegalAccessException {
-
+    void injectBundleContract(Bundle bundle, Object service) {
         inject(service, namespace(bundle.getSymbolicName()));
     }
 
-    private void inject(Object service, String namespace) throws IllegalAccessException {
+    private void inject(Object service, String namespace) {
         Field[] fields = service.getClass().getDeclaredFields();
 
         for (Field field : fields) {
             field.setAccessible(true);
 
             for (Annotation annotation : field.getDeclaredAnnotations()) {
-                if (annotation.annotationType().equals(ContractStateStore.class)) {
-                    log.trace("service name : {} \t namespace : {}", service.getClass().getName(), namespace);
-                    StoreAdapter adapterStore = new StoreAdapter(contractStore.getTmpStateStore(), namespace);
-                    field.set(service, adapterStore); //default => tmpStateStore
-                }
+                try {
+                    if (annotation.annotationType().equals(ContractStateStore.class)) {
+                        log.trace("service name : {} \t namespace : {}", service.getClass().getName(), namespace);
+                        StoreAdapter storeAdapter = new StoreAdapter(contractStore.getTmpStateStore(), namespace);
+                        field.set(service, storeAdapter); //default => tmpStateStore
+                    }
 
-                if (annotation.annotationType().equals(ContractBranchStateStore.class)) {
-                    field.set(service, contractStore.getBranchStore());
-                }
+                    if (annotation.annotationType().equals(ContractBranchStateStore.class)) {
+                        field.set(service, contractStore.getBranchStore());
+                    }
 
-                if (annotation.annotationType().equals(ContractTransactionReceipt.class)) {
-                    field.set(service, trAdapter);
-                }
+                    if (annotation.annotationType().equals(ContractReceipt.class)) {
+                        field.set(service, trAdapter);
+                    }
 
-                if (annotation.annotationType().equals(ContractChannelField.class)) {
-                    field.set(service, coupler);
-                }
+                    if (annotation.annotationType().equals(ContractChannelField.class)) {
+                        field.set(service, coupler);
+                    }
+                    // todo : Implements event store policy. 190814 - lucas
 
-                // todo : Implements event store policy. 190814 - lucas
+                } catch (IllegalAccessException e) {
+                    log.debug("inject() is failed. {}", e.getMessage());
+                }
             }
         }
     }
@@ -117,156 +105,174 @@ public class ContractExecutor {
         return new String(Base64.encodeBase64(bundleSymbolicSha3));
     }
 
-    public Object query(Map<String, Object> serviceMap, String contractVersion, String methodName, JsonObject params) {
-        Object service = serviceMap.get(contractVersion);
-        if (service == null) {
-            log.error("This service that contract version {} is not registered", contractVersion);
-            return null;
-        }
+    Object query(Map<String, Object> serviceMap, String contractVersion, String methodName, JsonObject params) throws Exception {
+        Object service = getService(serviceMap, contractVersion);
+        Method method = getMethod(service, contractVersion, ContractMethodType.QUERY, methodName);
 
-        Method method = contractCache.getContractMethodMap(contractVersion, ContractMethodType.QUERY, service).get(methodName);
-
-        if (method == null) {
-            log.error("Not found query method: {}", methodName);
-            return null;
-        }
-
-        try {
-            if (method.getParameterCount() == 0) {
-                return method.invoke(service);
-            }
-            return method.invoke(service, params);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            log.error("Query method failed with {}", e.getMessage());
-        }
-        return null;
-
+        return invokeMethod(service, method, params);
     }
 
-    TransactionRuntimeResult executeTx(Map<String, Object> serviceMap, Transaction tx) {
+    private TransactionRuntimeResult getTransactionRuntimeResult(Map<String, Object> serviceMap, Transaction tx) {
+        TransactionRuntimeResult txRuntimeResult;
+
         locker.lock();
-        while (!isTx) {
-            try {
-                isBlockExecuting.await();
-            } catch (InterruptedException e) {
-                log.warn("executeTx err : {}", e.getMessage());
-                Thread.currentThread().interrupt();
-            }
-        }
-        isTx = true;
-
-        TransactionReceipt txReceipt = createTransactionReceipt(tx);
-        TransactionRuntimeResult txRuntimeResult = new TransactionRuntimeResult(tx);
-
-        Set<Map.Entry<String, JsonObject>> result = null;
         try {
-            result = getRuntimeResult(serviceMap, tx, txReceipt);
-        } catch (ExecutorException e) {
-            exceptionHandler(e, txReceipt);
+            txRuntimeResult = new TransactionRuntimeResult(tx);
+            Receipt receipt = createTxReceipt(tx, null);
+            Set<Map.Entry<String, JsonObject>> result = null;
+            try {
+                result = invokeTx(serviceMap, tx, receipt);
+            } catch (ExecutorException e) {
+                exceptionHandler(e, receipt);
+            }
+
+            if (result != null) {
+                txRuntimeResult.setChangeValues(result);
+            }
+
+            txRuntimeResult.setReceipt(receipt);
+            contractStore.getTmpStateStore().close();
+        } finally {
+            locker.unlock();
         }
 
-        if (result != null) {
-            txRuntimeResult.setChangeValues(result);
-        }
-
-        txRuntimeResult.setTransactionReceipt(txReceipt);
-        contractStore.getTmpStateStore().close(); // clear(revert) tmpStateStore
-        locker.unlock();
         return txRuntimeResult;
     }
 
+    TransactionRuntimeResult executeTx(Map<String, Object> serviceMap, Transaction tx) {
+        return getTransactionRuntimeResult(serviceMap, tx);
+    }
+
+    BlockRuntimeResult executeTxs(Map<String, Object> serviceMap, List<Transaction> txs) {
+        // Execute unconfirmed Txs by pbftServie
+        return getBlockRuntimeResult(new BlockRuntimeResult(txs), serviceMap);
+    }
+
     BlockRuntimeResult executeTxs(Map<String, Object> serviceMap, ConsensusBlock nextBlock) {
-        locker.lock();
-        isTx = false;
-        // Set Coupler Contract and contractCache
-        coupler.setContract(serviceMap, contractCache);
-
-        List<Transaction> txList = nextBlock.getBody().getTransactionList();
-
         if (nextBlock.getIndex() == 0) {
             //TODO first transaction is genesis
             //TODO init method don't call any more
             //@Genesis check
         }
-
-        BlockRuntimeResult blockRuntimeResult = new BlockRuntimeResult(nextBlock);
-
-        for (Transaction tx : txList) {
-
-            // get all exceptions
-            TransactionReceipt txReceipt = createTransactionReceipt(tx);
-            txReceipt.setBlockId(nextBlock.getHash().toString());
-            txReceipt.setBlockHeight(nextBlock.getIndex());
-            txReceipt.setBranchId(nextBlock.getBranchId().toString());
-
-            Set<Map.Entry<String, JsonObject>> result = null;
-            try {
-                result = getRuntimeResult(serviceMap, tx, txReceipt);
-            } catch (ExecutorException e) {
-                exceptionHandler(e, txReceipt);
-            }
-
-            if (result != null) {
-                blockRuntimeResult.setBlockResult(result);
-            }
-
-            blockRuntimeResult.addTxReceipt(txReceipt);
-            if (!txReceipt.isSuccess()) {
-                log.warn("{} : {}", txReceipt.getTxId(), txReceipt.isSuccess());
-            }
-        }
-
-        contractStore.getTmpStateStore().close(); // clear(revert) tmpStateStore
-        locker.unlock();
-        return blockRuntimeResult;
+        return getBlockRuntimeResult(new BlockRuntimeResult(nextBlock), serviceMap);
     }
 
-    private Set<Map.Entry<String, JsonObject>> getRuntimeResult(Map<String, Object> serviceMap, Transaction tx, TransactionReceipt txReceipt) throws ExecutorException {
+    private BlockRuntimeResult getBlockRuntimeResult(
+            BlockRuntimeResult blockRuntimeResult, Map<String, Object> serviceMap) {
+        locker.lock();
+        try {
+            // Set Coupler Contract and contractCache
+            coupler.setContract(serviceMap, contractCache);
 
+            ConsensusBlock nextBlock = blockRuntimeResult.getOriginBlock();
+            List<Transaction> txList = nextBlock != null
+                    ? nextBlock.getBody().getTransactionList() : blockRuntimeResult.getTxList();
+
+            for (Transaction tx : txList) {
+                Receipt receipt = createTxReceipt(tx, nextBlock);
+
+                Set<Map.Entry<String, JsonObject>> result = null;
+                try {
+                    result = invokeTx(serviceMap, tx, receipt);
+                } catch (ExecutorException e) {
+                    exceptionHandler(e, receipt);
+                }
+
+                blockRuntimeResult.addReceipt(receipt);
+                if (receipt.getStatus().equals(ExecuteStatus.SUCCESS)) {
+                    blockRuntimeResult.setBlockResult(result);
+                } else {
+                    log.warn("Error TxId={}, TxLog={}", receipt.getTxId(), receipt.getLog());
+                }
+            }
+
+            return endBlock(serviceMap, blockRuntimeResult);
+        } finally {
+            locker.unlock();
+        }
+    }
+
+    BlockRuntimeResult endBlock(Map<String, Object> serviceMap, BlockRuntimeResult result) {
+        int i = 0;
+        for (String contractVersion : serviceMap.keySet()) {
+            Object service = serviceMap.get(contractVersion);
+            List<Method> values = new ArrayList<>(contractCache
+                    .getContractMethodMap(contractVersion, ContractMethodType.END_BLOCK, service)
+                    .values());
+            if (!values.isEmpty()) {
+                // Each contract has only one endBlock method
+                Method method = values.get(0);
+                Receipt receipt = createBlockReceipt(result, contractVersion, i);
+                Set<Map.Entry<String, JsonObject>> changedValues
+                        = invokeMethod(receipt, service, method, new JsonObject());
+
+                if (receipt.getStatus().equals(ExecuteStatus.SUCCESS) &&
+                        (!changedValues.isEmpty() || !receipt.getEvents().isEmpty())) {
+                    result.setBlockResult(changedValues);
+                    result.addReceipt(receipt);
+                    i++;
+                }
+            }
+        }
+        contractStore.getTmpStateStore().close();
+        return result;
+    }
+
+    private Set<Map.Entry<String, JsonObject>> invokeTx(
+            Map<String, Object> serviceMap, Transaction tx, Receipt receipt) throws ExecutorException {
         JsonObject txBody = tx.getBody().getBody();
 
-        String contractVersion = null;
-        if (txBody.get("contractVersion") == null) {
-            contractVersion = Hex.toHexString(tx.getHeader().getType());
-        } else {
-            contractVersion = txBody.get("contractVersion").getAsString();
-        }
+        String contractVersion = txBody.get(CONTACT_VERSION).getAsString();
 
         String methodName = txBody.get("method").getAsString();
         JsonObject params = txBody.getAsJsonObject("params");
+        receipt.setMethod(methodName);
 
-        Object service = serviceMap.get(contractVersion);
+        Object service = getService(serviceMap, contractVersion);
+        Method method = getMethod(service, contractVersion, ContractMethodType.INVOKE, methodName);
+        return invokeMethod(receipt, service, method, params);
+    }
 
-        if (service == null) {
-            log.error("This service that contract version {} is not registered", contractVersion);
-            throw new ExecutorException(SystemError.CONTRACT_VERSION_NOT_FOUND);
-
-        }
-
-        // TODO : implement endBlock policy. 190814 - lucas
-        Method method = contractCache.getContractMethodMap(contractVersion, ContractMethodType.INVOKE, service).get(methodName);
+    private Method getMethod(
+            Object service, String contractVersion, ContractMethodType methodType, String methodName)
+            throws ExecutorException {
+        Method method = contractCache.getContractMethodMap(contractVersion, methodType, service).get(methodName);
 
         if (method == null) {
             log.error("Not found contract method: {}", methodName);
             throw new ExecutorException(SystemError.CONTRACT_METHOD_NOT_FOUND);
         }
 
-        trAdapter.setTransactionReceipt(txReceipt);
+        return method;
+    }
+
+    private Object getService(Map<String, Object> serviceMap, String contractVersion) throws ExecutorException {
+        Object service = serviceMap.get(contractVersion);
+
+        if (service == null) {
+            log.error("This service that contract version {} is not registered", contractVersion);
+            throw new ExecutorException(SystemError.CONTRACT_VERSION_NOT_FOUND);
+        }
+
+        return service;
+    }
+
+    private Object invokeMethod(Object service, Method method, JsonObject params)
+            throws InvocationTargetException, IllegalAccessException {
+        return method.getParameterCount() == 0 ? method.invoke(service) : method.invoke(service, params);
+    }
+
+    private Set<Map.Entry<String, JsonObject>> invokeMethod(
+            Receipt receipt, Object service, Method method, JsonObject params) { //=> getRuntimeResult
+        trAdapter.setReceipt(receipt);
 
         try {
-            if (method.getParameterCount() == 0) {
-                method.invoke(service);
-            } else {
-                method.invoke(service, params);
-            }
-
-        } catch (IllegalAccessException e) {
-            log.error("CallContractMethod : {} and bundle {} ", methodName, contractVersion);
+            invokeMethod(service, method, params);
         } catch (InvocationTargetException e) {
-            log.error("Invoke method error in tx id : {} caused by {}", txReceipt.getTxId(), e.getCause().toString());
+            log.error("Invoke method error in tx id : {} caused by {}", receipt.getTxId(), e.getCause());
             trAdapter.addLog(e.getCause().getMessage());
-        } catch (IllegalArgumentException e) {
-            log.error(e.getMessage());
+        } catch (Exception e) {
+            log.error("Invoke failed. {}", e.getMessage());
         }
 
         return contractStore.getTmpStateStore().changeValues();
@@ -274,42 +280,62 @@ public class ContractExecutor {
 
     void commitBlockResult(BlockRuntimeResult result) {
         locker.lock();
-        // TODO store transaction by batch
-        Map<String, JsonObject> changes = result.getBlockResult();
-        TransactionReceiptStore transactionReceiptStore = contractStore.getTransactionReceiptStore();
-        result.getTxReceipts().forEach(transactionReceiptStore::put);
-        result.getTxReceipts().forEach(receipt -> logIndexer.put(receipt.getTxId(), receipt.getTxLog().size()));
-        if (!changes.isEmpty()) {
-            StateStore stateStore = contractStore.getStateStore();
-            changes.forEach(stateStore::put);
+        try {
+            if (!result.getReceipts().isEmpty()) {
+                ReceiptStore receiptStore = contractStore.getReceiptStore();
+                for (Receipt receipt : result.getReceipts()) {
+                    if (receipt.getStatus().equals(ExecuteStatus.SUCCESS)) {
+                        if (receipt.getTxId() == null) { // endBlock
+                            receiptStore.put(receipt.getBlockId(), receipt);
+                            logIndexer.put(receipt.getBlockId(), receipt.getLog().size());
+                        } else {
+                            receiptStore.put(receipt.getTxId(), receipt);
+                            logIndexer.put(receipt.getTxId(), receipt.getLog().size());
+                        }
+                    }
+                }
+            }
+
+            if (!result.getBlockResult().isEmpty()) {
+                result.freeze(); // Set blockHeight of stateRootHash
+                contractStore.getStateStore().updatePatch(result.getBlockResult());
+            }
+            contractStore.getTmpStateStore().close(); // Set StateRootHash of TempStateStore
+        } finally {
+            locker.unlock();
         }
-        isTx = true;
-        isBlockExecuting.signal();
-        locker.unlock();
-        // TODO make transaction Receipt Event
     }
 
-    private static TransactionReceipt createTransactionReceipt(Transaction tx) {
+    private Receipt createBlockReceipt(BlockRuntimeResult result, String contractVersion, int index) {
+        ConsensusBlock block = result.getOriginBlock();
+        String branchId = result.getBranchId().isEmpty() ? contractStore.getBranchStore().getBranch().getBranchId().toString() : result.getBranchId();
+        String blockId = block != null ? String.format("%s%d", block.getHash().toString(), index) : "";
+        long blockSize = block != null ? block.getLength() : 0;
+        long blockHeight = block != null
+                ? block.getIndex() : contractStore.getBranchStore().getLastExecuteBlockIndex() + 1;
+        return ReceiptImpl.createBlockReceipt(branchId, blockId, blockSize, blockHeight, contractVersion);
+    }
+
+    private Receipt createTxReceipt(Transaction tx, ConsensusBlock block) {
+        String issuer = tx.getAddress().toString();
+        String branchId = tx.getBranchId().toString();
         String txId = tx.getHash().toString();
         long txSize = tx.getBody().getLength();
-        String issuer = tx.getAddress().toString();
-
-        if (tx.getBody().getBody().get("contractVersion") == null) {
-            return new TransactionReceiptImpl(txId, txSize, issuer);
-        }
-        return new TransactionReceiptImpl(txId, txSize, issuer,
-                tx.getBody().getBody().get("contractVersion").getAsString());
+        long blockHeight = block != null
+                ? block.getIndex() : contractStore.getBranchStore().getLastExecuteBlockIndex() + 1;
+        String contractVersion = tx.getBody().getBody().has(CONTACT_VERSION)
+                ? tx.getBody().getBody().get(CONTACT_VERSION).getAsString() : "";
+        return ReceiptImpl.createTxReceipt(issuer, branchId, txId, txSize, blockHeight, contractVersion);
     }
 
-    private void exceptionHandler(ExecutorException e, TransactionReceipt receipt) {
+    private void exceptionHandler(ExecutorException e, Receipt receipt) {
         SystemError error = e.getCode();
+        receipt.setStatus(ExecuteStatus.ERROR);
         switch (error) {
             case CONTRACT_VERSION_NOT_FOUND:
-                receipt.setStatus(ExecuteStatus.ERROR);
                 receipt.addLog(SystemError.CONTRACT_VERSION_NOT_FOUND.toString());
                 break;
             case CONTRACT_METHOD_NOT_FOUND:
-                receipt.setStatus(ExecuteStatus.ERROR);
                 receipt.addLog(SystemError.CONTRACT_METHOD_NOT_FOUND.toString());
                 break;
             default:
@@ -317,4 +343,5 @@ public class ContractExecutor {
                 break;
         }
     }
+
 }

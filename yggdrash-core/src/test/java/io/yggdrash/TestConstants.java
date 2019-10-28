@@ -16,6 +16,7 @@
 
 package io.yggdrash;
 
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.crypto.ECKey;
@@ -23,6 +24,7 @@ import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.wallet.Wallet;
+import org.apache.commons.codec.binary.Hex;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.spongycastle.crypto.InvalidCipherTextException;
@@ -40,7 +42,8 @@ public class TestConstants {
 
     public static ContractVersion STEM_CONTRACT;
     public static ContractVersion YEED_CONTRACT;
-    //public static ContractVersion COIN_CONTRACT;
+    public static final ContractVersion VERSIONING_CONTRACT
+            = ContractVersion.of(Hex.encodeHexString("VersioningContract".getBytes()));
     public static Branch TEST_BRANCH;
     public static File branchFile;
 

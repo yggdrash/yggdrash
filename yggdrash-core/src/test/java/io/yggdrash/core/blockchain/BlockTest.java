@@ -17,6 +17,7 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.util.TimeUtils;
@@ -79,7 +80,7 @@ public class BlockTest {
         long index = 0;
         BlockHeader blockHeader = new BlockHeader(
                 chain, version, type, prevBlockHash, index, timestamp,
-                blockBody1.getMerkleRoot(), blockBody1.getLength());
+                blockBody1.getMerkleRoot(), blockBody1.getStateRoot(), blockBody1.getLength());
 
         log.debug(blockHeader.toString());
 
@@ -92,7 +93,7 @@ public class BlockTest {
         BlockBody blockBody = new BlockBody(Collections.emptyList());
         BlockHeader blockHeader = new BlockHeader(
                 chain, version, type, prevBlockHash, 0, TimeUtils.time(),
-                blockBody.getMerkleRoot(), blockBody.getLength());
+                blockBody.getMerkleRoot(), blockBody.getStateRoot(), blockBody.getLength());
         BlockSignature blockSig = new BlockSignature(wallet, blockHeader.getHashForSigning());
         Block emptyBlock = new BlockImpl(blockHeader, blockSig.getSignature(), blockBody);
 
@@ -102,8 +103,8 @@ public class BlockTest {
     @Test
     public void shouldBeLoadedBranchJsonFile() throws IOException {
         ClassLoader loader = BlockTest.class.getClassLoader();
-        InputStream is = loader.getResourceAsStream("branch-sample.json");
-        GenesisBlock genesisBlock = GenesisBlock.of(is);
+        InputStream is = loader.getResourceAsStream("branch-yggdrash.json");
+        GenesisBlock genesisBlock = BlockChainTestUtils.generateGenesisBlockByInputStream(is);
 
         assertThat(genesisBlock.getBlock()).isNotNull();
         assertThat(genesisBlock.getBlock().getIndex()).isEqualTo(0);

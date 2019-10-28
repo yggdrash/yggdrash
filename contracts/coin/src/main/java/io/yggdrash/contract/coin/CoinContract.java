@@ -11,10 +11,10 @@ import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.contract.core.annotation.ContractQuery;
+import io.yggdrash.contract.core.annotation.ContractReceipt;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
-import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.Genesis;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.annotation.ParamValidation;
@@ -36,6 +36,7 @@ public class CoinContract implements BundleActivator, ServiceListener {
     private static final Logger log = LoggerFactory.getLogger(CoinContract.class);
     private static final String AMOUNT = "amount";
     private static final String BALANCE = "balance";
+    private static final String FEE = "fee";
 
     @Override
     public void start(BundleContext context) {
@@ -59,8 +60,8 @@ public class CoinContract implements BundleActivator, ServiceListener {
     public static class CoinService implements CoinStandard {
         private static final String TOTAL_SUPPLY = "TOTAL_SUPPLY";
 
-        @ContractTransactionReceipt
-        TransactionReceipt txReceipt;
+        @ContractReceipt
+        Receipt receipt;
 
         @ContractStateStore
         ReadWriterStore<String, JsonObject> store;
@@ -96,8 +97,38 @@ public class CoinContract implements BundleActivator, ServiceListener {
         }
 
         /**
+         * This function is for testing, which contains inappropriate code
+         * params amount  Amount of coins to burn
+         * params fee     Transaction fee
+         *
+         * @return TransactionReceipt
+         */
+        @InvokeTransaction
+        public Receipt burn(JsonObject params) {
+            log.debug("\nburn :: params => {}", params);
+
+            BigInteger amount = getAsBigInteger(params, AMOUNT);
+            BigInteger totalSupply = getBalance(TOTAL_SUPPLY);
+            if (totalSupply.compareTo(amount) > 0) {
+                putBalance(TOTAL_SUPPLY, totalSupply.subtract(amount));
+            }
+
+            BigInteger fee = getAsBigInteger(params, FEE);
+            String issuer = receipt.getIssuer();
+            BigInteger issuerBalance = getBalance(issuer);
+            if (!require(issuerBalance, fee)) {
+                return receipt;
+            }
+
+            putBalance(issuer, issuerBalance.subtract(fee));
+            setSuccessTxReceipt("Coin burn completed. ");
+
+            return receipt;
+        }
+
+        /**
          * Function to check the amount of coin that an owner allowed to a spender
-         * params owner    The address which owns the funds.
+         * params owner    The address which owns the funds
          * params spender  The address which will spend the funds
          *
          * @return A BigInteger specifying the amount of coin still available for the spender
@@ -123,18 +154,18 @@ public class CoinContract implements BundleActivator, ServiceListener {
          * params to      The address to transfer to
          * params amount  The amount to be transferred
          *
-         * @return TransactionReceipt
+         * @return Receipt
          */
         @InvokeTransaction
         @ParamValidation
         @Override
-        public TransactionReceipt transfer(JsonObject params) {
+        public Receipt transfer(JsonObject params) {
             log.debug("\ntransfer :: params => {}", params);
 
             String to = getAsString(params, "to").toLowerCase();
             BigInteger amount = getAsBigInteger(params, AMOUNT);
 
-            String sender = this.txReceipt.getIssuer();
+            String sender = this.receipt.getIssuer();
             BigInteger senderBalance = getBalance(sender);
             log.debug("sender : {}", senderBalance);
 
@@ -142,12 +173,11 @@ public class CoinContract implements BundleActivator, ServiceListener {
                 senderBalance = senderBalance.subtract(amount);
                 addBalanceTo(to, amount);
                 putBalance(sender, senderBalance);
-                txReceipt.setStatus(ExecuteStatus.SUCCESS);
-                txReceipt.addLog(String.format("[Transfer] Transferred %d to %s from %s", amount, to, sender));
+                setSuccessTxReceipt(String.format("Transfer %s from %s to %s", amount, to, sender));
                 Transfer(amount, sender, to);
             }
 
-            return txReceipt;
+            return receipt;
         }
 
         /**
@@ -155,18 +185,18 @@ public class CoinContract implements BundleActivator, ServiceListener {
          * params spender  The address which will spend the funds
          * params amount   The amount of tokens to be spent
          *
-         * @return TransactionReceipt
+         * @return Receipt
          */
         @InvokeTransaction
         @ParamValidation
         @Override
-        public TransactionReceipt approve(JsonObject params) {
+        public Receipt approve(JsonObject params) {
             log.debug("\napprove :: params => {}", params);
 
             String spender = getAsString(params, "spender").toLowerCase();
             BigInteger amount = getAsBigInteger(params, AMOUNT);
 
-            String sender = txReceipt.getIssuer();
+            String sender = receipt.getIssuer();
             BigInteger senderBalance = getBalance(sender);
             log.debug("sender : {}", senderBalance);
 
@@ -174,13 +204,13 @@ public class CoinContract implements BundleActivator, ServiceListener {
                 String approveKey = approveKey(sender, spender);
                 putBalance(approveKey, amount);
                 log.debug("approve Key : {}", approveKey);
-                txReceipt.setStatus(ExecuteStatus.SUCCESS);
-                txReceipt.addLog(
+                receipt.setStatus(ExecuteStatus.SUCCESS);
+                receipt.addLog(
                         String.format("[Approved] Approve %d to %s from %s", getBalance(approveKey), spender, sender));
                 Approve(approveKey, spender, sender);
             }
 
-            return txReceipt;
+            return receipt;
         }
 
         /**
@@ -189,19 +219,19 @@ public class CoinContract implements BundleActivator, ServiceListener {
          * params to      The address which you want to transfer to
          * params amount  The amount of tokens to be transferred
          *
-         * @return TransactionReceipt
+         * @return Receipt
          */
         @InvokeTransaction
         @ParamValidation
         @Override
-        public TransactionReceipt transferFrom(JsonObject params) {
+        public Receipt transferFrom(JsonObject params) {
             log.debug("\ntransferFrom :: params => {}", params);
 
             String from = getAsString(params, "from").toLowerCase();
             String to = getAsString(params, "to").toLowerCase();
             BigInteger amount = getAsBigInteger(params, AMOUNT);
 
-            String sender = txReceipt.getIssuer();
+            String sender = receipt.getIssuer();
             String approveKey = approveKey(from, sender);
             log.debug("approve Key : {}", approveKey);
 
@@ -214,12 +244,12 @@ public class CoinContract implements BundleActivator, ServiceListener {
                 addBalanceTo(to, amount);
                 putBalance(from, fromBalance);
                 putBalance(approveKey, approveBalance);
-                txReceipt.setStatus(ExecuteStatus.SUCCESS);
-                txReceipt.addLog(String.format("[Transferred] Transfer %d from %s to %s", amount, from, to));
+                receipt.setStatus(ExecuteStatus.SUCCESS);
+                receipt.addLog(String.format("[Transferred] Transfer %d from %s to %s", amount, from, to));
                 TransferFrom(amount, from, to, sender, approveBalance);
             }
 
-            return txReceipt;
+            return receipt;
         }
 
         /**
@@ -227,11 +257,11 @@ public class CoinContract implements BundleActivator, ServiceListener {
          * params frontier The Frontier is the first live release of the Yggdrash network
          * params balance  The balance of frontier
          *
-         * @return TransactionReceipt
+         * @return Receipt
          */
         @Genesis
         @InvokeTransaction
-        public TransactionReceipt init(JsonObject params) {
+        public Receipt init(JsonObject params) {
             log.debug("\ngenesis :: params => {}", params);
 
             //totalSupply 는 alloc 의 balance 를 모두 더한 값으로 세팅
@@ -249,7 +279,7 @@ public class CoinContract implements BundleActivator, ServiceListener {
                 JsonObject mintLog = new JsonObject();
                 mintLog.addProperty("to", frontier);
                 mintLog.addProperty(BALANCE, balance.toString());
-                txReceipt.addLog(mintLog.toString());
+                receipt.addLog(mintLog.toString());
                 Init(frontier);
             }
             // TODO Validator will call by contract channel
@@ -263,12 +293,12 @@ public class CoinContract implements BundleActivator, ServiceListener {
                 isSuccess = false;
                 log.warn(e.getMessage());
             }
-            txReceipt.setStatus(isSuccess ? ExecuteStatus.SUCCESS : ExecuteStatus.FALSE);
+            receipt.setStatus(isSuccess ? ExecuteStatus.SUCCESS : ExecuteStatus.FALSE);
             JsonObject totalSupplyLog = new JsonObject();
             totalSupplyLog.addProperty("totalSupply", totalSupply.toString());
-            txReceipt.addLog(totalSupplyLog.toString());
+            receipt.addLog(totalSupplyLog.toString());
 
-            return txReceipt;
+            return receipt;
         }
 
         private void addBalanceTo(String to, BigInteger amount) {
@@ -313,12 +343,12 @@ public class CoinContract implements BundleActivator, ServiceListener {
             return Hex.toHexString(approveKey);
         }
 
-        private boolean require(BigInteger targetBalance, BigInteger amount) throws ContractException {
-            if (targetBalance.subtract(amount).compareTo(BigInteger.ZERO) >= 0) { // same is  0, more is 1
+        private boolean require(BigInteger targetBalance, BigInteger amount) {
+            if (targetBalance.subtract(amount).compareTo(BigInteger.ZERO) >= 0) {
                 return true;
             } else {
-                txReceipt.setStatus(ExecuteStatus.ERROR);
-                throw new ContractException(Err.INSUFFICIENT_FUNDS.toValue(), Err.INSUFFICIENT_FUNDS.toString());
+                setErrorTxReceipt(Err.INSUFFICIENT_FUNDS.toString());
+                return false;
             }
         }
 
@@ -326,7 +356,7 @@ public class CoinContract implements BundleActivator, ServiceListener {
             if (params.has(prop)) {
                 return params.get(prop).getAsString();
             } else {
-                txReceipt.setStatus(ExecuteStatus.ERROR);
+                receipt.setStatus(ExecuteStatus.ERROR);
                 throw new ContractException(Err.INVALID_PARAMS.toValue(), Err.INVALID_PARAMS.toString());
             }
         }
@@ -335,7 +365,7 @@ public class CoinContract implements BundleActivator, ServiceListener {
             if (params.has(prop)) {
                 return params.get(prop).getAsBigInteger();
             } else {
-                txReceipt.setStatus(ExecuteStatus.ERROR);
+                receipt.setStatus(ExecuteStatus.ERROR);
                 throw new ContractException(Err.INVALID_PARAMS.toValue(), Err.INVALID_PARAMS.toString());
             }
         }
@@ -344,9 +374,19 @@ public class CoinContract implements BundleActivator, ServiceListener {
             if (params.has(prop)) {
                 return params.getAsJsonObject(prop);
             } else {
-                txReceipt.setStatus(ExecuteStatus.ERROR);
+                receipt.setStatus(ExecuteStatus.ERROR);
                 throw new ContractException(Err.INVALID_PARAMS.toValue(), Err.INVALID_PARAMS.toString());
             }
+        }
+
+        private void setErrorTxReceipt(String msg) {
+            this.receipt.setStatus(ExecuteStatus.ERROR);
+            this.receipt.addLog(msg);
+        }
+
+        private void setSuccessTxReceipt(String msg) {
+            this.receipt.setStatus(ExecuteStatus.SUCCESS);
+            this.receipt.addLog(msg);
         }
 
         private void Transfer(BigInteger amount, String sender, String to) {

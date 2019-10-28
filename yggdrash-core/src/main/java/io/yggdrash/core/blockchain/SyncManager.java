@@ -21,6 +21,8 @@ import io.yggdrash.core.p2p.BlockChainHandler;
 
 public interface SyncManager extends CatchUpSyncEventListener {
 
+    boolean isSyncStatus();
+
     void fullSync();
 
     boolean syncBlock(BlockChainHandler peerHandler, BlockChain blockChain);

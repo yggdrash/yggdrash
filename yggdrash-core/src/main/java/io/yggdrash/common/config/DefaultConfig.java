@@ -32,8 +32,7 @@ import static io.yggdrash.common.config.Constants.YGG_DEFAULT_FILENAME;
  * Default Configuration Class.
  */
 public class DefaultConfig {
-
-    private static final Logger logger = LoggerFactory.getLogger("general");
+    private static final Logger log = LoggerFactory.getLogger(DefaultConfig.class);
 
     protected boolean productionMode;
 
@@ -64,23 +63,27 @@ public class DefaultConfig {
             Config javaSystemProperties = ConfigFactory.load("no-such-resource-only-system-props");
             config = javaSystemProperties.withFallback(config).resolve();
         } catch (Exception e) {
-            logger.error("Can't read config.");
+            log.error("Can't read config.");
             throw new FailedOperationException(e);
         }
     }
 
     private Config getYggdrashConfig() {
-        Config defaultConfig = ConfigFactory.parseResources(YGG_DEFAULT_FILENAME);
-
-        String basePath;
-        if (productionMode) {
-            basePath = System.getProperty("user.home");
-        } else {
-            basePath = System.getProperty("user.dir");
+        try {
+            Config defaultConfig = ConfigFactory.parseResources(YGG_DEFAULT_FILENAME);
+            String configPath = System.getProperty(Constants.YGGDRASH_CONFIG_PATH);
+            if (configPath == null || configPath.equals("")) {
+                if (productionMode) {
+                    configPath = System.getProperty("user.home") + File.separator + YGG_CONF_PATH;
+                } else {
+                    configPath = System.getProperty("user.dir") + File.separator + YGG_CONF_PATH;
+                }
+            }
+            return ConfigFactory.parseFile(new File(configPath)).withFallback(defaultConfig).resolve();
+        } catch (Exception e) {
+            log.error("getYggdrashConfig() is failed. {}", e.getMessage());
+            return null;
         }
-        Config yggdrashConfig = ConfigFactory.parseFile(new File(basePath + File.separator + YGG_CONF_PATH));
-
-        return yggdrashConfig.withFallback(defaultConfig).resolve();
     }
 
     private Config getAdminConfig() {

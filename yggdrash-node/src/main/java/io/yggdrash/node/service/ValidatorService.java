@@ -19,6 +19,7 @@ import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftMessageSet;
 import io.yggdrash.validator.service.ebft.EbftServerStub;
 import io.yggdrash.validator.service.ebft.EbftService;
+import io.yggdrash.validator.service.node.DiscoveryServiceStub;
 import io.yggdrash.validator.service.node.TransactionServiceStub;
 import io.yggdrash.validator.service.pbft.PbftServerStub;
 import io.yggdrash.validator.service.pbft.PbftService;
@@ -43,8 +44,8 @@ public class ValidatorService {
 
     public ValidatorService(DefaultConfig defaultConfig, ConsensusBlockChain blockChain)
             throws IOException, InvalidCipherTextException {
-        this.host = defaultConfig.getString("yggdrash.validator.host");
-        this.port = defaultConfig.getInt("yggdrash.validator.port");
+        this.host = defaultConfig.getString(Constants.VALIDATOR_GRPC_HOST_CONF);
+        this.port = defaultConfig.getInt(Constants.VALIDATOR_GRPC_PORT_CONF);
         this.wallet = new Wallet(defaultConfig.getString(Constants.YGGDRASH_KEY_PATH),
                 defaultConfig.getString(Constants.YGGDRASH_KEY_PASSWORD));
 
@@ -61,6 +62,7 @@ public class ValidatorService {
                     this.grpcServer = ServerBuilder.forPort(port)
                             .addService(new PbftServerStub(pbftService))
                             .addService(new TransactionServiceStub(blockChain, pbftService))
+                            .addService(new DiscoveryServiceStub(blockChain, pbftService))
                             .build()
                             .start();
                 } catch (IOException e) {
@@ -86,7 +88,7 @@ public class ValidatorService {
     }
 
     private void setLogLevel(DefaultConfig defaultConfig) {
-        String logLevel = defaultConfig.getString("yggdrash.validator.log.level");
+        String logLevel = defaultConfig.getString(Constants.VALIDATOR_LOG_LEVEL_CONF);
         ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger("io.yggdrash.validator"))
                 .setLevel(Level.toLevel(logLevel, Level.INFO));
     }

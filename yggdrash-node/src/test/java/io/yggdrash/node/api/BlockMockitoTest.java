@@ -66,7 +66,7 @@ public class BlockMockitoTest {
 
     @Test(expected = NonExistObjectException.class)
     public void blockNumberExceptionTest() {
-        when(branchGroupMock.getLastIndex(branchId)).thenThrow(new RuntimeException());
+        when(branchGroupMock.getLastIndex(branchId)).thenThrow(new NonExistObjectException.BlockNotFound());
         blockApiImpl.blockNumber(branchId.toString());
     }
 
@@ -89,7 +89,7 @@ public class BlockMockitoTest {
     @Test(expected = NonExistObjectException.class)
     public void getBlockByNumberExceptionTest() {
         when(branchGroupMock.getBlockByIndex(branchId, numOfBlock))
-                .thenThrow(new RuntimeException());
+                .thenThrow(new NonExistObjectException.BlockNotFound());
         blockApiImpl.getBlockByNumber(branchId.toString(), numOfBlock, true);
     }
 

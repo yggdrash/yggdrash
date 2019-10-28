@@ -4,12 +4,15 @@ import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.SerializationUtil;
 
 import java.io.File;
+import java.math.BigInteger;
 
 public final class Constants {
 
     private Constants() {
         throw new IllegalStateException("Constants class");
     }
+
+    public static final String YGGDRASH_CONFIG_PATH = "yggdrash.config.path";
 
     //yggdrash.conf
     public static final String NODE_NAME = "yggdrash";
@@ -73,6 +76,8 @@ public final class Constants {
     public static final String NODE_KEY_PASSWORD = "yggdrash.node.key.password";
     public static final String NODE_GRPC_HOST = "yggdrash.node.grpc.host";
     public static final String NODE_GRPC_PORT = "yggdrash.node.grpc.port";
+    public static final long NODE_DISCOVERY_TIME = 5000;
+    public static final long NODE_DISCOVERY_INITDELAY = 10000;
 
     public static final String VALIDATOR_PATH = "yggdrash.validator.path";
     public static final String VALIDATOR_INFO = "yggdrash.validator.info";
@@ -80,6 +85,9 @@ public final class Constants {
     public static final String VALIDATOR_DATABASE_PATH = "yggdrash.validator.database.path";
     public static final String VALIDATOR_KEY_PATH = "yggdrash.validator.key.path";
     public static final String VALIDATOR_KEY_PASSWORD = "yggdrash.validator.key.password";
+    public static final String VALIDATOR_GRPC_HOST_CONF = "yggdrash.validator.host";
+    public static final String VALIDATOR_GRPC_PORT_CONF = "yggdrash.validator.port";
+    public static final String VALIDATOR_LOG_LEVEL_CONF = "yggdrash.validator.log.level";
 
     public static final String TIMEOUT_PING_PATH = "yggdrash.node.timeout.ping";
     public static final String TIMEOUT_BLOCK_PATH = "yggdrash.node.timeout.block";
@@ -91,6 +99,12 @@ public final class Constants {
     public static final long TIMEOUT_BLOCKLIST = 10;
     public static final long TIMEOUT_TRANSACTION = 3;
     public static final long TIMEOUT_STATUS = 5;
+
+    public static final long BLOCK_SYNC_COUNT = 10;
+    public static final long TRANSACTION_UNCONFIRMED_MAX = 1000;
+
+    // Base currency
+    public static final BigInteger BASE_CURRENCY = BigInteger.TEN.pow(18);
 
     public final class Limit {
         private Limit() {

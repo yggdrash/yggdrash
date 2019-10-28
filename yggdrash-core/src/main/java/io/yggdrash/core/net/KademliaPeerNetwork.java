@@ -58,7 +58,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
 
     @Override
     public void init() {
-        log.info("Init node={}", peerTableGroup.getOwner());
+        log.info("My Node = {}", peerTableGroup.getOwner());
         peerTableGroup.selfRefresh();
 
         for (BranchId branchId : peerTableGroup.getAllBranchId()) {
@@ -92,11 +92,17 @@ public class KademliaPeerNetwork implements PeerNetwork {
     }
 
     @Override
+    public BlockChainHandler getPeerHandler(BranchId branchId, Peer peer) {
+        return peerDialer.getPeerHandler(branchId, peer);
+    }
+
+    @Override
     public void receivedTransaction(Transaction tx) {
         try {
             txQueue.put(tx);
+            log.trace("AddTransaction: txQueue tx={}", tx.getHash().toString());
         } catch (Exception e) {
-            log.warn(e.getMessage());
+            log.debug("receivedTransaction() is failed. {}", e.getMessage());
         }
     }
 
@@ -105,7 +111,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
         try {
             blockQueue.put(block);
         } catch (Exception e) {
-            log.warn(e.getMessage());
+            log.debug("chainedBlock() is failed. {}", e.getMessage());
         }
     }
 
@@ -121,14 +127,22 @@ public class KademliaPeerNetwork implements PeerNetwork {
     private class TxWorker implements Runnable {
 
         public void run() {
-            try {
-                while (!txExecutor.isTerminated()) {
+            while (true) {
+                try {
                     Transaction tx = txQueue.take();
-                    broadcastTx(tx);
+                    if (tx != null) {
+                        broadcastTx(tx);
+                    } else {
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException e) {
+                            log.trace(e.getMessage());
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                } catch (Exception e) {
+                    log.debug("broadcastTx() is failed. {}", e.getMessage());
                 }
-            } catch (InterruptedException e) {
-                txExecutor.shutdown();
-                Thread.currentThread().interrupt();
             }
         }
 
@@ -136,13 +150,20 @@ public class KademliaPeerNetwork implements PeerNetwork {
             List<BlockChainHandler> getHandlerList = getHandlerList(tx.getBranchId());
             for (BlockChainHandler peerHandler : getHandlerList) {
                 try {
+                    if (peerTableGroup.getSeedPeerList().contains(peerHandler.getPeer().getYnodeUri())
+                            || peerHandler.getPeer().equals(peerTableGroup.getOwner())) {
+                        log.trace("broadcastTx() is failed. peer: {}", peerHandler.getPeer().getYnodeUri());
+                        continue;
+                    }
                     peerHandler.broadcastTx(tx);
                 } catch (Exception e) {
-                    log.warn("[KademliaPeerNetwork] broadcast {} -> {}, tx ERR: {}",
+                    log.debug("broadcastTx is failed. {} -> {} {}",
                             peerTableGroup.getOwner().getPort(),
                             peerHandler.getPeer().getPort(), e.getMessage());
-                    peerDialer.removeHandler(peerHandler);
                 }
+
+                log.trace("broadcastTx() tx={} peer={} txQueueSize={}",
+                        tx.getHash().toString(), peerHandler.getPeer().getYnodeUri(), txQueue.size());
             }
         }
     }
@@ -165,10 +186,14 @@ public class KademliaPeerNetwork implements PeerNetwork {
             List<BlockChainHandler> handlerList = getHandlerList(block.getBranchId());
             for (BlockChainHandler peerHandler : handlerList) {
                 try {
+                    if (peerTableGroup.getSeedPeerList().contains(peerHandler.getPeer().getYnodeUri())
+                            || peerHandler.getPeer().equals(peerTableGroup.getOwner())) {
+                        log.trace("broadcastBlock() is failed. peer: {}", peerHandler.getPeer().getYnodeUri());
+                        continue;
+                    }
                     peerHandler.broadcastBlock(block);
                 } catch (Exception e) {
                     log.debug("Cannot broadcst a block to {}", peerHandler.getPeer());
-                    peerDialer.removeHandler(peerHandler);
                 }
             }
         }

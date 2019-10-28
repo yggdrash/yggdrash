@@ -65,7 +65,12 @@ public class VerifierUtils {
             return false;
         }
 
-        return verifySignature(transaction);
+        if (!verifySignature(transaction)) {
+            log.debug("verifySignature() is failed.");
+            return false;
+        }
+
+        return true;
     }
 
     public static boolean verify(Block block) {
@@ -74,14 +79,21 @@ public class VerifierUtils {
             return true;
         }
         if (!verifyDataFormat(block)) {
+            log.debug("verifyDataFormat() is failed.");
             return false;
         }
 
         if (!verifyBlockBodyHash(block)) {
+            log.debug("verifyBlockBodyHash() is failed.");
             return false;
         }
 
-        return verifySignature(block);
+        if (!verifySignature(block)) {
+            log.debug("verifySignature() is failed.");
+            return false;
+        }
+
+        return true;
     }
 
     public static boolean verifyBlockBodyHash(Block block) {
@@ -101,9 +113,9 @@ public class VerifierUtils {
      * @return boolean
      */
     private static boolean verifyTimestamp(Long timeStamp) {
-        long hour = (1000 * 60 * 60);
+        long twoHour = 2 * (1000 * 60 * 60);
         long curTime = System.currentTimeMillis();
-        return timeStamp.compareTo(curTime + hour) < 0 && timeStamp.compareTo(curTime - hour) > 0;
+        return timeStamp.compareTo(curTime + twoHour) < 0 && timeStamp.compareTo(curTime - twoHour) > 0;
     }
 
     public static boolean verifySignature(Transaction tx) {

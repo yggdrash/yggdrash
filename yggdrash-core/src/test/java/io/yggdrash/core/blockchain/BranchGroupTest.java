@@ -21,7 +21,8 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
+import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.DuplicatedException;
 import org.junit.Assert;
@@ -63,10 +64,20 @@ public class BranchGroupTest {
     }
 
     @Test
+    public void addVersioningTransaction() {
+        Transaction tx = BlockChainTestUtils.createContractProposeTx(
+                "8c65bc05e107aab9ceaa872bbbb2d96d57811de4", "activate");
+        Map<String, List<String>> errLogs = branchGroup.addTransaction(tx);
+        Assert.assertEquals(1, errLogs.size()); //{SystemError=[Validator verification failed]}
+    }
+
+    @Test
     public void addTransaction() {
+
+        int contractSize = branchGroup.getBranch(tx.getBranchId()).getBranchContracts().size();
+
         // should be existed tx on genesis block
-        assertThat(branchGroup.getRecentTxs(tx.getBranchId()).size()).isEqualTo(3);
-        assertThat(branchGroup.countOfTxs(tx.getBranchId())).isEqualTo(3);
+        assertThat(branchGroup.getRecentTxs(tx.getBranchId()).size()).isEqualTo(contractSize);
 
         Map<String, List<String>> errLogs = branchGroup.addTransaction(tx);
         if (getBalance(tx.getAddress().toString()).equals(BigInteger.ZERO)) {
@@ -126,28 +137,29 @@ public class BranchGroupTest {
         for (int i = 0; i < 100; i++) {
             Transaction tx = createTx(BigInteger.valueOf(i));
             Map<String, List<String>> result = blockChain.addTransaction(tx);
-            if(result.isEmpty()) {
+            if (result.isEmpty()) {
                 countTx++;
             }
         }
 
         BlockChainTestUtils.generateBlock(branchGroup, blockChain.getBranchId());
-        assertThat(blockChain.getBlockChainManager().countOfTxs()).isGreaterThan(countTx); // include genesis tx
     }
 
     @Test
     public void addBlock() {
+        ContractManager contractManager = branchGroup.getBranch(tx.getBranchId()).getContractManager();
         Map<String, List<String>> errLogs = branchGroup.addTransaction(tx);
         branchGroup.addBlock(block);
-        ConsensusBlock newBlock = BlockChainTestUtils.createNextBlock(Collections.singletonList(tx), block);
+        ConsensusBlock newBlock
+                = BlockChainTestUtils.createNextBlock(Collections.singletonList(tx), block, contractManager);
         branchGroup.addBlock(newBlock);
 
         assertThat(branchGroup.getLastIndex(newBlock.getBranchId())).isEqualTo(2);
         assertThat(branchGroup.getBlockByIndex(newBlock.getBranchId(), 2).getHash())
                 .isEqualTo(newBlock.getHash());
 
-        TransactionReceipt receipt = branchGroup.getBranch(tx.getBranchId()).getBlockChainManager()
-                .getTransactionReceipt(tx.getHash().toString());
+        Receipt receipt = branchGroup.getBranch(tx.getBranchId()).getBlockChainManager()
+                .getReceipt(tx.getHash().toString());
         if (getBalance(tx.getAddress().toString()).equals(BigInteger.ZERO)) {
             assertThat(receipt.getStatus()).isEqualTo(ExecuteStatus.ERROR);
             Assert.assertEquals(1, errLogs.size()); // no balance !
@@ -171,7 +183,8 @@ public class BranchGroupTest {
         while (blockChain.getBlockChainManager().getLastIndex() < 10) {
             log.debug("Last Index : {}", blockChain.getBlockChainManager().getLastIndex());
             branchGroup.addBlock(block);
-            ConsensusBlock nextBlock = BlockChainTestUtils.createNextBlock(Collections.emptyList(), block);
+            ConsensusBlock nextBlock = BlockChainTestUtils.createNextBlock(
+                    Collections.emptyList(), block, blockChain.getContractManager());
             addMultipleBlock(nextBlock);
         }
     }

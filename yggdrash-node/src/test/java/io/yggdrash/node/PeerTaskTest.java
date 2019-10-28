@@ -15,7 +15,7 @@ package io.yggdrash.node;
 import io.yggdrash.PeerTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.net.NodeStatusMock;
+import io.yggdrash.core.net.PeerNetworkMock;
 import io.yggdrash.core.p2p.BlockChainDialer;
 import io.yggdrash.core.p2p.PeerDialer;
 import io.yggdrash.core.p2p.PeerHandlerMock;
@@ -39,7 +39,7 @@ public class PeerTaskTest {
 
         peerTask.setPeerTableGroup(peerTableGroup);
         peerTask.setPeerDialer(peerDialer);
-        peerTask.setNodeStatus(NodeStatusMock.mock);
+        peerTask.setPeerNetwork(PeerNetworkMock.mock);
         peerTask.healthCheck();
     }
 

@@ -16,13 +16,13 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.errorcode.BusinessError;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BranchStore;
 import io.yggdrash.core.store.ConsensusBlockStore;
-import io.yggdrash.core.store.TransactionReceiptStore;
+import io.yggdrash.core.store.ReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +41,7 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     private final BranchStore branchStore;
     private final ConsensusBlockStore<T> blockStore;
     private final TransactionStore transactionStore;
-    private final TransactionReceiptStore transactionReceiptStore;
+    private final ReceiptStore receiptStore;
     private final BlockChainStore blockChainStore;
     private final ReentrantLock lock = new ReentrantLock();
 
@@ -51,7 +51,7 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
         this.branchStore = blockChainStore.getBranchStore();
         this.blockStore = blockChainStore.getConsensusBlockStore();
         this.transactionStore = blockChainStore.getTransactionStore();
-        this.transactionReceiptStore = blockChainStore.getTransactionReceiptStore();
+        this.receiptStore = blockChainStore.getReceiptStore();
         this.blockChainStore = blockChainStore;
     }
 
@@ -83,7 +83,8 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
                     branchStore.setBestBlock(curBestBlock);
                     //Set lastConfirmedBlock to the changed bestBlock. Currently, the lastConfirmedBlock is null
                     setLastConfirmedBlock(curBestBlock);
-                    log.warn("Reset branchStore bestBlock: {} -> {}", bestBlock, prevIdx);
+                    log.warn("Reset branchStore bestBlock: {} -> {}, lastExecutedBlock: {}",
+                            bestBlock, prevIdx, branchStore.getLastExecuteBlockIndex());
                     break;
                 }
                 updateTxCache(block);
@@ -99,11 +100,17 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
 
     @Override
     public int verify(Transaction transaction) {
+        return verify(transaction, true);
+    }
+
+    private int verify(Transaction transaction, boolean isTxBroadcast) {
         int check = 0;
 
         check |= BusinessError.addCode(verifyDuplicated(transaction), BusinessError.DUPLICATED);
 
-        check |= BusinessError.addCode(VerifierUtils.verifyTimestamp(transaction), BusinessError.REQUEST_TIMEOUT);
+        if (isTxBroadcast) {
+            check |= BusinessError.addCode(VerifierUtils.verifyTimestamp(transaction), BusinessError.REQUEST_TIMEOUT);
+        }
 
         check |= BusinessError.addCode(VerifierUtils.verifyDataFormat(transaction), BusinessError.INVALID_DATA_FORMAT);
 
@@ -131,6 +138,8 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
 
         check |= BusinessError.addCode(
                 VerifierUtils.verifyBlockBodyHash(block), BusinessError.INVALID_MERKLE_ROOT_HASH);
+
+        //TODO Verify txs of block
 
         return check;
     }
@@ -167,45 +176,56 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
             lock.lock();
             // A block may contain txs not received by txApi and those txs also have to be stored in the storage
             for (Transaction tx : nextBlock.getBody().getTransactionList()) {
-                if (transactionReceiptStore.contains(tx.getHash().toString())
-                        && transactionReceiptStore.get(tx.getHash().toString()).getStatus() != ExecuteStatus.ERROR) {
+                if (receiptStore.contains(tx.getHash().toString())
+                        && receiptStore.get(tx.getHash().toString()).getStatus() != ExecuteStatus.ERROR) {
                     addTransaction(tx);
                 }
             }
+            batchTxs(nextBlock);
 
             // Store Block Index and Block Data
             this.blockStore.addBlock(nextBlock);
             setLastConfirmedBlock(nextBlock);
 
-            batchTxs(nextBlock);
         } finally {
             lock.unlock();
         }
     }
 
-    private void batchTxs(ConsensusBlock<T> block) {
-        if (block == null || block.getBlock() == null || block.getBody().getTransactionList() == null) {
-            return;
+    @Override
+    public void batchTxs(ConsensusBlock<T> block) {
+        try {
+            lock.lock();
+            if (block == null || block.getBlock() == null || block.getBody().getTransactionList() == null) {
+                return;
+            }
+
+            Set<Sha3Hash> keys = block.getBlock().getBody().getTransactionList().stream()
+                    .map(Transaction::getHash).collect(Collectors.toSet());
+            transactionStore.batch(keys);
+        } finally {
+            lock.unlock();
         }
-
-        Set<Sha3Hash> keys = block.getBlock().getBody().getTransactionList().stream()
-                .map(Transaction::getHash).collect(Collectors.toSet());
-
-        transactionStore.batch(keys);
     }
 
     @Override
     public void addTransaction(Transaction tx) {
         try {
             transactionStore.addTransaction(tx);
+            log.trace("AddTransaction: txStore added tx={}", tx.getHash().toString());
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }
     }
 
     @Override
+    public void flushUnconfirmedTxs(Set<Sha3Hash> keys) {
+        transactionStore.flush(keys);
+    }
+
+    @Override
     public void updateTxCache(Block block) {
-        transactionStore.updateCache(block.getBody().getTransactionList());
+        transactionStore.updateCache(block);
     }
 
     private void setLastConfirmedBlock(ConsensusBlock<T> block) {
@@ -253,6 +273,13 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
         return transactionStore.getRecentTxs();
     }
 
+    /*
+    @Override
+    public void setPendingStateRoot(Sha3Hash stateRootHash) {
+        transactionStore.setStateRoot(stateRootHash);
+    }
+    */
+
     @Override
     public List<Transaction> getUnconfirmedTxs() {
         return new ArrayList<>(transactionStore.getUnconfirmedTxs());
@@ -264,8 +291,13 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     }
 
     @Override
-    public TransactionReceipt getTransactionReceipt(String txId) {
-        return transactionReceiptStore.get(txId);
+    public int getUnconfirmedTxsSize() {
+        return transactionStore.getUnconfirmedTxsSize();
+    }
+
+    @Override
+    public Receipt getReceipt(String key) {
+        return receiptStore.get(key);
     }
 
     @Override
@@ -286,11 +318,6 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     @Override
     public long countOfBlocks() {
         return blockStore.size();
-    }
-
-    @Override
-    public long countOfTxs() {
-        return transactionStore.countOfTxs();
     }
 
     @Override
@@ -317,6 +344,6 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     public void close() {
         this.blockStore.close();
         this.transactionStore.close();
-        this.transactionReceiptStore.close();
+        this.receiptStore.close();
     }
 }

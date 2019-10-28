@@ -3,6 +3,7 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.utils.FileUtil;
@@ -13,7 +14,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -74,6 +74,7 @@ public class BranchTest {
         JsonObject branch = new JsonParser().parse(genesisString).getAsJsonObject();
         Branch yggdrashBranch = Branch.of(branch);
         Assert.assertEquals("YGGDRASH", yggdrashBranch.getName());
+        log.info("YGGDRASH BRANCH ID : {} ", yggdrashBranch.getBranchId().toString());
     }
 
     @Test
@@ -82,14 +83,13 @@ public class BranchTest {
         String genesisString = FileUtil.readFileToString(TestConstants.branchFile, FileUtil.DEFAULT_CHARSET);
         JsonObject branch = new JsonParser().parse(genesisString).getAsJsonObject();
         Branch yggdrashBranch = Branch.of(branch);
+        GenesisBlock genesisBlock = BlockChainTestUtils.generateGenesisBlockByFile(TestConstants.branchFile);
 
-        FileInputStream inputBranch = new FileInputStream(TestConstants.branchFile);
-        GenesisBlock block = GenesisBlock.of(inputBranch);
-        Assert.assertEquals(0, block.getBlock().getIndex());
-        Assert.assertEquals(yggdrashBranch.getName(), block.getBranch().getName());
-        log.debug(JsonUtil.prettyFormat(block.getBlock().toJsonObject()));
+        Assert.assertEquals(0, genesisBlock.getBlock().getIndex());
+        Assert.assertEquals(yggdrashBranch.getName(), genesisBlock.getBranch().getName());
+        log.debug(JsonUtil.prettyFormat(genesisBlock.getBlock().toJsonObject()));
 
-        // TODO Genesis Block has more by Transaction Type
-        Assert.assertEquals(3L, block.getBlock().getBody().getCount());
+        int genesisTxSize = yggdrashBranch.getBranchContracts().size();
+        Assert.assertEquals(genesisTxSize, genesisBlock.getBlock().getBody().getCount());
     }
 }

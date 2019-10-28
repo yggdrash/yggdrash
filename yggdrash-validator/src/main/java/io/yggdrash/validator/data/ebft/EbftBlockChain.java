@@ -7,6 +7,7 @@ import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockChainManager;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.consensus.ConsensusBlockChain;
@@ -91,8 +92,7 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
 
     private void initGenesis() {
         this.blockKeyStore.put(0L, genesisBlock.getHash().getBytes());
-        // BlockChainManager add block to the blockStore, set the lastConfirmedBlock, and then batch the txs.
-        blockChainManagerMock.addBlock(this.genesisBlock); // todo: check efficiency & change index
+        blockChainManagerMock.addBlock(this.genesisBlock);
     }
 
     private boolean isOriginGenesis() {
@@ -135,6 +135,11 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
     }
 
     @Override
+    public ContractManager getContractManager() {
+        return null;
+    }
+
+    @Override
     public EbftBlock getGenesisBlock() {
         return genesisBlock;
     }
@@ -153,7 +158,7 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
     public Map<String, List<String>> addBlock(ConsensusBlock<EbftProto.EbftBlock> block) {
         this.lock.lock();
         try {
-            blockChainManagerMock.addBlock(block); // todo: check efficiency & change index
+            blockChainManagerMock.addBlock(block);
             this.blockKeyStore.put(block.getIndex(), block.getHash().getBytes());
             loggingBlock((EbftBlock) block);
         } finally {
@@ -166,7 +171,7 @@ public class EbftBlockChain implements ConsensusBlockChain<EbftProto.EbftBlock, 
     public Map<String, List<String>> addBlock(ConsensusBlock<EbftProto.EbftBlock> block, boolean broadcast) {
         this.lock.lock();
         try {
-            blockChainManagerMock.addBlock(block); // todo: check efficiency & change index & check broadcast param
+            blockChainManagerMock.addBlock(block);
             this.blockKeyStore.put(block.getIndex(), block.getHash().getBytes());
             loggingBlock((EbftBlock) block);
         } finally {

@@ -17,6 +17,7 @@
 package io.yggdrash.contract.dpoa;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.common.contract.vo.dpoa.ProposeValidatorSet;
@@ -28,13 +29,13 @@ import io.yggdrash.common.contract.vo.dpoa.tx.TxValidatorVote;
 import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import io.yggdrash.contract.core.annotation.ContractChannelField;
 import io.yggdrash.contract.core.annotation.ContractEndBlock;
 import io.yggdrash.contract.core.annotation.ContractQuery;
+import io.yggdrash.contract.core.annotation.ContractReceipt;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
-import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.Genesis;
 import io.yggdrash.contract.core.annotation.InjectEvent;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
@@ -46,6 +47,7 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -87,8 +89,8 @@ public class DPoAContract implements BundleActivator {
         @ContractStateStore
         ReadWriterStore<String, JsonObject> state;
 
-        @ContractTransactionReceipt
-        TransactionReceipt txReceipt;
+        @ContractReceipt
+        Receipt receipt;
 
         @ContractBranchStateStore
         BranchStateStore branchStateStore;
@@ -96,19 +98,25 @@ public class DPoAContract implements BundleActivator {
         @Genesis
         @ParamValidation
         @InvokeTransaction
-        public TransactionReceipt init(JsonObject params) {
+        public Receipt init(JsonObject params) {
             log.info("Initialize DPoA");
             boolean isSuccess = saveInitValidator(params.getAsJsonArray("validators"));
-            txReceipt.setStatus(isSuccess ? ExecuteStatus.SUCCESS : ExecuteStatus.FALSE);
-            return txReceipt;
+            if (isSuccess) {
+                receipt.setStatus(ExecuteStatus.SUCCESS);
+                log.debug("DPoA init success");
+            } else {
+                receipt.setStatus(ExecuteStatus.FALSE);
+                log.error("DPoA init fail");
+            }
+            return receipt;
         }
 
         public boolean saveInitValidator(JsonArray validators) {
             log.debug("saveInitValidator {}", validators);
             ValidatorSet validatorSet = getValidatorSet();
             if (validatorSet != null) {
-                log.error("initial validator is not null");
-                return false;
+                log.debug("Initial validator is not null");
+                return checkValidatorSet(validators, validatorSet);
             }
 
             validatorSet = new ValidatorSet();
@@ -124,9 +132,24 @@ public class DPoAContract implements BundleActivator {
             return true;
         }
 
+        private boolean checkValidatorSet(JsonArray validators, ValidatorSet validatorSet) {
+            if (validators.size() != validatorSet.getValidatorMap().size()) {
+                log.debug("Invalid validators");
+                return false;
+            }
+
+            for (JsonElement validator : validators) {
+                if (!validatorSet.contains(validator.getAsString())) {
+                    log.debug("Invalid validators");
+                    return false;
+                }
+            }
+            return true;
+        }
+
         private boolean validateTx(TxPayload txPayload) {
             if (txPayload == null || !txPayload.validate()) {
-                txReceipt.setStatus(ExecuteStatus.ERROR);
+                receipt.setStatus(ExecuteStatus.ERROR);
                 return false;
             }
             return true;
@@ -155,36 +178,36 @@ public class DPoAContract implements BundleActivator {
         }
 
         @InvokeTransaction
-        public TransactionReceipt proposeValidator(JsonObject params) {
-            txReceipt.setStatus(ExecuteStatus.FALSE);
+        public Receipt proposeValidator(JsonObject params) {
+            receipt.setStatus(ExecuteStatus.FALSE);
             log.debug("proposeValidator {}", params);
             //Check validation
             TxValidatorPropose txValidatorPropose = JsonUtil.generateJsonToClass(params.toString(),
                     TxValidatorPropose.class);
             if (!validateTx(txValidatorPropose)) {
-                return txReceipt;
+                return receipt;
             }
 
             //Is exists proposer
             ValidatorSet validatorSet = getValidatorSet();
             if (validatorSet == null || validatorSet.getValidatorMap() == null
-                    || validatorSet.getValidatorMap().get(txReceipt.getIssuer()) == null) {
-                log.error("ISSUER IS NOT validator {}", txReceipt.getIssuer());
-                return txReceipt;
+                    || validatorSet.getValidatorMap().get(receipt.getIssuer()) == null) {
+                log.error("ISSUER IS NOT validator {}", receipt.getIssuer());
+                return receipt;
             }
 
             ProposeValidatorSet proposeValidatorSet = getProposeValidatorSet();
             if (proposeValidatorSet != null && proposeValidatorSet.getValidatorMap() != null) {
                 //Is exists validator in propose set
                 if (proposeValidatorSet.getValidatorMap().get(txValidatorPropose.getValidatorAddr()) != null) {
-                    return txReceipt;
+                    return receipt;
                 }
 
                 //Is the proposed Validator voting complete
                 for (String s : proposeValidatorSet.getValidatorMap().keySet()) {
-                    if (txReceipt.getIssuer().equals(
+                    if (receipt.getIssuer().equals(
                             proposeValidatorSet.getValidatorMap().get(s).getProposalValidatorAddr())) {
-                        return txReceipt;
+                        return receipt;
                     }
                 }
             }
@@ -193,39 +216,39 @@ public class DPoAContract implements BundleActivator {
             if (proposeValidatorSet == null) {
                 proposeValidatorSet = new ProposeValidatorSet();
             }
-            ProposeValidatorSet.Votable votable = new ProposeValidatorSet.Votable(txReceipt.getIssuer(), validatorSet);
+            ProposeValidatorSet.Votable votable = new ProposeValidatorSet.Votable(receipt.getIssuer(), validatorSet);
             proposeValidatorSet.getValidatorMap().put(txValidatorPropose.getValidatorAddr(), votable);
 
             //Save
             state.put(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue(),
                     JsonUtil.parseJsonObject(JsonUtil.convertObjToString(proposeValidatorSet)));
-            txReceipt.setStatus(ExecuteStatus.SUCCESS);
-            return txReceipt;
+            receipt.setStatus(ExecuteStatus.SUCCESS);
+            return receipt;
         }
 
         @InvokeTransaction
-        public TransactionReceipt voteValidator(JsonObject params) {
-            txReceipt.setStatus(ExecuteStatus.FALSE);
+        public Receipt voteValidator(JsonObject params) {
+            receipt.setStatus(ExecuteStatus.FALSE);
 
             //Check validation
             TxValidatorVote txValidatorVote = JsonUtil.generateJsonToClass(params.toString(), TxValidatorVote.class);
             if (!validateTx(txValidatorVote)) {
-                return txReceipt;
+                return receipt;
             }
 
             //Is exists proposed validator
             ProposeValidatorSet proposeValidatorSet = getProposeValidatorSet();
             if (proposeValidatorSet == null || MapUtils.isEmpty(proposeValidatorSet.getValidatorMap())
                     || proposeValidatorSet.getValidatorMap().get(txValidatorVote.getValidatorAddr()) == null) {
-                return txReceipt;
+                return receipt;
             }
 
             //Check available vote
             ProposeValidatorSet.Votable votable = proposeValidatorSet.getValidatorMap()
                     .get(txValidatorVote.getValidatorAddr());
-            if (votable.getVotedMap().get(txReceipt.getIssuer()) == null
-                    || votable.getVotedMap().get(txReceipt.getIssuer()).isVoted()) {
-                return txReceipt;
+            if (votable.getVotedMap().get(receipt.getIssuer()) == null
+                    || votable.getVotedMap().get(receipt.getIssuer()).isVoted()) {
+                return receipt;
             }
 
             //Vote
@@ -234,14 +257,14 @@ public class DPoAContract implements BundleActivator {
             } else {
                 votable.setDisagreeCnt(votable.getDisagreeCnt() + 1);
             }
-            votable.getVotedMap().get(txReceipt.getIssuer()).setAgree(txValidatorVote.isAgree());
-            votable.getVotedMap().get(txReceipt.getIssuer()).setVoted(true);
+            votable.getVotedMap().get(receipt.getIssuer()).setAgree(txValidatorVote.isAgree());
+            votable.getVotedMap().get(receipt.getIssuer()).setVoted(true);
 
             //Save
             state.put(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue(),
                     JsonUtil.parseJsonObject(JsonUtil.convertObjToString(proposeValidatorSet)));
-            txReceipt.setStatus(ExecuteStatus.SUCCESS);
-            return txReceipt;
+            receipt.setStatus(ExecuteStatus.SUCCESS);
+            return receipt;
         }
 
         // TODO should receive a set of byzantine and a set of validator that participated in the
@@ -287,8 +310,13 @@ public class DPoAContract implements BundleActivator {
 
         //todo need to set governance
         @InvokeTransaction
-        public TransactionReceipt recoverValidator(String recoverValidator) {
+        public Receipt recoverValidator(String recoverValidator) {
             return null;
+        }
+
+        @ContractEndBlock
+        public Receipt endBlock() {
+            return receipt;
         }
     }
 }

@@ -18,6 +18,7 @@ import io.yggdrash.core.net.DiscoveryServiceConsumer;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.NodeStatusMock;
 import io.yggdrash.core.net.PeerNetwork;
+import io.yggdrash.core.net.PeerNetworkMock;
 import io.yggdrash.core.p2p.BlockChainDialer;
 import io.yggdrash.core.p2p.BlockChainHandlerFactory;
 import io.yggdrash.core.p2p.Peer;
@@ -42,6 +43,10 @@ public class TestNode extends BootStrapNode {
     private final BranchId branchId = TestConstants.yggdrash();
     private final BranchGroup branchGroup = new BranchGroup();
     private final NodeStatus nodeStatus = NodeStatusMock.create();
+
+    private final BlockChainSyncManager syncManager
+            = new BlockChainSyncManager(
+            nodeStatus, new PeerNetworkMock(), branchGroup, PeerTestUtils.createTableGroup());
 
     private boolean enableBranch;
     private BlockChainHandlerFactory factory;
@@ -112,7 +117,6 @@ public class TestNode extends BootStrapNode {
         this.discoveryConsumer = new DiscoveryServiceConsumer(peerTableGroup);
 
         this.peerTask = new PeerTask();
-        peerTask.setNodeStatus(nodeStatus);
         peerTask.setPeerDialer(peerDialer);
         peerTask.setPeerTableGroup(peerTableGroup);
     }
@@ -132,7 +136,7 @@ public class TestNode extends BootStrapNode {
     private void networkConfiguration() {
         NetworkConfiguration config = new NetworkConfiguration(nodeProperties);
         this.peerNetwork = config.peerNetwork(peerTableGroup, peerDialer, branchGroup);
-        setSyncManager(config.syncManager(nodeStatus, peerNetwork, branchGroup));
+        setSyncManager(config.syncManager(nodeStatus, peerNetwork, branchGroup, peerTableGroup));
     }
 
     public PeerNetwork getPeerNetwork() {
@@ -164,7 +168,8 @@ public class TestNode extends BootStrapNode {
             BlockChainManager blockChainManager = branch.getBlockChainManager();
             List<Transaction> txs =
                     blockChainManager.getUnconfirmedTxsWithLimit(Constants.Limit.BLOCK_SYNC_SIZE);
-            ConsensusBlock block = BlockChainTestUtils.createNextBlock(txs, blockChainManager.getLastConfirmedBlock());
+            ConsensusBlock block = BlockChainTestUtils.createNextBlock(
+                    txs, blockChainManager.getLastConfirmedBlock(), branch.getContractManager());
 
             PbftBlock newBlock = new PbftBlock(PbftProto.PbftBlock.newBuilder()
                     .setBlock(block.getBlock().getProtoBlock()).build());
@@ -186,8 +191,8 @@ public class TestNode extends BootStrapNode {
         String branchInfo = "";
         if (getDefaultBranch() != null) {
             BlockChainManager blockChainManager = getDefaultBranch().getBlockChainManager();
-            branchInfo = String.format(" bestBlock=%d, txCnt=%d, unConfirmed=%d,", blockChainManager.getLastIndex(),
-                    blockChainManager.countOfTxs(), branchGroup.getUnconfirmedTxs(branchId).size());
+            branchInfo = String.format(" bestBlock=%d, unConfirmed=%d,", blockChainManager.getLastIndex(),
+                    branchGroup.getUnconfirmedTxs(branchId).size());
         }
 
         log.info("{} =>{} peer={}, bucket={}, active={}",

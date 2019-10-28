@@ -18,17 +18,17 @@ package io.yggdrash.core.blockchain;
 
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.StoreTestUtils;
-import io.yggdrash.TestConstants;
 import io.yggdrash.TestConstants.CiTest;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.consensus.ConsensusBlock;
-import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.proto.PbftProto;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -50,9 +50,8 @@ public class BlockChainTest extends CiTest {
     public void shouldBeGetBlockByHash() {
         BlockChain blockChain = generateTestBlockChain(false);
         BlockChainManager blockChainManager = blockChain.getBlockChainManager();
-        ConsensusBlock block = blockChainManager.getLastConfirmedBlock(); // goto Genesis
-        long nextIndex = blockChainManager.getLastIndex() + 1;
-        ConsensusBlock testBlock = getBlockFixture(nextIndex, block.getHash());
+        ConsensusBlock<PbftProto.PbftBlock> testBlock = BlockChainTestUtils.createNextBlock(
+                new ArrayList<>(), blockChainManager.getLastConfirmedBlock(), blockChain.getContractManager());
         blockChain.addBlock(testBlock, false);
 
         assertThat(blockChainManager.getBlockByHash(testBlock.getHash())).isEqualTo(testBlock);
@@ -63,8 +62,6 @@ public class BlockChainTest extends CiTest {
         BlockChain blockChain = generateTestBlockChain();
         BlockChainManager blockChainManager = blockChain.getBlockChainManager();
         ConsensusBlock block = blockChainManager.getLastConfirmedBlock(); // goto Genesis
-        long nextIndex = blockChainManager.getLastIndex() + 1;
-        ConsensusBlock testBlock = getBlockFixture(nextIndex, block.getHash());
         Map<String, List<String>> errorLogs = blockChain.addBlock(block, false);
 
         assertEquals(1, errorLogs.size());
@@ -77,7 +74,8 @@ public class BlockChainTest extends CiTest {
     public void invalidBlockHashExceptionMustOccur() {
         BlockChain blockChain = generateTestBlockChain(false);
         Sha3Hash prevHash = new Sha3Hash("9358");
-        ConsensusBlock block = getBlockFixture(1L, prevHash);
+        ConsensusBlock block = BlockChainTestUtils.createNextBlockByPrevHash(
+                prevHash, blockChain.getBlockChainManager().getLastConfirmedBlock());
         Map<String, List<String>> errorLogs = blockChain.addBlock(block, false);
 
         assertEquals(1, errorLogs.size());
@@ -90,17 +88,24 @@ public class BlockChainTest extends CiTest {
     @Test
     public void unknownBlockHeightExceptionNustOccur() {
         BlockChain blockChain = generateTestBlockChain(false);
-        Sha3Hash prevHash = new Sha3Hash("9358");
-        ConsensusBlock block = getBlockFixture(2L, prevHash);
+        long index = 2L;
+        ConsensusBlock block = BlockChainTestUtils.createSpecificHeightBlock(
+                index,
+                new ArrayList<>(),
+                blockChain.getBlockChainManager().getLastConfirmedBlock(),
+                blockChain.getContractManager());
+
         blockChain.addBlock(block, false);
     }
 
     @Test
     public void shouldBeLoadedStoredBlocks() {
         BlockChain blockChain1 = generateTestBlockChain(true);
-        ConsensusBlock genesisBlock = blockChain1.getGenesisBlock();
 
-        ConsensusBlock testBlock = getBlockFixture(1L, genesisBlock.getHash());
+        ConsensusBlock<PbftProto.PbftBlock> testBlock = BlockChainTestUtils.createNextBlock(
+                new ArrayList<>(),
+                blockChain1.getBlockChainManager().getLastConfirmedBlock(),
+                blockChain1.getContractManager());
         blockChain1.addBlock(testBlock, false);
         blockChain1.close();
 
@@ -125,16 +130,17 @@ public class BlockChainTest extends CiTest {
             assertThat(blockChainManager.getTxByHash(tx.getHash())).isNotNull();
         }
 
-        assertThat(blockChainManager.countOfTxs()).isEqualTo(genesis.getBody().getCount());
         blockChain.close();
     }
 
     @Test
     public void shouldBeGeneratedAfterLoadedStoredBlocks() {
         BlockChain newDbBlockChain = generateTestBlockChain(true);
-        ConsensusBlock genesisBlock = newDbBlockChain.getGenesisBlock();
 
-        ConsensusBlock testBlock = getBlockFixture(1L, genesisBlock.getHash());
+        ConsensusBlock<PbftProto.PbftBlock> testBlock = BlockChainTestUtils.createNextBlock(
+                new ArrayList<>(),
+                newDbBlockChain.getBlockChainManager().getLastConfirmedBlock(),
+                newDbBlockChain.getContractManager());
         newDbBlockChain.addBlock(testBlock, false);
         assertThat(newDbBlockChain.getBlockChainManager().getLastIndex()).isEqualTo(1);
         newDbBlockChain.close();
@@ -158,10 +164,10 @@ public class BlockChainTest extends CiTest {
                 assertThat(tx).isNotNull();
             }
         });
-        ConsensusBlock block = blockChainManager.getLastConfirmedBlock(); // goto Genesis
-        long nextIndex = blockChainManager.getLastIndex() + 1;
-
-        ConsensusBlock testBlock = getBlockFixture(nextIndex, block.getHash());
+        ConsensusBlock<PbftProto.PbftBlock> testBlock = BlockChainTestUtils.createNextBlock(
+                new ArrayList<>(),
+                blockChainManager.getLastConfirmedBlock(),
+                blockChain.getContractManager());
         blockChain.addBlock(testBlock, false);
         blockChain.addTransaction(BlockChainTestUtils.createTransferTx());
     }
@@ -172,44 +178,20 @@ public class BlockChainTest extends CiTest {
 
     private BlockChain generateTestBlockChain() {
         BlockChain blockChain = generateTestBlockChain(false);
-        ConsensusBlock genesisBlock = blockChain.getGenesisBlock();
-        ConsensusBlock block1 = getBlockFixture(1L, genesisBlock.getHash());
+        BlockChainManager blockChainManager = blockChain.getBlockChainManager();
+        ContractManager contractManager = blockChain.getContractManager();
+        List<Transaction> blockBody = new ArrayList<>();
+        ConsensusBlock block1 = BlockChainTestUtils.createNextBlock(
+                blockBody,
+                blockChainManager.getLastConfirmedBlock(),
+                contractManager);
         blockChain.addBlock(block1, false);
-        ConsensusBlock block2 = getBlockFixture(2L, block1.getHash());
+        ConsensusBlock block2 = BlockChainTestUtils.createNextBlock(
+                blockBody,
+                blockChainManager.getLastConfirmedBlock(),
+                contractManager);
         blockChain.addBlock(block2, false);
         return blockChain;
-    }
-
-    private static ConsensusBlock getBlockFixture(Long index, Sha3Hash prevHash) {
-        return getBlockFixture(index, prevHash.getBytes(), null);
-    }
-
-    private static ConsensusBlock getBlockFixture(Long index, Sha3Hash prevHash, String branchId) {
-        return getBlockFixture(index, prevHash.getBytes(), BranchId.of(branchId).getBytes());
-    }
-
-    private static ConsensusBlock getBlockFixture(Long index, byte[] prevHash, byte[] branchId) {
-
-        try {
-            Block tmpBlock = BlockChainTestUtils.genesisBlock().getBlock();
-            BlockHeader tmpBlockHeader = tmpBlock.getHeader();
-            BlockBody tmpBlockBody = tmpBlock.getBody();
-            byte[] chain = branchId != null ? branchId : tmpBlockHeader.getChain();
-
-            BlockHeader newBlockHeader = new BlockHeader(
-                    chain,
-                    tmpBlockHeader.getVersion(),
-                    tmpBlockHeader.getType(),
-                    prevHash,
-                    index,
-                    TimeUtils.time(),
-                    tmpBlockBody);
-
-            Block block = new BlockImpl(newBlockHeader, TestConstants.wallet(), tmpBlockBody);
-            return new PbftBlockMock(block);
-        } catch (Exception e) {
-            throw new NotValidateException(e);
-        }
     }
 
 }

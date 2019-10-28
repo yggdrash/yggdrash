@@ -13,8 +13,8 @@ import io.yggdrash.common.utils.ContractUtils;
 import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.contract.core.TransactionReceiptImpl;
+import io.yggdrash.contract.core.Receipt;
+import io.yggdrash.contract.core.ReceiptImpl;
 import io.yggdrash.core.blockchain.osgi.ContractCache;
 import io.yggdrash.core.blockchain.osgi.ContractCacheImpl;
 import io.yggdrash.core.blockchain.osgi.ContractChannelCoupler;
@@ -117,7 +117,7 @@ public class StemContractValidatorTest {
         byte[] rawBranchId = BranchUtil.branchIdGenerator(updateBranchObject);
         updateBranchId = HexUtil.toHexString(rawBranchId);
 
-        TransactionReceipt receipt = createReceipt(proposer);
+        Receipt receipt = createReceipt(proposer);
         receipt.setIssuer(proposer);
         setUpReceipt(receipt);
 
@@ -205,7 +205,7 @@ public class StemContractValidatorTest {
 
         log.debug(JsonUtil.prettyFormat(updateBranchValidator));
 
-        TransactionReceipt updateReceipt = createReceipt(proposer);
+        Receipt updateReceipt = createReceipt(proposer);
         setUpReceipt(updateReceipt);
 
         stemContract.updateValidator(updateBranchValidator);
@@ -265,7 +265,7 @@ public class StemContractValidatorTest {
 
         log.debug(JsonUtil.prettyFormat(updateBranchValiator));
 
-        TransactionReceipt updateReceipt = createReceipt(proposer);
+        Receipt updateReceipt = createReceipt(proposer);
         setUpReceipt(updateReceipt);
 
         stemContract.updateValidator(updateBranchValiator);
@@ -326,7 +326,7 @@ public class StemContractValidatorTest {
 
         log.debug(JsonUtil.prettyFormat(updateBranchValiator));
 
-        TransactionReceipt updateReceipt = createReceipt(proposer);
+        Receipt updateReceipt = createReceipt(proposer);
         setUpReceipt(updateReceipt);
 
         stemContract.updateValidator(updateBranchValiator);
@@ -400,7 +400,7 @@ public class StemContractValidatorTest {
 
         log.debug(JsonUtil.prettyFormat(updateBranchValiator));
 
-        TransactionReceipt updateReceipt = createReceipt(proposer);
+        Receipt updateReceipt = createReceipt(proposer);
         setUpReceipt(updateReceipt);
 
         stemContract.updateValidator(updateBranchValiator);
@@ -412,13 +412,13 @@ public class StemContractValidatorTest {
         assertEquals(7, targetValidatorSet.getAsJsonArray("validators").size());
     }
 
-    private TransactionReceipt createReceipt(String issuer) {
-        TransactionReceipt receipt = new TransactionReceiptImpl();
+    private Receipt createReceipt(String issuer) {
+        Receipt receipt = new ReceiptImpl();
         receipt.setIssuer(issuer);
         return receipt;
     }
 
-    private void setUpReceipt(TransactionReceipt receipt) {
+    private void setUpReceipt(Receipt receipt) {
         try {
             txReceiptField.set(stemContract, receipt);
             testYeed.setTxReceipt(receipt);

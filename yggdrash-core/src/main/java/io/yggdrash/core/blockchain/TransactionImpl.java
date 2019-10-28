@@ -27,6 +27,7 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.exception.WrongStructuredException;
 import io.yggdrash.core.wallet.Address;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.Proto;
@@ -214,7 +215,7 @@ public class TransactionImpl implements Transaction {
             asJsonObject.addProperty("txId", getHash().toString());
             return asJsonObject;
         } catch (InvalidProtocolBufferException e) {
-            log.warn(e.getMessage());
+            log.debug("toJsonObjectFromProto() is failed. {}", e.getMessage());
         }
         return null;
     }
@@ -256,25 +257,29 @@ public class TransactionImpl implements Transaction {
             bao.write(getSignature());
             bao.write(body.toBinary());
         } catch (IOException e) {
-            throw new NotValidateException();
+            throw new WrongStructuredException.InvalidTx();
         }
         return bao.toByteArray();
     }
 
     public static Transaction parseFromRaw(byte[] bytes) {
-        RawTransaction raw = new RawTransaction(bytes);
+        try {
+            RawTransaction raw = new RawTransaction(bytes);
 
-        TransactionHeader header = new TransactionHeader(
-                raw.getChain(),
-                raw.getVersion(),
-                raw.getType(),
-                raw.getTimestamp(),
-                raw.getBodyHash(),
-                raw.getBodyLength());
+            TransactionHeader header = new TransactionHeader(
+                    raw.getChain(),
+                    raw.getVersion(),
+                    raw.getType(),
+                    raw.getTimestamp(),
+                    raw.getBodyHash(),
+                    raw.getBodyLength());
 
-        TransactionBody body = new TransactionBody(raw.getBody());
+            TransactionBody body = new TransactionBody(raw.getBody());
 
-        return new TransactionImpl(header, raw.getSignature(), body);
+            return new TransactionImpl(header, raw.getSignature(), body);
+        } catch (Exception e) {
+            throw new WrongStructuredException.InvalidRawTx();
+        }
     }
 
     private static Proto.Transaction toProto(byte[] bytes) {

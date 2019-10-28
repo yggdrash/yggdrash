@@ -22,14 +22,16 @@ public class ContractStore {
 
     private BranchStore branchStore;
     private StateStore stateStore;
-    private TransactionReceiptStore txReceiptStore;
+    private ReceiptStore receiptStore;
     private TempStateStore tmpStateStore;
+    private TempStateStore pendingStateStore;
 
-    public ContractStore(BranchStore branchStore, StateStore stateStore, TransactionReceiptStore txReceiptStore) {
+    public ContractStore(BranchStore branchStore, StateStore stateStore, ReceiptStore receiptStore) {
         this.branchStore = branchStore;
         this.stateStore = stateStore;
-        this.txReceiptStore = txReceiptStore;
+        this.receiptStore = receiptStore;
         this.tmpStateStore = new TempStateStore(stateStore);
+        this.pendingStateStore = new TempStateStore(stateStore);
     }
 
     public BranchStore getBranchStore() {
@@ -44,8 +46,12 @@ public class ContractStore {
         return this.tmpStateStore;
     }
 
-    public TransactionReceiptStore getTransactionReceiptStore() {
-        return this.txReceiptStore;
+    public TempStateStore getPendingStateStore() {
+        return this.pendingStateStore;
+    }
+
+    public ReceiptStore getReceiptStore() {
+        return this.receiptStore;
     }
 
     /*
@@ -57,8 +63,7 @@ public class ContractStore {
     public void close() {
         this.branchStore.close();
         this.stateStore.close();
-        this.tmpStateStore.close();
-        this.txReceiptStore.close();
+        this.receiptStore.close();
     }
 
 }

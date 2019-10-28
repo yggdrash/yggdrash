@@ -67,6 +67,7 @@ public class KademliaPeerTable implements PeerTable {
     public synchronized void addPeer(Peer peer) {
         peer.setDistance(owner);
         buckets[getBucketId(peer)].addPeer(peer);
+        peerStore.put(peer.getPeerId(), peer);
     }
 
     public synchronized boolean contains(Peer p) {

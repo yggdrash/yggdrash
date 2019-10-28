@@ -72,7 +72,6 @@ public class NodeSyncLimitTesting extends TcpNodeTesting {
         // assert
         BlockChainManager node2BlockChainManager = node2.getDefaultBranch().getBlockChainManager();
         assertThat(node2BlockChainManager.getLastIndex()).isEqualTo(node1BlockChainManager.getLastIndex());
-        assertThat(node2BlockChainManager.countOfTxs()).isEqualTo(node1BlockChainManager.countOfTxs());
     }
 
     private void generateTxAndBlock(TestNode node, int blockCount, int txCount) {

@@ -36,13 +36,14 @@ message TransactionList {
 message Block {
     message Header {
         bytes chain = 1;
-        bytes version = 2;          // Version indicates message protocol version
+        bytes version = 2; // Version indicates message protocol version
         bytes type = 3;
-        bytes prevBlockHash = 4;    // The hash of the previous block header
-        uint64 index = 5;            // The index in the blockchain
-        int64 timestamp = 6;        // google.protobuf.Timestamp timestamp ?
-        bytes merkleRoot = 7;       // The hash of the BlockBody, by MerkleTree
-        uint64 bodyLength = 8;
+        bytes prevBlockHash = 4; // The hash of the previous block header
+        uint64 index = 5; // The index in the blockchain
+        int64 timestamp = 6; // google.protobuf.Timestamp timestamp ?
+        bytes merkleRoot = 7; // The hash of the BlockBody, by MerkleTree
+        bytes stateRoot = 8; // The hash of the BlockBody, by MerkleTree
+        uint64 bodyLength = 9;
     }
 
     Header header = 1;
@@ -103,4 +104,7 @@ message Ping {
 message Pong {
     string pong = 1;
     string from = 2;
+    string to = 3;
+    bytes branch = 4;
+    int64 bestBlock = 5;
 }
