@@ -97,7 +97,11 @@ public class BranchGroup {
 
 
     public long getLastIndex(BranchId branchId) {
-        return getBranch(branchId).getBlockChainManager().getLastIndex();
+        try {
+            return getBranch(branchId).getBlockChainManager().getLastIndex();
+        } catch (Exception e) {
+            return 0L;
+        }
     }
 
     public boolean isBranchExist(BranchId branchId) {
@@ -112,7 +116,10 @@ public class BranchGroup {
         try {
             Sha3Hash txId = new Sha3Hash(id);
             return getTxByHash(branchId, txId);
-        } catch (Exception e) {
+        } catch (NonExistObjectException ne) {
+            throw new NonExistObjectException();
+        }
+        catch (Exception e) {
             throw new DecodeException.TxIdNotHexString();
         }
     }
@@ -147,8 +154,10 @@ public class BranchGroup {
                 throw new NonExistObjectException.BlockNotFound(hash);
             }
             return blockByHash;
+        } catch (NonExistObjectException ne) {
+            throw new NonExistObjectException();
         } catch (Exception e) {
-            throw new DecodeException.BlockIdNotHexString();
+            throw new DecodeException();
         }
     }
 
