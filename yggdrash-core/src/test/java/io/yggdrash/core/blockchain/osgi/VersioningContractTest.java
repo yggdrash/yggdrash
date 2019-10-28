@@ -102,7 +102,8 @@ public class VersioningContractTest {
         }
     }
 
-    private static long DEFAULT_PERIOD = 60480L;
+    private static long VOTE_PERIOD = 10L;
+    private static long APPLY_PERIOD = 10L;
 
     @Test
     public void endBlockTestInstallEvent() {
@@ -115,7 +116,7 @@ public class VersioningContractTest {
 
         // EndBlock receipt
         Receipt receipt = new ReceiptImpl();
-        receipt.setBlockHeight(curBlockHeight + DEFAULT_PERIOD); // EndBlock Height
+        receipt.setBlockHeight(curBlockHeight + VOTE_PERIOD); // EndBlock Height
         adapter.setReceipt(receipt);
 
         service.endBlock();
@@ -135,7 +136,7 @@ public class VersioningContractTest {
 
         // EndBlock receipt
         Receipt receipt = new ReceiptImpl();
-        receipt.setBlockHeight(curBlockHeight + DEFAULT_PERIOD); // EndBlock Height
+        receipt.setBlockHeight(curBlockHeight + VOTE_PERIOD); // EndBlock Height
         adapter.setReceipt(receipt);
 
         service.endBlock();
@@ -231,8 +232,8 @@ public class VersioningContractTest {
         param.addProperty("sourceUrl", "https://github.com/yggdrash/yggdrash");
         param.addProperty("buildVersion", "1.8.0_172");
         param.addProperty("proposalType", "activate");
-        param.addProperty("votePeriod", 10);
-        param.addProperty("applyPeriod", 1);
+        param.addProperty("votePeriod", VOTE_PERIOD);
+        param.addProperty("applyPeriod", APPLY_PERIOD);
 
         service.propose(param);
 
