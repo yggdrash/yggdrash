@@ -144,6 +144,9 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
     public Map<String, List<String>> addBlock(ConsensusBlock<T> nextBlock, boolean broadcast) {
         try {
             lock.lock();
+            // Check if a block comes in while locked
+            log.info("Add Block Start. NextBlock Index=({}), Last Index=({}), Last Executed Index=({})",
+                    nextBlock.getIndex(), blockChainManager.getLastIndex(), branchStore.getLastExecuteBlockIndex());
 
             int verificationCode = blockChainManager.verify(nextBlock);
             if (verificationCode != BusinessError.VALID.toValue()) {
@@ -195,7 +198,11 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
             nextBlock.loggingBlock(this.blockChainManager.getUnconfirmedTxsSize());
         } catch (Exception e) {
-            log.debug("Add block failed. {}", e.getMessage()); //TODO Exception handling
+            // TODO Exception handling
+            // Raised the log level to check for exceptions that occur while the block is being saved
+            log.info("Add block Failed. Exception occur while the block is being added. " +
+                    "Last Index=({}), Last Executed Index=({}), Err Msg=({})",
+                    blockChainManager.getLastIndex(), branchStore.getLastExecuteBlockIndex(), e.getMessage());
         } finally {
             lock.unlock();
         }
