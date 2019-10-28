@@ -157,7 +157,7 @@ public class BranchGroup {
         } catch (NonExistObjectException ne) {
             throw new NonExistObjectException();
         } catch (Exception e) {
-            throw new DecodeException();
+            throw new DecodeException.BlockIdNotHexString();
         }
     }
 
