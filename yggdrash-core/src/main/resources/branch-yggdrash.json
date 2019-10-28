@@ -2,17 +2,17 @@
   "name": "YGGDRASH",
   "symbol": "YGGDRASH",
   "property": "platform",
-  "description": "YGGDRASH TESTNET(Beta), TRUST-based Multi-dimensional Blockchain",
+  "description": "YGGDRASH TESTNET(Gamma), TRUST-based Multi-dimensional Blockchain",
   "contracts": [
     {
-      "contractVersion": "659fc8e95b1788220e36a3e1898c3ccf901a9b91",
+      "contractVersion": "2f3d1ab327c1e98fa04d4e155edf51f3726d6d5f",
       "init": {},
       "description": "The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.",
       "name": "STEM",
       "isSystem": true
     },
     {
-      "contractVersion": "b97b1292c756ea1fc8830657cde0450ad841e270",
+      "contractVersion": "f8f7c637abbd33422f966974663c2d73280840f3",
       "isSystem": true,
       "init": {
         "alloc": {
@@ -39,6 +39,9 @@
           },
           "4e5cbe1d0db35add81e7f2840eeb250b5b469161": {
             "balance": "994000000000000000000000"
+          },
+          "4020d5f2322f7e42493aa3000d583510f2d413e0": {
+            "balance": "1000000000000000000000000"
           }
         }
       },
@@ -46,7 +49,7 @@
       "name": "YEED"
     },
     {
-      "contractVersion": "30783a1311b9c68dd3a92596d650ae6914b01658",
+      "contractVersion": "e1a0e57c48674a92c8bb1f9dee2df9e60663d117",
       "isSystem": true,
       "init": {
         "validators": [
@@ -61,12 +64,19 @@
       },
       "name": "DPoA",
       "description": "This contract is for a validator."
+    },
+    {
+      "contractVersion": "f6e516c5e76cc2014fd6ab0cf8b7f125837c4f8a",
+      "isSystem": true,
+      "init": {},
+      "name": "TOKEN",
+      "description": "Yggdrash Token Service"
     }
   ],
   "timestamp": "000001674dc56231",
   "consensus": {
     "algorithm": "pbft",
-    "period": "* * * * * *"
+    "period": "*/5 * * * * *"
   },
   "governanceContract": "DPoA"
 }
