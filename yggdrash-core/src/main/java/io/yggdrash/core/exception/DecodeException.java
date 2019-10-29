@@ -6,6 +6,10 @@ public class DecodeException extends RuntimeException {
 
     public static final int CODE = -10004;
 
+    public DecodeException() {
+        super();
+    }
+
     public DecodeException(String str) {
         super("Decode " + str + " failed. " + str + " is not hex string.");
     }
