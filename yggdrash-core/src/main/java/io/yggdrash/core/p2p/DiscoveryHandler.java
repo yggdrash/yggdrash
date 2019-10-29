@@ -31,7 +31,10 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static io.yggdrash.common.config.Constants.TIMEOUT_PING;
 
 public class DiscoveryHandler<T> implements BlockChainHandler<T> {
     private static final FailedOperationException NOT_IMPLEMENTED = new FailedOperationException("Not implemented");
@@ -92,7 +95,8 @@ public class DiscoveryHandler<T> implements BlockChainHandler<T> {
                 .setPort(peer.getPort())
                 .setBranch(ByteString.copyFrom(branchId.getBytes()))
                 .build();
-        List<Peer> peerList = peerBlockingStub.findPeers(targetPeer).getPeersList().stream()
+        List<Peer> peerList = peerBlockingStub.withDeadlineAfter(TIMEOUT_PING, TimeUnit.SECONDS)
+                .findPeers(targetPeer).getPeersList().stream()
                 .map(peerInfo -> Peer.valueOf(peerInfo.getUrl()))
                 .collect(Collectors.toList());
 
@@ -109,7 +113,7 @@ public class DiscoveryHandler<T> implements BlockChainHandler<T> {
                 .setBranch(ByteString.copyFrom(branchId.getBytes()))
                 .setBestBlock(owner.getBestBlock())
                 .build();
-        return peerBlockingStub.ping(request).getPong();
+        return peerBlockingStub.withDeadlineAfter(TIMEOUT_PING, TimeUnit.SECONDS).ping(request).getPong();
     }
 
     @Override
@@ -121,7 +125,7 @@ public class DiscoveryHandler<T> implements BlockChainHandler<T> {
                 .setBestBlock(owner.getBestBlock())
                 .build();
 
-        Proto.Pong response = peerBlockingStub.ping(request);
+        Proto.Pong response = peerBlockingStub.withDeadlineAfter(TIMEOUT_PING, TimeUnit.SECONDS).ping(request);
         if (Arrays.equals(branchId.getBytes(), request.getBranch().toByteArray())) {
             return response.getBestBlock();
         }
