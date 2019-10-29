@@ -32,7 +32,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static io.yggdrash.common.config.Constants.TIMEOUT_TRANSACTION;
 
 public abstract class AbstractBlockChainHandler<T> extends DiscoveryHandler<T> {
 
@@ -104,7 +107,9 @@ public abstract class AbstractBlockChainHandler<T> extends DiscoveryHandler<T> {
     @Override
     public void broadcastTx(Transaction tx) {
         try {
-            this.broadcastTxRequestObserver = transactionAsyncStub.broadcastTx(emptyResponseStreamObserver);
+            this.broadcastTxRequestObserver = transactionAsyncStub
+                    .withDeadlineAfter(TIMEOUT_TRANSACTION, TimeUnit.SECONDS)
+                    .broadcastTx(emptyResponseStreamObserver);
             broadcastTxRequestObserver.onNext(tx.getInstance());
             log.trace("Broadcasting tx={} to={}", tx.getHash().toString(), getPeer().getYnodeUri());
         } catch (Exception e) {
