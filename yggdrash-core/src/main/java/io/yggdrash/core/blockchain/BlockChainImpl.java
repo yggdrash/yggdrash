@@ -225,38 +225,33 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
 
     @Override
     public Map<String, List<String>> addTransaction(Transaction tx, boolean broadcast) {
-        lock.lock();
-        try {
-            log.trace("addTransaction: tx={}", tx.getHash().toString());
-            int verifyResult = blockChainManager.verify(tx);
-            if (verifyResult == BusinessError.VALID.toValue()) {
-                log.trace("contractManager.executeTx: {}", tx.getHash().toString());
-                TransactionRuntimeResult txResult = contractManager.executeTx(tx); //checkTx
-                log.trace("contractManager.executeTx Result: {}", txResult.getReceipt().getLog());
-                if (txResult.getReceipt().getStatus() == ExecuteStatus.SUCCESS) {
-                    blockChainManager.addTransaction(tx);
+        log.trace("addTransaction: tx={}", tx.getHash().toString());
+        int verifyResult = blockChainManager.verify(tx);
+        if (verifyResult == BusinessError.VALID.toValue()) {
+            log.trace("contractManager.executeTx: {}", tx.getHash().toString());
+            TransactionRuntimeResult txResult = contractManager.executeTx(tx); //checkTx
+            log.trace("contractManager.executeTx Result: {}", txResult.getReceipt().getLog());
+            if (txResult.getReceipt().getStatus() == ExecuteStatus.SUCCESS) {
+                blockChainManager.addTransaction(tx);
 
-                    if (!listenerList.isEmpty() && broadcast) {
-                        listenerList.forEach(listener -> listener.receivedTransaction(tx));
-                    } else {
-                        log.trace("addTransaction(): queuing broadcast is failed. listener={} broadcast={}",
-                                listenerList.size(), broadcast);
-                    }
-
-                    return new HashMap<>();
+                if (!listenerList.isEmpty() && broadcast) {
+                    listenerList.forEach(listener -> listener.receivedTransaction(tx));
                 } else {
-                    Map<String, List<String>> applicationError = new HashMap<>();
-                    applicationError.put("SystemError", txResult.getReceipt().getLog());
-                    log.trace("addTransaction(): executeTx() is failed. {}", txResult.getReceipt().getLog());
-                    return applicationError;
+                    log.trace("addTransaction(): queuing broadcast is failed. listener={} broadcast={}",
+                            listenerList.size(), broadcast);
                 }
+
+                return new HashMap<>();
             } else {
-                log.trace("addTransaction(): verify() is failed. tx={} {}",
-                        tx.getHash().toString(), BusinessError.getErrorLogsMap(verifyResult));
-                return BusinessError.getErrorLogsMap(verifyResult);
+                Map<String, List<String>> applicationError = new HashMap<>();
+                applicationError.put("SystemError", txResult.getReceipt().getLog());
+                log.trace("addTransaction(): executeTx() is failed. {}", txResult.getReceipt().getLog());
+                return applicationError;
             }
-        } finally {
-            lock.unlock();
+        } else {
+            log.trace("addTransaction(): verify() is failed. tx={} {}",
+                    tx.getHash().toString(), BusinessError.getErrorLogsMap(verifyResult));
+            return BusinessError.getErrorLogsMap(verifyResult);
         }
     }
 
