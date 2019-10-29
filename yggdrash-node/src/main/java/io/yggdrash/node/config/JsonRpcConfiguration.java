@@ -21,6 +21,8 @@ import io.yggdrash.common.config.Constants;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Profile(Constants.ActiveProfiles.NODE)
 @Configuration
@@ -29,6 +31,19 @@ public class JsonRpcConfiguration {
     @Bean
     public AutoJsonRpcServiceImplExporter autoJsonRpcServiceImplExporter() {
         return new AutoJsonRpcServiceImplExporter();
+    }
+
+    @Bean
+    public WebMvcConfigurer webMvcConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**")
+                    .allowedHeaders("*")
+                    .allowedMethods("*")
+                    .allowedOrigins("*");
+            }
+        };
     }
 }
 
