@@ -7,6 +7,7 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.vo.dpoa.Validator;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.contract.core.ExecuteStatus;
+import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
@@ -353,8 +354,8 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
         List<Transaction> txList = new ArrayList<>(blockChain.getBlockChainManager().getUnconfirmedTxs());
         Sha3Hash curStateRootHash = blockChain.getContractManager().getOriginStateRootHash();
 
-        List<Transaction> errTxList = new ArrayList<>();
         Set<Sha3Hash> errTxHashes = new HashSet<>();
+        List<Transaction> resultTxList = new ArrayList<>();
 
         BlockRuntimeResult result = blockChain.getContractManager().executeTxs(txList);
 
@@ -363,20 +364,26 @@ public class PbftService implements ConsensusService<PbftProto.PbftBlock, PbftMe
                 curStateRootHash = new Sha3Hash(
                         result.getBlockResult().get("stateRoot").get("stateHash").getAsString());
             }
-            result.getReceipts().stream()
-                    .filter(r -> !r.getStatus().equals(ExecuteStatus.SUCCESS))
-                    .forEach(r -> {
-                        errTxHashes.add(new Sha3Hash(r.getTxId()));
-                        errTxList.add(blockChain.getBlockChainManager().getTxByHash(new Sha3Hash(r.getTxId())));
-                    });
-            // Remove err txs from txList and flush from pendingPool
-            txList.removeAll(errTxList);
+
+            List<Receipt> receipts = result.getReceipts();
+            for (int i = 0; i < result.getReceipts().size(); i++) {
+                Receipt receipt = receipts.get(i);
+                if (!receipt.getStatus().equals(ExecuteStatus.SUCCESS)) {
+                    errTxHashes.add(new Sha3Hash(receipt.getTxId()));
+                }
+            }
+
+            for (Transaction tx : txList) {
+                if (!errTxHashes.contains(tx.getHash())) {
+                    resultTxList.add(tx);
+                }
+            }
+
             blockChain.getBlockChainManager().flushUnconfirmedTxs(errTxHashes);
         }
-
         log.debug("makeNextBlock : stateRootHash {}, txList size {}", curStateRootHash, txList.size());
 
-        BlockBody newBlockBody = new BlockBody(txList);
+        BlockBody newBlockBody = new BlockBody(resultTxList);
 
         //TODO Add stateRootHash
         BlockHeader newBlockHeader = new BlockHeader(
