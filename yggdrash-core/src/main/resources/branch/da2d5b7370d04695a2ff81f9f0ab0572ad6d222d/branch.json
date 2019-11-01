@@ -2,7 +2,7 @@
   "name": "YGGDRASH",
   "symbol": "YGGDRASH",
   "property": "platform",
-  "description": "YGGDRASH TESTNET(Main-Beta), TRUST-based Multi-dimensional Blockchain",
+  "description": "YGGDRASH MainNet, TRUST-based Multi-dimensional Blockchain",
   "contracts": [
     {
       "contractVersion": "2f3d1ab327c1e98fa04d4e155edf51f3726d6d5f",
