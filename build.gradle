@@ -139,7 +139,8 @@ project(':yggdrash-core') {
     apply plugin: 'com.google.protobuf'
 
     dependencies {
-        compile project(':yggdrash-common')
+        compile "io.yggdrash:contract-core:0.10.0-beta"
+        compile "io.yggdrash:yggdrash-common:0.10.1-beta"
 
         compile "io.grpc:grpc-services:${grpcVersion}"
         compile "io.grpc:grpc-netty:${grpcVersion}"
