@@ -58,6 +58,9 @@ public class VersioningContractTest {
     private StateStore stateStore;
     private ReceiptAdapter adapter;
 
+    private static final long DEFAULT_PERIOD = 60480L; // 7 days
+    private static final long DAY = 8640L; // 1 day
+
     private static final String updateContract = "8c65bc05e107aab9ceaa872bbbb2d96d57811de4";
     private static final String issuer1 = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";
     private static final String issuer2 = "d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95";
@@ -101,8 +104,6 @@ public class VersioningContractTest {
             }
         }
     }
-
-    private static long DEFAULT_PERIOD = 60480L;
 
     @Test
     public void endBlockTestInstallEvent() {
@@ -231,6 +232,8 @@ public class VersioningContractTest {
         param.addProperty("sourceUrl", "https://github.com/yggdrash/yggdrash");
         param.addProperty("buildVersion", "1.8.0_172");
         param.addProperty("proposalType", "activate");
+        param.addProperty("targetBlockHeight", curBlockHeight + DEFAULT_PERIOD);
+        param.addProperty("applyBlockHeight", curBlockHeight + DEFAULT_PERIOD + DAY);
 
         service.propose(param);
 

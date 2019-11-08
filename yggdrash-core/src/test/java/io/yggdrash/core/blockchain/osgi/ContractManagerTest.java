@@ -194,9 +194,13 @@ public class ContractManagerTest {
         String buildVersion = "1.0.0";
         Set<String> validatorSet = new HashSet<>();
         long blockHeight = 10L;
+        final long DEFAULT_PERIOD = 60480L; // 7 days
+        final long DAY = 8640L; // 1 day
+        long targetBlockHeight =  blockHeight + DEFAULT_PERIOD;
+        long applyBlockHeight = targetBlockHeight + DAY;
 
-        return new ContractProposal(
-                txId, proposer, proposalVersion, sourceUrl, buildVersion, blockHeight, validatorSet, proposalType);
+        return new ContractProposal(txId, proposer, proposalVersion, sourceUrl, buildVersion, targetBlockHeight,
+                applyBlockHeight, validatorSet, proposalType);
     }
 
     private boolean isFileDownloaded(String version) {
