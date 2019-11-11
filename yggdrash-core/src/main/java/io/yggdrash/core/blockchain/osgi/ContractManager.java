@@ -114,6 +114,8 @@ public class ContractManager implements ContractEventListener {
         ContractVersion proposalVersion = ContractVersion.of(proposal.getProposalVersion());
 
         ProposalType proposalType = proposal.getProposalType();
+        log.debug("VersioningContract EventHandler : ContractEventType={}, ProposalVersion={}, ProposalType={}",
+                eventType, proposalVersion, proposalType);
 
         nodeStatus.update();
         if (proposalType.equals(ProposalType.ACTIVATE)) {
@@ -229,6 +231,7 @@ public class ContractManager implements ContractEventListener {
     }
 
     public void loadBundle(ContractVersion contractVersion) {
+        log.debug("LoadBundle : contractVersion={}", contractVersion);
         // step 1. exist file and download file.
         File contractFile = null;
         if (isContractFileExist(contractVersion)) {
