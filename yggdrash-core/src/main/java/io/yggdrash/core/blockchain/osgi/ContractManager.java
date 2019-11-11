@@ -117,9 +117,8 @@ public class ContractManager implements ContractEventListener {
         log.debug("VersioningContract EventHandler : ContractEventType={}, ProposalVersion={}, ProposalType={}",
                 eventType, proposalVersion, proposalType);
 
-        log.debug("{}, IsNodeStatusNull -> ", nodeStatus, nodeStatus == null);
-        log.debug("nodeStatus isSyncStatus -> " + nodeStatus.isSyncStatus());
         if (nodeStatus.isSyncStatus()) {
+            log.debug("nodeStatus isSyncStatus -> " + nodeStatus.isSyncStatus());
             nodeStatus.update();
         }
         if (proposalType.equals(ProposalType.ACTIVATE)) {
@@ -128,8 +127,8 @@ public class ContractManager implements ContractEventListener {
             proposalDeactivateHandler(eventType, proposalVersion);
         }
 
-        log.debug("nodeStatus isUpStatus -> " + nodeStatus.isUpStatus());
         if (!nodeStatus.isUpStatus()) {
+            log.debug("nodeStatus isUpStatus -> " + nodeStatus.isUpStatus());
             nodeStatus.up();
         }
     }

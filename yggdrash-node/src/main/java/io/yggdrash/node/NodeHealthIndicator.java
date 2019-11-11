@@ -64,7 +64,6 @@ public class NodeHealthIndicator implements HealthIndicator, NodeStatus {
     public void up() {
         try {
             updateDetail(Status.UP);
-            log.debug("NodeStatus -> Up");
         } catch (Exception e) {
             log.debug("Status up() is failed. {}", e.getMessage());
         } finally {
@@ -76,7 +75,6 @@ public class NodeHealthIndicator implements HealthIndicator, NodeStatus {
     public void sync() {
         try {
             updateDetail(SYNC);
-            log.debug("NodeStatus -> Sync");
         } catch (Exception e) {
             log.trace("Status sync() is failed. {}", e.getMessage());
         } finally {
@@ -88,7 +86,6 @@ public class NodeHealthIndicator implements HealthIndicator, NodeStatus {
     public void update() {
         try {
             updateDetail(UPDATE);
-            log.debug("NodeStatus -> Update");
         } catch (Exception e) {
             log.trace("Status update() is failed. {}", e.getMessage());
         } finally {
