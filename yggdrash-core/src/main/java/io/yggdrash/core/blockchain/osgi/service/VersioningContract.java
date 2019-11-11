@@ -41,15 +41,14 @@ public class VersioningContract {
 
     private static final Logger log = LoggerFactory.getLogger(VersioningContract.class);
 
-    private static final long DEFAULT_PERIOD = 60480L; // 7 days
-    private static final long DAY = 8640L; // 1 day
-
     private static final String LOG_PREFIX = "[Versioning Contract]";
     private static final String TX_ID = "txId";
     private static final String PROPOSAL_VERSION = "proposalVersion";
     private static final String SOURCE_URL = "sourceUrl";
     private static final String BUILD_VERSION = "buildVersion";
     private static final String PROPOSAL_TYPE = "proposalType";
+    private static final String VOTE_PERIOD = "votePeriod";
+    private static final String APPLY_PERIOD = "applyPeriod";
 
     @ContractStateStore
     ReadWriterStore<String, JsonObject> state;
@@ -81,73 +80,46 @@ public class VersioningContract {
             return receipt;
         }
 
-        try {
-            // Create a contract proposal with parameters.
-            String txId = receipt.getTxId();
-            String proposer = receipt.getIssuer();
-            long blockHeight = receipt.getBlockHeight();
-            String proposalVersion = params.get(PROPOSAL_VERSION).getAsString();
-            String sourceUrl = params.get(SOURCE_URL).getAsString();
-            String buildVersion = params.get(BUILD_VERSION).getAsString();
-            Set<String> validatorSet = new HashSet<>(branchStore.getValidators().getValidatorMap().keySet());
-            String proposalType = params.get(PROPOSAL_TYPE).getAsString().toUpperCase();
-            long targetBlockHeight = params.has("targetBlockHeight")
-                    ? params.get("targetBlockHeight").getAsLong() : blockHeight + DEFAULT_PERIOD;
-            long applyBlockHeight = params.has("applyBlockHeight")
-                    ? params.get("applyBlockHeight").getAsLong() : targetBlockHeight + DAY;
+        // Create a contract proposal with parameters.
+        String txId = receipt.getTxId();
+        String proposer = receipt.getIssuer();
+        long blockHeight = receipt.getBlockHeight();
+        String proposalVersion = params.get(PROPOSAL_VERSION).getAsString();
+        String sourceUrl = params.get(SOURCE_URL).getAsString();
+        String buildVersion = params.get(BUILD_VERSION).getAsString();
+        long votePeriod = params.get(VOTE_PERIOD).getAsLong();
+        long applyPeriod = params.get(APPLY_PERIOD).getAsLong();
+        Set<String> validatorSet = new HashSet<>(branchStore.getValidators().getValidatorMap().keySet());
+        String proposalType = params.get(PROPOSAL_TYPE).getAsString().toUpperCase();
 
-            if (!isSha1Hash(proposalVersion)) {
-                log.warn("{} Proposal Version is not validate in TX {}.", LOG_PREFIX, txId);
-                setFalseTxReceipt("Proposal Version is not validate.");
-                return receipt;
-            }
-
-            if (ProposalType.findBy(proposalType) == null) {
-                log.warn("{} Proposal Type is not validate in TX {}.", LOG_PREFIX, txId);
-                setFalseTxReceipt("Proposal Type is not validate.");
-                return receipt;
-            }
-
-            // Voting should be completed until targetBlockHeight.
-            // The contract will be downloaded by the downloader at the targetBlockHeight.
-            if (targetBlockHeight <= blockHeight) {
-                log.warn("{}, TargetBlockHeight(={}) should be higher than current blockHeight(={}).",
-                        LOG_PREFIX, targetBlockHeight, blockHeight);
-                setFalseTxReceipt("TargetBlockHeight should be higher than current blockHeight");
-                return receipt;
-            }
-
-            // The contract will be installed and started by the bundleService at the applyBlockHeight.
-            if (applyBlockHeight <= targetBlockHeight) {
-                log.warn("{}, ApplyBlockHeight(={}) should be higher than targetBlockHeight(={}).",
-                        LOG_PREFIX, applyBlockHeight, targetBlockHeight);
-                setFalseTxReceipt("ApplyBlockHeight should be higher than targetBlockHeight");
-                return receipt;
-            }
-
-            try {
-                ContractProposal proposal = new ContractProposal(txId, proposer, proposalVersion, sourceUrl,
-                        buildVersion, targetBlockHeight, applyBlockHeight, validatorSet, proposalType);
-
-                // The proposer automatically votes to agree
-                proposal.vote(proposer, true);
-
-                JsonObject proposalObj = JsonUtil.parseJsonObject(proposal);
-                // Store the proposal in stateStore
-                state.put(txId, JsonUtil.parseJsonObject(proposal));
-                // Store the txId in endBlock store
-                state.put(String.valueOf(proposal.getTargetBlockHeight()), createTxIdJson(txId));
-
-                setSuccessTxReceipt("Contract proposal has been issued");
-                log.info("Contract Proposal : txId = {}, proposal = {}", txId, proposalObj);
-            } catch (Exception e) {
-                setErrorTxReceipt(e.getMessage());
-                log.debug("{} Propose Exception : {}", LOG_PREFIX, e.getMessage());
-            }
-        } catch (Exception e) {
-            setFalseTxReceipt("Invalid parameters");
-            log.debug("{} : {}", "Invalid parameters", e.getMessage());
+        if (!isSha1Hash(proposalVersion)) {
+            log.warn("{} Proposal Version is not validate in TX {}.", LOG_PREFIX, txId);
+            setFalseTxReceipt("Proposal Version is not validate.");
+            return receipt;
         }
+
+        if (ProposalType.findBy(proposalType) == null) {
+            log.warn("{} Proposal Type is not validate in TX {}.", LOG_PREFIX, txId);
+            setFalseTxReceipt("Proposal Type is not validate.");
+            return receipt;
+        }
+
+        // blockHeight => targetBlockHeight
+        ContractProposal proposal = new ContractProposal(
+                txId, proposer, proposalVersion, sourceUrl, buildVersion,
+                blockHeight, votePeriod, applyPeriod, validatorSet, proposalType);
+
+        // The proposer automatically votes to agree
+        proposal.vote(proposer, true);
+
+        JsonObject proposalObj = JsonUtil.parseJsonObject(proposal);
+        // Store the proposal in stateStore
+        state.put(txId, JsonUtil.parseJsonObject(proposal));
+        // Store the txId in endblock store
+        state.put(String.valueOf(proposal.getTargetBlockHeight()), createTxIdJson(txId));
+
+        setSuccessTxReceipt("Contract proposal has been issued");
+        log.info("Contract Proposal : txId = {}, proposal = {}", txId, proposalObj);
 
         return receipt;
     }
@@ -280,11 +252,6 @@ public class VersioningContract {
         Pattern pattern = Pattern.compile("\\b[0-9a-f]{5,40}\\b");
         return pattern.matcher(proposalVersion).matches();
 
-    }
-
-    private void setErrorTxReceipt(String msg) {
-        this.receipt.setStatus(ExecuteStatus.ERROR);
-        this.receipt.addLog(msg);
     }
 
     private void setFalseTxReceipt(String msg) {
