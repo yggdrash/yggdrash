@@ -19,6 +19,7 @@ import io.yggdrash.core.blockchain.osgi.service.ContractProposal;
 import io.yggdrash.core.blockchain.osgi.service.ProposalType;
 import io.yggdrash.core.blockchain.osgi.service.VersioningContract;
 import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.ContractStore;
@@ -60,6 +61,7 @@ public class ContractManager implements ContractEventListener {
     private final DefaultConfig defaultConfig;
     private final GenesisBlock genesis;
 
+    private NodeStatus nodeStatus;
 
     private Map<String, Object> serviceMap;
 
@@ -88,6 +90,10 @@ public class ContractManager implements ContractEventListener {
 
     }
 
+    public void setNodeStatus(NodeStatus nodeStatus) {
+        this.nodeStatus = nodeStatus;
+    }
+
     public void commitBlockResult(BlockRuntimeResult result) {
         contractExecutor.commitBlockResult(result);
     }
@@ -109,11 +115,13 @@ public class ContractManager implements ContractEventListener {
 
         ProposalType proposalType = proposal.getProposalType();
 
+        nodeStatus.update();
         if (proposalType.equals(ProposalType.ACTIVATE)) {
             proposalActivateHandler(eventType, proposalVersion);
         } else if (proposalType.equals(ProposalType.DEACTIVATE)) {
             proposalDeactivateHandler(eventType, proposalVersion);
         }
+        nodeStatus.up();
     }
 
     private void proposalActivateHandler(ContractEventType eventType, ContractVersion proposalVersion) {

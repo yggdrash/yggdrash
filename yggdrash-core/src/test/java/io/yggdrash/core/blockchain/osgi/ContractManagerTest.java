@@ -21,6 +21,8 @@ import io.yggdrash.core.blockchain.osgi.framework.BundleServiceImpl;
 import io.yggdrash.core.blockchain.osgi.framework.FrameworkConfig;
 import io.yggdrash.core.blockchain.osgi.framework.FrameworkLauncher;
 import io.yggdrash.core.blockchain.osgi.service.ContractProposal;
+import io.yggdrash.core.net.NodeStatus;
+import io.yggdrash.core.net.NodeStatusMock;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
@@ -61,9 +63,13 @@ public class ContractManagerTest {
     private static ContractVersion coinContract = ContractVersion.of("a88ae404e837cd1d6e8b9a5a91f188da835ccb56");
     ContractVersion notExistedVersion = ContractVersion.of(Hex.encodeHexString("Wrong ContractVersion".getBytes()));
 
+    private NodeStatus nodeStatus;
+
     @Before
     public void setUp() throws Exception {
+        nodeStatus = NodeStatusMock.mock;
         manager = initContractManager();
+        manager.setNodeStatus(nodeStatus);
     }
 
     @Test

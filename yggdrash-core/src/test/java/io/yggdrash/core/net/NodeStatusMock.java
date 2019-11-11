@@ -16,6 +16,11 @@ public class NodeStatusMock implements NodeStatus {
     }
 
     @Override
+    public boolean isUpdateStatus() {
+        return status.equals("update");
+    }
+
+    @Override
     public void up() {
         status = "up";
     }
@@ -23,6 +28,11 @@ public class NodeStatusMock implements NodeStatus {
     @Override
     public void sync() {
         status = "sync";
+    }
+
+    @Override
+    public void update() {
+        status = "update";
     }
 
     public static NodeStatus create() {

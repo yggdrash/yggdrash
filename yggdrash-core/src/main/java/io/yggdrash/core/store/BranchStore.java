@@ -16,6 +16,7 @@
 
 package io.yggdrash.core.store;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.BranchContract;
@@ -216,10 +217,13 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
     }
 
     private void setBranchContracts(Map<String, BranchContract> contractMap) {
-        JsonObject contracts = new JsonObject();
-        contractMap.keySet().forEach(
-                contractVersion -> contracts.add(contractVersion, contractMap.get(contractVersion).getJson()));
-        store.put(BlockchainMetaInfo.BRANCH_CONTRACTS.toString(), contracts);
+        List<BranchContract> contracts = new ArrayList<>(contractMap.values());
+        JsonArray array = new JsonArray();
+        contracts.forEach(c -> array.add(c.getJson()));
+        JsonObject contract = new JsonObject();
+        contract.add("contracts", array);
+        store.put(BlockchainMetaInfo.BRANCH_CONTRACTS.toString(), contract);
+
         // init contractMap
         this.contractMap = new LinkedHashMap<>();
     }
@@ -255,10 +259,14 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
         if (!contractMap.isEmpty()) {
             return contractMap;
         }
+
         JsonObject contracts = store.get(BlockchainMetaInfo.BRANCH_CONTRACTS.toString());
         if (contracts != null) {
-            for (String contractVersion : contracts.keySet()) {
-                contractMap.put(contractVersion, BranchContract.of(contracts.get(contractVersion).getAsJsonObject()));
+            JsonArray contractArr = contracts.get("contracts").getAsJsonArray();
+            for (int i = 0; i < contractArr.size(); i++) {
+                JsonObject contractObj = contractArr.get(i).getAsJsonObject();
+                BranchContract branchContract = BranchContract.of(contractObj);
+                contractMap.put(branchContract.getContractVersion().toString(), branchContract);
             }
         }
         return contractMap;
@@ -303,7 +311,6 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
      */
     @Override
     public String getContractName(String contractVersion) {
-        // get contract Name by ContractVersion
         Map<String, BranchContract> branchContractMap = getBranchContactMap();
         return branchContractMap.isEmpty() ? null : branchContractMap.get(contractVersion).getName();
     }

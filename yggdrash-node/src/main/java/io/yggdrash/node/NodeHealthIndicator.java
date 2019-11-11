@@ -39,6 +39,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class NodeHealthIndicator implements HealthIndicator, NodeStatus {
     private static final Logger log = LoggerFactory.getLogger(NodeHealthIndicator.class);
     private static final Status SYNC = new Status("SYNC", "Synchronizing..");
+    private static final Status UPDATE = new Status("UPDATE", "Updating..");
 
     private final AtomicReference<Health> health = new AtomicReference<>(Health.down().build());
     private final DefaultConfig defaultConfig;
@@ -79,6 +80,22 @@ public class NodeHealthIndicator implements HealthIndicator, NodeStatus {
         } finally {
             log.trace("nodeStatus -> {}", health.get().getStatus());
         }
+    }
+
+    @Override
+    public void update() {
+        try {
+            updateDetail(UPDATE);
+        } catch (Exception e) {
+            log.trace("Status update() is failed. {}", e.getMessage());
+        } finally {
+            log.trace("nodeStatus -> {}", health.get().getStatus());
+        }
+    }
+
+    @Override
+    public boolean isUpdateStatus() {
+        return health.get().getStatus().equals(UPDATE);
     }
 
     @Override

@@ -35,6 +35,7 @@ import static org.junit.Assert.assertNotNull;
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class NodeHealthIndicatorTest {
     private static final Status SYNC = new Status("SYNC", "Synchronizing..");
+    private static final Status UPDATE = new Status("UPDATE", "Updating..");
 
     @Mock
     private BranchGroup branchGroupMock;
@@ -71,4 +72,12 @@ public class NodeHealthIndicatorTest {
         nodeHealthIndicator.sync();
         assertEquals(SYNC.getCode(), nodeHealthIndicator.health().getStatus().getCode());
     }
+
+    @Test
+    public void update() {
+        assertEquals(Status.DOWN, nodeHealthIndicator.health().getStatus());
+        nodeHealthIndicator.update();
+        assertEquals(UPDATE.getCode(), nodeHealthIndicator.health().getStatus().getCode());
+    }
+
 }
