@@ -67,7 +67,7 @@ public class NodeHealthIndicator implements HealthIndicator, NodeStatus {
         } catch (Exception e) {
             log.debug("Status up() is failed. {}", e.getMessage());
         } finally {
-            log.trace("nodeStatus -> {}", health.get().getStatus());
+            log.debug("nodeStatus -> {}", health.get().getStatus());
         }
     }
 
@@ -76,9 +76,9 @@ public class NodeHealthIndicator implements HealthIndicator, NodeStatus {
         try {
             updateDetail(SYNC);
         } catch (Exception e) {
-            log.trace("Status sync() is failed. {}", e.getMessage());
+            log.debug("Status sync() is failed. {}", e.getMessage());
         } finally {
-            log.trace("nodeStatus -> {}", health.get().getStatus());
+            log.debug("nodeStatus -> {}", health.get().getStatus());
         }
     }
 
@@ -87,9 +87,9 @@ public class NodeHealthIndicator implements HealthIndicator, NodeStatus {
         try {
             updateDetail(UPDATE);
         } catch (Exception e) {
-            log.trace("Status update() is failed. {}", e.getMessage());
+            log.debug("Status update() is failed. {}", e.getMessage());
         } finally {
-            log.trace("nodeStatus -> {}", health.get().getStatus());
+            log.debug("nodeStatus -> {}", health.get().getStatus());
         }
     }
 
