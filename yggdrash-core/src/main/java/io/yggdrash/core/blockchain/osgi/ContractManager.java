@@ -117,6 +117,7 @@ public class ContractManager implements ContractEventListener {
         log.debug("VersioningContract EventHandler : ContractEventType={}, ProposalVersion={}, ProposalType={}",
                 eventType, proposalVersion, proposalType);
 
+        log.debug("{}, IsNodeStatusNull -> ", nodeStatus, nodeStatus == null);
         log.debug("nodeStatus isSyncStatus -> " + nodeStatus.isSyncStatus());
         if (nodeStatus.isSyncStatus()) {
             nodeStatus.update();
