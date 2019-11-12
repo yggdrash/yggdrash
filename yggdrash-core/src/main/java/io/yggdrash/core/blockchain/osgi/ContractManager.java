@@ -284,6 +284,7 @@ public class ContractManager implements ContractEventListener {
             bundleService.stop(contractVersion);
             bundleService.uninstall(contractVersion);
             serviceMap.remove(contractVersion.toString());
+            contractExecutor.flush(contractVersion.toString());
         }
     }
 
