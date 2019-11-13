@@ -50,7 +50,6 @@ public class BlockChainSyncManagerTest {
         blockChainManager = blockChain.getBlockChainManager();
     }
 
-    @Ignore
     @Test
     public void syncBlock() {
         assertThat(blockChainManager.getLastIndex()).isEqualTo(0);
