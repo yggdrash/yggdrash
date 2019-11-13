@@ -17,7 +17,6 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ContractEvent;
-import io.yggdrash.contract.core.ContractEventSet;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
@@ -170,6 +169,7 @@ public class VersioningContract {
         String currentBlockHeight = String.valueOf(receipt.getBlockHeight());
         if (state.contains(currentBlockHeight)) {
             JsonObject txIdArrObj = state.get(currentBlockHeight);
+            log.debug("EndBlock : Proposal TxHashes -> {} " , txIdArrObj.toString());
             JsonArray txIdArr = txIdArrObj.get(TX_ID).getAsJsonArray();
 
             for (int i = 0; i < txIdArr.size(); i++) {
@@ -184,7 +184,6 @@ public class VersioningContract {
 
     private void setContractEvent(String txId, ContractProposal proposal) {
         VotingProgress.VotingStatus votingStatus = proposal.getVotingProgress().getVotingStatus();
-        ContractEventSet eventSet = new ContractEventSet();
 
         switch (votingStatus) {
             case VOTEABLE:
@@ -200,7 +199,6 @@ public class VersioningContract {
                         new ContractEvent(
                                 ContractEventType.AGREE, proposal,
                                 ContractConstants.VERSIONING_CONTRACT.toString());
-                eventSet.addEvents(agreeEvent);
 
                 proposal.setVotingStatus(VotingProgress.VotingStatus.APPLYING);
 
@@ -209,6 +207,8 @@ public class VersioningContract {
                 setSuccessTxReceipt(
                         String.format("%s The vote ends up with agreed. tx id : %s", LOG_PREFIX, txId)
                 );
+
+                receipt.addEvent(agreeEvent);
                 break;
             case DISAGREE:
                 log.debug("The vote end with disagreed.");
@@ -220,18 +220,18 @@ public class VersioningContract {
                 log.debug("The proposal is applying.");
                 ContractEvent applyEvent = new ContractEvent(
                         ContractEventType.APPLY, proposal, ContractConstants.VERSIONING_CONTRACT.toString());
-                eventSet.addEvents(applyEvent);
+
                 setSuccessTxReceipt(
                         String.format("%s The proposal is applying. tx id : %s", LOG_PREFIX, txId)
                 );
+
+                receipt.addEvent(applyEvent);
                 break;
             default:
                 setFalseTxReceipt("The vote is in unknown status.");
                 log.warn("The vote is in unknown status.");
                 break;
         }
-
-        receipt.setEvent(eventSet);
     }
 
     private ContractProposal getProposal(String txId) {

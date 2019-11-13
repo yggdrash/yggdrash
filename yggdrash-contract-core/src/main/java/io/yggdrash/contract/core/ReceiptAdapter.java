@@ -57,8 +57,8 @@ public class ReceiptAdapter implements Receipt {
     }
 
     @Override
-    public void setEvent(ContractEventSet event) {
-        this.tr.setEvent(event);
+    public void addEvent(ContractEvent event) {
+        this.tr.addEvent(event);
     }
 
     @Override
