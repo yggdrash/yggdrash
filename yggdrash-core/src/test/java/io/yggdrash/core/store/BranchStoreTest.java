@@ -16,6 +16,7 @@
 
 package io.yggdrash.core.store;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.Sha3Hash;
@@ -27,6 +28,7 @@ import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -39,35 +41,35 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class BranchStoreTest {
     private static final Logger log = LoggerFactory.getLogger(BranchStoreTest.class);
-    private BranchStore ms;
+    private BranchStore branchStore;
 
     @Before
     public void setUp() {
-        this.ms = new BranchStore(new StateStore(new HashMapDbSource()));
+        this.branchStore = new BranchStore(new StateStore(new HashMapDbSource()));
     }
 
     @After
     public void tearDown() {
-        this.ms.close();
+        this.branchStore.close();
     }
 
     @Test
     public void shouldBeLoaded() {
         ConsensusBlock block = BlockChainTestUtils.genesisBlock();
-        ms.setBestBlockHash(block.getHash());
+        branchStore.setBestBlockHash(block.getHash());
 
-        Sha3Hash sha3Hash = ms.getBestBlockHash();
+        Sha3Hash sha3Hash = branchStore.getBestBlockHash();
         assertThat(sha3Hash).isEqualTo(block.getHash());
 
-        Sha3Hash sha3HashAgain = ms.getBestBlockHash();
+        Sha3Hash sha3HashAgain = branchStore.getBestBlockHash();
         assertThat(sha3HashAgain).isEqualTo(sha3Hash);
     }
 
     @Test
     public void shouldBePutMeta() {
         ConsensusBlock block = BlockChainTestUtils.genesisBlock();
-        ms.setBestBlock(block);
-        Long bestBlock = ms.getBestBlock();
+        branchStore.setBestBlock(block);
+        Long bestBlock = branchStore.getBestBlock();
 
         assertThat(bestBlock).isEqualTo(block.getIndex());
     }
@@ -75,29 +77,29 @@ public class BranchStoreTest {
     @Test
     public void getSetGenesisBlock() {
         ConsensusBlock block = BlockChainTestUtils.genesisBlock();
-        ms.setGenesisBlockHash(block.getHash());
+        branchStore.setGenesisBlockHash(block.getHash());
 
-        Sha3Hash genesis = ms.getGenesisBlockHash();
+        Sha3Hash genesis = branchStore.getGenesisBlockHash();
         log.debug(block.getHash().toString());
         log.debug(genesis.toString());
 
         assertThat(genesis).isEqualTo(block.getHash());
 
         Sha3Hash otherGenesisBlock = new Sha3Hash("TEST".getBytes());
-        assertThat(ms.setGenesisBlockHash(otherGenesisBlock)).isFalse();
+        assertThat(branchStore.setGenesisBlockHash(otherGenesisBlock)).isFalse();
 
-        assertThat(ms.getGenesisBlockHash()).isEqualTo(genesis);
+        assertThat(branchStore.getGenesisBlockHash()).isEqualTo(genesis);
     }
 
     @Test
     public void getSetBranch() {
         TestConstants.yggdrash();
         Branch branch = TestConstants.TEST_BRANCH;
-        ms.setBranch(branch);
+        branchStore.setBranch(branch);
 
-        Branch loadBranch = ms.getBranch();
+        Branch loadBranch = branchStore.getBranch();
         assertThat(branch.getBranchId()).isEqualTo(loadBranch.getBranchId());
-        assertThat(ms.getBranchId()).isEqualTo(branch.getBranchId());
+        assertThat(branchStore.getBranchId()).isEqualTo(branch.getBranchId());
     }
 
     @Test
@@ -112,9 +114,9 @@ public class BranchStoreTest {
         ValidatorSet validatorSet = new ValidatorSet();
         validatorSet.setValidatorMap(validatorMap);
 
-        ms.setValidators(validatorSet);
+        branchStore.setValidators(validatorSet);
 
-        assertThat(ms.getValidators().getValidatorMap().containsKey("TEST1")).isTrue();
+        assertThat(branchStore.getValidators().getValidatorMap().containsKey("TEST1")).isTrue();
     }
 
     @Test
@@ -122,9 +124,9 @@ public class BranchStoreTest {
         TestConstants.yggdrash();
         Branch branch = TestConstants.TEST_BRANCH;
         List<BranchContract> bc = branch.getBranchContracts();
-        ms.setBranchContracts(bc);
+        branchStore.setBranchContracts(bc);
 
-        List<BranchContract> bc2 = ms.getBranchContacts();
+        List<BranchContract> bc2 = branchStore.getBranchContacts();
 
         assertThat(bc).isNotEqualTo(bc2);
         assertThat(bc.size()).isEqualTo(bc2.size());
@@ -133,4 +135,42 @@ public class BranchStoreTest {
                 .isEqualTo((bc2.get(bc2.size() - 1).getInit().toString()));
     }
 
+    @Test
+    public void addAndRemoveBranchContracts() {
+        TestConstants.yggdrash();
+        Branch branch = TestConstants.TEST_BRANCH;
+        List<BranchContract> bc = branch.getBranchContracts();
+        branchStore.setBranchContracts(bc);
+
+        branchStore.addBranchContract(createBranchContract("COIN", "a88ae404e837cd1d6e8b9a5a91f188da835ccb56"));
+        branchStore.addBranchContract(createBranchContract("YEED", "f8f7c637abbd33422f966974663c2d73280840f3"));
+        branchStore.addBranchContract(createBranchContract("YEED", "c3c2721803e7099b7ae0d0fc2af7dc4455dda65e"));
+
+        Assert.assertEquals(6, branchStore.getBranchContacts().size());
+        Assert.assertEquals("YEED", branchStore.getContractName("c3c2721803e7099b7ae0d0fc2af7dc4455dda65e"));
+        Assert.assertEquals("YEED", branchStore.getContractName("f8f7c637abbd33422f966974663c2d73280840f3"));
+        Assert.assertEquals("COIN", branchStore.getContractName("a88ae404e837cd1d6e8b9a5a91f188da835ccb56"));
+        Assert.assertEquals("c3c2721803e7099b7ae0d0fc2af7dc4455dda65e", branchStore.getContractVersion("YEED"));
+        Assert.assertEquals("a88ae404e837cd1d6e8b9a5a91f188da835ccb56", branchStore.getContractVersion("COIN"));
+
+        branchStore.removeBranchContract("c3c2721803e7099b7ae0d0fc2af7dc4455dda65e");
+
+        Assert.assertEquals(5, branchStore.getBranchContacts().size());
+        Assert.assertEquals("f8f7c637abbd33422f966974663c2d73280840f3", branchStore.getContractVersion("YEED"));
+        Assert.assertNull(branchStore.getContractName("c3c2721803e7099b7ae0d0fc2af7dc4455dda65e"));
+        Assert.assertNull(branchStore.getContractVersion("TEST"));
+    }
+
+    private BranchContract createBranchContract(String name, String contractVersion) {
+        JsonObject branchContractJson = new JsonObject();
+        branchContractJson = new JsonObject();
+        branchContractJson.add("init", new JsonObject());
+        branchContractJson.addProperty("name", name);
+        branchContractJson.addProperty("description", name);
+        branchContractJson.addProperty("property", "");
+        branchContractJson.addProperty("isSystem", false);
+        branchContractJson.addProperty("contractVersion", contractVersion);
+
+        return BranchContract.of(branchContractJson);
+    }
 }

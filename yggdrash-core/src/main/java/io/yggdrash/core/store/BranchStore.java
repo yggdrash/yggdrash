@@ -233,8 +233,12 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
      * @param contract return BranchContract
      */
     public void addBranchContract(BranchContract contract) {
-        this.contractMap.put(contract.getContractVersion().toString(), contract);
-        setBranchContracts(this.contractMap);
+        Map<String, BranchContract> branchContactMap = getBranchContactMap();
+        String contractVersion = contract.getContractVersion().toString();
+        if (!branchContactMap.containsKey(contractVersion)) {
+            branchContactMap.put(contractVersion, contract);
+            setBranchContracts(this.contractMap);
+        }
     }
 
     /**
@@ -242,8 +246,11 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
      * @param contractVersion return contractVersion
      */
     public void removeBranchContract(String contractVersion) {
-        this.contractMap.remove(contractVersion);
-        setBranchContracts(this.contractMap);
+        Map<String, BranchContract> branchContactMap = getBranchContactMap();
+        if (branchContactMap.containsKey(contractVersion)) {
+            branchContactMap.remove(contractVersion);
+            setBranchContracts(this.contractMap);
+        }
     }
 
     /***
@@ -312,7 +319,7 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
     @Override
     public String getContractName(String contractVersion) {
         Map<String, BranchContract> branchContractMap = getBranchContactMap();
-        return branchContractMap.isEmpty() ? null : branchContractMap.get(contractVersion).getName();
+        return branchContractMap.containsKey(contractVersion) ? branchContractMap.get(contractVersion).getName() : null;
     }
 
     public enum  BlockchainMetaInfo {

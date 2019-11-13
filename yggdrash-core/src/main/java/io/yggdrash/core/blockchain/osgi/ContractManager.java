@@ -211,8 +211,8 @@ public class ContractManager implements ContractEventListener {
         contractStore.getBranchStore().addBranchContract(newBranchContract);
     }
 
-    private void deleteBranchContract(String contractVersioon) {
-        contractStore.getBranchStore().removeBranchContract(contractVersioon);
+    private void deleteBranchContract(String contractVersion) {
+        contractStore.getBranchStore().removeBranchContract(contractVersion);
     }
 
     private void initBootBundles() {
