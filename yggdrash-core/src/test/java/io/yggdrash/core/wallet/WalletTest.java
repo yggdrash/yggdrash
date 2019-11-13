@@ -19,6 +19,7 @@ package io.yggdrash.core.wallet;
 import com.google.common.base.Strings;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigValueFactory;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
@@ -342,38 +343,30 @@ public class WalletTest {
         }
     }
 
-    // TODO: check error in gradle build env.
-    @Ignore
     @Test
     public void shoudNotBeRewriteWalletbyWrongPasswordInDefaultConfig() throws IOException, InvalidCipherTextException {
         String keyPath = "./tmp/";
         String keyName = new SimpleDateFormat("yyyyMMdd-hhmmss.SSS'.key'").format(new Date());
-        String keyPathName = keyPath + new Object() {
-        }.getClass().getEnclosingMethod().getName() + keyName;
+        String keyPathName = keyPath + keyName;
         String password1 = "Aa1234567890$";
         String password2 = "Aa1234567890@";
 
-        String keyParsingText = Constants.YGGDRASH_KEY_PATH + " = " + keyPathName;
-        String keyPasswordParsingText1 = Constants.YGGDRASH_KEY_PASSWORD + " = \"" + password1 + "\"";
-        String keyPasswordParsingText2 = Constants.YGGDRASH_KEY_PASSWORD + " = \"" + password2 + "\"";
-
-        DefaultConfig defaultConfig = new DefaultConfig();
-        Config keyConfig = ConfigFactory.parseString(keyParsingText).resolve();
-        Config keyPaswordConfig1 = ConfigFactory.parseString(keyPasswordParsingText1).resolve();
-        Config keyPaswordConfig2 = ConfigFactory.parseString(keyPasswordParsingText2).resolve();
-
-        DefaultConfig newConfig1 =
-                new DefaultConfig(keyConfig.withFallback(keyPaswordConfig1)
-                        .withFallback(defaultConfig.getConfig()).resolve());
+        DefaultConfig newConfig1 = new DefaultConfig();
+        newConfig1.setConfig(
+                newConfig1.getConfig()
+                        .withValue(Constants.YGGDRASH_KEY_PATH, ConfigValueFactory.fromAnyRef(keyPathName))
+                        .withValue(Constants.YGGDRASH_KEY_PASSWORD, ConfigValueFactory.fromAnyRef(password1)));
         log.debug(newConfig1.getString(Constants.YGGDRASH_KEY_PASSWORD));
 
         // create new wallet
         Wallet wallet1 = new Wallet(newConfig1);
         log.debug("Wallet1: " + wallet1.toString());
 
-        DefaultConfig newConfig2 =
-                new DefaultConfig(keyConfig.withFallback(keyPaswordConfig2)
-                        .withFallback(defaultConfig.getConfig()).resolve());
+        DefaultConfig newConfig2 = new DefaultConfig();
+        newConfig2.setConfig(
+                newConfig2.getConfig()
+                        .withValue(Constants.YGGDRASH_KEY_PATH, ConfigValueFactory.fromAnyRef(keyPathName))
+                        .withValue(Constants.YGGDRASH_KEY_PASSWORD, ConfigValueFactory.fromAnyRef(password2)));
         log.debug(newConfig2.getString(Constants.YGGDRASH_KEY_PASSWORD));
 
         // load wallet by wrong password
