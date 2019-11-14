@@ -21,9 +21,7 @@ import io.yggdrash.core.blockchain.Log;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.DecodeException;
 import io.yggdrash.proto.PbftProto;
-import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,7 +131,6 @@ public class LogApiImplTest {
         assertEquals("Log not exists", log.getMsg());
     }
 
-    @Ignore
     @Test
     public void getLogsByRegexTest() {
         List<Log> res = logApi.getLogs(branchId, "\\W*(Total)\\W*", 0, 100);
