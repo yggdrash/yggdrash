@@ -28,6 +28,7 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.blockchain.osgi.ContractConstants;
+import io.yggdrash.core.exception.WrongStructuredException;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.gateway.dto.BlockDto;
 import io.yggdrash.gateway.dto.TransactionDto;
@@ -48,7 +49,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-@Ignore
 public class TransactionApiImplTest {
     // TODO fix this test class all test is exception, Remove or
 
@@ -131,7 +131,6 @@ public class TransactionApiImplTest {
     }
 
     @Test
-    @Ignore
     public void sendTransactionTest() {
         Transaction tx = createTx();
         try {
@@ -159,7 +158,6 @@ public class TransactionApiImplTest {
     }
 
     @Test
-    @Ignore
     public void sendRawTransactionTest() {
         // TODO remove
         // Request Transaction with byteArr
@@ -177,7 +175,6 @@ public class TransactionApiImplTest {
 
 
     @Test
-    @Ignore
     public void newPendingTransactionFilterTest() {
         // TODO remove
         try {
@@ -247,8 +244,14 @@ public class TransactionApiImplTest {
     @Test
     public void sendInvalidDataFormatOfRawTx() {
         byte[] input = "Invalid Raw Transaction Input Data".getBytes();
-        TransactionResponseDto transactionResponseDto = txApi.sendRawTransaction(input);
-        assertTrue(!transactionResponseDto.logs.isEmpty());
+        TransactionResponseDto transactionResponseDto;
+        try {
+            transactionResponseDto = txApi.sendRawTransaction(input);
+        } catch (WrongStructuredException.InvalidRawTx e) {
+            log.info(e.getMessage());
+            return;
+        }
+        assertFalse(transactionResponseDto.logs.isEmpty());
     }
 
     @Ignore
