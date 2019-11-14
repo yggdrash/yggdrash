@@ -89,6 +89,7 @@ public class Downloader {
 
             int responseCode = connection.getResponseCode();
 
+            log.info("VerifyUrl : url={}, responseCode={}", url.toString(), responseCode);
             return responseCode == 200;
 
         } catch (MalformedURLException e) {

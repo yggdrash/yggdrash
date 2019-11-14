@@ -19,6 +19,7 @@ import io.yggdrash.core.blockchain.osgi.service.ContractProposal;
 import io.yggdrash.core.blockchain.osgi.service.ProposalType;
 import io.yggdrash.core.blockchain.osgi.service.VersioningContract;
 import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.ContractStore;
@@ -60,6 +61,7 @@ public class ContractManager implements ContractEventListener {
     private final DefaultConfig defaultConfig;
     private final GenesisBlock genesis;
 
+    private NodeStatus nodeStatus;
 
     private Map<String, Object> serviceMap;
 
@@ -88,6 +90,10 @@ public class ContractManager implements ContractEventListener {
 
     }
 
+    public void setNodeStatus(NodeStatus nodeStatus) {
+        this.nodeStatus = nodeStatus;
+    }
+
     public void commitBlockResult(BlockRuntimeResult result) {
         contractExecutor.commitBlockResult(result);
     }
@@ -108,11 +114,22 @@ public class ContractManager implements ContractEventListener {
         ContractVersion proposalVersion = ContractVersion.of(proposal.getProposalVersion());
 
         ProposalType proposalType = proposal.getProposalType();
+        log.debug("VersioningContract EventHandler : ContractEventType={}, ProposalVersion={}, ProposalType={}",
+                eventType, proposalVersion, proposalType);
 
+        if (nodeStatus.isSyncStatus()) {
+            log.debug("nodeStatus isSyncStatus -> " + nodeStatus.isSyncStatus());
+            nodeStatus.update();
+        }
         if (proposalType.equals(ProposalType.ACTIVATE)) {
             proposalActivateHandler(eventType, proposalVersion);
         } else if (proposalType.equals(ProposalType.DEACTIVATE)) {
             proposalDeactivateHandler(eventType, proposalVersion);
+        }
+
+        if (!nodeStatus.isUpStatus()) {
+            log.debug("nodeStatus isUpStatus -> " + nodeStatus.isUpStatus());
+            nodeStatus.up();
         }
     }
 
@@ -194,8 +211,8 @@ public class ContractManager implements ContractEventListener {
         contractStore.getBranchStore().addBranchContract(newBranchContract);
     }
 
-    private void deleteBranchContract(String contractVersioon) {
-        contractStore.getBranchStore().removeBranchContract(contractVersioon);
+    private void deleteBranchContract(String contractVersion) {
+        contractStore.getBranchStore().removeBranchContract(contractVersion);
     }
 
     private void initBootBundles() {
@@ -221,6 +238,7 @@ public class ContractManager implements ContractEventListener {
     }
 
     public void loadBundle(ContractVersion contractVersion) {
+        log.debug("LoadBundle : contractVersion={}", contractVersion);
         // step 1. exist file and download file.
         File contractFile = null;
         if (isContractFileExist(contractVersion)) {
@@ -266,6 +284,7 @@ public class ContractManager implements ContractEventListener {
             bundleService.stop(contractVersion);
             bundleService.uninstall(contractVersion);
             serviceMap.remove(contractVersion.toString());
+            contractExecutor.flush(contractVersion.toString());
         }
     }
 

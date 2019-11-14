@@ -38,6 +38,7 @@ import io.yggdrash.core.blockchain.osgi.framework.BundleServiceImpl;
 import io.yggdrash.core.blockchain.osgi.framework.FrameworkConfig;
 import io.yggdrash.core.blockchain.osgi.framework.FrameworkLauncher;
 import io.yggdrash.core.consensus.Consensus;
+import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
 import io.yggdrash.core.store.ContractStore;
@@ -72,7 +73,7 @@ public class BranchConfiguration {
     }
 
     @Bean
-    BranchLoader branchLoader(DefaultConfig defaultConfig, BranchGroup branchGroup, Environment env) {
+    BranchLoader branchLoader(DefaultConfig defaultConfig, BranchGroup branchGroup, Environment env, NodeStatus nodeStatus) {
         BranchLoader branchLoader = new BranchLoader(defaultConfig.getBranchPath());
         boolean isValidator = Arrays.asList(env.getActiveProfiles()).contains(ActiveProfiles.VALIDATOR);
         boolean isBsNode = Arrays.asList(env.getActiveProfiles()).contains(ActiveProfiles.BOOTSTRAP);
@@ -88,6 +89,7 @@ public class BranchConfiguration {
                 }
                 BlockChain bc = createBranch(genesis);
                 branchGroup.addBranch(bc);
+                bc.getContractManager().setNodeStatus(nodeStatus);
             }
         } catch (Exception e) {
             log.warn("branchLoader() is failed.", e.getMessage());

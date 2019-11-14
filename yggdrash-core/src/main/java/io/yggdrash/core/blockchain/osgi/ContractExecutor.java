@@ -344,4 +344,7 @@ public class ContractExecutor {
         }
     }
 
+    void flush(String contractVersion) {
+        contractCache.flush(contractVersion);
+    }
 }

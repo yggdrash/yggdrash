@@ -12,11 +12,11 @@
 
 package io.yggdrash.core.blockchain.osgi.service;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ContractEvent;
-import io.yggdrash.contract.core.ContractEventSet;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.Receipt;
 import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
@@ -47,6 +47,8 @@ public class VersioningContract {
     private static final String SOURCE_URL = "sourceUrl";
     private static final String BUILD_VERSION = "buildVersion";
     private static final String PROPOSAL_TYPE = "proposalType";
+    private static final String VOTE_PERIOD = "votePeriod";
+    private static final String APPLY_PERIOD = "applyPeriod";
 
     @ContractStateStore
     ReadWriterStore<String, JsonObject> state;
@@ -85,6 +87,8 @@ public class VersioningContract {
         String proposalVersion = params.get(PROPOSAL_VERSION).getAsString();
         String sourceUrl = params.get(SOURCE_URL).getAsString();
         String buildVersion = params.get(BUILD_VERSION).getAsString();
+        long votePeriod = params.get(VOTE_PERIOD).getAsLong();
+        long applyPeriod = params.get(APPLY_PERIOD).getAsLong();
         Set<String> validatorSet = new HashSet<>(branchStore.getValidators().getValidatorMap().keySet());
         String proposalType = params.get(PROPOSAL_TYPE).getAsString().toUpperCase();
 
@@ -102,16 +106,15 @@ public class VersioningContract {
 
         // blockHeight => targetBlockHeight
         ContractProposal proposal = new ContractProposal(
-                txId, proposer, proposalVersion, sourceUrl, buildVersion, blockHeight, validatorSet, proposalType);
+                txId, proposer, proposalVersion, sourceUrl, buildVersion,
+                blockHeight, votePeriod, applyPeriod, validatorSet, proposalType);
 
         // The proposer automatically votes to agree
         proposal.vote(proposer, true);
 
         JsonObject proposalObj = JsonUtil.parseJsonObject(proposal);
-        // Store the proposal in stateStore
-        state.put(txId, JsonUtil.parseJsonObject(proposal));
-        // Store the txId in endblock store
-        state.put(String.valueOf(proposal.getTargetBlockHeight()), createTxIdJson(txId));
+
+        setProposalToTargetBlockHeight(txId, proposal);
 
         setSuccessTxReceipt("Contract proposal has been issued");
         log.info("Contract Proposal : txId = {}, proposal = {}", txId, proposalObj);
@@ -153,8 +156,7 @@ public class VersioningContract {
         boolean agree = params.get("agree").getAsBoolean();
         proposal.vote(issuer, agree);
 
-        state.put(txId, JsonUtil.parseJsonObject(proposal));
-        state.put(String.valueOf(proposal.getTargetBlockHeight()), createTxIdJson(txId));
+        setProposalToTargetBlockHeight(txId, proposal);
 
         setSuccessTxReceipt("Update proposal voting is in progress");
 
@@ -166,63 +168,70 @@ public class VersioningContract {
         // Check if an event of the current block height exists in the StateStore.
         String currentBlockHeight = String.valueOf(receipt.getBlockHeight());
         if (state.contains(currentBlockHeight)) {
-            JsonObject txIdJson = state.get(currentBlockHeight);
-            String txId = txIdJson.get(TX_ID).getAsString();
+            JsonObject txIdArrObj = state.get(currentBlockHeight);
+            log.debug("EndBlock : Proposal TxHashes -> {} " , txIdArrObj.toString());
+            JsonArray txIdArr = txIdArrObj.get(TX_ID).getAsJsonArray();
 
-            JsonObject proposalJson = state.get(txId);
-            ContractProposal proposal = JsonUtil.generateJsonToClass(proposalJson.toString(), ContractProposal.class);
-            VotingProgress.VotingStatus votingStatus = proposal.getVotingProgress().getVotingStatus();
-
-            ContractEventSet eventSet = new ContractEventSet();
-
-            switch (votingStatus) {
-                case VOTEABLE:
-                    log.debug("the vote not end. It will be expired. tx id : {}", proposal.getTxId());
-                    proposal.setVotingStatus(VotingProgress.VotingStatus.EXPIRED);
-                    state.put(proposal.getTxId(), JsonUtil.parseJsonObject(proposal));
-                    setSuccessTxReceipt(
-                            String.format("%s Expire proposal tx id : %s", LOG_PREFIX, proposal.getTxId()));
-                    break;
-                case AGREE:
-                    log.debug("The vote ends with agreed. It will be updated.");
-                    ContractEvent agreeEvent =
-                            new ContractEvent(
-                                    ContractEventType.AGREE, proposal,
-                                    ContractConstants.VERSIONING_CONTRACT.toString());
-                    eventSet.addEvents(agreeEvent);
-
-                    proposal.setVotingStatus(VotingProgress.VotingStatus.APPLYING);
-
-                    state.put(proposal.getTxId(), JsonUtil.parseJsonObject(proposal));
-                    state.put(String.valueOf(proposal.getApplyBlockHeight()), createTxIdJson(txId));
-
-                    setSuccessTxReceipt(
-                            String.format("%s The vote ends up with agreed. tx id : %s", LOG_PREFIX, txId)
-                    );
-                    break;
-                case DISAGREE:
-                    log.debug("The vote end with disagreed.");
-                    setSuccessTxReceipt(
-                            String.format("%s The vote ends up with disagreed. tx id : %s", LOG_PREFIX, txId)
-                    );
-                    break;
-                case APPLYING:
-                    log.debug("The proposal is applying.");
-                    ContractEvent applyEvent = new ContractEvent(
-                            ContractEventType.APPLY, proposal, ContractConstants.VERSIONING_CONTRACT.toString());
-                    eventSet.addEvents(applyEvent);
-                    setSuccessTxReceipt(
-                            String.format("%s The proposal is applying. tx id : %s", LOG_PREFIX, txId)
-                    );
-                    break;
-                default:
-                    setFalseTxReceipt("The vote is in unknown status.");
-                    log.warn("The vote is in unknown status.");
-                    return receipt;
+            for (int i = 0; i < txIdArr.size(); i++) {
+                String txId = txIdArr.get(i).getAsString();
+                JsonObject proposalJson = state.get(txId);
+                ContractProposal proposal = JsonUtil.generateJsonToClass(proposalJson.toString(), ContractProposal.class);
+                setContractEvent(txId, proposal);
             }
-            receipt.setEvent(eventSet);
         }
         return receipt;
+    }
+
+    private void setContractEvent(String txId, ContractProposal proposal) {
+        VotingProgress.VotingStatus votingStatus = proposal.getVotingProgress().getVotingStatus();
+
+        switch (votingStatus) {
+            case VOTEABLE:
+                log.debug("the vote not end. It will be expired. tx id : {}", proposal.getTxId());
+                proposal.setVotingStatus(VotingProgress.VotingStatus.EXPIRED);
+                state.put(proposal.getTxId(), JsonUtil.parseJsonObject(proposal));
+                setSuccessTxReceipt(
+                        String.format("%s Expire proposal tx id : %s", LOG_PREFIX, proposal.getTxId()));
+                break;
+            case AGREE:
+                log.debug("The vote ends with agreed. It will be updated.");
+                ContractEvent agreeEvent =
+                        new ContractEvent(
+                                ContractEventType.AGREE, proposal,
+                                ContractConstants.VERSIONING_CONTRACT.toString());
+
+                proposal.setVotingStatus(VotingProgress.VotingStatus.APPLYING);
+
+                setProposalToApplyBlockHeight(proposal.getTxId(), proposal);
+
+                setSuccessTxReceipt(
+                        String.format("%s The vote ends up with agreed. tx id : %s", LOG_PREFIX, txId)
+                );
+
+                receipt.addEvent(agreeEvent);
+                break;
+            case DISAGREE:
+                log.debug("The vote end with disagreed.");
+                setSuccessTxReceipt(
+                        String.format("%s The vote ends up with disagreed. tx id : %s", LOG_PREFIX, txId)
+                );
+                break;
+            case APPLYING:
+                log.debug("The proposal is applying.");
+                ContractEvent applyEvent = new ContractEvent(
+                        ContractEventType.APPLY, proposal, ContractConstants.VERSIONING_CONTRACT.toString());
+
+                setSuccessTxReceipt(
+                        String.format("%s The proposal is applying. tx id : %s", LOG_PREFIX, txId)
+                );
+
+                receipt.addEvent(applyEvent);
+                break;
+            default:
+                setFalseTxReceipt("The vote is in unknown status.");
+                log.warn("The vote is in unknown status.");
+                break;
+        }
     }
 
     private ContractProposal getProposal(String txId) {
@@ -236,17 +245,45 @@ public class VersioningContract {
                 .anyMatch(key -> !key.isEmpty() && key.equals(receipt.getIssuer()));
     }
 
-    private JsonObject createTxIdJson(String txId) {
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty(TX_ID, txId);
-        return jsonObject;
+    private void setProposalToTargetBlockHeight(String txId, ContractProposal proposal) {
+        // Store the proposal in stateStore
+        saveProposal(txId, proposal);
+        // Store the txId in endblock store
+        addTxIdToBlockHeight(String.valueOf(proposal.getTargetBlockHeight()), txId);
+    }
+
+    private void setProposalToApplyBlockHeight(String txId, ContractProposal proposal) {
+        // Store the proposal in stateStore
+        saveProposal(txId, proposal);
+        // Store the txId in endblock store
+        addTxIdToBlockHeight(String.valueOf(proposal.getApplyBlockHeight()), txId);
+    }
+
+    private void saveProposal(String txId, ContractProposal proposal) {
+        state.put(txId, JsonUtil.parseJsonObject(proposal));
+    }
+
+    private void addTxIdToBlockHeight(String blockHeight, String txId) {
+        state.put(blockHeight, createTxIdArrObj(blockHeight, txId));
+    }
+
+    private JsonObject createTxIdArrObj(String blockHeight, String txId) {
+        JsonObject txIdArrObj = new JsonObject();
+        JsonArray txIdArr = new JsonArray();
+        if (state.contains(blockHeight)) {
+            txIdArr = state.get(blockHeight).get(TX_ID).getAsJsonArray();
+        }
+        if (!txIdArr.toString().contains(txId)) {
+            txIdArr.add(txId);
+        }
+        txIdArrObj.add(TX_ID, txIdArr);
+        return txIdArrObj;
     }
 
     private boolean isSha1Hash(String proposalVersion) {
         // Mark: add match fail reason. @lucas. @190917
         Pattern pattern = Pattern.compile("\\b[0-9a-f]{5,40}\\b");
         return pattern.matcher(proposalVersion).matches();
-
     }
 
     private void setFalseTxReceipt(String msg) {

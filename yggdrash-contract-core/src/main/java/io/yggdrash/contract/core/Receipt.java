@@ -39,7 +39,7 @@ public interface Receipt {
 
     void setStatus(ExecuteStatus status);
 
-    void setEvent(ContractEventSet event);
+    void addEvent(ContractEvent event);
 
     String getIssuer();
 
