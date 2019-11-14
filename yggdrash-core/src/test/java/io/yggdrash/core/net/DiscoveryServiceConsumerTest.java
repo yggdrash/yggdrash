@@ -8,7 +8,6 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerTableGroup;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -43,7 +42,6 @@ public class DiscoveryServiceConsumerTest extends TestConstants.SlowTest {
     }
 
     @Test
-    @Ignore
     public void catchUpRequestByPingTest() {
         // arrange
         discoveryConsumer.setListener(BlockChainSyncManagerMock.mock);
