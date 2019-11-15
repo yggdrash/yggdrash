@@ -22,8 +22,12 @@ public interface NodeStatus {
 
     boolean isSyncStatus();
 
+    boolean isUpdateStatus();
+
     void up();
 
     void sync();
+
+    void update();
 
 }

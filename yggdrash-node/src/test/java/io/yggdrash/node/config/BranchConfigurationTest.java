@@ -27,6 +27,8 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.consensus.ConsensusBlock;
+import io.yggdrash.core.net.NodeStatus;
+import io.yggdrash.core.net.NodeStatusMock;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,10 +55,12 @@ public class BranchConfigurationTest {
     private static final ResourceLoader resourceLoader = new DefaultResourceLoader();
 
     private BranchConfiguration branchConfig;
+    private NodeStatus nodeStatus;
 
     @Before
     public void setUp() {
         this.branchConfig = new BranchConfiguration(config);
+        this.nodeStatus = NodeStatusMock.mock;
     }
 
     @Test
@@ -68,7 +72,7 @@ public class BranchConfigurationTest {
 
         saveFile(branchId, branchJson);
         BranchGroup branchGroup = branchConfig.branchGroup();
-        branchConfig.branchLoader(config, branchGroup, new MockEnvironment());
+        branchConfig.branchLoader(config, branchGroup, new MockEnvironment(), nodeStatus);
         File branchDir = new File(config.getBranchPath(), branchId.toString());
         FileUtils.deleteQuietly(branchDir);
 

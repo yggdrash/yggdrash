@@ -32,8 +32,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchStateStore {
@@ -42,10 +43,11 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
 
     private final ReadWriterStore<String, JsonObject> store;
 
-    private List<BranchContract> contracts;
+    private Map<String, BranchContract> contractMap; // {contractVersion: branchContract}
 
     BranchStore(ReadWriterStore<String, JsonObject> store) {
         this.store = store;
+        this.contractMap = new LinkedHashMap<>();
     }
 
     @Override
@@ -206,19 +208,24 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
         return getValidators().contains(address);
     }
 
-    // Set Contracts
-    // Save Contracts initial values
-    public void setBranchContracts(List<BranchContract> contracts) {
+    public void setBranchContracts(List<BranchContract> contractList) {
+        Map<String, BranchContract> contractMap = new LinkedHashMap<>();
+        for (BranchContract bc : contractList) {
+            contractMap.put(bc.getContractVersion().toString(), bc);
+        }
+        setBranchContracts(contractMap);
+    }
+
+    private void setBranchContracts(Map<String, BranchContract> contractMap) {
+        List<BranchContract> contracts = new ArrayList<>(contractMap.values());
         JsonArray array = new JsonArray();
         contracts.forEach(c -> array.add(c.getJson()));
         JsonObject contract = new JsonObject();
         contract.add("contracts", array);
         store.put(BlockchainMetaInfo.BRANCH_CONTRACTS.toString(), contract);
 
-        // init contracts
-        if (this.contracts != null) {
-            this.contracts = null;
-        }
+        // init contractMap
+        this.contractMap = new LinkedHashMap<>();
     }
 
     /**
@@ -226,8 +233,12 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
      * @param contract return BranchContract
      */
     public void addBranchContract(BranchContract contract) {
-        this.contracts.add(contract);
-        setBranchContracts(this.contracts);
+        Map<String, BranchContract> branchContactMap = getBranchContactMap();
+        String contractVersion = contract.getContractVersion().toString();
+        if (!branchContactMap.containsKey(contractVersion)) {
+            branchContactMap.put(contractVersion, contract);
+            setBranchContracts(this.contractMap);
+        }
     }
 
     /**
@@ -235,30 +246,37 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
      * @param contractVersion return contractVersion
      */
     public void removeBranchContract(String contractVersion) {
-        this.contracts.remove(getBranchContractByVersion(contractVersion));
-        setBranchContracts(this.contracts);
+        Map<String, BranchContract> branchContactMap = getBranchContactMap();
+        if (branchContactMap.containsKey(contractVersion)) {
+            branchContactMap.remove(contractVersion);
+            setBranchContracts(this.contractMap);
+        }
     }
 
     /***
      * Get Branch's Contract List
      * @return Branch Contract List
      */
+    @Override
     public List<BranchContract> getBranchContacts() {
-        if (this.contracts != null) {
-            return new ArrayList<>(contracts);
+        return new ArrayList<>(getBranchContactMap().values());
+    }
+
+    public Map<String, BranchContract> getBranchContactMap() {
+        if (!contractMap.isEmpty()) {
+            return contractMap;
         }
-        contracts = new ArrayList<>();
-        JsonObject contract = store.get(BlockchainMetaInfo.BRANCH_CONTRACTS.toString());
-        if (contract == null) {
-            return new ArrayList<>();
-        } else {
-            JsonArray contractArray = contract.get("contracts").getAsJsonArray();
-            for (int i = 0; i < contractArray.size(); i++) {
-                JsonObject contractObject = contractArray.get(i).getAsJsonObject();
-                contracts.add(BranchContract.of(contractObject));
+
+        JsonObject contracts = store.get(BlockchainMetaInfo.BRANCH_CONTRACTS.toString());
+        if (contracts != null) {
+            JsonArray contractArr = contracts.get("contracts").getAsJsonArray();
+            for (int i = 0; i < contractArr.size(); i++) {
+                JsonObject contractObj = contractArr.get(i).getAsJsonObject();
+                BranchContract branchContract = BranchContract.of(contractObj);
+                contractMap.put(branchContract.getContractVersion().toString(), branchContract);
             }
         }
-        return new ArrayList<>(contracts);
+        return contractMap;
     }
 
     /**
@@ -267,13 +285,9 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
      * @return
      */
     public List<BranchContract> getBranchContractsByName(String contractName) {
-        List<BranchContract> result = new ArrayList<>();
-        for (BranchContract bc: this.contracts) {
-            if (bc.getName().equals(contractName)) {
-                result.add(bc);
-            }
-        }
-        return result;
+        return getBranchContactMap().values().stream()
+                .filter(bc -> bc.getName().equalsIgnoreCase(contractName))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -282,10 +296,8 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
      * @return BranchContract
      */
     private BranchContract getBranchContractByVersion(String contractVersion) {
-        Optional<BranchContract> contract = this.contracts.stream()
-                .filter(c -> contractVersion.equalsIgnoreCase(c.getContractVersion().toString()))
-                .findFirst();
-        return contract.orElse(null);
+        Map<String, BranchContract> branchContractMap = getBranchContactMap();
+        return branchContractMap.getOrDefault(contractVersion, null);
     }
 
     /**
@@ -295,13 +307,8 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
      */
     @Override
     public String getContractVersion(String contractName) {
-        List<BranchContract> contractList = getBranchContacts().stream()
-                .filter(c -> contractName.equalsIgnoreCase(c.getName()))
-                .collect(Collectors.toList());
-        if (!contractList.isEmpty()) {
-            return contractList.get(contractList.size() - 1).getContractVersion().toString();
-        }
-        return null;
+        List<BranchContract> contracts = getBranchContractsByName(contractName);
+        return contracts.isEmpty() ? null : contracts.get(contracts.size() - 1).getContractVersion().toString();
     }
 
     /**
@@ -311,15 +318,8 @@ public class BranchStore implements ReadWriterStore<String, JsonObject>, BranchS
      */
     @Override
     public String getContractName(String contractVersion) {
-        // get contract Name by ContractVersion
-        List<BranchContract> contractList = getBranchContacts().stream()
-                .filter(c -> contractVersion.equalsIgnoreCase(c.getContractVersion().toString()))
-                .collect(Collectors.toList());
-
-        if (!contractList.isEmpty()) {
-            return contractList.get(contractList.size() - 1).getName();
-        }
-        return null;
+        Map<String, BranchContract> branchContractMap = getBranchContactMap();
+        return branchContractMap.containsKey(contractVersion) ? branchContractMap.get(contractVersion).getName() : null;
     }
 
     public enum  BlockchainMetaInfo {

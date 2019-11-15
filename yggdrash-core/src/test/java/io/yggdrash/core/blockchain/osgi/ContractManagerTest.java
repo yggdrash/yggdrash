@@ -21,6 +21,8 @@ import io.yggdrash.core.blockchain.osgi.framework.BundleServiceImpl;
 import io.yggdrash.core.blockchain.osgi.framework.FrameworkConfig;
 import io.yggdrash.core.blockchain.osgi.framework.FrameworkLauncher;
 import io.yggdrash.core.blockchain.osgi.service.ContractProposal;
+import io.yggdrash.core.net.NodeStatus;
+import io.yggdrash.core.net.NodeStatusMock;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
@@ -61,9 +63,13 @@ public class ContractManagerTest {
     private static ContractVersion coinContract = ContractVersion.of("a88ae404e837cd1d6e8b9a5a91f188da835ccb56");
     ContractVersion notExistedVersion = ContractVersion.of(Hex.encodeHexString("Wrong ContractVersion".getBytes()));
 
+    private NodeStatus nodeStatus;
+
     @Before
     public void setUp() throws Exception {
+        nodeStatus = NodeStatusMock.mock;
         manager = initContractManager();
+        manager.setNodeStatus(nodeStatus);
     }
 
     @Test
@@ -192,11 +198,15 @@ public class ContractManagerTest {
         String proposer = "77283a04b3410fe21ba5ed04c7bd3ba89e70b78c";
         String sourceUrl = "http://github.com/yggdrash";
         String buildVersion = "1.0.0";
+        long votePeriod = 10L;
+        long applyPeriod = 10L;
+
         Set<String> validatorSet = new HashSet<>();
         long blockHeight = 10L;
 
         return new ContractProposal(
-                txId, proposer, proposalVersion, sourceUrl, buildVersion, blockHeight, validatorSet, proposalType);
+                txId, proposer, proposalVersion, sourceUrl, buildVersion, blockHeight,
+                votePeriod, applyPeriod, validatorSet, proposalType);
     }
 
     private boolean isFileDownloaded(String version) {
