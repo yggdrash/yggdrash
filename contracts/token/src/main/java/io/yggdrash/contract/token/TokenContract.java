@@ -425,13 +425,19 @@ public class TokenContract implements BundleActivator, ServiceListener {
             }
 
             BigInteger amount = params.get(AMOUNT).getAsBigInteger();
+            BigInteger curStakeOfToken = getBalance(tokenId, YEED_STAKE);
+
+            if (amount.compareTo(curStakeOfToken) > 0) {
+                setErrorTxReceipt("Insufficient balance to withdraw!");
+                return txReceipt;
+            }
+
             boolean isSuccess = withdrawYeedStakeSub(issuer, amount);
             if (isSuccess == false) {
                 setErrorTxReceipt("Insufficient balance to withdraw!");
                 return txReceipt;
             }
 
-            BigInteger curStakeOfToken = getBalance(tokenId, YEED_STAKE);
             setYeedBalanceOfSub(tokenId, curStakeOfToken.subtract(amount));
 
             String msg = String.format(
