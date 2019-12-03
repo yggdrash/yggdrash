@@ -102,7 +102,8 @@ public class VersioningContractTest {
         }
     }
 
-    private static long DEFAULT_PERIOD = 60480L;
+    private static long VOTE_PERIOD = 10L;
+    private static long APPLY_PERIOD = 10L;
 
     @Test
     public void endBlockTestInstallEvent() {
@@ -115,7 +116,7 @@ public class VersioningContractTest {
 
         // EndBlock receipt
         Receipt receipt = new ReceiptImpl();
-        receipt.setBlockHeight(curBlockHeight + DEFAULT_PERIOD); // EndBlock Height
+        receipt.setBlockHeight(curBlockHeight + VOTE_PERIOD); // EndBlock Height
         adapter.setReceipt(receipt);
 
         service.endBlock();
@@ -135,7 +136,7 @@ public class VersioningContractTest {
 
         // EndBlock receipt
         Receipt receipt = new ReceiptImpl();
-        receipt.setBlockHeight(curBlockHeight + DEFAULT_PERIOD); // EndBlock Height
+        receipt.setBlockHeight(curBlockHeight + VOTE_PERIOD); // EndBlock Height
         adapter.setReceipt(receipt);
 
         service.endBlock();
@@ -220,6 +221,78 @@ public class VersioningContractTest {
         assertTrue(adapter.getLog().contains("Contract proposal not found"));
     }
 
+    @Test
+    public void proposeMultipleContracts() {
+        // Two contract events at the same blockHeight test
+
+        // Activate proposal
+        Receipt activateReceipt = createTxReceipt(issuer1);
+        adapter.setReceipt(activateReceipt);
+
+        JsonObject param1 = new JsonObject();
+        param1.addProperty("proposalVersion", updateContract);
+        param1.addProperty("sourceUrl", "https://github.com/yggdrash/yggdrash");
+        param1.addProperty("buildVersion", "1.8.0_172");
+        param1.addProperty("proposalType", "activate");
+        param1.addProperty("votePeriod", VOTE_PERIOD);
+        param1.addProperty("applyPeriod", APPLY_PERIOD);
+
+        service.propose(param1);
+        assertEquals(ExecuteStatus.SUCCESS, activateReceipt.getStatus());
+
+        vote(issuer2, true);
+        vote(issuer3, true);
+
+        // Deactivate proposal
+        String deactivateTxId = "567ce4e36663c859bbe72f0bb90977c9d083f19120d0ecbfc48c8e5cfae88a94";
+        Receipt deactivateReceipt = createTxReceipt(issuer1, deactivateTxId);
+        adapter.setReceipt(deactivateReceipt);
+
+        JsonObject param2 = new JsonObject();
+        param2.addProperty("proposalVersion", "f8f7c637abbd33422f966974663c2d73280840f3");
+        param2.addProperty("sourceUrl", "https://github.com/yggdrash/yggdrash");
+        param2.addProperty("buildVersion", "1.0.0");
+        param2.addProperty("proposalType", "deactivate");
+        param2.addProperty("votePeriod", VOTE_PERIOD);
+        param2.addProperty("applyPeriod", APPLY_PERIOD);
+
+        service.propose(param2);
+        assertEquals(ExecuteStatus.SUCCESS, deactivateReceipt.getStatus());
+
+        vote(issuer2, true, deactivateTxId);
+        vote(issuer3, true, deactivateTxId);
+
+        // EndBlock of TargetBlockHeight
+        Receipt endBlockReceipt1 = new ReceiptImpl();
+        endBlockReceipt1.setBlockHeight(curBlockHeight + VOTE_PERIOD); // EndBlock Height
+        adapter.setReceipt(endBlockReceipt1);
+
+        service.endBlock();
+
+        assertEquals("EndBlock Status of TargetBlockHeight", ExecuteStatus.SUCCESS, endBlockReceipt1.getStatus());
+        assertEquals("EndBlock ContractEvent size of TargetBlockHeight", 2, endBlockReceipt1.getEvents().size());
+
+        for (ContractEvent event : endBlockReceipt1.getEvents()) {
+            log.debug("ContractEvent Json : {}", JsonUtil.parseJsonObject(event));
+            assertEquals(ContractEventType.AGREE, event.getType());
+        }
+
+        // EndBlock of ApplyBlockHeight
+        Receipt endBlockReceipt2 = new ReceiptImpl();
+        endBlockReceipt2.setBlockHeight(curBlockHeight + VOTE_PERIOD + APPLY_PERIOD); // EndBlock Height
+        adapter.setReceipt(endBlockReceipt2);
+
+        service.endBlock();
+
+        assertEquals("EndBlock Status of TargetBlockHeight", ExecuteStatus.SUCCESS, endBlockReceipt2.getStatus());
+        assertEquals("EndBlock ContractEvent size of TargetBlockHeight", 2, endBlockReceipt2.getEvents().size());
+
+        for (ContractEvent event : endBlockReceipt2.getEvents()) {
+            log.debug("ContractEvent Json : {}", JsonUtil.parseJsonObject(event));
+            assertEquals(ContractEventType.APPLY, event.getType());
+        }
+    }
+
     public void contractPropose() {
         // The contract file is already uploaded to S3
 
@@ -231,6 +304,8 @@ public class VersioningContractTest {
         param.addProperty("sourceUrl", "https://github.com/yggdrash/yggdrash");
         param.addProperty("buildVersion", "1.8.0_172");
         param.addProperty("proposalType", "activate");
+        param.addProperty("votePeriod", VOTE_PERIOD);
+        param.addProperty("applyPeriod", APPLY_PERIOD);
 
         service.propose(param);
 
@@ -246,6 +321,10 @@ public class VersioningContractTest {
     }
 
     private Receipt createTxReceipt(String issuer) {
+        return createTxReceipt(issuer, txId);
+    }
+
+    private Receipt createTxReceipt(String issuer, String txId) {
         Receipt receipt = new ReceiptImpl();
         receipt.setIssuer(issuer);
         receipt.setBlockHeight(curBlockHeight);
@@ -265,6 +344,10 @@ public class VersioningContractTest {
     }
 
     private Receipt vote(String issuer, boolean agree) {
+        return vote(issuer, agree, txId);
+    }
+
+    private Receipt vote(String issuer, boolean agree, String txId) {
         Receipt receipt = createTxReceipt(issuer);
         adapter.setReceipt(receipt);
 

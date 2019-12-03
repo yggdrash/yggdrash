@@ -113,8 +113,8 @@ public class ReceiptImpl implements Receipt {
     }
 
     @Override
-    public void setEvent(ContractEventSet event) {
-        this.event = event;
+    public void addEvent(ContractEvent event) {
+        this.event.addEvent(event);
     }
 
     @Override

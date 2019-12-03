@@ -174,6 +174,10 @@ public class DefaultConfig {
         return config.getString(YGGDRASH_CONTRACT_URL);
     }
 
+    public void setConfig(Config config) {
+        this.config = config;
+    }
+
     enum Network {
         MAIN_NET(1), TEST_NET(3);
         private final int code;

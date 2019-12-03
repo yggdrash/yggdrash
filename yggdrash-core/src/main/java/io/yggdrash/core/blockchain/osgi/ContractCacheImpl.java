@@ -99,5 +99,12 @@ public class ContractCacheImpl implements ContractCache {
         }
     }
 
+    @Override
+    public void flush(String contractVersion) {
+        getInvokeTransactionMethods().remove(contractVersion);
+        getQueryMethods().remove(contractVersion);
+        getChannelMethods().remove(contractVersion);
+        getEndBlockMethods().remove(contractVersion);
+    }
 
 }

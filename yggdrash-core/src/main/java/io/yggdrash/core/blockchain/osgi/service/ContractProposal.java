@@ -17,9 +17,6 @@ import java.util.Set;
 
 public class ContractProposal implements Serializable, Comparable<ContractProposal> {
 
-    private static final long DEFAULT_PERIOD = 60480L; // 7 days
-    private static final Long DAY = 8640L; // 1 day
-
     public String txId;
     public String proposer;
 
@@ -39,14 +36,15 @@ public class ContractProposal implements Serializable, Comparable<ContractPropos
     }
 
     public ContractProposal(String txId, String proposer, String proposalVersion, String sourceUrl,
-                     String buildVersion, long blockHeight, Set<String> validatorSet, String proposalType) {
+                            String buildVersion, long blockHeight, long votePeriod, long applyPeriod,
+                            Set<String> validatorSet, String proposalType) {
         this.txId = txId;
         this.proposer = proposer;
         this.proposalVersion = proposalVersion;
         this.sourceUrl = sourceUrl;
         this.buildVersion = buildVersion;
-        this.targetBlockHeight = blockHeight + DEFAULT_PERIOD;
-        this.applyBlockHeight = targetBlockHeight + DAY;
+        this.targetBlockHeight = blockHeight + votePeriod;
+        this.applyBlockHeight = targetBlockHeight + applyPeriod;
         this.votingProgress = new VotingProgress(validatorSet);
         this.proposalType = ProposalType.valueOf(proposalType);
     }

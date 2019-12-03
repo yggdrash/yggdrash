@@ -9,4 +9,6 @@ public interface ContractCache {
     void cacheContract(String contractVersion, Object service);
 
     Map<String, Method> getContractMethodMap(String contractVersion, ContractMethodType type, Object service);
+
+    void flush(String contractVersion);
 }

@@ -86,6 +86,10 @@ public class BlockChainSyncManager implements SyncManager {
                     peerHandler.getPeer().getYnodeUri());
 
             for (ConsensusBlock block : blockList) {
+                if (nodeStatus.isUpdateStatus()) {
+                    log.debug("SyncBlock interrupted. Node is updating now...");
+                    return false;
+                }
                 // Handling exception if the block was not added properly
                 Map<String, List<String>> errorLogs = blockChain.addBlock(block, false);
                 if (errorLogs.size() > 0) {
@@ -247,6 +251,12 @@ public class BlockChainSyncManager implements SyncManager {
             log.debug("NodeStatus is down. ({})", nodeStatus.toString());
             return;
         }
+
+        if (nodeStatus.isUpdateStatus()) {
+            log.debug("Node is updating now. ({})", nodeStatus.toString());
+            return;
+        }
+
         BranchId branchId = blockChain.getBranchId();
         nodeStatus.sync();
         try {
@@ -263,6 +273,11 @@ public class BlockChainSyncManager implements SyncManager {
     private void reqSyncBlockToPeer(BlockChain blockChain, Peer peer) {
         if (nodeStatus.isSyncStatus()) {
             log.debug("NodeStatus is down. ({})", nodeStatus.toString());
+            return;
+        }
+
+        if (nodeStatus.isUpdateStatus()) {
+            log.debug("Node is updating now. ({})", nodeStatus.toString());
             return;
         }
 
