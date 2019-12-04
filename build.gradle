@@ -222,6 +222,7 @@ project(':yggdrash-node') {
     dependencies {
         compile project(':yggdrash-validator')
         compile project(':yggdrash-gateway')
+        compile 'com.rabbitmq:amqp-client:5.7.3'
         compile "org.springframework.boot:spring-boot-starter-actuator"
         compile "org.springframework.cloud:spring-cloud-starter:2.0.0.RELEASE"
         compile "com.github.briandilley.jsonrpc4j:jsonrpc4j:1.5.3"
