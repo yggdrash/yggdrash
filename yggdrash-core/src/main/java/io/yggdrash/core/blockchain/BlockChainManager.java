@@ -66,8 +66,6 @@ public interface BlockChainManager<T> {
 
     boolean containsBlockHash(Sha3Hash blockHash);
 
-    boolean containsTxHash(Sha3Hash txHash);
-
     boolean contains(Block block);
 
     boolean contains(Transaction transaction);

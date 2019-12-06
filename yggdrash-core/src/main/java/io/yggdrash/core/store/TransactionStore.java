@@ -80,29 +80,18 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
             return false;
         }
 
-        lock.lock();
-        try {
-            return pendingPool.containsKey(key) || db.get(key.getBytes()) != null;
-        } catch (Exception e) {
-            log.warn("contains() is failed. {} {}", e.getMessage(), key.toString());
-            return false;
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private boolean containsUnlock(Sha3Hash key) {
-        if (key == null || key.getBytes() == null) {
-            log.warn("contains() is failed. key is not valid.");
-            return false;
-        }
-
+        //TODO should be tested
+        //lock.lock();
         try {
             return pendingPool.containsKey(key) || db.get(key.getBytes()) != null;
         } catch (Exception e) {
             log.warn("contains() is failed. {} {}", e.getMessage(), key.toString());
             return false;
         }
+
+        //finally {
+        //    lock.unlock();
+        //}
     }
 
     @Override
@@ -114,7 +103,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> 
     public void put(Sha3Hash key, Transaction tx) {
         lock.lock();
         try {
-            if (!containsUnlock(key)) {
+            if (!contains(key)) {
                 pendingPool.put(key, tx);
                 if (pendingPool.containsKey(key)) {
                     pendingKeys.add(key);

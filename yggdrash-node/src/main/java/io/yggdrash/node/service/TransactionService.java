@@ -123,6 +123,7 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
                 Transaction tx = new TransactionImpl(protoTx);
                 try {
                     if (branchGroup.getBranch(tx.getBranchId()).isFullSynced()) {
+                        //TODO The broadcasted transaction should be put in pendingPool immediately.
                         branchGroup.addTransaction(tx);
                     } else {
                         log.debug("BroadcastTx() is failed. Not yet fullSynced.");

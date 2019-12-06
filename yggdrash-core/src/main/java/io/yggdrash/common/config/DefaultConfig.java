@@ -35,6 +35,7 @@ public class DefaultConfig {
     private static final Logger log = LoggerFactory.getLogger(DefaultConfig.class);
 
     protected boolean productionMode;
+    private boolean checkTxMode;
 
     private Config config;
 
@@ -42,17 +43,22 @@ public class DefaultConfig {
         this(ConfigFactory.empty());
     }
 
-    public DefaultConfig(boolean productionMode) {
-        this(ConfigFactory.empty(), productionMode);
+    public DefaultConfig(Config apiConfig, boolean productionMode) {
+        this(apiConfig, productionMode, false);
+    }
+
+    public DefaultConfig(boolean productionMode, boolean isCheckTxMode) {
+        this(ConfigFactory.empty(), productionMode, isCheckTxMode);
     }
 
     public DefaultConfig(Config apiConfig) {
-        this(apiConfig, false);
+        this(apiConfig, false, false);
     }
 
-    public DefaultConfig(Config apiConfig, boolean productionMode) {
+    public DefaultConfig(Config apiConfig, boolean productionMode, boolean checkTxMode) {
         try {
             this.productionMode = productionMode;
+            this.checkTxMode = checkTxMode;
             Config referenceConfig = getYggdrashConfig();
             Config adminConfig = getAdminConfig();
 
@@ -124,6 +130,10 @@ public class DefaultConfig {
 
     public boolean isProductionMode() {
         return productionMode;
+    }
+
+    public boolean isCheckTxMode() {
+        return checkTxMode;
     }
 
     public String getKeyPath() {

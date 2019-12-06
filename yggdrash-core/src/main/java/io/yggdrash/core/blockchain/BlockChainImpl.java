@@ -255,6 +255,33 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
         }
     }
 
+    private Map<String, List<String>> addTransactionByTransactionConsumer(Transaction tx, boolean broadcast) {
+        if (blockChainManager.contains(tx)) {
+            return BusinessError.getErrorLogsMap(BusinessError.DUPLICATED.toValue());
+        }
+
+        Receipt receipt = contractManager.checkTx(tx);
+        if (receipt.getStatus() != ExecuteStatus.SUCCESS) {
+            Map<String, List<String>> applicationError = new HashMap<>();
+            applicationError.put("ApplicationError", receipt.getLog());
+            return applicationError;
+        }
+
+        blockChainManager.addTransaction(tx); //Common process
+        if (broadcast) {
+            fireReceivedTxEvent(tx);
+        }
+        return new HashMap<>();
+    }
+
+    private void fireReceivedTxEvent(Transaction tx) {
+        if (!listenerList.isEmpty()) {
+            listenerList.forEach(listener -> listener.receivedTransaction(tx));
+        } else {
+            log.trace("[ReceivedTransactionEvent] queuing broadcast is failed. listener={} ", listenerList.size());
+        }
+    }
+
     @Override
     public ContractManager getContractManager() {
         return contractManager;
