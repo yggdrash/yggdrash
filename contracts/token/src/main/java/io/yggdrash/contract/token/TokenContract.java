@@ -751,6 +751,13 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
+            BigInteger approveAmount = params.get(AMOUNT).getAsBigInteger();
+
+            if (approveAmount.compareTo(BigInteger.ZERO) <= 0) {
+                setErrorTxReceipt("Approve amount must be greater than ZERO!");
+                return txReceipt;
+            }
+
             if (getYeedBalanceOfSub(tokenId).compareTo(DEFAULT_SERVICE_FEE) < 0) {
                 setErrorTxReceipt("Insufficient yeed stake of the token for service fee!");
                 return txReceipt;
@@ -763,12 +770,6 @@ public class TokenContract implements BundleActivator, ServiceListener {
             String sender = txReceipt.getIssuer();
             String spender = params.get(SPENDER).getAsString().toLowerCase();
             String approveKey = approveKey(sender, spender);
-            BigInteger approveAmount = params.get(AMOUNT).getAsBigInteger();
-
-            if (approveAmount.compareTo(BigInteger.ZERO) < 0) {
-                setErrorTxReceipt("Approve amount must be greater than ZERO!");
-                return txReceipt;
-            }
 
             putBalance(tokenId, approveKey, approveAmount);
 
