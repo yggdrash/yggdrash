@@ -24,6 +24,7 @@ import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchEventListener;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.TransactionBody;
 import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.gateway.dto.BlockDto;
 import org.slf4j.Logger;
@@ -96,14 +97,16 @@ public class BlockChainCollector implements BranchEventListener {
         }
 
         public EsTransactionDto(Transaction tx) {
+            TransactionBody txBody = tx.getTransactionBody();
+
             this.branchId = tx.getBranchId().toString();
             this.version = Hex.toHexString(tx.getHeader().getVersion());
             this.type = Hex.toHexString(tx.getHeader().getType());
             this.timestamp = Timestamps.toString(Timestamps.fromMillis(tx.getHeader().getTimestamp()));
-            this.bodyHash = Hex.toHexString(tx.getBody().getHash());
-            this.bodyLength = tx.getBody().getLength();
+            this.bodyHash = Hex.toHexString(txBody.getHash());
+            this.bodyLength = txBody.getLength();
             this.signature = Hex.toHexString(tx.getSignature());
-            this.body = tx.getBody().toString();
+            this.body = txBody.toString();
             this.author = tx.getAddress().toString();
             this.txId = tx.getHash().toString();
             this.rawTx = Hex.toHexString(tx.toRawTransaction());

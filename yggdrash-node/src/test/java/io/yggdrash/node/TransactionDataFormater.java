@@ -41,7 +41,7 @@ public class TransactionDataFormater {
         dto.body = obj.get("body").getAsString();
 
         Transaction tx = TransactionDto.of(dto);
-        String bodyHash = Hex.toHexString(HashUtil.sha3(tx.getBody().toBinary()));
+        String bodyHash = Hex.toHexString(HashUtil.sha3(tx.getTransactionBody().toBinary()));
         log.debug(bodyHash);
 
         assert VerifierUtils.verifyDataFormat(tx);

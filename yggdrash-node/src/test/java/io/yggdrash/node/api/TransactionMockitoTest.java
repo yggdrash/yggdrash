@@ -30,6 +30,7 @@ import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
 import io.yggdrash.gateway.dto.TransactionResponseDto;
+import io.yggdrash.node.config.RabbitMQProperties;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,7 +69,7 @@ public class TransactionMockitoTest {
     @Before
     public void setup() {
         txReceiptStore = new HashMap<>();
-        txApiImpl = new TransactionApiImpl(branchGroupMock);
+        txApiImpl = new TransactionApiImpl(branchGroupMock, new RabbitMQProperties());
 
         tx = BlockChainTestUtils.createTransferTx();
         branchId = tx.getBranchId();

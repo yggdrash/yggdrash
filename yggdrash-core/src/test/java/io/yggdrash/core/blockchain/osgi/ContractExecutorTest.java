@@ -387,7 +387,7 @@ public class ContractExecutorTest {
         assertEquals(0, contractStore.getTmpStateStore().changeValues().size());
         assertEquals(11, res.getBlockResult().size()); // contains stateRootHash
         assertEquals(Long.valueOf(0), receipt.getBlockHeight());
-        assertEquals(Long.valueOf(genesisTx.getBody().getLength()), receipt.getTxSize());
+        assertEquals(Long.valueOf(genesisTx.getTransactionBody().getLength()), receipt.getTxSize());
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
         assertEquals(genesisTx.getHash().toString(), receipt.getTxId());
         assertEquals(genesisBlock.getBranchId().toString(), receipt.getBranchId());
@@ -413,7 +413,7 @@ public class ContractExecutorTest {
         StateStore stateStore = contractStore.getStateStore();
 
 
-        for (String alloc : genesisTx.getBody().getBody().getAsJsonObject("params").getAsJsonObject("alloc").keySet()) {
+        for (String alloc : genesisTx.getTransactionBody().getBody().getAsJsonObject("params").getAsJsonObject("alloc").keySet()) {
             stateStore.contains(alloc);
         }
 

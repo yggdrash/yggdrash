@@ -15,7 +15,7 @@ public class Consensus {
 
     public Consensus(Block genesisBlock) {
         this((((Transaction) genesisBlock.getBody().getTransactionList().toArray()[0])
-                .getBody().getBody()).getAsJsonObject("consensus"));
+                .getTransactionBody().getBody()).getAsJsonObject("consensus"));
     }
 
     public String getAlgorithm() {

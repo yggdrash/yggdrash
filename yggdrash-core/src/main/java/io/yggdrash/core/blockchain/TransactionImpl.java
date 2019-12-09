@@ -119,7 +119,7 @@ public class TransactionImpl implements Transaction {
     }
 
     @Override
-    public TransactionBody getBody() {
+    public TransactionBody getTransactionBody() {
         return body;
     }
 

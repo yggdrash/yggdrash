@@ -111,14 +111,14 @@ public class TransactionTest extends SlowTest {
         log.debug("tx4={}", tx4);
         assertNotEquals(tx1.toJsonObject().toString(), tx4.toJsonObject().toString());
 
-        Transaction tx5 = new TransactionImpl(tx1.getHeader(), tx1.getSignature(), tx1.getBody());
+        Transaction tx5 = new TransactionImpl(tx1.getHeader(), tx1.getSignature(), tx1.getTransactionBody());
         assertTrue(VerifierUtils.verify(tx5));
 
         log.debug("tx1={}", tx1);
         log.debug("tx5={}", tx5);
         assertEquals(tx1.toJsonObject(), tx5.toJsonObject());
 
-        Transaction tx6 = new TransactionImpl(tx1.getHeader(), wallet, tx1.getBody());
+        Transaction tx6 = new TransactionImpl(tx1.getHeader(), wallet, tx1.getTransactionBody());
         assertTrue(VerifierUtils.verify(tx6));
 
         log.debug("tx1={}", tx1);
@@ -227,7 +227,7 @@ public class TransactionTest extends SlowTest {
         assertArrayEquals(header.getBodyHash(), rawTx.getBodyHash());
         assertEquals(header.getBodyLength(), rawTx.getBodyLength());
         assertArrayEquals(tx.getSignature(), rawTx.getSignature());
-        assertEquals(tx.getBody().toString(), rawTx.getBody());
+        assertEquals(tx.getTransactionBody().toString(), rawTx.getBody());
     }
 
     @Test

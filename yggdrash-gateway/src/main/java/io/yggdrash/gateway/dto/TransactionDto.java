@@ -20,6 +20,7 @@ import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.TransactionBody;
 import io.yggdrash.core.blockchain.TransactionImpl;
 import io.yggdrash.core.exception.WrongStructuredException;
 import io.yggdrash.proto.Proto;
@@ -67,14 +68,15 @@ public class TransactionDto {
 
     public static TransactionDto createBy(Transaction tx) {
         TransactionDto transactionDto = new TransactionDto();
+        TransactionBody txBody = tx.getTransactionBody();
         transactionDto.branchId = tx.getBranchId().toString();
         transactionDto.version = Hex.toHexString(tx.getHeader().getVersion());
         transactionDto.type = Hex.toHexString(tx.getHeader().getType());
         transactionDto.timestamp = tx.getHeader().getTimestamp();
-        transactionDto.bodyHash = Hex.toHexString(tx.getBody().getHash());
-        transactionDto.bodyLength = tx.getBody().getLength();
+        transactionDto.bodyHash = Hex.toHexString(txBody.getHash());
+        transactionDto.bodyLength = txBody.getLength();
         transactionDto.signature = Hex.toHexString(tx.getSignature());
-        transactionDto.body = tx.getBody().toString();
+        transactionDto.body = txBody.toString();
         transactionDto.author = tx.getAddress().toString();
         transactionDto.txId = tx.getHash().toString();
         return transactionDto;

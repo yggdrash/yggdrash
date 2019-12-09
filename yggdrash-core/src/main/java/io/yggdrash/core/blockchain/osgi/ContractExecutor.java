@@ -220,7 +220,7 @@ public class ContractExecutor {
 
     private Set<Map.Entry<String, JsonObject>> invokeTx(
             Map<String, Object> serviceMap, Transaction tx, Receipt receipt) throws ExecutorException {
-        JsonObject txBody = tx.getBody().getBody();
+        JsonObject txBody = tx.getTransactionBody().getBody();
 
         String contractVersion = txBody.get(CONTACT_VERSION).getAsString();
 
@@ -320,11 +320,11 @@ public class ContractExecutor {
         String issuer = tx.getAddress().toString();
         String branchId = tx.getBranchId().toString();
         String txId = tx.getHash().toString();
-        long txSize = tx.getBody().getLength();
+        long txSize = tx.getTransactionBody().getLength();
         long blockHeight = block != null
                 ? block.getIndex() : contractStore.getBranchStore().getLastExecuteBlockIndex() + 1;
-        String contractVersion = tx.getBody().getBody().has(CONTACT_VERSION)
-                ? tx.getBody().getBody().get(CONTACT_VERSION).getAsString() : "";
+        String contractVersion = tx.getTransactionBody().getBody().has(CONTACT_VERSION)
+                ? tx.getTransactionBody().getBody().get(CONTACT_VERSION).getAsString() : "";
         return ReceiptImpl.createTxReceipt(issuer, branchId, txId, txSize, blockHeight, contractVersion);
     }
 

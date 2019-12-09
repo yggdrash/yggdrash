@@ -60,11 +60,11 @@ public class BranchGroup {
         return getBranch(branchId).isFullSynced();
     }
 
-    public int verify(BranchId branchId, String contractVersion) {
-        return verify(branchId, ContractVersion.of(contractVersion));
+    public int verifyBranchContractExist(BranchId branchId, String contractVersion) {
+        return verifyBranchContractExist(branchId, ContractVersion.of(contractVersion));
     }
 
-    private int verify(BranchId branchId, ContractVersion contractVersion) {
+    private int verifyBranchContractExist(BranchId branchId, ContractVersion contractVersion) {
         int check = 0;
 
         check |= SystemError.addCode(isBranchExist(branchId), SystemError.BRANCH_NOT_FOUND);
@@ -83,13 +83,14 @@ public class BranchGroup {
 
     public Map<String, List<String>> addTransaction(Transaction tx) {
         // TxBody format has not been fixed yet. The following validation is required until the TxBody is fixed.
-        String version = !tx.getBody().getBody().has("contractVersion")
-                || (!tx.getBody().getBody().get("contractVersion").isJsonPrimitive()
-                || !tx.getBody().getBody().get("contractVersion").getAsJsonPrimitive().isString())
-                ? "" : tx.getBody().getBody().get("contractVersion").getAsString();
-
-        int verifyResult = verify(tx.getBranchId(), version);
+        String version = !tx.getTransactionBody().getBody().has("contractVersion")
+                || (!tx.getTransactionBody().getBody().get("contractVersion").isJsonPrimitive()
+                || !tx.getTransactionBody().getBody().get("contractVersion").getAsJsonPrimitive().isString())
+                ? "" : tx.getTransactionBody().getBody().get("contractVersion").getAsString();
+        // Check Branch and Contract Exist
+        int verifyResult = verifyBranchContractExist(tx.getBranchId(), version);
         if (verifyResult == SystemError.VALID.toValue()) {
+            // Check Transaction Contents Verify
             return branches.get(tx.getBranchId()).addTransaction(tx);
         }
         return SystemError.getErrorLogsMap(verifyResult);
@@ -118,8 +119,7 @@ public class BranchGroup {
             return getTxByHash(branchId, txId);
         } catch (NonExistObjectException ne) {
             throw new NonExistObjectException();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new DecodeException.TxIdNotHexString();
         }
     }

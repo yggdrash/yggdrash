@@ -168,7 +168,7 @@ public class VerifierUtils {
         verifyCode |= verifyCheckLengthNotNull(
                 header.getBodyHash(), Constants.HASH_LENGTH, "bodyHash") ? 0x00 : 0x10;
 
-        TransactionBody body = tx.getBody();
+        TransactionBody body = tx.getTransactionBody();
         verifyCode |= verifyBodyLength(header.getBodyLength(), body.getLength()) ? 0x00 : 0x20;
         verifyCode |= verifyTxBodyFormat(body) ? 0x00 : 0x40;
 
