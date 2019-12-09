@@ -761,8 +761,14 @@ public class TokenContract implements BundleActivator, ServiceListener {
 
             String sender = txReceipt.getIssuer();
             String spender = params.get(SPENDER).getAsString().toLowerCase();
-            BigInteger approveAmount = params.get(AMOUNT).getAsBigInteger();
             String approveKey = approveKey(sender, spender);
+            BigInteger approveAmount = params.get(AMOUNT).getAsBigInteger();
+
+            if (approveAmount.compareTo(BigInteger.ZERO) < 0) {
+                setErrorTxReceipt("Approve amount must be greater than ZERO!");
+                return txReceipt;
+            }
+
             putBalance(tokenId, approveKey, approveAmount);
 
             String msg = String.format(
@@ -832,9 +838,13 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            BigInteger newApproveBalance = getBalance(tokenId, approveKey).subtract(transferAmount);
-            BigInteger newToBalance = getBalance(tokenId, to).add(transferAmount);
+            BigInteger newApproveBalance = approveBalance.subtract(transferAmount);
             putBalance(tokenId, approveKey, newApproveBalance);
+
+            BigInteger newFromBalance = fromBalance.subtract(transferAmount);
+            putBalance(tokenId, from, newFromBalance);
+
+            BigInteger newToBalance = getBalance(tokenId, to).add(transferAmount);
             putBalance(tokenId, to, newToBalance);
 
             String msg = String.format(
