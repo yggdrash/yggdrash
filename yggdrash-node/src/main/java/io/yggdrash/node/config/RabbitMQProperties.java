@@ -1,26 +1,18 @@
 package io.yggdrash.node.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "rabbitmq", ignoreUnknownFields = false)
 public class RabbitMQProperties {
-    //private String exchangeName;
-    //private String routingKey;
 
-    @Value("${cp.query.name:unVerifyTx}")
     private String queueName;
 
-    @Value("${cp.host:127.0.0.1}")
     private String host;
 
-    @Value("${cp.port:5672}")
     private int port;
 
-    @Value("${cp.user.name:guest}")
     private String userName ;
 
-    @Value("${cp.password:guest}")
     private String password;
 
     public String getQueueName() {
