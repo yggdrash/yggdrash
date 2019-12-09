@@ -752,8 +752,8 @@ public class TokenContract implements BundleActivator, ServiceListener {
             }
 
             BigInteger approveAmount = params.get(AMOUNT).getAsBigInteger();
-            if (approveAmount.compareTo(BigInteger.ZERO) <= 0) {
-                setErrorTxReceipt("Approve amount must be greater than ZERO!");
+            if (approveAmount.compareTo(BigInteger.ZERO) < 0) {
+                setErrorTxReceipt("Approve amount must be equal to or greater than ZERO!");
                 return txReceipt;
             }
 
