@@ -20,7 +20,7 @@ import java.util.concurrent.TimeoutException;
 @ConditionalOnRabbitMQPropertyNotEmpty(RabbitMQProperties.class)
 public class RabbitConfiguration {
 
-    private static final Logger log = LoggerFactory.getLogger(P2PConfiguration.class);
+    private static final Logger log = LoggerFactory.getLogger(RabbitConfiguration.class);
 
     private final RabbitMQProperties rabbitMQProperties;
 

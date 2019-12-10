@@ -57,7 +57,7 @@ public class TransactionApiImplTest {
 
     private final String yggdrashBranch = TestConstants.yggdrash().toString();
     private final BranchGroup branchGroup = BlockChainTestUtils.createBranchGroup();
-    private final TransactionApiImpl txApi = new TransactionApiImpl(branchGroup);
+    private final TransactionApiImpl txApi = new TransactionApiImpl(branchGroup, new RabbitMQProperties());
     private final BlockApiImpl blockApi = new BlockApiImpl(branchGroup);
     private String testTransactionHash = null;
     private String testBlockHash = null;

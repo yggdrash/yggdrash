@@ -1,6 +1,7 @@
 package io.yggdrash.node.api;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
+import io.undertow.server.handlers.proxy.mod_cluster.NodeConfig;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.blockchain.BranchGroup;
@@ -16,6 +17,9 @@ import io.yggdrash.core.exception.errorcode.SystemError;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
 import io.yggdrash.gateway.dto.TransactionResponseDto;
+import io.yggdrash.node.RabbitMQTask;
+import io.yggdrash.node.config.NodeProperties;
+import io.yggdrash.node.config.RabbitConfiguration;
 import io.yggdrash.node.config.RabbitMQProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,12 +39,15 @@ public class TransactionApiImpl implements TransactionApi {
 
     private final BranchGroup branchGroup;
 
-    private final RabbitMQProperties mqProperties;
+    private RabbitMQProperties properties;
 
     @Autowired
-    public TransactionApiImpl(BranchGroup branchGroup, RabbitMQProperties mqProperties) {
+    private RabbitMQTask task;
+
+    @Autowired
+    public TransactionApiImpl(BranchGroup branchGroup, RabbitMQProperties properties) {
         this.branchGroup = branchGroup;
-        this.mqProperties = mqProperties;
+        this.properties = properties;
     }
 
     /* get */
@@ -107,7 +114,8 @@ public class TransactionApiImpl implements TransactionApi {
             throw new RejectedAccessException.NotFullSynced();
         }
 
-        if (mqProperties.isEnable()) {
+        if (properties != null && properties.isEnable()) {
+
             int verifyCode = 0;
 
             verifyCode |= BusinessError.addCode(VerifierUtils.verifyDataFormat(transaction), BusinessError.INVALID_DATA_FORMAT);
@@ -117,8 +125,7 @@ public class TransactionApiImpl implements TransactionApi {
             Map<String, List<String>> simpleVerify = SystemError.getErrorLogsMap(verifyCode);
             if (verifyCode == BusinessError.VALID.toValue()) {
                 // send to mq Task
-            } else {
-                // make Error
+                task.publishTransaction(transaction);
             }
             return TransactionResponseDto.createBy(transaction.getHash().toString(), true, simpleVerify);
 

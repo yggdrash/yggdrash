@@ -15,7 +15,6 @@ public class RabbitMQProperties {
 
     private String password;
 
-    @Value("${cp.rabbitmq.enable:false}")
     private boolean enable;
 
     public String getQueueName() {
