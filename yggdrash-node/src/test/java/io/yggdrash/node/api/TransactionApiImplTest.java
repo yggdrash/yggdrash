@@ -32,6 +32,7 @@ import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.gateway.dto.BlockDto;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionResponseDto;
+import io.yggdrash.node.config.RabbitMQProperties;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Assert;
 import org.junit.Before;

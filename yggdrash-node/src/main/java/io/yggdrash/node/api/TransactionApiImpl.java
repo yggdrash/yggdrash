@@ -2,6 +2,7 @@ package io.yggdrash.node.api;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.common.crypto.HexUtil;
+import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
@@ -10,9 +11,12 @@ import io.yggdrash.core.consensus.ConsensusBlock;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.RejectedAccessException;
 import io.yggdrash.core.exception.WrongStructuredException;
+import io.yggdrash.core.exception.errorcode.BusinessError;
+import io.yggdrash.core.exception.errorcode.SystemError;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
 import io.yggdrash.gateway.dto.TransactionResponseDto;
+import io.yggdrash.node.config.RabbitMQProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,9 +35,12 @@ public class TransactionApiImpl implements TransactionApi {
 
     private final BranchGroup branchGroup;
 
+    private final RabbitMQProperties mqProperties;
+
     @Autowired
-    public TransactionApiImpl(BranchGroup branchGroup) {
+    public TransactionApiImpl(BranchGroup branchGroup, RabbitMQProperties mqProperties) {
         this.branchGroup = branchGroup;
+        this.mqProperties = mqProperties;
     }
 
     /* get */
@@ -100,15 +107,33 @@ public class TransactionApiImpl implements TransactionApi {
             throw new RejectedAccessException.NotFullSynced();
         }
 
-        Map<String, List<String>> errorLogs = branchGroup.addTransaction(transaction);
+        if (mqProperties.isEnable()) {
+            int verifyCode = 0;
 
-        if (errorLogs.size() > 0) {
-            log.debug("AddTx Error : {}", errorLogs);
+            verifyCode |= BusinessError.addCode(VerifierUtils.verifyDataFormat(transaction), BusinessError.INVALID_DATA_FORMAT);
+            verifyCode |= BusinessError.addCode(VerifierUtils.verifySignature(transaction), BusinessError.UNTRUSTED);
+
+            // check verified
+            Map<String, List<String>> simpleVerify = SystemError.getErrorLogsMap(verifyCode);
+            if (verifyCode == BusinessError.VALID.toValue()) {
+                // send to mq Task
+            } else {
+                // make Error
+            }
+            return TransactionResponseDto.createBy(transaction.getHash().toString(), true, simpleVerify);
+
+        } else {
+            // Not Used
+            Map<String, List<String>> errorLogs = branchGroup.addTransaction(transaction);
+
+            if (errorLogs.size() > 0) {
+                log.debug("AddTx Error : {}", errorLogs);
+            }
+
+            return errorLogs.size() > 0
+                    ? TransactionResponseDto.createBy(transaction.getHash().toString(), false, errorLogs)
+                    : TransactionResponseDto.createBy(transaction.getHash().toString(), true, errorLogs);
         }
-
-        return errorLogs.size() > 0
-                ? TransactionResponseDto.createBy(transaction.getHash().toString(), false, errorLogs)
-                : TransactionResponseDto.createBy(transaction.getHash().toString(), true, errorLogs);
     }
 
     /* filter */

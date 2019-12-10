@@ -23,6 +23,9 @@ public class RabbitMQProperties {
     @Value("${cp.password:guest}")
     private String password;
 
+    @Value("${cp.rabbitmq.enable:false}")
+    private boolean enable;
+
     public String getQueueName() {
         return queueName;
     }
@@ -62,4 +65,13 @@ public class RabbitMQProperties {
     public void setPort(int port) {
         this.port = port;
     }
+
+    public boolean isEnable() {
+        return enable;
+    }
+
+    public void setEnable(boolean enable) {
+        this.enable = enable;
+    }
+
 }
