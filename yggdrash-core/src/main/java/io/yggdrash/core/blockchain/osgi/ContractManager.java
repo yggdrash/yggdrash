@@ -7,6 +7,8 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.BranchContract;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.contract.core.ContractEvent;
+import io.yggdrash.contract.core.Receipt;
+import io.yggdrash.contract.core.ReceiptImpl;
 import io.yggdrash.contract.core.channel.ContractEventType;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Log;
@@ -393,8 +395,20 @@ public class ContractManager implements ContractEventListener {
         return contractExecutor.executeTxs(serviceMap, txs);
     }
 
+    //TODO executeTx should executed only by checkTx method
     public TransactionRuntimeResult executeTx(Transaction tx) {
         return contractExecutor.executeTx(serviceMap, tx);
+    }
+
+    public Receipt checkTx(Transaction tx) {
+        if (defaultConfig.isCheckTxMode()) {
+            TransactionRuntimeResult txResult = executeTx(tx);
+            Receipt receipt = txResult.getReceipt();
+            log.trace("[CheckTx] txHash={}, status={}, log={}",
+                    tx.getHash().toString(), receipt.getStatus(), receipt.getLog());
+            return receipt;
+        }
+        return new ReceiptImpl();
     }
 
     // file actions.

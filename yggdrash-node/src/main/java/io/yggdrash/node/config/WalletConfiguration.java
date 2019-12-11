@@ -37,7 +37,9 @@ public class WalletConfiguration {
     @Bean
     DefaultConfig defaultConfig(Environment env) {
         boolean isProductionMode = Arrays.asList(env.getActiveProfiles()).contains(ActiveProfiles.PROD);
-        DefaultConfig defaultConfig = new DefaultConfig(isProductionMode);
+        boolean isCheckTxMode = Arrays.asList(env.getActiveProfiles()).contains(ActiveProfiles.CHECK_TX);
+        DefaultConfig defaultConfig = new DefaultConfig(isProductionMode, isCheckTxMode);
+        log.info("Yggdrash default mode : isProdMode = {}, isCheckTxMode = {}", isProductionMode, isCheckTxMode);
         log.info("Yggdrash Data Path : {}", defaultConfig.getYggDataPath());
         return defaultConfig;
     }

@@ -106,7 +106,7 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     private int verify(Transaction transaction, boolean isTxBroadcast) {
         int check = 0;
 
-        check |= BusinessError.addCode(verifyDuplicated(transaction), BusinessError.DUPLICATED);
+        check |= BusinessError.addCode(verifyDuplicated(transaction), BusinessError.DUPLICATED); // TODO Remove from verification
 
         if (isTxBroadcast) {
             check |= BusinessError.addCode(VerifierUtils.verifyTimestamp(transaction), BusinessError.REQUEST_TIMEOUT);
@@ -323,11 +323,6 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
     @Override
     public boolean containsBlockHash(Sha3Hash blockHash) {
         return blockStore.contains(blockHash);
-    }
-
-    @Override
-    public boolean containsTxHash(Sha3Hash txHash) {
-        return transactionStore.contains(txHash);
     }
 
     @Override

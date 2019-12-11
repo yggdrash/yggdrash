@@ -13,14 +13,20 @@
 package io.yggdrash.node;
 
 import com.google.gson.JsonObject;
+import com.rabbitmq.client.Channel;
+import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.node.api.ContractApi;
 import io.yggdrash.node.api.ContractApiImplTest;
 import io.yggdrash.node.api.JsonRpcConfig;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -60,6 +66,7 @@ public class YeedContractDemoClient {
         System.out.println("[1] 트랜잭션 조회");
         System.out.println("[2] 트랜잭션 전송");
         System.out.println("[3] 발란스 조회");
+        System.out.println("[4] RabbitMQ 로 트랜잭션 전송");
         System.out.println("> ");
 
         String num = scan.nextLine();
@@ -71,6 +78,8 @@ public class YeedContractDemoClient {
             case "3":
                 getBalance();
                 break;
+            case "4":
+                sendTxToRabbitMQ();
             default:
                 ContractDemoClientUtils.getTxReceipt(lastTxId);
                 break;
@@ -81,6 +90,28 @@ public class YeedContractDemoClient {
         String address = getTargetAddress();
         JsonObject txBody = ContractTestUtils.transferTxBodyJson(address, getTransferAmount());
         lastTxId = ContractDemoClientUtils.sendTx(txBody);
+    }
+
+    private static void sendTxToRabbitMQ() {
+        try {
+            Channel channel = RabbitMQTestUtils.getChannel();
+            String queryName = RabbitMQTestUtils.getQueryName();
+            long queueCnt = channel.messageCount(queryName);
+            List<Transaction> txList = new ArrayList<Transaction>();
+            int createTxCount = 1000;
+            for (int i = 0; i < createTxCount; i++) {
+                Transaction tx = BlockChainTestUtils.createBranchTx();
+                txList.add(tx);
+            }
+            System.out.println("Create 10 Transactions done!. Publish!");
+            for (Transaction tx : txList) {
+                channel.basicPublish("", queryName, null, tx.toBinary());
+            }
+            queueCnt -= channel.messageCount(queryName);
+            System.out.println("Publish transactions done. Queue Count=" + queueCnt);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static BigInteger getTransferAmount() {

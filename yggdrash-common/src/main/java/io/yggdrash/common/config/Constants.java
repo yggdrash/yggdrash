@@ -126,6 +126,7 @@ public final class Constants {
         // environment
         public static final String LOCAL = "local";
         public static final String PROD = "prod";
+        public static final String CHECK_TX = "checkTx";
         // role base
         public static final String BOOTSTRAP = "bootstrap";
         public static final String NODE = "node";

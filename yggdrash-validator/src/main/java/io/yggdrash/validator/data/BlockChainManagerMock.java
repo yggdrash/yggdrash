@@ -144,11 +144,6 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     }
 
     @Override
-    public boolean containsTxHash(Sha3Hash txHash) {
-        return blockChainManager.containsTxHash(txHash);
-    }
-
-    @Override
     public boolean contains(Block block) {
         return blockChainManager.contains(block);
     }
