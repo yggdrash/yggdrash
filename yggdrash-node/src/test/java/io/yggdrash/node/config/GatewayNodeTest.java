@@ -20,6 +20,7 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.gateway.controller.BranchController;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,7 @@ public class GatewayNodeTest extends TestConstants.CiTest {
     @Autowired(required = false)
     private BranchController branchController;
 
+    @Ignore
     @Test
     public void shouldBeNotEmptyBranch() {
         assertThat(branchGroup.getAllBranch()).isNotEmpty();
