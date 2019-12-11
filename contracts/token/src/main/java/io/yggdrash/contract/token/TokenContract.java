@@ -274,6 +274,10 @@ public class TokenContract implements BundleActivator, ServiceListener {
 
             BigInteger initMintAmount = token.get(TOKEN_INIT_MINT_AMOUNT) == null
                     ? BigInteger.ZERO : token.get(TOKEN_INIT_MINT_AMOUNT).getAsBigInteger();
+            if (initMintAmount.compareTo(BigInteger.ZERO) < 0) {
+                setErrorTxReceipt("Token creation is failed. Initial mint amount should be greater than ZERO!");
+                return txReceipt;
+            }
             putBalance(tokenId, ownerAccount, initMintAmount);
             putBalance(tokenId, TOTAL_SUPPLY, initMintAmount);
 
@@ -425,14 +429,21 @@ public class TokenContract implements BundleActivator, ServiceListener {
             }
 
             BigInteger amount = params.get(AMOUNT).getAsBigInteger();
+            BigInteger amountPlusFee = amount.add(DEFAULT_SERVICE_FEE);
+            BigInteger curStakeOfToken = getBalance(tokenId, YEED_STAKE);
+
+            if (amountPlusFee.compareTo(curStakeOfToken) > 0) {
+                setErrorTxReceipt("Insufficient balance to withdraw!");
+                return txReceipt;
+            }
+
             boolean isSuccess = withdrawYeedStakeSub(issuer, amount);
             if (isSuccess == false) {
                 setErrorTxReceipt("Insufficient balance to withdraw!");
                 return txReceipt;
             }
 
-            BigInteger curStakeOfToken = getBalance(tokenId, YEED_STAKE);
-            setYeedBalanceOfSub(tokenId, curStakeOfToken.subtract(amount));
+            setYeedBalanceOfSub(tokenId, curStakeOfToken.subtract(amountPlusFee));
 
             String msg = String.format(
                     "Token [%s] yeed stake withdrawal completed successfully. Amount is %s.",
@@ -740,6 +751,12 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
+            BigInteger approveAmount = params.get(AMOUNT).getAsBigInteger();
+            if (approveAmount.compareTo(BigInteger.ZERO) < 0) {
+                setErrorTxReceipt("Approve amount must be equal to or greater than ZERO!");
+                return txReceipt;
+            }
+
             if (getYeedBalanceOfSub(tokenId).compareTo(DEFAULT_SERVICE_FEE) < 0) {
                 setErrorTxReceipt("Insufficient yeed stake of the token for service fee!");
                 return txReceipt;
@@ -751,8 +768,8 @@ public class TokenContract implements BundleActivator, ServiceListener {
 
             String sender = txReceipt.getIssuer();
             String spender = params.get(SPENDER).getAsString().toLowerCase();
-            BigInteger approveAmount = params.get(AMOUNT).getAsBigInteger();
             String approveKey = approveKey(sender, spender);
+
             putBalance(tokenId, approveKey, approveAmount);
 
             String msg = String.format(
@@ -822,9 +839,13 @@ public class TokenContract implements BundleActivator, ServiceListener {
                 return txReceipt;
             }
 
-            BigInteger newApproveBalance = getBalance(tokenId, approveKey).subtract(transferAmount);
-            BigInteger newToBalance = getBalance(tokenId, to).add(transferAmount);
+            BigInteger newApproveBalance = approveBalance.subtract(transferAmount);
             putBalance(tokenId, approveKey, newApproveBalance);
+
+            BigInteger newFromBalance = fromBalance.subtract(transferAmount);
+            putBalance(tokenId, from, newFromBalance);
+
+            BigInteger newToBalance = getBalance(tokenId, to).add(transferAmount);
             putBalance(tokenId, to, newToBalance);
 
             String msg = String.format(
@@ -1168,7 +1189,7 @@ public class TokenContract implements BundleActivator, ServiceListener {
             return txReceipt;
         }
 
-        // TODO : @kevin : 2019-09-09 : check if YEED stake transfer between tokens needed
+        // @kevin : 2019-09-09 : check if YEED stake transfer between tokens needed
         // 현재 로직은 YEED 교환이 허용되지 않은 토큰 간에만 T2T 교환을 허용할 수 밖에 없을 것으로 추정된다.
         // 전체 교환 로직을 만들기 위해서는 교환 시에 YEED stake 이동을 전제해야 한다.
         // 가능한 모든 교환 유형을 상정하여 도식화 하고, 각 유형의 교환 가능 여부와 환율을 체크해야 한다.
