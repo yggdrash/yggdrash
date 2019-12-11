@@ -41,7 +41,7 @@ public class TransactionApiImpl implements TransactionApi {
 
     private RabbitMQProperties properties;
 
-    @Autowired
+    @Autowired(required=false)
     private RabbitMQTask task;
 
     @Autowired
