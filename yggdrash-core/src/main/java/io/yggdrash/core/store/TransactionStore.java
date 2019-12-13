@@ -43,7 +43,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class TransactionStore implements ReadWriterStore<Sha3Hash, Transaction> {
     private static final Logger log = LoggerFactory.getLogger(TransactionStore.class);
     private static final Lock lock = new ReentrantLock();
-    private static final int CACHE_SIZE = 1000;
+    private static final int CACHE_SIZE = 100000;
 
     private final DbSource<byte[], byte[]> db;
 

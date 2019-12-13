@@ -39,5 +39,6 @@ public class TransactionConsumer extends DefaultConsumer {
         branchGroup.addTransaction(tx);
         log.debug("HandleDelivery : txHash={}, routingKey={}, exchange={}, deliveryTag={}",
                 routingKey, exchange, deliveryTag, tx.getHash().toString());
+        this.getChannel().basicAck(deliveryTag, true);
     }
 }
