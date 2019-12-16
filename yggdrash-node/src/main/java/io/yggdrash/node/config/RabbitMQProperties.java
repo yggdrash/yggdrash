@@ -17,6 +17,8 @@ public class RabbitMQProperties {
 
     private boolean enable;
 
+    private int limit;
+
     public String getQueueName() {
         return queueName;
     }
@@ -65,4 +67,11 @@ public class RabbitMQProperties {
         this.enable = enable;
     }
 
+    public int getLimit() {
+        return limit;
+    }
+
+    public void setLimit(int limit) {
+        this.limit = limit;
+    }
 }

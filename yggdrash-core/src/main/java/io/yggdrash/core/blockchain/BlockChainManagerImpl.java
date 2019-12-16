@@ -12,6 +12,7 @@
 
 package io.yggdrash.core.blockchain;
 
+import com.google.common.collect.Lists;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.util.VerifierUtils;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
@@ -282,17 +284,41 @@ public class BlockChainManagerImpl<T> implements BlockChainManager<T> {
 
     @Override
     public List<Transaction> getUnconfirmedTxs() {
+        // TODO change queue List
         return new ArrayList<>(transactionStore.getUnconfirmedTxs());
     }
 
     @Override
-    public List<Transaction> getUnconfirmedTxsWithLimit(long limit) {
-        return transactionStore.getUnconfirmedTxsWithLimit(limit);
+    public int getUnconfirmedTxSize() {
+        return transactionStore.getUnconfirmedTxsSize();
     }
 
+    public List<Transaction> filtered(List<Transaction> txList) {
+        // 1 txList to Set
+
+        HashMap<Sha3Hash, Transaction> filteredMap = new HashMap<>();
+
+        for (Transaction tx : txList) {
+            filteredMap.put(tx.getHash(), tx);
+        }
+
+        Set<Sha3Hash> filterSet = filteredMap.keySet();
+
+        // 2 Set to check contain
+        for (Sha3Hash txHash : filterSet) {
+            if (transactionStore.contains(txHash)) {
+                filteredMap.remove(txHash);
+            }
+        }
+
+        // 3 Set to List
+        return new ArrayList<>(filteredMap.values());
+    }
+
+
     @Override
-    public int getUnconfirmedTxsSize() {
-        return transactionStore.getUnconfirmedTxsSize();
+    public List<Transaction> getUnconfirmedTxsWithLimit(long limit) {
+        return transactionStore.getUnconfirmedTxsWithLimit(limit);
     }
 
     @Override

@@ -15,6 +15,7 @@ import io.yggdrash.core.consensus.Consensus;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
+import io.yggdrash.node.RabbitMQTask;
 import io.yggdrash.node.service.ValidatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+// FOR SERVICE
 @Profile(ActiveProfiles.VALIDATOR)
 @Configuration
 public class ValidatorConfiguration {
@@ -41,10 +43,17 @@ public class ValidatorConfiguration {
     @Autowired(required = false)
     SystemProperties systemProperties;
 
+    @Autowired(required = false)
+    private RabbitMQProperties properties;
+
+    @Autowired(required=false)
+    private RabbitMQTask task;
+
     @Bean
     public Map<BranchId, List<ValidatorService>> validatorServiceMap(BranchLoader branchLoader,
                                                                      DefaultConfig defaultConfig,
                                                                      NodeStatus nodeStatus) {
+        log.info("validatorServiceMap Bean Create");
         Map<BranchId, List<ValidatorService>> validatorServiceMap = new HashMap<>();
         File validatorPath = new File(defaultConfig.getValidatorPath());
 
@@ -113,6 +122,8 @@ public class ValidatorConfiguration {
                         genesis, blockChainStore, branchId, systemProperties);
                 blockChain.getContractManager().setNodeStatus(nodeStatus);
 
+
+                // TODO add task to Validator Service
                 validatorServiceList.add(new ValidatorService(mergedConfig, blockChain));
             } catch (Exception e) {
                 log.warn("loadValidatorService() is failed. conf={}, err={}", validatorServicePath, e.getMessage());

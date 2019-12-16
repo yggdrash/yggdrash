@@ -24,6 +24,7 @@ public class RabbitMQTask {
     public RabbitMQTask(Channel channel, RabbitMQProperties properties) {
         this.channel = channel;
         this.properties = properties;
+        log.info("MQ properties " + properties.getLimit());
 
         if (properties.isEnable()) {
             init();
@@ -40,13 +41,14 @@ public class RabbitMQTask {
         }
     }
 
-    @Scheduled(cron = "*/" + DELAY + " * * * * *")
+    @Scheduled(cron = "*/2 * * * * *")
     private void transactionConsumer() {
         try {
             if (properties.isEnable()) {
-                TransactionConsumer consumer = new TransactionConsumer(channel, branchGroup);
-                channel.basicConsume(properties.getQueueName(), true, consumer);
-
+                log.info("transactionConsumer");
+                TransactionConsumer consumer = new TransactionConsumer(channel, branchGroup, properties.getLimit());
+                channel.basicConsume(properties.getQueueName(), false, consumer);
+                log.info("Queue remain " + channel.messageCount(properties.getQueueName()));
             }
         } catch (Exception e) {
             e.printStackTrace();

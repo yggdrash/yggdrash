@@ -54,7 +54,7 @@ public interface BlockChainManager<T> {
 
     List<Transaction> getUnconfirmedTxsWithLimit(long limit);
 
-    int getUnconfirmedTxsSize();
+    int getUnconfirmedTxSize();
 
     Receipt getReceipt(String txId);
 

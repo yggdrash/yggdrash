@@ -19,10 +19,15 @@ package io.yggdrash.node.service;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.common.config.Constants;
+import io.yggdrash.common.util.VerifierUtils;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionImpl;
+import io.yggdrash.core.exception.errorcode.BusinessError;
+import io.yggdrash.core.exception.errorcode.SystemError;
+import io.yggdrash.node.RabbitMQTask;
+import io.yggdrash.node.config.RabbitMQProperties;
 import io.yggdrash.node.springboot.grpc.GrpcService;
 import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.Proto;
@@ -42,6 +47,13 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
     private static final CommonProto.Empty EMPTY = CommonProto.Empty.getDefaultInstance();
 
     private final BranchGroup branchGroup;
+
+    @Autowired(required=false)
+    private RabbitMQProperties properties;
+
+    @Autowired(required=false)
+    private RabbitMQTask task;
+
 
     @Autowired
     public TransactionService(BranchGroup branchGroup) {
@@ -94,7 +106,25 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
 
         Proto.TransactionResponse.Builder builder = Proto.TransactionResponse.newBuilder();
         Transaction transaction = new TransactionImpl(tx);
-        Map<String, List<String>> errorLogs = branchGroup.addTransaction(transaction);
+        Map<String, List<String>> errorLogs = null;
+        if (properties != null && properties.isEnable()) {
+            // Send to Queue
+            int verifyCode = 0;
+
+            verifyCode |= BusinessError.addCode(VerifierUtils.verifyDataFormat(transaction), BusinessError.INVALID_DATA_FORMAT);
+            verifyCode |= BusinessError.addCode(VerifierUtils.verifySignature(transaction), BusinessError.UNTRUSTED);
+
+            // check verified
+            errorLogs = SystemError.getErrorLogsMap(verifyCode);
+            if (verifyCode == BusinessError.VALID.toValue()) {
+                // send to mq Task
+                task.publishTransaction(transaction);
+            }
+
+        } else {
+            // ADD
+            errorLogs = branchGroup.addTransaction(transaction);
+        }
 
         if (errorLogs.size() > 0) {
             log.debug("Received sendTx error occurred : {}", errorLogs);

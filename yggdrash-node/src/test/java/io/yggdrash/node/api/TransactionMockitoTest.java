@@ -69,7 +69,7 @@ public class TransactionMockitoTest {
     @Before
     public void setup() {
         txReceiptStore = new HashMap<>();
-        txApiImpl = new TransactionApiImpl(branchGroupMock, new RabbitMQProperties());
+        txApiImpl = new TransactionApiImpl(branchGroupMock);
 
         tx = BlockChainTestUtils.createTransferTx();
         branchId = tx.getBranchId();

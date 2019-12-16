@@ -193,7 +193,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
                 listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
             }
 
-            nextBlock.loggingBlock(this.blockChainManager.getUnconfirmedTxsSize());
+            nextBlock.loggingBlock(this.blockChainManager.getUnconfirmedTxSize());
         } catch (Exception e) {
             log.debug("Add block failed. {}", e.getMessage()); //TODO Exception handling
         } finally {
@@ -233,7 +233,7 @@ public class BlockChainImpl<T, V> implements BlockChain<T, V> {
             log.trace("contractManager.executeTx Result: {}", txResult.getReceipt().getLog());
             if (txResult.getReceipt().getStatus() == ExecuteStatus.SUCCESS) {
                 blockChainManager.addTransaction(tx);
-
+                // TODO Filter broadcast
                 if (!listenerList.isEmpty() && broadcast) {
                     listenerList.forEach(listener -> listener.receivedTransaction(tx));
                 } else {

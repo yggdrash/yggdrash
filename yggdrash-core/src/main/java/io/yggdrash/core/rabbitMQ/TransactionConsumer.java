@@ -4,7 +4,10 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
+import io.yggdrash.core.blockchain.BlockChainManager;
+import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionImpl;
 import org.slf4j.Logger;
@@ -18,11 +21,20 @@ public class TransactionConsumer extends DefaultConsumer {
 
     private BranchGroup branchGroup;
 
+    private int qos = 0;
+
     /**
      * Constructs a new instance and records its association to the passed-in channel.
      *
      * @param channel the channel to which this consumer is attached
      */
+    public TransactionConsumer(Channel channel, BranchGroup branchGroup, int qos) {
+        super(channel);
+        this.branchGroup = branchGroup;
+        this.qos = qos;
+        log.info("init Channel limit" +  qos);
+    }
+
     public TransactionConsumer(Channel channel, BranchGroup branchGroup) {
         super(channel);
         this.branchGroup = branchGroup;
@@ -34,11 +46,32 @@ public class TransactionConsumer extends DefaultConsumer {
         String routingKey = envelope.getRoutingKey();
         String exchange = envelope.getExchange();
         long deliveryTag = envelope.getDeliveryTag();
-
         Transaction tx = new TransactionImpl(body);
-        branchGroup.addTransaction(tx);
-        log.debug("HandleDelivery : txHash={}, routingKey={}, exchange={}, deliveryTag={}",
-                routingKey, exchange, deliveryTag, tx.getHash().toString());
-        this.getChannel().basicAck(deliveryTag, true);
+        BranchId branch = tx.getBranchId();
+        BlockChainManager manager = branchGroup.getBranch(branch).getBlockChainManager();
+        // check exist
+        if (manager.contains(tx)) {
+            this.getChannel().basicAck(deliveryTag, true);
+            return;
+        }
+        // qos == 0 is unlimited
+        if (qos == 0) {
+            branchGroup.addTransaction(tx);
+            log.debug("HandleDelivery : txHash={}, routingKey={}, exchange={}, deliveryTag={}",
+                    routingKey, exchange, deliveryTag, tx.getHash().toString());
+            this.getChannel().basicAck(deliveryTag, true);
+        } else {
+            int unconfirmedTxSize = manager.getUnconfirmedTxSize();
+            log.info("UnconfirmedTxSize Tx Size " + unconfirmedTxSize);
+            // qos > 0 is limit unconfirmedTxSize
+            if (unconfirmedTxSize < qos) {
+                branchGroup.addTransaction(tx);
+                this.getChannel().basicAck(deliveryTag, true);
+            } else {
+                // requeue
+                this.getChannel().basicReject(deliveryTag, true);
+            }
+        }
+
     }
 }

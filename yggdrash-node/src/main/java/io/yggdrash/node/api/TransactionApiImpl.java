@@ -39,15 +39,15 @@ public class TransactionApiImpl implements TransactionApi {
 
     private final BranchGroup branchGroup;
 
+    @Autowired(required=false)
     private RabbitMQProperties properties;
 
     @Autowired(required=false)
     private RabbitMQTask task;
 
     @Autowired
-    public TransactionApiImpl(BranchGroup branchGroup, RabbitMQProperties properties) {
+    public TransactionApiImpl(BranchGroup branchGroup) {
         this.branchGroup = branchGroup;
-        this.properties = properties;
     }
 
     /* get */
