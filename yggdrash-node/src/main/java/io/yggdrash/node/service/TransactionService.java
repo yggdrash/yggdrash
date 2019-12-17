@@ -40,7 +40,7 @@ import org.springframework.context.annotation.Profile;
 import java.util.List;
 import java.util.Map;
 
-@Profile(Constants.ActiveProfiles.NODE)
+//@Profile(Constants.ActiveProfiles.NODE)
 @GrpcService
 public class TransactionService extends TransactionServiceGrpc.TransactionServiceImplBase {
     private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
@@ -57,6 +57,7 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
 
     @Autowired
     public TransactionService(BranchGroup branchGroup) {
+        log.info("TransactionService up ");
         this.branchGroup = branchGroup;
     }
 
@@ -106,32 +107,10 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
 
         Proto.TransactionResponse.Builder builder = Proto.TransactionResponse.newBuilder();
         Transaction transaction = new TransactionImpl(tx);
-        Map<String, List<String>> errorLogs = null;
-        if (properties != null && properties.isEnable()) {
-            // Send to Queue
-            int verifyCode = 0;
 
-            verifyCode |= BusinessError.addCode(VerifierUtils.verifyDataFormat(transaction), BusinessError.INVALID_DATA_FORMAT);
-            verifyCode |= BusinessError.addCode(VerifierUtils.verifySignature(transaction), BusinessError.UNTRUSTED);
+        Map<String, List<String>> errorLogs = receiveTx(transaction);
 
-            // check verified
-            errorLogs = SystemError.getErrorLogsMap(verifyCode);
-            if (verifyCode == BusinessError.VALID.toValue()) {
-                // send to mq Task
-                task.publishTransaction(transaction);
-            }
-
-        } else {
-            // ADD
-            errorLogs = branchGroup.addTransaction(transaction);
-        }
-
-        if (errorLogs.size() > 0) {
-            log.debug("Received sendTx error occurred : {}", errorLogs);
-            builder.setStatus(0);
-        } else {
-            builder.setStatus(1);
-        }
+        builder.setStatus(errorLogs.size() > 0 ? 0 : 1);
         builder.setTxHash(transaction.getHash().toString());
 
         Proto.Log.Builder log = Proto.Log.newBuilder();
@@ -152,12 +131,10 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
             public void onNext(Proto.Transaction protoTx) {
                 Transaction tx = new TransactionImpl(protoTx);
                 try {
-                    if (branchGroup.getBranch(tx.getBranchId()).isFullSynced()) {
-                        //TODO The broadcasted transaction should be put in pendingPool immediately.
-                        branchGroup.addTransaction(tx);
-                    } else {
-                        log.debug("BroadcastTx() is failed. Not yet fullSynced.");
-                    }
+//                    if (!branchGroup.getBranch(tx.getBranchId()).isFullSynced()) {
+//                        return;
+//                    }
+                    receiveTx(tx);
                 } catch (Exception e) {
                     log.debug("BroadcastTx() is failed. {}", e.getMessage());
                 }
@@ -175,5 +152,29 @@ public class TransactionService extends TransactionServiceGrpc.TransactionServic
                 responseObserver.onCompleted();
             }
         };
+    }
+
+
+    private Map<String, List<String>> receiveTx(Transaction tx) {
+        Map<String, List<String>> errorLogs = null;
+        if (properties != null && properties.isEnable()) {
+            // Send to Queue
+            int verifyCode = 0;
+
+            verifyCode |= BusinessError.addCode(VerifierUtils.verifyDataFormat(tx), BusinessError.INVALID_DATA_FORMAT);
+            verifyCode |= BusinessError.addCode(VerifierUtils.verifySignature(tx), BusinessError.UNTRUSTED);
+
+            // check verified
+            errorLogs = SystemError.getErrorLogsMap(verifyCode);
+            if (verifyCode == BusinessError.VALID.toValue()) {
+                // send to mq Task
+                task.publishTransaction(tx);
+            }
+
+        } else {
+            // ADD
+            errorLogs = branchGroup.addTransaction(tx);
+        }
+        return errorLogs;
     }
 }

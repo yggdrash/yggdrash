@@ -74,8 +74,8 @@ public class BlockChainManagerMock<T> implements BlockChainManager<T> {
     }
 
     @Override
-    public int getUnconfirmedTxsSize() {
-        return blockChainManager.getUnconfirmedTxsSize();
+    public int getUnconfirmedTxSize() {
+        return blockChainManager.getUnconfirmedTxSize();
     }
 
     @Override

@@ -25,6 +25,8 @@ import io.yggdrash.node.springboot.grpc.GrpcServerBuilderConfigurer;
 import io.yggdrash.node.springboot.grpc.GrpcServerRunner;
 import io.yggdrash.node.springboot.grpc.GrpcService;
 import io.yggdrash.node.springboot.grpc.context.LocalRunningGrpcPort;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -39,6 +41,9 @@ import org.springframework.context.annotation.Profile;
 @ConditionalOnBean(annotation = GrpcService.class)
 @EnableConfigurationProperties(GrpcServerProperties.class)
 public class GrpcAutoConfiguration {
+
+    private static final Logger log = LoggerFactory.getLogger(GrpcAutoConfiguration.class);
+
     @LocalRunningGrpcPort
     int runningPort;
 
@@ -47,6 +52,7 @@ public class GrpcAutoConfiguration {
 
     @Bean
     public GrpcServerRunner grpcServerRunner(GrpcServerBuilderConfigurer configurer) {
+        log.info("GrpcServerRunner " + runningPort);
         return new GrpcServerRunner(configurer,
                 ServerBuilder.forPort(runningPort));
     }

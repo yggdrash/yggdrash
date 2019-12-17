@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+// TODO REMOVE TransactionServiceStub
 public class TransactionServiceStub extends TransactionServiceGrpc.TransactionServiceImplBase {
     private static final Logger log = LoggerFactory.getLogger(TransactionServiceStub.class);
     private static final CommonProto.Empty EMPTY = CommonProto.Empty.getDefaultInstance();

@@ -8,9 +8,12 @@ import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockImpl;
+
+
 import io.yggdrash.validator.service.ValidatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -20,6 +23,7 @@ import java.util.List;
 
 import static io.yggdrash.common.config.Constants.VALIDATOR_PATH;
 
+// FOR TEST
 @Configuration
 public class ValidatorConfiguration {
 
@@ -29,6 +33,7 @@ public class ValidatorConfiguration {
 
     @Bean
     public void makeValidatorService() {
+        log.info("makeValidator Service init");
         File validatorPath = new File(new DefaultConfig().getString(VALIDATOR_PATH));
         if (!validatorPath.exists() || validatorPath.listFiles() == null) {
             throw new FailedOperationException("Can't read validatorPath=" + validatorPath.getAbsolutePath());
@@ -47,7 +52,8 @@ public class ValidatorConfiguration {
                 Block genesisBlock = new BlockImpl(JsonUtil.parseJsonObject(genesisString));
                 log.debug("{}", genesisBlock.getBranchId());
 
-                validatorServiceList.add(new ValidatorService(validatorConfig, genesisBlock));
+                ValidatorService service = new ValidatorService(validatorConfig, genesisBlock);
+                validatorServiceList.add(service);
             }
         } catch (Exception e) {
             log.error("Validator configuration is not valid. {}", validatorPath.getAbsolutePath());

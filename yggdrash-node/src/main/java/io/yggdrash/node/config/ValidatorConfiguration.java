@@ -7,6 +7,7 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.Constants.ActiveProfiles;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
@@ -16,6 +17,7 @@ import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.store.BlockChainStore;
 import io.yggdrash.core.store.BlockChainStoreBuilder;
 import io.yggdrash.node.RabbitMQTask;
+import io.yggdrash.node.service.TransactionService;
 import io.yggdrash.node.service.ValidatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,11 +45,15 @@ public class ValidatorConfiguration {
     @Autowired(required = false)
     SystemProperties systemProperties;
 
-    @Autowired(required = false)
-    private RabbitMQProperties properties;
+    private final BranchGroup branchGroup;
 
-    @Autowired(required=false)
-    private RabbitMQTask task;
+    @Autowired
+    private TransactionService txService;
+
+    @Autowired
+    public ValidatorConfiguration(BranchGroup branchGroup) {
+        this.branchGroup = branchGroup;
+    }
 
     @Bean
     public Map<BranchId, List<ValidatorService>> validatorServiceMap(BranchLoader branchLoader,
@@ -122,9 +128,11 @@ public class ValidatorConfiguration {
                         genesis, blockChainStore, branchId, systemProperties);
                 blockChain.getContractManager().setNodeStatus(nodeStatus);
 
-
+                branchGroup.addBranch(blockChain);
+                //TransactionService txService = new TransactionService(branchGroup);
+                ValidatorService service = new ValidatorService(mergedConfig, blockChain, txService);
                 // TODO add task to Validator Service
-                validatorServiceList.add(new ValidatorService(mergedConfig, blockChain));
+                validatorServiceList.add(service);
             } catch (Exception e) {
                 log.warn("loadValidatorService() is failed. conf={}, err={}", validatorServicePath, e.getMessage());
             }

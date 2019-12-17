@@ -22,10 +22,10 @@ import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
-
 import java.io.File;
 import java.io.IOException;
 
+// TODO remove This
 public class ValidatorService {
 
     private final DefaultConfig defaultConfig;

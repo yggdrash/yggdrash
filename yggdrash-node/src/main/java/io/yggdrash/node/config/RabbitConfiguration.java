@@ -24,9 +24,6 @@ public class RabbitConfiguration {
 
     private final RabbitMQProperties rabbitMQProperties;
 
-    private Connection connection;
-    private Channel channel;
-
     @Autowired
     RabbitConfiguration(RabbitMQProperties rabbitMQProperties) {
         this.rabbitMQProperties = rabbitMQProperties;

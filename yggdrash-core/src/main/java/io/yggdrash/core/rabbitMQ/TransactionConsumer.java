@@ -5,14 +5,12 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
 import io.yggdrash.core.blockchain.BlockChainManager;
-import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 
 public class TransactionConsumer extends DefaultConsumer {
@@ -32,7 +30,6 @@ public class TransactionConsumer extends DefaultConsumer {
         super(channel);
         this.branchGroup = branchGroup;
         this.qos = qos;
-        log.info("init Channel limit" +  qos);
     }
 
     public TransactionConsumer(Channel channel, BranchGroup branchGroup) {
@@ -62,7 +59,7 @@ public class TransactionConsumer extends DefaultConsumer {
             this.getChannel().basicAck(deliveryTag, true);
         } else {
             int unconfirmedTxSize = manager.getUnconfirmedTxSize();
-            log.info("UnconfirmedTxSize Tx Size " + unconfirmedTxSize);
+            log.debug("UnconfirmedTxSize Tx Size " + unconfirmedTxSize);
             // qos > 0 is limit unconfirmedTxSize
             if (unconfirmedTxSize < qos) {
                 branchGroup.addTransaction(tx);

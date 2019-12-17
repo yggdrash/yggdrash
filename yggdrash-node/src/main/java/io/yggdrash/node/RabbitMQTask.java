@@ -35,7 +35,7 @@ public class RabbitMQTask {
         try {
             channel.queueDeclare(properties.getQueueName(), false, false, false, null);
             // Channel share
-            channel.basicQos(100, true);
+            channel.basicQos(100, false);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -45,10 +45,10 @@ public class RabbitMQTask {
     private void transactionConsumer() {
         try {
             if (properties.isEnable()) {
-                log.info("transactionConsumer");
+                log.trace("transactionConsumer");
                 TransactionConsumer consumer = new TransactionConsumer(channel, branchGroup, properties.getLimit());
                 channel.basicConsume(properties.getQueueName(), false, consumer);
-                log.info("Queue remain " + channel.messageCount(properties.getQueueName()));
+                log.trace("Queue remain " + channel.messageCount(properties.getQueueName()));
             }
         } catch (Exception e) {
             e.printStackTrace();
