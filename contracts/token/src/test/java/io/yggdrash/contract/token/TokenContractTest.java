@@ -116,6 +116,7 @@ public class TokenContractTest {
 
     @After
     public void tearDown() throws Exception {
+
     }
 
     @Test
@@ -127,7 +128,7 @@ public class TokenContractTest {
     }
 
     @Test
-    public void _createToken() {
+    public void createToken() {
         // INSUFFICIENT YEED BALANCE TO STAKE
         Receipt tx = new ReceiptImpl("0x00", 300L, TEST_OWNER);
         this.adapter.setReceipt(tx);
@@ -445,12 +446,12 @@ public class TokenContractTest {
         BigInteger result = tokenContract.getYeedBalanceOf(params);
         Assert.assertEquals(
                 "The result should match with current YEED stake",
-                0, result.compareTo(new BigInteger("999899900000000000000000")));
+                0, result.compareTo(new BigInteger("999899800000000000000000")));
     }
 
     @Test
     public void movePhaseRun() {
-        _createToken();
+        createToken();
 
         // NONE_TOKEN
         Receipt tx = new ReceiptImpl("0x02", 300L, TEST_OWNER);
@@ -513,7 +514,7 @@ public class TokenContractTest {
 
     @Test
     public void movePhasePause() {
-        _createToken();
+        createToken();
 
         // NONE_TOKEN
         Receipt tx = new ReceiptImpl("0x02", 300L, TEST_OWNER);
@@ -567,7 +568,7 @@ public class TokenContractTest {
 
     @Test
     public void movePhaseStop() {
-        _createToken();
+        createToken();
 
         // NONE_TOKEN
         Receipt tx = new ReceiptImpl("0x02", 300L, TEST_OWNER);
@@ -638,7 +639,7 @@ public class TokenContractTest {
 
     @Test
     public void destroyToken() {
-        _createToken();
+        createToken();
 
         // NONE_TOKEN
         Receipt tx = new ReceiptImpl("0x02", 300L, TEST_OWNER);
@@ -726,7 +727,7 @@ public class TokenContractTest {
 
     @Test
     public void transfer() {
-        _createToken();
+        createToken();
 
         // NONE_TOKEN
         Receipt tx = new ReceiptImpl("0x02", 300L, TEST_OWNER);
@@ -825,7 +826,7 @@ public class TokenContractTest {
 
     @Test
     public void approve() {
-        _createToken();
+        createToken();
 
         // NONEXISTENT TOKEN
         Receipt tx = new ReceiptImpl("0x02", 300L, TEST_OWNER);
@@ -883,7 +884,7 @@ public class TokenContractTest {
 
     @Test
     public void transferFrom() {
-        _createToken();
+        createToken();
 
         // NONEXISTENT
         Receipt tx = new ReceiptImpl("0x02", 300L, TEST_ACCOUNT1);
@@ -991,7 +992,7 @@ public class TokenContractTest {
 
     @Test
     public void mint() {
-        _createToken();
+        createToken();
 
         // NONEXISTENT TOKEN
         Receipt tx = new ReceiptImpl("0x02", 300L, TEST_OWNER);
@@ -1086,7 +1087,7 @@ public class TokenContractTest {
 
     @Test
     public void burn() {
-        _createToken();
+        createToken();
 
         // NONEXISTENT TOKEN
         Receipt tx = new ReceiptImpl("0x02", 300L, TEST_OWNER);
@@ -1189,7 +1190,7 @@ public class TokenContractTest {
         Assert.assertFalse("Token creation at negative exchange rate should be failed", tx.isSuccess());
 
         // CREATE TOKEN NORMAL
-        _createToken();
+        createToken();
 
         // NONEXISTENT TOKEN
         tx = new ReceiptImpl("0x02", 300L, TEST_OWNER);
@@ -1348,7 +1349,7 @@ public class TokenContractTest {
 
     @Test
     public void exchangeY2T() {
-        _createToken();
+        createToken();
 
         // NONEXISTENT TOKEN
         Receipt tx = new ReceiptImpl("0x02", 300L, TEST_OWNER);
@@ -1642,7 +1643,7 @@ public class TokenContractTest {
         Assert.assertFalse("Exchange from nonexistent token should be failed", tx.isSuccess());
 
         //     create token
-        _createToken();
+        createToken();
 
         // NOT RUNNING
         tx = new ReceiptImpl("0x04", 300L, TEST_ACCOUNT1);
@@ -1844,7 +1845,7 @@ public class TokenContractTest {
     }
 
     private Receipt _testInit() {
-        _createToken();
+        createToken();
 
         String owner = TEST_OWNER;
         Receipt tx = new ReceiptImpl("0x02", 300L, owner);
