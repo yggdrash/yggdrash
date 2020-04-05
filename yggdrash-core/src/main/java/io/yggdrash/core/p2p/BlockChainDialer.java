@@ -63,8 +63,8 @@ public class BlockChainDialer implements PeerDialer {
 
     @Override
     public long healthCheck(BranchId branchId, Peer owner, Peer to) {
-        BlockChainHandler peerHandler = getPeerHandler(branchId, to);
         try {
+            BlockChainHandler peerHandler = getPeerHandler(branchId, to);
             long peerBlockIndex = peerHandler.pingPong(branchId, owner, "Ping");
             if (peerBlockIndex >= 0) {
                 return peerBlockIndex;
