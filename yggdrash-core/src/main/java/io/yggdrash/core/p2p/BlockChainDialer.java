@@ -117,8 +117,12 @@ public class BlockChainDialer implements PeerDialer {
         }
         List<BlockChainHandler> handlerList = new ArrayList<>();
         for (Peer peer : peerList) {
-            BlockChainHandler handler = getPeerHandler(branchId, peer);
-            handlerList.add(handler);
+            try {
+                BlockChainHandler handler = getPeerHandler(branchId, peer);
+                handlerList.add(handler);
+            }catch (Exception e) {
+                log.trace("handler is null ", peer.toAddress());
+            }
         }
         return handlerList;
     }
